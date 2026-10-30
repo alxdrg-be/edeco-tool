@@ -13,8 +13,10 @@ sie werden zur Laufzeit weder gewechselt noch heruntergeladen.
   als ASGI-Unteranwendung bereit. Die Oberfläche wird unter
   `/tools/bim2steiger/` im gemeinsamen Fenster eingebettet; ein zweiter Prozess
   oder Server ist nicht erforderlich.
-- Berechnungen, Blitzschutz und Dateien umbenennen sind geplante Werkzeuge;
+- Dateien umbenennen, PDF-Werkzeuge, Projektzentrale, Änderungsbericht,
+  Leistungsbilanz, Kabelberechnung und Anlagetool sind geplante Werkzeuge;
   die Kacheln sind deaktiviert und enthalten noch keine Fachfunktionen.
+  Umfang und Prioritäten stehen im [Ausbauplan](TOOLBOX_AUSBAUPLAN.md).
 
 ## Frontend
 
@@ -30,8 +32,9 @@ sie werden zur Laufzeit weder gewechselt noch heruntergeladen.
    Schaltflächen-, Formular- und Dialogstile verwenden. Kennfarben ändern nur die
    Oberfläche, niemals CAD-Symbolfarben oder Exportdaten.
 
-Petrol steht für Nova, Blau für BIM, Violett für Berechnungen, Orange für
-Blitzschutz und Grün für Dateien. Die Startseite setzt `data-tool-color` am
+Petrol steht für Nova und die Projektzentrale, Blau für BIM und Kabelberechnung,
+Violett für die Leistungsbilanz, Orange für Änderungsberichte, Rosé für PDF und
+Grün für Dateien und Anlagen. Die Startseite setzt `data-tool-color` am
 Dokument für das aktive Werkzeug; weitere Module können darüber ihre Akzente
 mit denselben gemeinsamen Designvariablen festlegen.
 
@@ -55,6 +58,10 @@ Für neue Daten eigene Unterordner verwenden, damit sich Module nicht überschre
 `.venv/bin/python -m pytest backend/tests -q`. Für Browser-Tests zusätzlich
 `backend/requirements-browser-tests.txt` installieren und Chromium bereitstellen.
 Die Browser-Tests decken auch den Wechsel zur Toolbox und Speicherfehler ab.
+Bei Änderungen am Katalog die erwartete Kachelzahl im nativen Fenstercheck
+(`backend/edeco_toolbox/__main__.py` und `.github/workflows/build-windows.yml`)
+sowie im Browser-Layouttest anpassen. Der Layouttest prüft auch die Sichtbarkeit
+aller Kacheln ohne Scrollen bei 1400 × 900 und das Scrollen in kleinen Fenstern.
 
 Der gemeinsame Windows-Build verwendet `packaging/edeco_toolbox.spec` und
 `packaging/toolbox-setup.iss`. Er besitzt eine eigene Installer-ID und ersetzt

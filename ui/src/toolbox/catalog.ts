@@ -9,18 +9,26 @@ export interface ToolInfo {
   developmentStatus?: "in-progress";
 }
 
-/** Add metadata here and a matching component loader in modules.ts. */
+/** Planned tools need metadata only; register a loader when their implementation is ready. */
 export const TOOLS: readonly ToolInfo[] = [
   { id: "nova-legenden", title: "NOVA-Legenden", category: "Elektroplanung", symbol: "NL", color: "petrol",
     description: "Pläne importieren, Symbole zuordnen und elektrische Legenden erstellen.", status: "available", developmentStatus: "in-progress" },
   { id: "bim2steiger", title: "BIM2STEIGER", category: "BIM", symbol: "B2S", color: "blue",
     description: "Steiger-Katalog durchsuchen, BIM-Objekte zuordnen und Ausschreibungen erstellen.", status: "available", developmentStatus: "in-progress" },
-  { id: "berechnungen", title: "Berechnungstool", category: "Elektroplanung", symbol: "∑", color: "violet",
-    description: "Platz für kommende Berechnungen in der Elektroplanung.", status: "planned" },
-  { id: "blitzschutz", title: "Blitzschutz", category: "Elektroplanung", symbol: "ϟ", color: "orange",
-    description: "Ein eigener Arbeitsbereich für zukünftige Blitzschutz-Werkzeuge.", status: "planned" },
   { id: "dateien-umbenennen", title: "Dateien umbenennen", category: "Dateien", symbol: "Aa", color: "green",
-    description: "Dateinamen künftig nach gemeinsamen Regeln bearbeiten.", status: "planned" },
+    description: "Geplant: Dateien nach Regeln umbenennen, Änderungen vorher prüfen und rückgängig machen.", status: "planned" },
+  { id: "pdf-werkzeuge", title: "PDF-Werkzeuge", category: "Dateien", symbol: "PDF", color: "rose",
+    description: "Geplant: PDF-Dateien zusammenführen, Seiten trennen, drehen und neu anordnen.", status: "planned" },
+  { id: "projektzentrale", title: "Projektzentrale", category: "Projekte", symbol: "P", color: "petrol",
+    description: "Geplant: Projektdaten, Kontakte, Ordner und zuletzt verwendete Dokumente gemeinsam verwalten.", status: "planned" },
+  { id: "aenderungsbericht", title: "Änderungsbericht", category: "Projekte", symbol: "Δ", color: "orange",
+    description: "Geplant: Projektstände vergleichen und Änderungen für einen Bericht nach PDF oder Excel exportieren.", status: "planned" },
+  { id: "leistungsbilanz", title: "Leistungsbilanz", category: "Elektroplanung", symbol: "kW", color: "violet",
+    description: "Geplant: Verbraucher erfassen, Leistungen mit Gleichzeitigkeitsfaktoren je Verteilung zusammenstellen.", status: "planned" },
+  { id: "kabelberechnung", title: "Kabelberechnung", category: "Elektroplanung", symbol: "mm²", color: "blue",
+    description: "Geplant: Leitungsquerschnitt, Spannungsfall und Verlegebedingungen mit nachvollziehbaren Grundlagen prüfen.", status: "planned" },
+  { id: "anlagetool", title: "Anlagetool", category: "Elektroplanung", symbol: "A", color: "green",
+    description: "Geplant: Anlagen, Verteilungen und Stromkreise strukturiert erfassen und dokumentieren.", status: "planned" },
 ];
 
 export function filterTools(query: string, category: string): readonly ToolInfo[] {

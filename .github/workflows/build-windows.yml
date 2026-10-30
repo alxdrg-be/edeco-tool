@@ -107,7 +107,7 @@ jobs:
             throw 'Nativer Fensterstart fehlgeschlagen'
           }
           $report = Get-Content "$env:EDECO_TOOLBOX_HOME\desktop-smoke.json" -Raw | ConvertFrom-Json
-          if (-not $report.ok -or $report.tool_count -ne 5) { throw 'Toolbox wurde im Programmfenster nicht gerendert' }
+          if (-not $report.ok -or $report.tool_count -ne 9) { throw 'Toolbox wurde im Programmfenster nicht gerendert' }
       - name: Installer bauen
         shell: pwsh
         run: |

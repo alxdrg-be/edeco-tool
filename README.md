@@ -9,14 +9,21 @@ farbige Werkzeugkacheln, Suche, Kategorien und Hell-/Dunkelmodus.
 | --- | --- | --- |
 | NOVA-Legenden | Nutzbar, Work in progress | Petrol |
 | BIM2STEIGER | Nutzbar, Work in progress; lokaler Katalog integriert | Blau |
-| Berechnungstool | Geplant | Violett |
-| Blitzschutz | Geplant | Orange |
 | Dateien umbenennen | Geplant | Grün |
+| PDF-Werkzeuge | Geplant | Rosé |
+| Projektzentrale | Geplant | Petrol |
+| Änderungsbericht | Geplant | Orange |
+| Leistungsbilanz | Geplant | Violett |
+| Kabelberechnung | Geplant | Blau |
+| Anlagetool | Geplant | Grün |
 
 BIM2STEIGER verwendet seinen vorhandenen Katalog mit 11’777 Katalogartikeln,
 Originalbildern, Favoriten, Modellimport und Ausschreibungen. Es läuft unter
 `/tools/bim2steiger/` im selben lokalen Server und Desktopfenster wie Nova.
-Die weiteren Fachwerkzeuge sind noch nicht implementiert.
+Die sieben geplanten Erweiterungen sind als ausgegraute, deaktivierte Kacheln
+vorbereitet. Alle neun Werkzeuge sind im normalen Desktopfenster (1400 × 900)
+ohne Scrollen sichtbar; kleinere Fenster können scrollen. Umfang und Reihenfolge
+der Erweiterungen stehen im [Ausbauplan](docs/TOOLBOX_AUSBAUPLAN.md).
 
 Die gemeinsame Anwendung liegt auf `main`. Die Branches `Nova-Legenden` und
 `BIM2STEIGER` enthalten die ursprünglichen Programme; `toolbox` hält den bisherigen

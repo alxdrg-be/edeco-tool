@@ -1,3 +1,10 @@
+## edeco Toolbox 0.2.2
+
+- Sieben Erweiterungen als geplante Kacheln vorbereitet: Dateien umbenennen, PDF-Werkzeuge, Projektzentrale, Änderungsbericht, Leistungsbilanz, Kabelberechnung und Anlagetool.
+- Die neuen Bereiche bleiben bis zur Umsetzung ausgegraut und deaktiviert. NOVA-Legenden und BIM2STEIGER bleiben zugänglich.
+- Kompaktere Startseite: alle neun Kacheln im normalen Desktopfenster ohne Scrollen; kleinere Fenster bleiben scrollbar.
+- Ausbauplan mit vorgesehenen Funktionen, Reihenfolge und gemeinsamen Integrationsregeln ergänzt. Bestehende Electrosuisse-Werkzeuge sollen vor der Umsetzung eigener Berechnungen berücksichtigt werden.
+
 ## edeco Toolbox 0.2.1
 
 - Windows-Startkorrektur für .NET-DLLs, die beim Entpacken einer heruntergeladenen ZIP eine Download-Markierung erhalten.

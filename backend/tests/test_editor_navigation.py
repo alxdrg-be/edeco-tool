@@ -121,9 +121,9 @@ def test_returning_to_toolbox_saves_the_open_legend_and_filters_tools(editor):
     assert title(client, pid) == "Aus der Toolbox gespeichert"
     playwright.expect(page.get_by_role("button", name="BIM2STEIGER öffnen")).to_be_enabled()
     search = page.get_by_role("searchbox", name="Werkzeug suchen")
-    search.fill("blitz")
+    search.fill("PDF Seiten")
     playwright.expect(page.locator(".toolbox-card")).to_have_count(1)
-    playwright.expect(page.get_by_role("heading", name="Blitzschutz", exact=True)).to_be_visible()
+    playwright.expect(page.get_by_role("heading", name="PDF-Werkzeuge", exact=True)).to_be_visible()
     search.fill("unbekanntes-tool")
     page.get_by_role("button", name="Filter zurücksetzen").click()
     page.get_by_role("button", name="BIM", exact=True).click()
@@ -209,13 +209,28 @@ def test_toolbox_shows_all_tiles_without_scroll_and_greys_only_planned_tools(edi
     page, _, _, _ = editor
     page.set_viewport_size({"width": 1400, "height": 900})
     page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
-    playwright.expect(page.locator(".toolbox-card")).to_have_count(5)
+    playwright.expect(page.locator(".toolbox-card")).to_have_count(9)
     assert page.locator(".toolbox").evaluate("el => el.scrollHeight <= el.clientHeight")
+    # A 900px native window also needs space for its Windows title bar.
+    page.set_viewport_size({"width": 1400, "height": 860})
+    assert page.locator(".toolbox").evaluate("el => el.scrollHeight <= el.clientHeight")
+    planned = ["Dateien umbenennen", "PDF-Werkzeuge", "Projektzentrale", "Änderungsbericht",
+               "Leistungsbilanz", "Kabelberechnung", "Anlagetool"]
+    for name in planned:
+        tile = page.locator(".toolbox-card").filter(has=page.get_by_role("heading", name=name, exact=True))
+        playwright.expect(tile).to_be_visible()
+        playwright.expect(tile.locator(".toolbox-badge")).to_have_text("Geplant")
+    playwright.expect(page.get_by_role("heading", name="Blitzschutz", exact=True)).to_have_count(0)
     for tile in page.locator(".toolbox-card:not(.is-available)").all():
         playwright.expect(tile.get_by_role("button")).to_be_disabled()
         assert tile.locator(".toolbox-symbol").evaluate("el => getComputedStyle(el).filter") == "grayscale(1)"
     playwright.expect(page.get_by_role("button", name="NOVA-Legenden öffnen", exact=True)).to_be_enabled()
     playwright.expect(page.get_by_role("button", name="BIM2STEIGER öffnen", exact=True)).to_be_enabled()
+    page.set_viewport_size({"width": 390, "height": 844})
+    assert page.locator(".toolbox").evaluate("el => el.scrollWidth <= el.clientWidth")
+    assert page.locator(".toolbox").evaluate("el => el.scrollHeight > el.clientHeight")
+    page.get_by_role("heading", name="Anlagetool", exact=True).scroll_into_view_if_needed()
+    playwright.expect(page.get_by_role("heading", name="Anlagetool", exact=True)).to_be_in_viewport()
 
 
 def test_common_updater_checks_and_requires_confirmation_before_install(editor):
