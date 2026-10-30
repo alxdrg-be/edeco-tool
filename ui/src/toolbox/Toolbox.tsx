@@ -95,12 +95,14 @@ export default function Toolbox() {
       <div className="toolbox-grid">
         {tools.map(tool => {
           const available = tool.status === "available" && Boolean(MODULES[tool.id]);
+          const inProgress = tool.developmentStatus === "in-progress";
           return <article className={`toolbox-card tool-color-${tool.color} ${available ? "is-available" : ""}`} key={tool.id}>
             <button className="toolbox-tile" disabled={!available} title={tool.description}
               aria-label={available ? `${tool.title} öffnen` : `${tool.title}: noch nicht verfügbar`}
+              aria-description={inProgress ? "Work in progress; kann bereits verwendet werden." : undefined}
               onClick={() => { if (available) setActive(tool.id); }}>
-              <span className={`toolbox-badge ${available ? "is-ready" : ""}`}>
-                {available ? "Bereit" : tool.status === "awaiting-source" ? "In Vorbereitung" : "Geplant"}
+              <span className={`toolbox-badge ${inProgress ? "is-in-progress" : available ? "is-ready" : ""}`}>
+                {inProgress ? "Work in progress" : available ? "Bereit" : tool.status === "awaiting-source" ? "In Vorbereitung" : "Geplant"}
               </span>
               <span className="toolbox-symbol"><ToolIcon id={tool.id} /></span>
               <h2>{tool.title}</h2>

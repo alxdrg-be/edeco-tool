@@ -7,8 +7,8 @@ farbige Werkzeugkacheln, Suche, Kategorien und Hell-/Dunkelmodus.
 
 | Werkzeug | Stand | Kennfarbe |
 | --- | --- | --- |
-| NOVA-Legenden | Integriert | Petrol |
-| BIM2STEIGER | Integriert, inklusive lokalem Katalog | Blau |
+| NOVA-Legenden | Nutzbar, Work in progress | Petrol |
+| BIM2STEIGER | Nutzbar, Work in progress; lokaler Katalog integriert | Blau |
 | Berechnungstool | Geplant | Violett |
 | Blitzschutz | Geplant | Orange |
 | Dateien umbenennen | Geplant | Grün |

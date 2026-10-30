@@ -6,14 +6,15 @@ export interface ToolInfo {
   symbol: string;
   color: string;
   status: "available" | "awaiting-source" | "planned";
+  developmentStatus?: "in-progress";
 }
 
 /** Add metadata here and a matching component loader in modules.ts. */
 export const TOOLS: readonly ToolInfo[] = [
   { id: "nova-legenden", title: "NOVA-Legenden", category: "Elektroplanung", symbol: "NL", color: "petrol",
-    description: "Pläne importieren, Symbole zuordnen und elektrische Legenden erstellen.", status: "available" },
+    description: "Pläne importieren, Symbole zuordnen und elektrische Legenden erstellen.", status: "available", developmentStatus: "in-progress" },
   { id: "bim2steiger", title: "BIM2STEIGER", category: "BIM", symbol: "B2S", color: "blue",
-    description: "Steiger-Katalog durchsuchen, BIM-Objekte zuordnen und Ausschreibungen erstellen.", status: "available" },
+    description: "Steiger-Katalog durchsuchen, BIM-Objekte zuordnen und Ausschreibungen erstellen.", status: "available", developmentStatus: "in-progress" },
   { id: "berechnungen", title: "Berechnungstool", category: "Elektroplanung", symbol: "∑", color: "violet",
     description: "Platz für kommende Berechnungen in der Elektroplanung.", status: "planned" },
   { id: "blitzschutz", title: "Blitzschutz", category: "Elektroplanung", symbol: "ϟ", color: "orange",

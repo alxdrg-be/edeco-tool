@@ -39,6 +39,7 @@
 .toolbox-category { color: var(--muted); font-size: 11px; }
 .toolbox-badge { position: absolute; top: 13px; right: 13px; padding: 3px 7px; border-radius: 5px; font-size: 9px; font-weight: 550; color: var(--muted); background: var(--panel-sunken); }
 .toolbox-badge.is-ready { background: var(--tool-tint); color: var(--tool-deep); }
+.toolbox-badge.is-in-progress { color: var(--warn); background: var(--panel-sunken); }
 .toolbox-badge.is-ready::before { content: ""; display: inline-block; width: 5px; height: 5px; border-radius: 50%; background: currentColor; margin-right: 4px; vertical-align: 1px; }
 .toolbox-tile-action { margin-top: 20px; color: var(--muted); font-size: 10px; }
 .is-available .toolbox-tile-action { color: var(--tool); font-weight: 650; }
