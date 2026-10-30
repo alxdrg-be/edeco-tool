@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+data/*.build.sqlite
+data/*.rebuild.sqlite
+.work/
+.env
+.env.*
+!.env.example
+*.log
+
+# Lizenzierte Katalogdaten nur zur Sichtung, nicht versionieren
+eingang/steiger-eb22/**
+!eingang/steiger-eb22/.gitkeep
+!eingang/steiger-eb22/HINWEIS.txt
