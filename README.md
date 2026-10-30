@@ -1,88 +1,66 @@
-# NOVA-Legenden
+# edeco Toolbox
 
-Windows-Programm, das aus Trimble-Nova-Elektroplänen die Legende der Apparate erzeugt.
+Gemeinsame, erweiterbare Desktopanwendung für die Elektroplanung: edeco-Logo,
+farbige Werkzeugkacheln, Suche, Kategorien und Hell-/Dunkelmodus.
 
-Stand: **Phase 3 (Änderungen zwischen Importen)**. Das Programm zeigt alle Symbole aus den Nova-Datensätzen, ordnet sie Kategorien zu (für die ganze Firma) und liest Pläne (DXF, N4D, DWG) pro Geschoss in Projekte ein. Die Gesamtliste zeigt alle Apparate mit einer Spalte pro Geschoss. Ein erneuter Import desselben Geschosses zeigt, was neu ist, was fehlt und wo sich die Anzahl geändert hat.
+## Werkzeuge
 
-Berichte: [Phase 0](docs/PHASE0_BERICHT.md) · [Phase 1](docs/PHASE1.md) · [Phase 2](docs/PHASE2.md) · [Phase 3](docs/PHASE3.md)
+| Werkzeug | Stand | Kennfarbe |
+| --- | --- | --- |
+| NOVA-Legenden | Integriert | Petrol |
+| BIM2STEIGER | Quellcode-Import ausstehend | Blau |
+| Berechnungstool | Geplant | Violett |
+| Blitzschutz | Geplant | Orange |
+| Dateien umbenennen | Geplant | Grün |
 
-Oberfläche: [edeco-Design, Bedienung und anpassbare Designvariablen](docs/UI_REDESIGN.md). Die Programmoberfläche und ihre Hell-/Dunkelmodi verändern die Symbolfarben der Legende und den DXF-Export nicht.
+Die BIM2STEIGER-ZIP überschreitet die Importgrenze von 32 MiB. Für die Integration
+wird eine kleinere Quellcode-ZIP ohne `node_modules`, `.venv`, `dist` und `build`
+benötigt. Die weiteren Fachwerkzeuge sind noch nicht implementiert.
 
-## Installation für die Firma
+Der Branch `Nova-Legenden` enthält den ursprünglichen ZIP-Import. Der Branch
+`toolbox` enthält die gemeinsame Anwendung; `main` bleibt vorerst unverändert.
+Branches sind Entwicklungsstände, keine zur Laufzeit geladenen Plugins.
 
-1. `NOVA-Legenden-Setup-<Version>.exe` doppelklicken.
-2. Weiter, Fertig. Adminrechte sind nicht nötig. Das Programm landet im Benutzerprofil, auf dem Desktop erscheint ein Symbol.
-3. Beim ersten Start sucht das Programm die Nova-Datensätze selbst. Findet es sie nicht, trägst du den Pfad unter **Einstellungen** ein.
-4. Unter **Einstellungen → Firmenordner** tragen alle denselben Ordner ein, zum Beispiel `T:\_CAD\NOVA-Legenden`. Dort liegen die gemeinsamen Kategorien.
+## Aus dem Quellcode starten
 
-Hinweis: Das Setup ist noch nicht digital signiert. Windows zeigt beim ersten Start «Der Computer wurde durch Windows geschützt». Klicke auf «Weitere Informationen» und «Trotzdem ausführen», oder lass die Datei von der IT freigeben.
+Voraussetzungen: Python ab 3.11, Node.js ab 22.18 (oder ab 24).
 
-DWG-Dateien brauchen zusätzlich den kostenlosen ODA File Converter. DXF und N4D funktionieren ohne.
+**Windows:** `start.bat` doppelklicken. Die erste Ausführung installiert die
+Abhängigkeiten und baut die Oberfläche. `start.bat --browser` öffnet den Browser.
+Nach Quellcode- oder Abhängigkeitsänderungen `setup.bat` erneut ausführen.
 
-### Woher kommt das Setup?
+**Linux/macOS:** `bash setup.sh`, danach `bash start.sh --browser`.
+Nur den lokalen Server starten: `bash start.sh --server --port 8765`.
+Der Server lauscht ausschließlich auf `127.0.0.1`.
 
-GitHub baut es bei jeder Änderung automatisch und legt es unter **Releases** ab:
-https://github.com/Dobolino/NOVA-Legenden-Tool/releases/latest → unter «Assets» `NOVA-Legenden-Setup-<Version>.exe` anklicken.
+NOVA-Legenden verwendet weiterhin seine bestehenden Datenpfade. Für eine
+isolierte Testumgebung `NOVA_LEGENDEN_HOME` auf einen eigenen Ordner setzen.
+Die gemeinsame Toolbox-Oberfläche startet mit `python -m edeco_toolbox`
+(bei gesetztem `PYTHONPATH=backend`).
 
-## Start aus dem Quellcode (Entwicklung)
+## Entwicklung und Tests
 
-Voraussetzungen: Python 3.11 und Node.js 22.
-
-```
-start.bat
-```
-
-Der erste Start richtet alles ein und dauert einige Minuten. Danach öffnet sich das Programmfenster.
-
-Nur im Browser: `start.bat --browser`
-
-## Tests
-
-```
-.venv\Scripts\activate
-python -m pytest backend\tests -q
-```
-
-Tests mit echten Nova-Dateien laufen nur, wenn der Ordner `samples` die Beispieldateien enthält. Dieser Ordner und alle Ausgaben stehen in `.gitignore`. So landen keine Trimble- oder Firmendaten im Repository.
-
-Frontend- und Browser-Regressionstests:
-
-```
+```sh
+.venv/bin/python -m pytest backend/tests -q
 cd ui
-npm ci
 npm test
 npm run build
-cd ..
-python -m pip install -r backend/requirements-browser-tests.txt
-python -m playwright install chromium
-python -m pytest backend/tests/test_editor_navigation.py -q
 ```
 
-Die Browsertests verwenden temporäre Projekte und eine eigene lokale API. Sie prüfen sofortige Projekt- und Reiterwechsel, Speicherfehler mit erneutem Versuch, laufende Autosaves und das Duplizieren mit ausstehenden Änderungen. Ohne das optionale Playwright-Paket oder den UI-Build werden sie übersprungen; der Windows-Build installiert beides und führt sie mit den übrigen Backendtests aus. Für ein vorhandenes Chromium kann `NOVA_TEST_CHROMIUM` auf den ausführbaren Dateipfad gesetzt werden.
+Browser-Tests benötigen zusätzlich `backend/requirements-browser-tests.txt` und
+Chromium (`python -m playwright install chromium` oder `NOVA_TEST_CHROMIUM`
+auf einen vorhandenen Browser setzen). Tests mit echten Nova-Beispieldateien
+werden ohne den lokalen Ordner `samples` übersprungen.
 
-## Phase-0-Analyse erneut ausführen
+Frontend mit automatischem Neuladen: Im Ordner `ui` `npm run dev` starten;
+parallel den Python-Server mit `bash start.sh --server --port 8765` ausführen.
 
-```
-set PYTHONPATH=backend
-python -m nova_legend.analysis.phase0 --samples samples --out output\phase0
-```
+Weitere Module: [Toolbox erweitern](docs/TOOLBOX_ERWEITERN.md).
+Nova-Funktionen: [ursprüngliche Dokumentation](docs/NOVA_LEGENDEN.md).
 
-## Aufbau
+## Windows-Installer
 
-```
-backend/nova_legend/
-  __main__.py  Programmstart (Server + Fenster)
-  config.py    Einstellungen, Datenordner, Suche nach Datensätzen
-  api/         REST-Schnittstelle (FastAPI) für die Oberfläche
-  parser/      Nova-Datensatz (.nzp): Baumformat, Geometrie, Symbolkatalog
-  library/     Bibliotheks-Cache (SQLite) und Symbolfamilien
-  categories/  Kategorien und Zuordnungen der Firma (edeco ag-Legenden-firma.sqlite)
-  importer/    Plan-Import DXF, DWG (ODA), N4D und Erkennung
-  matcher/     Vorschläge für unbekannte Elemente
-  projects/    Projekte (Ordner pro Projekt, projekt.nlproj) und Gesamtliste
-  n4d/         N4D-Analyse (nur Lesen)
-  render/      SVG-Ausgabe der Symbole
-  analysis/    Phase-0-Skripte
-ui/            Oberfläche (React, TypeScript)
-packaging/     exe (PyInstaller) und Setup (Inno Setup)
-```
+Der Workflow **Toolbox: Windows-Setup bauen** baut ein gemeinsames Windows-Paket
+und stellt es als GitHub-Actions-Artefakt bereit. Er veröffentlicht kein Release.
+Die Windows-EXE und das Setup werden erst in diesem Windows-Workflow erzeugt;
+sie sind kein Bestandteil des Quellcode-Imports.

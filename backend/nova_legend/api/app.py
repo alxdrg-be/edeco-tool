@@ -131,7 +131,8 @@ def lineage(cat_id: str, parents: dict) -> list[str]:
     return out
 
 
-def create_app(state: AppState | None = None, ui_dir: Path | None = None) -> FastAPI:
+def create_app(state: AppState | None = None, ui_dir: Path | None = None, *,
+               serve_ui: bool = True, updates_enabled: bool = True) -> FastAPI:
     app = FastAPI(title="NOVA-Legenden", version=config.APP_VERSION)
     st = state or AppState()
     app.state.nova = st
@@ -236,10 +237,17 @@ def create_app(state: AppState | None = None, ui_dir: Path | None = None) -> Fas
 
     @app.get("/api/update/check")
     def update_check() -> dict:
+        if not updates_enabled:
+            return updater.UpdateInfo(
+                current=updater.current_label(), latest="", available=False, can_install=False,
+                message="Die Toolbox wird als gemeinsames Programm aktualisiert. "
+                        "Einzelne NOVA-Legenden-Updates sind hier deaktiviert.").to_dict()
         return updater.check(channel=update_channel()).to_dict()
 
     @app.post("/api/update/install")
     def update_install() -> dict:
+        if not updates_enabled:
+            raise HTTPException(409, "Bitte die gesamte edeco Toolbox aktualisieren.")
         info = updater.check(channel=update_channel())
         if not info.available:
             raise HTTPException(400, info.message or "Kein Update verfügbar")
@@ -466,6 +474,8 @@ def create_app(state: AppState | None = None, ui_dir: Path | None = None) -> Fas
 
     # -- UI --------------------------------------------------------------------------
 
+    if not serve_ui:
+        return app
     ui = ui_dir or (config.resource_dir() / "ui" / "dist")
     if (ui / "index.html").exists():
         app.mount("/", StaticFiles(directory=ui, html=True), name="ui")

@@ -14,7 +14,7 @@ import uvicorn
 
 playwright = pytest.importorskip("playwright.sync_api")
 
-from nova_legend.api.app import create_app
+from edeco_toolbox.app import create_app
 from test_phase2 import import_dxf, nova_like_dxf
 from test_phase3 import env  # noqa: F401 - isolated settings and catalogue
 
@@ -43,6 +43,7 @@ def open_app(page, port):
     for attempt in range(5):
         try:
             page.goto(url, wait_until="domcontentloaded")
+            page.get_by_role("button", name="NOVA-Legenden öffnen", exact=True).click()
             return
         except Exception as exc:  # noqa: BLE001 - only transient network errors are retried
             last = exc
@@ -110,6 +111,43 @@ def editor(env):
 
 # the editor saves to one named legend: /legend?legend=<id>
 LEGEND_URL = re.compile(r"/legend(\?.*)?$")
+
+
+def test_returning_to_toolbox_saves_the_open_legend_and_filters_tools(editor):
+    page, field, client, (pid, _) = editor
+    field.fill("Aus der Toolbox gespeichert")
+    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    playwright.expect(page.get_by_role("heading", name="Ein Ort. Deine Werkzeuge.")).to_be_visible()
+    assert title(client, pid) == "Aus der Toolbox gespeichert"
+    playwright.expect(page.get_by_role("button", name="BIM2STEIGER: noch nicht verfügbar")).to_be_disabled()
+    search = page.get_by_role("searchbox", name="Werkzeug suchen")
+    search.fill("blitz")
+    playwright.expect(page.locator(".toolbox-card")).to_have_count(1)
+    playwright.expect(page.get_by_role("heading", name="Blitzschutz", exact=True)).to_be_visible()
+    search.fill("unbekanntes-tool")
+    page.get_by_role("button", name="Filter zurücksetzen").click()
+    page.get_by_role("button", name="BIM", exact=True).click()
+    playwright.expect(page.locator(".toolbox-card")).to_have_count(1)
+    page.get_by_role("button", name="Alle", exact=True).click()
+    page.get_by_role("button", name="NOVA-Legenden öffnen", exact=True).click()
+    playwright.expect(page.get_by_role("button", name="Projekte", exact=True)).to_be_visible()
+
+
+def test_failed_save_keeps_the_user_in_the_module_when_returning_to_toolbox(editor):
+    page, field, client, (pid, _) = editor
+    before = title(client, pid)
+    page.route(LEGEND_URL, lambda route: route.fulfill(
+        status=500, content_type="application/json", body='{"detail":"Test-Speicherfehler"}')
+        if route.request.method == "PUT" else route.continue_())
+    field.fill("Darf nicht verloren gehen")
+    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    playwright.expect(field).to_have_value("Darf nicht verloren gehen")
+    playwright.expect(page.get_by_role("heading", name="Ein Ort. Deine Werkzeuge.")).not_to_be_visible()
+    assert title(client, pid) == before
+    page.unroute(LEGEND_URL)
+    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    playwright.expect(page.get_by_role("heading", name="Ein Ort. Deine Werkzeuge.")).to_be_visible()
+    assert title(client, pid) == "Darf nicht verloren gehen"
 
 
 def title(client, pid):
@@ -414,7 +452,7 @@ def test_the_admin_list_is_visible_and_locks_after_the_first_name(env, monkeypat
         if not thread.is_alive() or time.monotonic() > deadline:
             raise RuntimeError("Browser test API did not start")
         time.sleep(0.02)
-    shots = Path("/opt/cursor/artifacts/screenshots")
+    shots = _tmp / "screenshots"
     shots.mkdir(parents=True, exist_ok=True)
     try:
         with playwright.sync_playwright() as pw:

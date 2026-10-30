@@ -55,7 +55,8 @@ def setup_logging() -> None:
     )
 
 
-def main(argv: list[str] | None = None) -> int:
+def main(argv: list[str] | None = None, *, app_factory=None,
+         window_title: str | None = None, launch_updates: bool = True) -> int:
     parser = argparse.ArgumentParser(prog="nova_legend")
     parser.add_argument("--browser", action="store_true", help="im Standardbrowser öffnen")
     parser.add_argument("--server", action="store_true", help="nur Server starten")
@@ -71,7 +72,7 @@ def main(argv: list[str] | None = None) -> int:
     port = free_port(args.port)
     url = f"http://127.0.0.1:{port}"
     try:
-        app = create_app()
+        app = (app_factory or create_app)()
     except Exception:  # noqa: BLE001 - show any start error in the log
         log.error("Start fehlgeschlagen:\n%s", traceback.format_exc())
         raise
@@ -95,7 +96,7 @@ def main(argv: list[str] | None = None) -> int:
 
             webview.settings["ALLOW_DOWNLOADS"] = True   # project export (ZIP)
 
-            window = webview.create_window(f"edeco ag - NOVA Legenden {config.APP_VERSION}", url,
+            window = webview.create_window(window_title or f"edeco ag - NOVA Legenden {config.APP_VERSION}", url,
                                            width=1400, height=900, min_size=(900, 600))
             app.state.shutdown = window.destroy  # used by the program update
             from . import dialogs
@@ -105,7 +106,8 @@ def main(argv: list[str] | None = None) -> int:
             server.should_exit = True
             from . import updater
 
-            updater.launch_pending()       # an update waits until the window is closed
+            if launch_updates:
+                updater.launch_pending()   # an update waits until the window is closed
             return 0
         except Exception:  # noqa: BLE001 - fall back to the browser
             log.warning("Eigenes Fenster nicht möglich, öffne Browser:\n%s", traceback.format_exc())
@@ -119,7 +121,8 @@ def main(argv: list[str] | None = None) -> int:
         server.should_exit = True
     from . import updater
 
-    updater.launch_pending()
+    if launch_updates:
+        updater.launch_pending()
     return 0
 
 

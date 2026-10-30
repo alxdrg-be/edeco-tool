@@ -28,11 +28,13 @@ export interface Toast {
   error?: boolean;
 }
 
-export default function App() {
-  return <NavigationProvider><AppContent /></NavigationProvider>;
+export interface NovaToolProps { onHome?: () => void }
+
+export default function App({ onHome }: NovaToolProps) {
+  return <NavigationProvider><AppContent onHome={onHome} /></NavigationProvider>;
 }
 
-function AppContent() {
+function AppContent({ onHome }: NovaToolProps) {
   const { navigate, pending } = useNavigation();
   const [tab, setTab] = useState<Tab>("projects");
   const [status, setStatus] = useState<Status | null>(null);
@@ -153,6 +155,7 @@ function AppContent() {
   return (
     <div className="app" inert={pending}>
       <aside className="app-nav" aria-label="Programmnavigation">
+        {onHome && <button type="button" className="btn toolbox-back" onClick={() => navigate(onHome)}>← Zur Toolbox</button>}
         <div className="brand">
           <div
             className="brand-logo"
