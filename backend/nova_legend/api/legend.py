@@ -1,0 +1,1159 @@
+"""REST routes of the legend editor: document, grid layout, general part, export."""
+
+from __future__ import annotations
+
+import csv
+import io
+import re
+import shutil
+import tempfile
+from urllib.parse import quote
+from pathlib import Path
+
+from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi.responses import FileResponse, Response
+from pydantic import BaseModel
+from rapidfuzz import fuzz, process
+from starlette.background import BackgroundTask
+
+from .. import config
+from ..legend import general as general_part
+from ..legend.export import build_dxf, dxf_to_dwg
+from ..legend.pdf import build_pdf
+from ..library.families import family_title
+from ..parser.stencil import read_stencil_file, stencil_folder
+from ..legend.layout import layout as place
+from ..legend.general import norm_text
+from ..legend.model import (AP_NOTE, AP_NOTE_KEY, DEFAULT_GRID, GRIDS, MARGIN, MAX_SHEET_WIDTH, apply_plan_section_colors,
+                             normalize, normalize_style, propose, template_texts)
+from ..projects.review import build_review
+from ..projects.store import Project, safe_folder_name
+from ..render.engine import engine_geometry
+from ..render.svg import geometry_bounds, render_svg
+
+
+class GeneralRowIn(BaseModel):
+    key: str
+    text: str | None = None
+    hidden: bool | None = None
+    links: list[str] | None = None
+    text_scale: float | None = None
+    symbol_factor: float | None = None
+    rotation: int | None = None
+    text_place: str | None = None
+
+
+class GeneralExtraIn(BaseModel):
+    text: str = ""
+    symbol_key: str
+    family_key: str | None = None
+    after: str = ""
+
+
+class CompanyPartIn(BaseModel):
+    family_key: str
+    symbol_factor: float = 1.0
+    rotation: int = 0
+    mirror: bool = False
+
+
+class CompanySymbolIn(BaseModel):
+    family_key: str
+    text: str | None = None
+    category: str | None = None
+    symbol_factor: float = 1.0
+    rotation: int = 0
+    mirror: bool = False
+    parts: list[CompanyPartIn] = []
+
+
+class GeneralOrderIn(BaseModel):
+    keys: list[str]
+
+
+class LegendIn(BaseModel):
+    doc: dict
+
+
+class ProposeIn(BaseModel):
+    style: dict | None = None
+    categories: list[str] | None = None     # only these categories (e.g. a fire alarm legend)
+
+
+class NewLegendIn(BaseModel):
+    name: str
+    source: str = "proposal"                # "proposal", "empty" or "copy"
+    categories: list[str] | None = None     # proposal: only these sections or groups
+    copy_of: int | None = None              # copy: this legend
+    general: bool | None = None             # show the general part (default: only the full legend)
+
+
+class RenameLegendIn(BaseModel):
+    name: str
+
+
+class SymbolRequest(BaseModel):
+    symbol_key: str
+    family_key: str | None = None
+    length_mm: float | None = None
+    width_mm: float | None = None
+    flat: bool = False          # one colour: the page colour, own hues included
+
+
+class SymbolsIn(BaseModel):
+    items: list[SymbolRequest]
+    strip_fill: bool = False        # older clients: both off
+    hatch_off: bool = False
+    fill_off: bool = False
+
+
+class DescriptionIn(BaseModel):
+    family_key: str
+    text: str | None = None
+
+
+class CompanyLegendIn(BaseModel):
+    general_path: str | None = None
+    admins: list[str] | None = None
+    text_size: float | None = None
+    symbol_scale: float | None = None
+    hatch_off: bool | None = None
+    fill_off: bool | None = None
+
+
+CSV_HEADER = ["Symbol-Schlüssel", "Name aus der Schablone", "Firmentext", "Geändert von", "Geändert am"]
+
+_VIEWBOX = re.compile(r'viewBox="([-\d.]+) ([-\d.]+) ([-\d.]+) ([-\d.]+)"')
+ADMIN_ONLY = "Nur Admins aus den Firmeneinstellungen dürfen das ändern."
+
+
+def export_ext(format: str) -> str:  # noqa: A002 - query parameter name
+    f = (format or "").lower()
+    return f if f in ("dwg", "pdf") else "dxf"
+
+
+def export_name(meta: dict, part: str, ext: str) -> str:
+    """edeco ag-<Bezeichnung>-<Kategorie>.dxf"""
+    label = (meta.get("name") or "Projekt").strip() or "Projekt"
+    part = (part or "Legende").strip() or "Legende"
+    return f"{safe_folder_name('edeco ag-' + label + '-' + part)}.{ext}"
+
+
+# Nova catalogue codes of distribution boards (sheet 405 «Verteiler», in V1 also 390/400)
+DISTRIBUTION_ITEMS = {"UV", "UV_UP", "HV", "HV_UP", "ZV", "HSA_250", "HausAS"}
+
+
+# rising and falling lines (Steigleitung von oben / nach unten, Leitung durchgehend):
+# the general part explains them once with its rows «Leitung von/nach OBEN / UNTEN»
+RISER = re.compile(r"^(steig)?leitung( (nach|von) (oben|unten))?( durchgehend)?$")
+
+
+def covered_families(gen, rows: list[dict], descriptions: dict[str, str]) -> set[str]:
+    """Family keys of project rows the general part already shows.
+
+    Template project: by symbol (or family). DXF / DWG: by the text next to
+    the symbol, compared with the company text and the library name of the
+    row. Only an exact match of the normalised text counts; an unsure entry
+    stays in the project sections.
+    """
+    # distribution boards are explained in the general part, never in a section
+    out: set[str] = {r["family_key"] for r in rows if r.get("family_key") and r.get("item") in DISTRIBUTION_ITEMS}
+    if not gen or not gen.kind:
+        return out
+    fams, syms, texts = set(gen.family_keys), set(gen.symbol_keys), set(gen.texts)
+    # a row with « / » names several things: each one counts on its own
+    parts = {_no_mount(p) for t in list(texts) + [r.get("text", "") for r in gen.rows or []]
+             for p in general_part.text_parts(t) if len(p) >= 4}
+    # symbols of a DXF / DWG general part by their Nova name (block name), without UP/AP:
+    # «Steigleitung_ nach oben» shows the family «Steigleitung, nach oben»
+    names = {_no_mount(n) for n in getattr(gen, "symbol_names", []) or []}
+    risers = any("leitung" in t and ("oben" in t or "unten" in t) for t in texts)
+    for row in rows:
+        fk = row.get("family_key")
+        if not fk:
+            continue
+        if fk in fams or (row.get("symbol_key") and row["symbol_key"] in syms):
+            out.add(fk)
+        elif texts and any(norm_text(t) in texts for t in (descriptions.get(fk), row.get("title")) if t):
+            out.add(fk)
+        elif names and any(_no_mount(norm_text(t)) in names for t in [row.get("title"), *(row.get("names") or [])] if t):
+            out.add(fk)
+        elif parts and any(_no_mount(norm_text(t)) in parts for t in (descriptions.get(fk), row.get("title")) if t):
+            out.add(fk)
+        elif risers and any(RISER.match(_no_mount(norm_text(t))) and norm_text(t) not in ("leitung", "steigleitung") for t in [row.get("title"), *(row.get("names") or [])] if t):
+            out.add(fk)
+    return out
+
+
+def _no_mount(text: str) -> str:
+    return " ".join(w for w in text.split() if w not in ("up", "ap", "nup", "nap", "eb"))
+
+
+def register(app: FastAPI, st, project, evaluator, category_colors) -> None:
+    from .app import _geometry_from_dict
+
+    geo_cache: dict[tuple, tuple] = {}
+
+    # -- company settings and admins ----------------------------------------------------
+
+    def company_legend() -> dict:
+        s = st.company.legend_settings()
+        admins = s["legend_admins"]
+        user = config.current_user()
+        return {"general_path": s["legend_general_path"], "admins": admins,
+                "text_size": s["legend_text_size"], "symbol_scale": s["legend_symbol_scale"],
+                "hatch_off": bool(s["legend_hatch_off"]), "fill_off": bool(s["legend_fill_off"]),
+                "user": user, "is_admin": st.company.is_legend_admin(user),
+                "bootstrap": not admins}
+
+    def require_admin() -> None:
+        if not company_legend()["is_admin"]:
+            raise HTTPException(403, ADMIN_ONLY)
+
+    @app.get("/api/diagnostics")
+    def diagnostics(project_id: str = "") -> dict:
+        """Structured state for a support report. No drawing geometry."""
+        datasets = []
+        try:
+            for d in st.library.datasets():
+                datasets.append({"id": d.get("id"), "version": d.get("version"),
+                                 "symbols": d.get("symbol_count"), "file": d.get("file")})
+        except Exception as exc:  # noqa: BLE001 - the report should still be usable
+            datasets = [{"error": str(exc)}]
+        out: dict = {
+            "programm": "edeco ag - NOVA Legenden",
+            "version": config.APP_VERSION,
+            "benutzer": config.current_user(),
+            "oda_vorhanden": bool(st.settings.oda_path or config.find_oda_converter()),
+            "firmenordner": st.settings.company_folder or "",
+            "firmendatei": str(st.company.db_path),
+            "firmenfehler": st.company_error or "",
+            "datensaetze": datasets,
+            "symbole": len(st.library.symbols()),
+            "sync": st.sync_report,
+        }
+        if project_id:
+            try:
+                p = project(project_id)
+                ev = evaluator()
+                result = ev.evaluate(p)
+                stored = p.legend()
+                doc = normalize(stored["doc"]) if stored else None
+                out["projekt"] = {
+                    "id": p.id,
+                    "name": p.meta().get("name"),
+                    "nummer": p.meta().get("project_number"),
+                    "ordner": str(p.folder),
+                    "geschosse": len(result.get("plans") or []),
+                    "zeilen": len(result.get("rows") or []),
+                    "unbekannt": len(result.get("unknown") or []),
+                    "ignoriert": len(result.get("ignored") or []),
+                    "legende": bool(doc),
+                    "stil": doc["style"] if doc else None,
+                    "titel": doc["title"] if doc else None,
+                    "abschnitte": [
+                        {"titel": b["title"], "eintraege": len(b["items"]), "ebene": b.get("layer")}
+                        for b in (doc["blocks"] if doc else [])
+                    ],
+                }
+            except Exception as exc:  # noqa: BLE001
+                out["projekt_fehler"] = str(exc)
+        return out
+
+    @app.get("/api/company/legend")
+    def get_company_legend() -> dict:
+        info = company_legend()
+        info["general"] = load_general().info()
+        return info
+
+    @app.put("/api/company/legend")
+    def put_company_legend(body: CompanyLegendIn) -> dict:
+        require_admin()
+        values: dict = {}
+        if body.general_path is not None:
+            values["legend_general_path"] = body.general_path.strip().strip('"')
+        if body.admins is not None:
+            admins = [a.strip() for a in body.admins if a.strip()]
+            user = config.current_user()
+            if admins and user.lower() not in {a.lower() for a in admins}:
+                raise HTTPException(400, f"Trage dich selbst ({user}) in die Admin-Liste ein, sonst sperrst du dich aus.")
+            values["legend_admins"] = admins
+        if body.text_size is not None:
+            values["legend_text_size"] = max(1.0, min(10.0, body.text_size))
+        if body.symbol_scale is not None:
+            values["legend_symbol_scale"] = max(0.2, min(5.0, body.symbol_scale))
+        if body.hatch_off is not None:
+            values["legend_hatch_off"] = body.hatch_off
+        if body.fill_off is not None:
+            values["legend_fill_off"] = body.fill_off
+        st.company.set_legend_settings(values)
+        return get_company_legend()
+
+    # -- symbol drawings -----------------------------------------------------------------
+
+    def geometry(symbol_key: str, length_mm=None, width_mm=None):
+        """(SymbolGeometry or None, engine, default length, default width), cached."""
+        key = (id(st.library), symbol_key, length_mm or None, width_mm or None)
+        if key in geo_cache:
+            return geo_cache[key]
+        detail = st.library.symbol_detail(symbol_key)
+        out = (None, False, None, None)
+        if detail:
+            engine = bool(detail.get("engine"))
+            attrs = dict(detail.get("attributes") or {})
+            dl, dw = (_mm(attrs.get("L")), _mm(attrs.get("B"))) if engine else (None, None)
+            if engine:
+                if length_mm:
+                    attrs["L"] = str(length_mm)
+                if width_mm:
+                    attrs["B"] = str(width_mm)
+                geo = engine_geometry(detail["engine"], attrs)
+            else:
+                geo = _geometry_from_dict(detail["geometry"]) if detail.get("geometry") else None
+            if geo is not None and not geo.primitives:
+                geo = None
+            out = (geo, engine, dl, dw)
+        if len(geo_cache) > 5000:
+            geo_cache.clear()
+        geo_cache[key] = out
+        return out
+
+    def sizes_of(doc: dict) -> dict:
+        out = {}
+        for block in doc["blocks"]:
+            for it in block["items"]:
+                if it["kind"] != "symbol":
+                    continue
+                geo, engine, _, _ = geometry(it["symbol_key"], it["length_mm"], it["width_mm"])
+                if geo is not None:
+                    # drawing around its insertion point, in mm (the layout puts that point on the axis)
+                    x0, y0, x1, y1 = geometry_bounds(geo)
+                    out[it["id"]] = (x0 * 1000, y0 * 1000, x1 * 1000, y1 * 1000, engine)
+                # the further symbols of a combined entry: «<id>#1», «<id>#2» ...
+                for k, part in enumerate(it.get("parts") or [], 1):
+                    geo, engine, _, _ = geometry(part["symbol_key"], part["length_mm"], part["width_mm"])
+                    if geo is not None:
+                        x0, y0, x1, y1 = geometry_bounds(geo)
+                        out[f"{it['id']}#{k}"] = (x0 * 1000, y0 * 1000, x1 * 1000, y1 * 1000, engine)
+        return out
+
+    def load_general(raw: bool = False) -> general_part.GeneralPart:
+        settings = st.company.legend_settings()
+        part = general_part.load(settings["legend_general_path"], MAX_SHEET_WIDTH - 2 * MARGIN,
+                                 st.settings.oda_path or config.find_oda_converter(), project_layout=template_layout)
+        if raw:
+            return part
+        part = general_part.apply_overrides(part, settings.get("legend_general_rows") or {},
+                                            settings.get("legend_general_extra") or [],
+                                            settings.get("legend_general_order") or [])
+        for r in part.rows:
+            if r.get("picture") == "library":
+                geo, engine, _, _ = geometry(r["symbol_key"])
+                if geo is not None:
+                    x0, y0, x1, y1 = geometry_bounds(geo)
+                    r["size"] = [x0 * 1000, y0 * 1000, x1 * 1000, y1 * 1000, engine]
+        return part
+
+    system_cache: dict[tuple, dict[str, str]] = {}
+
+    def installation_colors(p) -> dict[str, str]:
+        """Plan colour of each category: the colour its symbols have most often in the
+        plans (the installation system as drawn), a company colour wins. Cached until a
+        plan is imported again."""
+        plans = tuple((pl.get("id"), pl.get("imported_at")) for pl in p.plans())
+        key = (p.id, plans)
+        if key in system_cache:
+            return system_cache[key]
+        layer_color = {layer["name"]: (layer.get("color") or "").lower() for layer in p.layers()}
+        tally: dict[str, dict[str, int]] = {}
+        try:
+            result = evaluator().evaluate(p)
+        except Exception:  # noqa: BLE001 - without plans the drawing keeps its colours
+            result = {"rows": []}
+        for row in result["rows"]:
+            cats = row.get("categories") or []
+            if not cats or not row.get("total"):
+                continue
+            for name, amount in (row.get("layers") or {}).items():
+                color = layer_color.get(name) or ""
+                if color and color != "#ffffff":
+                    bag = tally.setdefault(cats[0], {})
+                    bag[color] = bag.get(color, 0) + int(amount or 0)
+        out = {cid: max(bag.items(), key=lambda kv: (kv[1], kv[0]))[0] for cid, bag in tally.items() if bag}
+        for c in st.company.categories():
+            if c.get("color"):
+                out[c["id"]] = c["color"]
+        if len(system_cache) > 32:
+            system_cache.clear()
+        system_cache[key] = out
+        return out
+
+    def project_general(p) -> general_part.GeneralPart:
+        """The general part in the plan colours of this project: lines and colour codes of
+        an installation system take the colour its symbols have in the plans."""
+        gen = load_general()
+        if not gen.rows:
+            return gen
+        return general_part.recolor(gen, general_part.system_colors(gen, installation_colors(p)))
+
+    @app.get("/api/company/general")
+    def company_general() -> dict:
+        """The general part as the editor in the settings shows it: every row of the
+        server drawing with the company's changes beside it."""
+        settings = st.company.legend_settings()
+        part = load_general(raw=True)
+        overrides = settings.get("legend_general_rows") or {}
+        path = Path(settings["legend_general_path"] or "")
+        try:
+            stamp = path.stat().st_mtime if path.is_file() else None
+        except OSError:
+            stamp = None
+        rows = []
+        listed = general_part.with_extras(part, settings.get("legend_general_extra") or [],
+                                          settings.get("legend_general_order") or []) if part.rows else part
+        for r in listed.rows:
+            key = r["key"]
+            o = overrides.get(key) or {}
+            rows.append({"id": r["id"], "key": key, "original": r["text"], "text": o.get("text") or "",
+                         "hidden": bool(o.get("hidden")), "links": o.get("links") or [], "heading": r["heading"],
+                         "names": r.get("names", []), "vb": r.get("vb", ""), "svg": r.get("svg", ""),
+                         "extra": bool(r.get("extra")), "extra_id": r["id"][1:] if r.get("extra") else "",
+                         "symbol_key": r.get("symbol_key") or "",
+                         "family_key": r.get("family_key") or "",
+                         "by": o.get("by", ""), "at": o.get("at", "")})
+        return {**part.info(), "file_time": stamp, "rows": rows, "company": company_legend(),
+                "oda": bool(st.settings.oda_path or config.find_oda_converter())}
+
+    @app.put("/api/company/general/row")
+    def put_general_row(body: GeneralRowIn) -> dict:
+        """Change one row of the general part (admins). The server drawing is not touched."""
+        require_admin()
+        from datetime import datetime
+
+        overrides = dict(st.company.legend_settings().get("legend_general_rows") or {})
+        o = dict(overrides.get(body.key) or {})
+        if body.text is not None:
+            o["text"] = body.text.strip()
+        if body.hidden is not None:
+            o["hidden"] = body.hidden
+        if body.links is not None:
+            o["links"] = sorted({x for x in body.links if x})
+        if body.text_scale is not None:
+            o["text_scale"] = max(0.5, min(3.0, float(body.text_scale)))
+        if body.symbol_factor is not None:
+            o["symbol_factor"] = max(0.3, min(4.0, float(body.symbol_factor)))
+        if body.rotation is not None:
+            o["rotation"] = int(body.rotation) % 360
+        if body.text_place in ("top", "middle", "bottom"):
+            o["text_place"] = body.text_place
+        o.update(by=config.current_user(), at=datetime.now().isoformat(timespec="seconds"))
+        plain = (not o.get("text") and not o.get("hidden") and not o.get("links")
+                 and float(o.get("text_scale") or 1) == 1 and float(o.get("symbol_factor") or 1) == 1
+                 and int(o.get("rotation") or 0) % 360 == 0
+                 and (o.get("text_place") or "bottom") == "bottom")
+        if plain:
+            overrides.pop(body.key, None)          # back to the drawing as it is
+        else:
+            overrides[body.key] = o
+        st.company.set_legend_settings({"legend_general_rows": overrides})
+        return company_general()
+
+    @app.post("/api/company/general/extra")
+    def add_general_extra(body: GeneralExtraIn) -> dict:
+        """A row from the symbol library in the general part (admins), e.g. Kernbohrung."""
+        require_admin()
+        import uuid
+
+        if not st.library.symbol_detail(body.symbol_key):
+            raise HTTPException(404, "Symbol nicht gefunden")
+        extras = list(st.company.legend_settings().get("legend_general_extra") or [])
+        extras.append({"id": uuid.uuid4().hex[:8], "text": body.text.strip(), "symbol_key": body.symbol_key,
+                       "family_key": body.family_key or None, "after": body.after,
+                       "by": config.current_user()})
+        st.company.set_legend_settings({"legend_general_extra": extras})
+        return company_general()
+
+    @app.delete("/api/company/general/extra/{extra_id}")
+    def remove_general_extra(extra_id: str) -> dict:
+        require_admin()
+        extras = [x for x in st.company.legend_settings().get("legend_general_extra") or [] if x.get("id") != extra_id]
+        st.company.set_legend_settings({"legend_general_extra": extras})
+        return company_general()
+
+    @app.put("/api/company/general/order")
+    def put_general_order(body: GeneralOrderIn) -> dict:
+        """The order of all rows of the general part (admins); [] = as in the drawing."""
+        require_admin()
+        st.company.set_legend_settings({"legend_general_order": [k for k in body.keys if k]})
+        return company_general()
+
+    @app.get("/api/company/general/template/{file_name}")
+    def export_general_template(file_name: str = "", format: str = "dxf"):  # noqa: A002
+        """The server drawing with every change of the settings built in (texts, hidden rows,
+        order, library rows) and the helper grid NL_RASTER: edit it in Nova or AutoCAD and put
+        it back on the server as the new template."""
+        from ..legend.general_template import build_template
+
+        gen = load_general()
+        if gen.kind != "dxf" or not gen.rows or not gen.dxf_path:
+            raise HTTPException(400, "Der Allgemeinteil ist keine DXF/DWG mit Textspalte. Nichts zu exportieren.")
+        doc = build_template(load_general(raw=True), gen, lambda key: geometry(key)[0])
+        stem = safe_folder_name("E_Legende Allgemeinteil Vorlage")
+        tmp = Path(tempfile.mkdtemp(prefix="nl_general_template_"))
+        out = tmp / f"{stem}.dxf"
+        doc.saveas(out)
+        if format.lower() == "dwg":
+            try:
+                out = dxf_to_dwg(out, st.settings.oda_path or config.find_oda_converter(), tmp / "dwg")
+            except Exception as exc:  # noqa: BLE001 - no converter: say so, the DXF still works
+                shutil.rmtree(tmp, ignore_errors=True)
+                raise HTTPException(400, str(exc)) from None
+        return FileResponse(out, filename=out.name, media_type="application/octet-stream",
+                            background=BackgroundTask(shutil.rmtree, tmp, ignore_errors=True))
+
+    @app.get("/api/company/general/export/{file_name}")
+    def export_general(file_name: str = "", cols: int = 2, format: str = "dxf"):  # noqa: A002
+        """The general part alone, arranged in 2 or 3 columns, as DXF or PDF: for use outside
+        the program (a Nova macro, a plan). The server drawing stays as it is."""
+        gen = load_general()
+        if gen.kind != "dxf" or not gen.rows:
+            raise HTTPException(400, "Der Allgemeinteil ist keine DXF/DWG mit Textspalte. Nichts zu exportieren.")
+        cols = 3 if cols >= 3 else 2
+        doc = normalize({"style": {**project_style_default(), "columns": cols}, "title": {"text": ""}, "blocks": []})
+        lay = place(doc, {}, gen.info())
+        g = next(p for p in lay["prims"] if p.get("role") == "general")
+        lay["height"] = round(g["y"] + g["h"] + doc["style"]["margin"], 2)
+        lay["prims"] = [p for p in lay["prims"] if p.get("t") != "hit"]
+        dxf = build_dxf(lay, gen, lambda prim: geometry(prim["key"])[0], doc["style"]["font"])
+        stem = safe_folder_name(f"edeco ag-Allgemeinteil-{cols}-spaltig")
+        if format.lower() == "pdf":
+            data = build_pdf(dxf, lay["width"], lay["height"], stem)
+            return Response(data, media_type="application/pdf",
+                            headers={"Content-Disposition": f"attachment; filename*=UTF-8''{quote(stem + '.pdf')}"})
+        tmp = Path(tempfile.mkdtemp(prefix="nl_general_export_"))
+        out = tmp / f"{stem}.dxf"
+        dxf.saveas(out)
+        return FileResponse(out, filename=out.name, media_type="application/octet-stream",
+                            background=BackgroundTask(shutil.rmtree, tmp, ignore_errors=True))
+
+    def project_style_default() -> dict:
+        c = company_legend()
+        return normalize_style({"text_size": c["text_size"], "symbol_scale": c["symbol_scale"]})
+
+    @app.post("/api/company/general/reload")
+    def reload_general() -> dict:
+        """Read the server drawing again now (it is also read again whenever it changed)."""
+        general_part._cache.clear()
+        return company_general()
+
+    def template_layout(folder: Path):
+        try:
+            stored = Project(folder).legend()
+        except Exception:  # noqa: BLE001 - unreadable template project
+            return None
+        if not stored:
+            return None
+        doc = normalize(stored["doc"])
+        return place(doc, sizes_of(doc), include_general=False), doc["style"]["margin"], doc
+
+    @app.post("/api/legend/symbols")
+    def symbols(body: SymbolsIn) -> dict:
+        """True-size SVG (viewBox in mm on paper), one answer per request in the same order."""
+        fills = st.company.fill_settings()
+        out = []
+        for req in body.items[:500]:
+            geo, engine, dl, dw = geometry(req.symbol_key, req.length_mm, req.width_mm)
+            base = {"engine": engine, "length_mm": dl, "width_mm": dw}
+            if geo is None:
+                out.append({**base, "svg": "", "missing": st.library.symbol(req.symbol_key) is None})
+                continue
+            # a symbol whose fill is switched off in the library stays without any fill
+            own = fills.get(req.family_key or "", True)
+            show_fill = own and not (body.fill_off or body.strip_fill)
+            show_soft = own and not (body.hatch_off or body.strip_fill)
+            svg = render_svg(geo, None, show_points=False, show_fill=show_fill,
+                             own_colors=True, show_soft=show_soft, force_color=bool(req.flat))
+            m = _VIEWBOX.search(svg)
+            out.append({**base, "svg": svg, "box": [float(v) for v in m.groups()] if m else [0, 0, 5, 5]})
+        return {"items": out}
+
+    # -- project legend -------------------------------------------------------------------
+
+    def project_style(p) -> dict:
+        s = p.settings().get("legend_style") or {}
+        c = company_legend()
+        return normalize_style({"grid": s.get("grid", DEFAULT_GRID), "text_size": s.get("text_size", c["text_size"]),
+                                "symbol_scale": s.get("symbol_scale", c["symbol_scale"]),
+                                "columns": s.get("columns", 2),
+                                "hatch_off": s.get("hatch_off", c["hatch_off"]),
+                                "fill_off": s.get("fill_off", c["fill_off"])})
+
+    def stored_legend(p, legend_id: int | None) -> dict | None:
+        """One legend of the project (the first without an id); 404 for an unknown id."""
+        stored = p.legend(legend_id)
+        if legend_id is not None and stored is None:
+            raise HTTPException(404, "Legende nicht gefunden")
+        return stored
+
+    def legend_part_name(p, stored: dict | None) -> str:
+        """File name part of a whole legend: its own name when the project has several."""
+        name = (stored or {}).get("name") or "Legende"
+        return name if len(p.legends()) > 1 else "Legende"
+
+    # -- user stencils (Benutzerschablonen, per user and Nova version) -------------------
+
+    stencil_cache: dict = {}
+
+    def stencil_sets(nova_version: str) -> dict:
+        """All *.n5q in the stencil folder of this Nova version, read once per file change."""
+        folder = stencil_folder(st.settings.stencil_folder, nova_version)
+        files = sorted(folder.glob("*.n5q")) if folder.is_dir() else []
+        stamp = (str(folder), tuple((str(f), f.stat().st_mtime, f.stat().st_size) for f in files))
+        if stencil_cache.get("stamp") != stamp:
+            sets = []
+            errors = []
+            for f in files:
+                try:
+                    sets.extend(read_stencil_file(f))
+                except Exception as exc:  # noqa: BLE001 - one unreadable file does not stop the others
+                    errors.append(f"{f.name}: {exc}")
+            stencil_cache.update(stamp=stamp, sets=sets, errors=errors)
+        return {"folder": str(folder), "found": folder.is_dir(), "files": [f.name for f in files],
+                "sets": stencil_cache["sets"], "errors": stencil_cache["errors"]}
+
+    def stencil_symbol(ev, entry) -> tuple[str | None, str | None]:
+        """(symbol key, family key) of a stencil entry in the library, or (None, None)."""
+        if not entry.item:
+            return None, None
+        syms = ev.index.by_code_any(entry.item, ev.index.dataset_id(entry.dataset or ""))
+        if not syms:
+            return None, None
+        sym = next((x for x in syms if x.graphic_id == entry.graphic_id), syms[0])
+        fam = ev.families.get(ev.family_of.get(sym.key, ""))
+        return sym.key, (fam.key if fam else None)
+
+    def stencil_names(ev, nova_version: str) -> dict[str, str]:
+        """Family key -> the name your stencil gives it (the most used one, without UP/AP).
+        Used for legend texts when there is no company text."""
+        from collections import Counter
+
+        counts: dict[str, Counter] = {}
+        for sset in stencil_sets(nova_version)["sets"]:
+            for tab in sset.tabs:
+                for entry in tab.entries:
+                    _key, fk = stencil_symbol(ev, entry)
+                    label = family_title(entry.label, st.family_options()) if entry.label else ""
+                    if fk and label:
+                        counts.setdefault(fk, Counter())[label] += 1
+        return {fk: c.most_common(1)[0][0] for fk, c in counts.items()}
+
+    def project_nova(p) -> str:
+        return str(p.meta().get("nova_version") or st.settings.nova_version or "19.2")
+
+    @app.get("/api/stencils")
+    def stencils(project_id: str = "", nova: str = "") -> dict:
+        """Your user stencils as in Nova: set, tab, entries, each with its library symbol."""
+        version = nova or (project_nova(project(project_id)) if project_id else st.settings.nova_version)
+        data = stencil_sets(version)
+        ev = evaluator()
+        out_sets = []
+        for sset in data["sets"]:
+            tabs = []
+            for tab in sset.tabs:
+                entries = []
+                for entry in tab.entries:
+                    key, fk = stencil_symbol(ev, entry)
+                    fam = ev.families.get(ev.family_of.get(key, "")) if key else None
+                    entries.append({"categories": ev.family_categories(fam) if fam else [],"name": entry.label, "description": entry.description, "item": entry.item,
+                                    "layer": entry.layer, "symbol_key": key, "family_key": fk,
+                                    "macro": entry.macro, "macro_found": bool(entry.macro and Path(entry.macro).is_file())})
+                tabs.append({"name": tab.name, "description": tab.description, "entries": entries})
+            out_sets.append({"name": sset.name, "description": sset.description, "tabs": tabs})
+        return {"folder": data["folder"], "found": data["found"], "files": data["files"], "errors": data["errors"],
+                "nova": version, "sets": out_sets}
+
+    def stencil_plan_rows(version: str = "") -> list[dict]:
+        from ..categories.stencil_rules import stencil_plan
+
+        data = stencils(nova=version or st.settings.nova_version)
+        cats = st.company.categories()
+        ev = evaluator()
+        by_key = {fam.key: fam for fam in ev.families.values()}
+        manual = st.company.assignments()
+
+        def current(fk: str) -> list[str]:
+            if manual.get(fk):
+                return manual[fk]
+            fam = by_key.get(fk)
+            return ev.family_categories(fam) if fam else []
+
+        return stencil_plan(data["sets"], cats, current)
+
+    @app.get("/api/stencils/categories")
+    def stencil_categories() -> dict:
+        """Suggested section or group for every symbol of your user stencil."""
+        rows = stencil_plan_rows()
+        return {"items": rows, "changes": sum(1 for r in rows if r["change"])}
+
+    @app.get("/api/stencils/categories/export/{file_name}")
+    def stencil_categories_csv(file_name: str = ""):
+        rows = stencil_plan_rows()
+        buf = io.StringIO()
+        w = csv.writer(buf, delimiter=";", lineterminator="\r\n")
+        w.writerow(["Familie", "Registerkarte", "Symbol", "Katalog", "Heute", "Vorschlag", "Vorschlag-ID",
+                    "Grund", "Ändern"])
+        for r in rows:
+            w.writerow([r["family_key"], r["tab"], r["name"], r["item"], r["now_label"], r["suggestion_label"],
+                        r["suggestion"], r["reason"], "ja" if r["change"] else ""])
+        name = "Kategorien aus Benutzerschablone.csv"
+        return Response(buf.getvalue().encode("utf-8-sig"), media_type="text/csv; charset=utf-8",
+                        headers={"Content-Disposition": f"attachment; filename*=UTF-8''{quote(name)}"})
+
+    @app.post("/api/stencils/categories/apply")
+    def stencil_categories_apply() -> dict:
+        """Take over every suggested change into the company file (manual assignments)."""
+        require_admin()
+        done = 0
+        for r in stencil_plan_rows():
+            if r["change"]:
+                st.company.assign(r["family_key"], [r["suggestion"]])
+                done += 1
+        rows = stencil_plan_rows()
+        return {"applied": done, "items": rows, "changes": sum(1 for r in rows if r["change"])}
+
+    @app.post("/api/categories/assignments/import")
+    async def import_assignments(file: UploadFile = File(...)) -> dict:
+        """Assignments from a CSV (e.g. the stencil list edited in Excel): columns
+        «Familie» and «Vorschlag-ID» (or «Kategorie-ID»)."""
+        require_admin()
+        raw = (await file.read()).decode("utf-8-sig", errors="replace")
+        known = {c["id"] for c in st.company.categories()}
+        reader = csv.DictReader(io.StringIO(raw), delimiter=";" if raw.count(";") >= raw.count(",") else ",")
+        done, skipped = 0, 0
+        for row in reader:
+            fk = (row.get("Familie") or "").strip()
+            cid = (row.get("Vorschlag-ID") or row.get("Kategorie-ID") or "").strip()
+            if fk and cid in known:
+                st.company.assign(fk, [cid])
+                done += 1
+            elif fk:
+                skipped += 1
+        return {"applied": done, "skipped": skipped}
+
+    @app.get("/api/stencils/macro-preview")
+    def macro_preview(path: str, project_id: str = "") -> Response:
+        """Nova's preview picture of a macro (.n4d) your stencil uses. Only macros of the stencil."""
+        import olefile
+
+        version = project_nova(project(project_id)) if project_id else st.settings.nova_version
+        known = {e.macro for s in stencil_sets(version)["sets"] for t in s.tabs for e in t.entries if e.macro}
+        if path not in known or not Path(path).is_file():
+            raise HTTPException(404, "Makro nicht gefunden")
+        try:
+            ole = olefile.OleFileIO(path)
+            try:
+                data = ole.openstream("BITMAP").read()
+            finally:
+                ole.close()
+        except Exception:  # noqa: BLE001 - no picture in this file
+            raise HTTPException(404, "Kein Vorschaubild im Makro") from None
+        return Response(data, media_type="image/bmp")
+
+    def make_proposal(p, style: dict | None, categories: list[str] | None) -> dict:
+        ev = evaluator()
+        result = ev.evaluate(p)
+        meta = p.meta()
+        title = "Legende " + " ".join(x for x in (meta.get("project_number"), meta.get("name")) if x)
+        picked = category_colors(p, ev)
+        colors = {c["id"]: c.get("color") for c in picked}
+        layer_categories = {}
+        for c in picked:
+            if c.get("layer"):
+                layer_categories.setdefault(c["layer"], c["id"])
+        descriptions = st.company.descriptions()
+        # legend text: company text, else the name of your stencil, else the catalogue name
+        texts = {**stencil_names(ev, project_nova(p)), **descriptions}
+        gen = load_general()
+        layer_colors = {layer["name"]: layer.get("color") or "" for layer in p.layers()}
+        groups = {c["id"] for c in ev.categories if c.get("parent")}
+        doc = propose(result["rows"], ev.categories, bool(st.company.options().get("legend_by_category", True)),
+                      texts, title.strip(), style=style or project_style(p), colors=colors,
+                      covered=covered_families(gen, result["rows"], descriptions),
+                      ap_covered=bool({norm_text(AP_NOTE), norm_text(descriptions.get(AP_NOTE_KEY) or AP_NOTE)} & set(gen.texts)),
+                      layer_categories=layer_categories, layer_colors=layer_colors,
+                      company_symbols=st.company.legend_settings().get("legend_company_symbols") or {},
+                      split={c for c in (categories or []) if c in groups},
+                      fixed_colors={c["id"] for c in picked if c.get("fixed")})
+        fixed = st.company.category_colors().get("allgemein")
+        if fixed:
+            # the bar of the general part in the company colour of «Allgemein»
+            doc["general_section"]["header"] = fixed
+        if categories:
+            wanted = set(categories)
+            doc["blocks"] = [b for b in doc["blocks"] if b.get("category_id") in wanted]
+        return doc
+
+    # -- several legends per project -------------------------------------------------------
+
+    @app.get("/api/projects/{project_id}/legends")
+    def list_legends(project_id: str) -> dict:
+        return {"items": project(project_id).legends()}
+
+    @app.post("/api/projects/{project_id}/legends")
+    def new_legend(project_id: str, body: NewLegendIn) -> dict:
+        """A new named legend: a proposal (optionally only some categories), empty or a copy."""
+        p = project(project_id)
+        name = body.name.strip() or "Legende"
+        if body.source == "copy":
+            src = stored_legend(p, body.copy_of)
+            if not src:
+                raise HTTPException(400, "Es gibt keine Legende zum Kopieren.")
+            doc = normalize(src["doc"])
+        elif body.source == "empty":
+            doc = normalize({"title": {"text": name}, "style": project_style(p), "blocks": []})
+        else:
+            doc = make_proposal(p, None, body.categories)
+            if body.categories:
+                doc["title"]["text"] = name
+            # a themed legend (only UKV, only BMA) comes without the general part unless asked
+            doc["general_on"] = body.general if body.general is not None else not body.categories
+        stored = p.add_legend(name, normalize(doc))
+        return {"legend": {**stored, "doc": normalize(stored["doc"])}, "items": p.legends()}
+
+    @app.put("/api/projects/{project_id}/legends/{legend_id}")
+    def rename_legend(project_id: str, legend_id: int, body: RenameLegendIn) -> dict:
+        p = project(project_id)
+        try:
+            p.rename_legend(legend_id, body.name)
+        except KeyError:
+            raise HTTPException(404, "Legende nicht gefunden") from None
+        return {"items": p.legends()}
+
+    @app.delete("/api/projects/{project_id}/legends/{legend_id}")
+    def delete_legend(project_id: str, legend_id: int) -> dict:
+        p = project(project_id)
+        try:
+            p.delete_legend(legend_id)
+        except KeyError:
+            raise HTTPException(404, "Legende nicht gefunden") from None
+        except ValueError as exc:
+            raise HTTPException(400, str(exc)) from None
+        return {"items": p.legends()}
+
+    @app.get("/api/projects/{project_id}/legend")
+    def get_legend(project_id: str, legend: int | None = None) -> dict:
+        p = project(project_id)
+        stored = stored_legend(p, legend)
+        doc = normalize(stored["doc"]) if stored else None
+        gen = load_general()
+        descriptions = st.company.descriptions()
+        rows: list = []
+        if stored or gen.kind:
+            try:
+                ev = evaluator()
+                result = ev.evaluate(p)
+                if gen.kind:
+                    rows = result["rows"]
+                if doc is not None:
+                    picked = {c["id"]: c.get("color") or "" for c in category_colors(p, ev, result)}
+                    doc = apply_plan_section_colors(doc, picked)
+            except Exception:  # noqa: BLE001 - a colour refresh must not block the editor
+                rows = []
+        if stored and doc is not None:
+            stored = {**stored, "doc": doc}
+        in_general = {**gen.contents(), "covered": sorted(covered_families(gen, rows, descriptions))}
+        return {"legend": stored, "legends": p.legends(),
+                "template_texts": template_texts(), "descriptions": descriptions,
+                "stencil_names": stencil_names(evaluator(), project_nova(p)),
+                "in_general": in_general,
+                "company_symbols": st.company.legend_settings().get("legend_company_symbols") or {},
+                "grids": [{"id": k, **v} for k, v in GRIDS.items()], "style": project_style(p),
+                "company": company_legend(), "oda": bool(st.settings.oda_path or config.find_oda_converter())}
+
+    @app.put("/api/projects/{project_id}/legend")
+    def put_legend(project_id: str, body: LegendIn, legend: int | None = None) -> dict:
+        try:
+            return {"legend": project(project_id).set_legend(normalize(body.doc), legend)}
+        except KeyError:
+            raise HTTPException(404, "Legende nicht gefunden") from None
+
+    @app.post("/api/projects/{project_id}/legend/propose")
+    def propose_legend(project_id: str, body: ProposeIn | None = None) -> dict:
+        """A new proposal from the current project counts. Not saved: the editor saves it."""
+        p = project(project_id)
+        return {"doc": make_proposal(p, body.style if body else None, body.categories if body else None)}
+
+    @app.post("/api/projects/{project_id}/legend/layout")
+    def layout_legend(project_id: str, body: LegendIn) -> dict:
+        p = project(project_id)
+        doc = normalize(body.doc)
+        gen = project_general(p)
+        lay = place(doc, sizes_of(doc), gen.info() if gen.kind else None)
+        return {**lay, "general": gen.info()}
+
+    @app.get("/api/projects/{project_id}/legend/general")
+    def general_preview(project_id: str) -> dict:
+        p = project(project_id)
+        gen = project_general(p)
+        return {**gen.info(), "svg": gen.svg, "prims": gen.prims,
+                "row_svgs": {r["id"]: {"vb": r.get("vb", ""), "svg": r.get("svg", "")} for r in gen.rows if r.get("svg")}}
+
+    @app.get("/api/projects/{project_id}/legend/export-name")
+    def export_file_name(project_id: str, format: str = "dxf", block: str = "",  # noqa: A002
+                         legend: int | None = None) -> dict:
+        p = project(project_id)
+        stored = stored_legend(p, legend)
+        doc = normalize(stored["doc"]) if stored else {"blocks": []}
+        target = next((b for b in doc["blocks"] if b["id"] == block), None) if block else None
+        return {"name": export_name(p.meta(), target["title"] if target else legend_part_name(p, stored),
+                                    export_ext(format))}
+
+    # The file name is part of the path, so a browser that ignores the header still saves it right.
+    @app.get("/api/projects/{project_id}/legend/export/{file_name}")
+    @app.get("/api/projects/{project_id}/legend/export")
+    def export_legend(project_id: str, format: str = "dxf", block: str = "", general: bool = True,  # noqa: A002
+                      file_name: str = "", legend: int | None = None):
+        p = project(project_id)
+        stored = stored_legend(p, legend)
+        if not stored:
+            raise HTTPException(400, "Für dieses Projekt gibt es noch keine Legende.")
+        doc = normalize(stored["doc"])
+        target_block = next((b for b in doc["blocks"] if b["id"] == block), None) if block else None
+        if block and target_block is None:
+            raise HTTPException(404, "Abschnitt nicht gefunden")
+        gen = project_general(p) if general else general_part.GeneralPart()
+        lay = place(doc, sizes_of(doc), gen.info() if gen.kind else None,
+                    only_block=block or None, include_general=general)
+        dxf = build_dxf(lay, gen if gen.kind else None,
+                        lambda prim: geometry(prim["key"], prim.get("length_mm"), prim.get("width_mm"))[0],
+                        doc["style"]["font"])
+        ext = export_ext(format)
+        name = export_name(p.meta(), target_block["title"] if target_block else legend_part_name(p, stored), ext)
+        if ext == "pdf":
+            data = build_pdf(dxf, lay["width"], lay["height"], Path(name).stem, doc["style"]["pdf_lines"])
+            return Response(data, media_type="application/pdf",
+                            headers={"Content-Disposition": f"attachment; filename*=UTF-8''{quote(name)}"})
+        tmp = Path(tempfile.mkdtemp(prefix="nl_legend_"))
+        dxf_path = tmp / (Path(name).stem + ".dxf")
+        dxf.saveas(dxf_path)
+        out = dxf_path
+        if ext == "dwg":
+            from ..importer.dwg import ConverterMissing
+            try:
+                out = dxf_to_dwg(dxf_path, st.settings.oda_path or config.find_oda_converter(), tmp / "dwg")
+            except ConverterMissing as exc:
+                shutil.rmtree(tmp, ignore_errors=True)
+                raise HTTPException(400, str(exc)) from None
+            except Exception as exc:  # noqa: BLE001 - report conversion problems
+                shutil.rmtree(tmp, ignore_errors=True)
+                raise HTTPException(500, f"DWG konnte nicht erzeugt werden: {exc}") from None
+        return FileResponse(out, filename=name, media_type="application/octet-stream",
+                            background=BackgroundTask(shutil.rmtree, tmp, ignore_errors=True))
+
+    @app.post("/api/projects/{project_id}/legend/remember")
+    def remember_style(project_id: str, body: LegendIn) -> dict:
+        """«Für neue Projekte merken»: text size and symbol scale become the company standard."""
+        require_admin()
+        project(project_id)
+        style = normalize(body.doc)["style"]
+        st.company.set_legend_settings({"legend_text_size": style["text_size"],
+                                        "legend_symbol_scale": style["symbol_scale"]})
+        return company_legend()
+
+    # -- release check -------------------------------------------------------------------
+
+    @app.get("/api/projects/{project_id}/review")
+    def review(project_id: str) -> dict:
+        """What is open before the legend is handed on (see projects/review.py)."""
+        p = project(project_id)
+        ev = evaluator()
+        result = ev.evaluate(p)
+        colors = category_colors(p, ev, result)
+        # all legends of the project together: an apparatus counts as shown when any
+        # legend shows it; entries name their legend when there are several
+        legends = [p.legend(item["id"]) for item in p.legends()]
+        legends = [x for x in legends if x]
+        stored = None
+        if legends:
+            several = len(legends) > 1
+            blocks = []
+            for lg in legends:
+                for b in normalize(lg["doc"])["blocks"]:
+                    blocks.append({**b, "title": f"{lg['name']} · {b['title']}" if several else b["title"]})
+            stored = {"doc": {"blocks": blocks},
+                      "updated_at": min(lg.get("updated_at") or "" for lg in legends)}
+        covered = covered_families(load_general(), result["rows"], st.company.descriptions())
+
+        def has_drawing(key: str | None) -> bool:
+            sym = st.library.symbol(key) if key else None
+            return bool(sym and sym.svg)
+
+        return build_review(result, colors, stored, covered, has_drawing)
+
+    # -- texts --------------------------------------------------------------------------
+
+    @app.get("/api/legend/texts")
+    def texts(q: str = "", family_key: str = "") -> dict:
+        """Description suggestions: company text first, then the edeco legend texts by similarity."""
+        company = st.company.descriptions().get(family_key) if family_key else None
+        pool = template_texts()
+        ranked = process.extract(q, pool, scorer=fuzz.token_set_ratio, limit=8) if q else []
+        items = [{"text": t, "score": int(s), "source": "Legende edeco ag"} for t, s, _ in ranked if s >= 40]
+        if company:
+            items.insert(0, {"text": company, "score": 100, "source": "Firmentext"})
+        return {"items": items}
+
+    def family_titles() -> dict[str, tuple[str, str]]:
+        """Family key -> (stencil title, small drawing) of the first dataset that has it."""
+        out: dict[str, tuple[str, str]] = {}
+        for fam in st.library.families(st.family_options()).values():
+            out.setdefault(fam.key, (fam.title, fam.representative.svg or ""))
+        out[AP_NOTE_KEY] = ("Hinweis: " + AP_NOTE, "")
+        return out
+
+    @app.get("/api/descriptions")
+    def list_descriptions() -> dict:
+        """The company texts as a list: which symbol, which text, saved by whom."""
+        titles = family_titles()
+        items = []
+        for r in st.company.description_rows():
+            title, svg = titles.get(r["family_key"], ("", ""))
+            items.append({**r, "title": title, "svg": svg, "known": r["family_key"] in titles})
+        return {"items": items, "file": str(st.settings.company_db)}
+
+    @app.get("/api/descriptions/export/{file_name}")
+    def export_descriptions(file_name: str = "") -> Response:
+        titles = {k: v[0] for k, v in family_titles().items()}
+        name = "edeco ag-Firmentexte.csv"
+        return Response(descriptions_csv(st.company.description_rows(), titles), media_type="text/csv",
+                        headers={"Content-Disposition": f"attachment; filename*=UTF-8''{quote(name)}"})
+
+    @app.post("/api/descriptions/import")
+    async def import_descriptions(file: UploadFile = File(...)) -> dict:
+        """Texts from an edited export. An empty text removes the company text."""
+        try:
+            pairs = parse_descriptions_csv(await file.read())
+        except ValueError as exc:
+            raise HTTPException(400, str(exc)) from None
+        before = st.company.descriptions()
+        changed = removed = 0
+        for key, text in pairs:
+            if (before.get(key) or "") == text:
+                continue
+            st.company.set_description(key, text or None)
+            if text:
+                changed += 1
+            elif key in before:
+                removed += 1
+        return {"changed": changed, "removed": removed, "rows": len(pairs)}
+
+    # -- company symbols ---------------------------------------------------------------
+
+    def company_symbol_list() -> dict:
+        saved = st.company.legend_settings().get("legend_company_symbols") or {}
+        texts = st.company.descriptions()
+        manual = st.company.assignments()
+        titles = {}
+        if saved:
+            for fam in st.library.families(st.family_options()).values():
+                titles[fam.key] = fam.title
+        cats = {c["id"]: c["title"] for c in st.company.categories()}
+        items = []
+        for fk, rec in sorted(saved.items(), key=lambda kv: (texts.get(kv[0]) or titles.get(kv[0]) or kv[0]).lower()):
+            items.append({"family_key": fk, "title": titles.get(fk, fk), "text": texts.get(fk, ""),
+                          "category": (manual.get(fk) or [""])[0], "category_title": cats.get((manual.get(fk) or [""])[0], ""),
+                          "symbol_factor": rec.get("symbol_factor", 1.0), "rotation": rec.get("rotation", 0),
+                          "mirror": bool(rec.get("mirror")),
+                          "parts": [{**p, "title": texts.get(p["family_key"]) or titles.get(p["family_key"], p["family_key"])}
+                                    for p in rec.get("parts") or []],
+                          "by": rec.get("by", ""), "at": rec.get("at", "")})
+        return {"items": items, "symbols": saved}
+
+    @app.get("/api/company/symbols")
+    def company_symbols() -> dict:
+        return company_symbol_list()
+
+    @app.put("/api/company/symbols")
+    def save_company_symbol(body: CompanySymbolIn) -> dict:
+        """«Als Firmensymbol speichern» (admins): text, section, size, turn, mirror and the
+        symbols combined with it apply in every project from the next proposal on."""
+        require_admin()
+        from datetime import datetime
+
+        if body.category and body.category not in {c["id"] for c in st.company.categories()}:
+            raise HTTPException(400, "Unbekannte Kategorie")
+        if body.text is not None and body.text.strip():
+            st.company.set_description(body.family_key, body.text.strip())
+        if body.category:
+            st.company.assign(body.family_key, [body.category])
+        saved = dict(st.company.legend_settings().get("legend_company_symbols") or {})
+        clamp = lambda v: round(max(0.3, min(4.0, float(v))), 3)  # noqa: E731
+        saved[body.family_key] = {
+            "symbol_factor": clamp(body.symbol_factor), "rotation": int(body.rotation) % 360, "mirror": body.mirror,
+            "parts": [{"family_key": p.family_key, "symbol_factor": clamp(p.symbol_factor),
+                       "rotation": int(p.rotation) % 360, "mirror": p.mirror}
+                      for p in body.parts if p.family_key and p.family_key != body.family_key][:3],
+            "by": config.current_user(), "at": datetime.now().isoformat(timespec="seconds")}
+        st.company.set_legend_settings({"legend_company_symbols": saved})
+        return company_symbol_list()
+
+    @app.delete("/api/company/symbols/{family_key:path}")
+    def reset_company_symbol(family_key: str) -> dict:
+        """Size, turn, mirror and combination back to normal. Company text and section stay
+        (they have their own lists)."""
+        require_admin()
+        saved = dict(st.company.legend_settings().get("legend_company_symbols") or {})
+        saved.pop(family_key, None)
+        st.company.set_legend_settings({"legend_company_symbols": saved})
+        return company_symbol_list()
+
+    @app.put("/api/descriptions")
+    def set_description(body: DescriptionIn) -> dict:
+        if not body.family_key:
+            raise HTTPException(400, "Familie fehlt")
+        st.company.set_description(body.family_key, body.text)
+        return {"ok": True, "text": st.company.descriptions().get(body.family_key)}
+
+
+def descriptions_csv(rows: list[dict], titles: dict[str, str]) -> bytes:
+    """Company texts for Excel: semicolons, UTF-8 with BOM, one family per line."""
+    buf = io.StringIO()
+    w = csv.writer(buf, delimiter=";", lineterminator="\r\n")
+    w.writerow(CSV_HEADER)
+    for r in rows:
+        w.writerow([r["family_key"], titles.get(r["family_key"], ""), r["text"],
+                    r.get("updated_by") or "", r.get("updated_at") or ""])
+    return ("\ufeff" + buf.getvalue()).encode("utf-8")
+
+
+def parse_descriptions_csv(data: bytes) -> list[tuple[str, str]]:
+    """(family key, text) from a file written by descriptions_csv and edited in Excel."""
+    for enc in ("utf-8-sig", "cp1252"):
+        try:
+            text = data.decode(enc)
+            break
+        except UnicodeDecodeError:
+            continue
+    else:
+        raise ValueError("Die Datei ist keine Textdatei (CSV).")
+    lines = text.splitlines()
+    if not lines:
+        return []
+    delim = ";" if lines[0].count(";") >= lines[0].count(",") else ","
+    rows = list(csv.reader(lines, delimiter=delim))
+    head = [h.strip().lower() for h in rows[0]]
+    if "symbol-schlüssel" not in head or "firmentext" not in head:
+        raise ValueError("Spalten «Symbol-Schlüssel» und «Firmentext» fehlen. Exportiere die Liste und bearbeite diese Datei.")
+    ki, ti = head.index("symbol-schlüssel"), head.index("firmentext")
+    out = []
+    for row in rows[1:]:
+        if len(row) > max(ki, ti) and row[ki].strip():
+            out.append((row[ki].strip(), row[ti].strip()))
+    return out
+
+
+def _mm(value) -> float | None:
+    try:
+        return float(str(value).replace(",", "."))
+    except (TypeError, ValueError):
+        return None

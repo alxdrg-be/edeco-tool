@@ -1,0 +1,604 @@
+// Legend document (version 2) and editing steps of the legend editor.
+// No free coordinates: the backend places everything on a fixed grid.
+// Pure functions, so npm test checks them without a browser.
+
+export type ItemKind = "symbol" | "line" | "note" | "text" | "gap"; // gap: an empty cell kept free
+export type LineStyle = "solid" | "dashed" | "dotted" | "dashdot";
+
+export interface LegendItem {
+  id: string;
+  kind: ItemKind;
+  family_key: string | null;
+  symbol_key: string | null;
+  text: string;
+  length_mm: number | null; // parametric luminaires: real length and width
+  width_mm: number | null;
+  line_style: LineStyle;
+  line_length: number;
+  text_scale: number; // factor on the common text size, 1 = common size
+  symbol_factor: number; // factor on the common symbol scale for this symbol only
+  rotation: number; // steps of 45 degrees, counter-clockwise like the DXF
+  mirror?: boolean; // mirrored left-right before turning
+  hidden: boolean; // the general part already shows it: hidden, not deleted
+  keep: boolean; // shown again on purpose, not hidden a second time
+  color?: string; // plan colour of this entry, when it differs from the section
+  symbol_color?: string; // chosen colour of this one entry; the whole symbol is drawn in it
+  parts?: LegendPart[]; // combined entry: further symbols beside the first, texts joined with « / »
+}
+
+/** A further symbol of a combined entry («Einlasskasten / Schalungsschoner»). */
+export interface LegendPart {
+  family_key: string | null;
+  symbol_key: string;
+  text: string;
+  length_mm: number | null;
+  width_mm: number | null;
+  symbol_factor: number;
+  rotation: number;
+  mirror?: boolean;
+  color?: string;
+}
+
+export const MAX_PARTS = 4;
+
+/** Text of an entry; a combined entry joins its texts with « / ». */
+export function entryText(it: LegendItem): string {
+  return [it.text, ...(it.parts ?? []).map((p) => p.text)].map((t) => (t || "").trim()).filter(Boolean).join(" / ");
+}
+
+export interface SectionStyle {
+  header: string;
+  header_text: string;
+  background_on: boolean;
+  background: string;
+  border_on: boolean;
+  border: string;
+  symbol: string;
+  text: string;
+  padding: number;
+}
+
+export interface LegendBlock {
+  id: string;
+  category_id: string | null;
+  title: string;
+  layer: string;
+  collapsed: boolean;
+  title_scale: number;
+  style: SectionStyle;
+  items: LegendItem[];
+}
+
+export interface LegendStyle {
+  font: string;
+  text_size: number;
+  symbol_scale: number;
+  grid: string;
+  row: number;
+  text_offset: number;
+  columns: number;
+  width: number;
+  margin: number;
+  plan_scale: number;
+  section_gap: number;
+  entry_gap: number; // millimetres between rows; 0 means the rows touch
+  text_lines: number; // 0 automatic, 1–3 fixed line count and one row height
+  hatch_off?: boolean; // legend-wide: no hatches and light areas in symbols
+  fill_off?: boolean; // legend-wide: no solid fills in symbols, the outlines stay
+  /** PDF: line weights as drawn, or thinner / thicker with the symbol size */
+  pdf_lines?: "original" | "proportional";
+  /** equal tiles: every drawing gets the same area, at most 75 % of the tile (default on) */
+  normalize_size?: boolean;
+  symbol_size?: "real" | "tile"; // real size on the insertion point (default) or equal tiles
+  frame_on: boolean; // border round the whole legend
+  frame: string;
+}
+
+export interface GeneralSection {
+  title: string;
+  header: string;
+  header_text: string;
+  title_scale: number;
+}
+
+export interface LegendDoc {
+  version: number;
+  style: LegendStyle;
+  title: { text: string; scale: number; size_mm: number; font: string; color: string; border_on: boolean; border: string };
+  general_section?: GeneralSection;
+  general_on?: boolean; // false: shown and exported without the general part (themed legend)
+  blocks: LegendBlock[];
+}
+
+export type Selection =
+  | { type: "item"; block: string; item: string }
+  | { type: "block"; block: string }
+  | { type: "legend" }
+  | { type: "title" }
+  | { type: "general" }
+  | { type: "general-row"; id: string }
+  | null;
+
+// -- undo / redo ---------------------------------------------------------------
+
+export interface History<T> {
+  past: T[];
+  present: T;
+  future: T[];
+}
+
+const LIMIT = 100;
+
+export function historyOf<T>(present: T): History<T> {
+  return { past: [], present, future: [] };
+}
+
+/** A finished change: the old state goes to the undo list. */
+export function push<T>(h: History<T>, next: T): History<T> {
+  if (next === h.present) return h;
+  return { past: [...h.past, h.present].slice(-LIMIT), present: next, future: [] };
+}
+
+/** Live change while typing: no undo step yet. */
+export function replace<T>(h: History<T>, next: T): History<T> {
+  return { ...h, present: next };
+}
+
+/** End of typing in a field: one undo step back to the state before. */
+export function commit<T>(h: History<T>, before: T): History<T> {
+  if (before === h.present) return h;
+  return { past: [...h.past, before].slice(-LIMIT), present: h.present, future: [] };
+}
+
+export function undo<T>(h: History<T>): History<T> {
+  if (!h.past.length) return h;
+  return { past: h.past.slice(0, -1), present: h.past[h.past.length - 1], future: [h.present, ...h.future] };
+}
+
+export function redo<T>(h: History<T>): History<T> {
+  if (!h.future.length) return h;
+  return { past: [...h.past, h.present], present: h.future[0], future: h.future.slice(1) };
+}
+
+// -- saving: a slow answer must not win over a newer save ----------------------------
+
+export interface SaveGate {
+  generation: number;
+}
+
+/** Start a save; returns its generation. */
+export function beginSave(gate: SaveGate): number {
+  gate.generation += 1;
+  return gate.generation;
+}
+
+/** True if the answer of this save is still the newest one. */
+export function isCurrentSave(gate: SaveGate, generation: number): boolean {
+  return gate.generation === generation;
+}
+
+// -- editing steps (each returns a new document) ----------------------------------
+
+function mapBlock(doc: LegendDoc, id: string, fn: (b: LegendBlock) => LegendBlock): LegendDoc {
+  return { ...doc, blocks: doc.blocks.map((b) => (b.id === id ? fn(b) : b)) };
+}
+
+export function updateItem(doc: LegendDoc, blockId: string, itemId: string, patch: Partial<LegendItem>): LegendDoc {
+  return mapBlock(doc, blockId, (b) => ({ ...b, items: b.items.map((it) => (it.id === itemId ? { ...it, ...patch } : it)) }));
+}
+
+export function removeItem(doc: LegendDoc, blockId: string, itemId: string): LegendDoc {
+  return mapBlock(doc, blockId, (b) => ({ ...b, items: b.items.filter((it) => it.id !== itemId) }));
+}
+
+export function updateBlock(doc: LegendDoc, blockId: string, patch: Partial<LegendBlock>): LegendDoc {
+  return mapBlock(doc, blockId, (b) => ({ ...b, ...patch }));
+}
+
+export function updateSectionStyle(doc: LegendDoc, blockId: string, patch: Partial<SectionStyle>): LegendDoc {
+  return mapBlock(doc, blockId, (b) => ({ ...b, style: { ...b.style, ...patch } }));
+}
+
+export function removeBlock(doc: LegendDoc, blockId: string): LegendDoc {
+  return { ...doc, blocks: doc.blocks.filter((b) => b.id !== blockId) };
+}
+
+export function moveBlockInOrder(doc: LegendDoc, blockId: string, delta: number): LegendDoc {
+  const blocks = [...doc.blocks];
+  const i = blocks.findIndex((b) => b.id === blockId);
+  const j = i + delta;
+  if (i < 0 || j < 0 || j >= blocks.length) return doc;
+  [blocks[i], blocks[j]] = [blocks[j], blocks[i]];
+  return { ...doc, blocks };
+}
+
+/** Move an entry one place up or down; at the edge it goes to the neighbouring section. */
+export function moveItemInOrder(doc: LegendDoc, blockId: string, itemId: string, delta: number): { doc: LegendDoc; block: string } {
+  const bi = doc.blocks.findIndex((b) => b.id === blockId);
+  if (bi < 0) return { doc, block: blockId };
+  const items = [...doc.blocks[bi].items];
+  const i = items.findIndex((it) => it.id === itemId);
+  if (i < 0) return { doc, block: blockId };
+  const j = i + delta;
+  if (j >= 0 && j < items.length) {
+    [items[i], items[j]] = [items[j], items[i]];
+    return { doc: mapBlock(doc, blockId, (b) => ({ ...b, items })), block: blockId };
+  }
+  const nb = doc.blocks[bi + (delta < 0 ? -1 : 1)];
+  if (!nb) return { doc, block: blockId };
+  return { doc: moveItemToBlock(doc, blockId, itemId, nb.id, delta < 0 ? "end" : "start"), block: nb.id };
+}
+
+export function moveItemToBlock(doc: LegendDoc, fromId: string, itemId: string, toId: string, where: "start" | "end" = "end"): LegendDoc {
+  const item = doc.blocks.find((b) => b.id === fromId)?.items.find((it) => it.id === itemId);
+  if (!item || fromId === toId || !doc.blocks.some((b) => b.id === toId)) return doc;
+  return {
+    ...doc,
+    blocks: doc.blocks.map((b) =>
+      b.id === fromId
+        ? { ...b, items: b.items.filter((it) => it.id !== itemId) }
+        : b.id === toId
+          ? { ...b, items: where === "start" ? [item, ...b.items] : [...b.items, item] }
+          : b,
+    ),
+  };
+}
+
+/** Company text key of the UP / AP hint (same as AP_NOTE_KEY in the backend). */
+export const AP_NOTE_KEY = "hinweis:up-ap";
+
+/** Key under which an entry's company text is stored: its family, or the hint key. */
+export function companyKey(it: { kind: ItemKind; family_key: string | null }): string | null {
+  if (it.kind === "symbol") return it.family_key;
+  return it.kind === "note" ? AP_NOTE_KEY : null;
+}
+
+let counter = 0;
+export function newId(): string {
+  counter += 1;
+  return `n${Date.now().toString(36)}${counter.toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+}
+
+export function makeItem(patch: Partial<LegendItem>): LegendItem {
+  return {
+    id: newId(),
+    kind: "symbol",
+    family_key: null,
+    symbol_key: null,
+    text: "",
+    length_mm: null,
+    width_mm: null,
+    line_style: "solid",
+    line_length: 8,
+    text_scale: 1,
+    symbol_factor: 1,
+    rotation: 0,
+    hidden: false,
+    keep: false,
+    ...patch,
+  };
+}
+
+export function addItem(doc: LegendDoc, blockId: string, patch: Partial<LegendItem>): { doc: LegendDoc; id: string } {
+  if (!doc.blocks.some((b) => b.id === blockId)) return { doc, id: "" };
+  const item = makeItem(patch);
+  return { doc: mapBlock(doc, blockId, (b) => ({ ...b, items: [...b.items, item] })), id: item.id };
+}
+
+export const NEUTRAL_SECTION: SectionStyle = {
+  header: "#6b7280",
+  header_text: "#ffffff",
+  background_on: false,
+  background: "#f0f1f3",
+  border_on: false,
+  border: "#6b7280",
+  symbol: "#000000",
+  text: "#000000",
+  padding: 1.5,
+};
+
+/** Default look of a section from a plan colour (same rule as the backend):
+ *  only the header bar is coloured, the area stays paper, no border, black text.
+ *  Symbols keep their own colours; `symbol` only colours lines and notes. */
+export function sectionStyle(color?: string | null): SectionStyle {
+  if (!color || !/^#[0-9a-f]{6}$/i.test(color) || /^#(ffffff|000000)$/i.test(color)) return { ...NEUTRAL_SECTION };
+  const [r, g, b] = [1, 3, 5].map((i) => parseInt(color.slice(i, i + 2), 16));
+  const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+  const mix = (c: number) => Math.round(c + (255 - c) * 0.9);
+  const bg = `#${[r, g, b].map((c) => mix(c).toString(16).padStart(2, "0")).join("")}`;
+  // symbols and lines take the plan colour of the section's layer
+  return { header: color, header_text: lum > 160 ? "#000000" : "#ffffff", background_on: false, background: bg, border_on: false, border: color, symbol: color, text: "#000000", padding: 1.5 };
+}
+
+export function addBlock(doc: LegendDoc, title: string, categoryId: string | null = null, color?: string | null, layer = ""): { doc: LegendDoc; id: string } {
+  const block: LegendBlock = { id: newId(), category_id: categoryId, title, layer, collapsed: false, title_scale: 1, style: sectionStyle(color), items: [] };
+  return { doc: { ...doc, blocks: [...doc.blocks, block] }, id: block.id };
+}
+
+// -- comparison with the project ------------------------------------------------
+
+export interface RowLike {
+  family_key: string;
+  symbol_key?: string;
+  title: string;
+  total: number;
+  categories: string[];
+}
+
+/** Apparatus in use in the project that the legend does not show yet
+ *  (without those the general part already shows). */
+export function missingRows<T extends RowLike>(doc: LegendDoc, rows: T[], covered: Set<string> = new Set()): T[] {
+  // the further symbols of combined entries count as shown too
+  const shown = new Set(doc.blocks.flatMap((b) => b.items.filter((it) => !it.hidden)
+    .flatMap((it) => [it.family_key, ...(it.parts ?? []).map((p) => p.family_key)])).filter(Boolean));
+  return rows.filter((r) => r.total > 0 && !shown.has(r.family_key) && !covered.has(r.family_key));
+}
+
+/** Rows of the project the general part already shows. */
+export function coveredRows<T extends RowLike>(rows: T[], covered: Set<string>): T[] {
+  return rows.filter((r) => r.total > 0 && covered.has(r.family_key));
+}
+
+// -- moving and inserting at a place (drag and drop) ------------------------------------
+
+/** Move an entry in front of `beforeId` in block `toId` (null: to the end). */
+export function moveItemTo(doc: LegendDoc, fromId: string, itemId: string, toId: string, beforeId: string | null): LegendDoc {
+  const item = doc.blocks.find((b) => b.id === fromId)?.items.find((it) => it.id === itemId);
+  if (!item || !doc.blocks.some((b) => b.id === toId) || beforeId === itemId) return doc;
+  const blocks = doc.blocks.map((b) => (b.id === fromId ? { ...b, items: b.items.filter((it) => it.id !== itemId) } : b));
+  return { ...doc, blocks: blocks.map((b) => (b.id === toId ? { ...b, items: insertAt(b.items, item, beforeId) } : b)) };
+}
+
+// -- cells: drop into a place of the grid ---------------------------------------------------
+
+function gapItem(): LegendItem {
+  return makeItem({ kind: "gap" });
+}
+
+/** Empty cells at the end of a list hold nothing open: they go. */
+export function trimGaps(items: LegendItem[]): LegendItem[] {
+  let end = items.length;
+  while (end > 0 && (items[end - 1].kind === "gap")) end -= 1;
+  return end === items.length ? items : items.slice(0, end);
+}
+
+/** Put `item` into cell `index` of a list of shown entries. An occupied cell makes room
+ *  like app icons on a phone: the entries behind move on by one, up to the next empty
+ *  cell. An empty cell (or one behind the end) simply takes the entry. */
+function putInCell(shown: LegendItem[], item: LegendItem, index: number): LegendItem[] {
+  const out = [...shown];
+  if (index < out.length && out[index].kind !== "gap") {
+    out.splice(index, 0, item);
+    const free = out.findIndex((it, i) => i > index && it.kind === "gap");
+    if (free >= 0) out.splice(free, 1);
+  } else {
+    while (out.length <= index) out.push(gapItem());
+    out[index] = item;
+  }
+  return out;
+}
+
+/** Move an entry (or place a new one) into cell `index` of block `toId`. Cells count the
+ *  shown entries of the block, empty cells included, column by column. */
+export function placeInCell(
+  doc: LegendDoc,
+  toId: string,
+  index: number,
+  source: { block: string; item: string } | { item: LegendItem },
+): LegendDoc {
+  const target = doc.blocks.find((b) => b.id === toId);
+  if (!target || index < 0) return doc;
+  const hidden = target.items.filter((it) => it.hidden);
+  let shown = target.items.filter((it) => !it.hidden);
+  let blocks = doc.blocks;
+  let item: LegendItem | undefined;
+  if ("block" in source) {
+    item = doc.blocks.find((b) => b.id === source.block)?.items.find((it) => it.id === source.item);
+    if (!item) return doc;
+    if (source.block === toId) {
+      const old = shown.findIndex((it) => it.id === item!.id);
+      if (old < 0 || old === index) return doc;
+      if (index < shown.length && shown[index].kind !== "gap") {
+        // the hole it leaves closes, the others move up to make room
+        shown = [...shown.slice(0, old), ...shown.slice(old + 1)];
+        shown.splice(index, 0, item);
+      } else {
+        // into an empty cell: everything else stays where it is
+        shown = [...shown];
+        shown[old] = gapItem();
+        while (shown.length <= index) shown.push(gapItem());
+        shown[index] = item;
+      }
+    } else {
+      blocks = blocks.map((b) => (b.id === source.block ? { ...b, items: trimGaps(b.items.filter((it) => it.id !== item!.id)) } : b));
+      shown = putInCell(shown, item, index);
+    }
+  } else {
+    item = source.item;
+    shown = putInCell(shown, item, index);
+  }
+  const items = [...trimGaps(shown), ...hidden];
+  return { ...doc, blocks: blocks.map((b) => (b.id === toId ? { ...b, items } : b)) };
+}
+
+/** A new entry in front of `beforeId` in block `blockId` (null: at the end). */
+export function insertItem(doc: LegendDoc, blockId: string, patch: Partial<LegendItem>, beforeId: string | null): { doc: LegendDoc; id: string } {
+  if (!doc.blocks.some((b) => b.id === blockId)) return { doc, id: "" };
+  const item = makeItem(patch);
+  return { doc: mapBlock(doc, blockId, (b) => ({ ...b, items: insertAt(b.items, item, beforeId) })), id: item.id };
+}
+
+function insertAt(items: LegendItem[], item: LegendItem, beforeId: string | null): LegendItem[] {
+  const i = beforeId ? items.findIndex((it) => it.id === beforeId) : -1;
+  return i < 0 ? [...items, item] : [...items.slice(0, i), item, ...items.slice(i)];
+}
+
+function asPart(it: LegendItem): LegendPart {
+  return {
+    family_key: it.family_key, symbol_key: it.symbol_key ?? "", text: it.text, length_mm: it.length_mm,
+    width_mm: it.width_mm, symbol_factor: it.symbol_factor, rotation: it.rotation, mirror: it.mirror,
+    ...(it.color ? { color: it.color } : {}),
+  };
+}
+
+/** Put entry `second` into entry `first`: its symbol stands beside the first one and its
+ *  text follows after « / ». The second entry leaves its section. */
+export function combineItems(doc: LegendDoc, first: { block: string; item: string }, second: { block: string; item: string }): LegendDoc {
+  const a = doc.blocks.find((b) => b.id === first.block)?.items.find((x) => x.id === first.item);
+  const b = doc.blocks.find((x) => x.id === second.block)?.items.find((x) => x.id === second.item);
+  if (!a || !b || a.id === b.id || a.kind !== "symbol" || b.kind !== "symbol" || !b.symbol_key) return doc;
+  const parts = [...(a.parts ?? []), asPart(b), ...(b.parts ?? [])].slice(0, MAX_PARTS - 1);
+  return updateItem(removeItem(doc, second.block, second.item), first.block, first.item, { parts });
+}
+
+/** Split a combined entry again: every further symbol becomes its own entry right after it. */
+export function splitItem(doc: LegendDoc, blockId: string, itemId: string): LegendDoc {
+  const it = doc.blocks.find((b) => b.id === blockId)?.items.find((x) => x.id === itemId);
+  if (!it?.parts?.length) return doc;
+  const extra = it.parts.map((p) =>
+    makeItem({ kind: "symbol", family_key: p.family_key, symbol_key: p.symbol_key, text: p.text, length_mm: p.length_mm,
+      width_mm: p.width_mm, symbol_factor: p.symbol_factor, rotation: p.rotation, mirror: p.mirror,
+      ...(p.color ? { color: p.color } : {}) }));
+  return mapBlock(doc, blockId, (b) => {
+    const i = b.items.findIndex((x) => x.id === itemId);
+    const head = { ...b.items[i] };
+    delete head.parts;
+    return { ...b, items: [...b.items.slice(0, i), head, ...extra, ...b.items.slice(i + 1)] };
+  });
+}
+
+/** Take one further symbol (index 0 = the second) out of a combined entry: it becomes its
+ *  own entry right after it, the other symbols stay combined. */
+export function detachPart(doc: LegendDoc, blockId: string, itemId: string, index: number): LegendDoc {
+  const it = doc.blocks.find((b) => b.id === blockId)?.items.find((x) => x.id === itemId);
+  const p = it?.parts?.[index];
+  if (!it || !p) return doc;
+  const rest = it.parts!.filter((_x, k) => k !== index);
+  const single = makeItem({ kind: "symbol", family_key: p.family_key, symbol_key: p.symbol_key, text: p.text,
+    length_mm: p.length_mm, width_mm: p.width_mm, symbol_factor: p.symbol_factor, rotation: p.rotation, mirror: p.mirror,
+    ...(p.color ? { color: p.color } : {}) });
+  return mapBlock(doc, blockId, (b) => {
+    const i = b.items.findIndex((x) => x.id === itemId);
+    const head: LegendItem = { ...b.items[i], parts: rest };
+    if (!rest.length) delete head.parts;
+    return { ...b, items: [...b.items.slice(0, i), head, single, ...b.items.slice(i + 1)] };
+  });
+}
+
+/** Change one further symbol (index 0 = the second symbol) of a combined entry. */
+export function updatePart(doc: LegendDoc, blockId: string, itemId: string, index: number, patch: Partial<LegendPart>): LegendDoc {
+  return mapBlock(doc, blockId, (b) => ({
+    ...b,
+    items: b.items.map((it) =>
+      it.id === itemId && it.parts ? { ...it, parts: it.parts.map((p, k) => (k === index ? { ...p, ...patch } : p)) } : it),
+  }));
+}
+
+/** Turn a symbol by 90 degrees around its centre. */
+export function rotateItem(doc: LegendDoc, blockId: string, itemId: string, step = 90): LegendDoc {
+  const it = doc.blocks.find((b) => b.id === blockId)?.items.find((x) => x.id === itemId);
+  return it ? updateItem(doc, blockId, itemId, { rotation: ((it.rotation || 0) + step) % 360 }) : doc;
+}
+
+// -- duplicates and the general part --------------------------------------------------------
+
+function symbolIdentity(it: { family_key: string | null; symbol_key: string | null; color?: string | null }): string | null {
+  const base = it.family_key ? `f:${it.family_key}` : it.symbol_key ? `s:${it.symbol_key}` : null;
+  if (!base) return null;
+  const color = (it.color || "").toLowerCase();
+  return color ? `${base}|${color}` : base;
+}
+
+/** Second and later entries of the same symbol in the same section. The same symbol
+ *  in two sections is intended (one entry per category and layer colour). */
+export function duplicateItems(doc: LegendDoc): Set<string> {
+  const out = new Set<string>();
+  for (const b of doc.blocks) {
+    const seen = new Set<string>();
+    for (const it of b.items) {
+      if (it.kind !== "symbol" || it.hidden) continue;
+      const k = symbolIdentity(it);
+      if (!k) continue;
+      if (seen.has(k)) out.add(it.id);
+      else seen.add(k);
+    }
+  }
+  return out;
+}
+
+/** True if the legend already shows this symbol. */
+export function inLegend(doc: LegendDoc, familyKey: string | null, symbolKey: string | null): boolean {
+  const k = symbolIdentity({ family_key: familyKey, symbol_key: symbolKey });
+  return Boolean(k) && doc.blocks.some((b) => b.items.some((it) => !it.hidden && it.kind === "symbol"
+    && (symbolIdentity(it) === k || (it.parts ?? []).some((p) => symbolIdentity(p) === k))));
+}
+
+/** Same rule as norm_text in the backend: no case, punctuation or extra spaces. */
+export function normText(text: string): string {
+  const t = (text || "")
+    .replace(/\\[A-Za-z][^;\\]*;|\\P|[{}]/g, " ")
+    .toLowerCase()
+    .replace(/[^0-9a-zäöüéèàß°/]+/g, " ");
+  return t.split(" ").filter(Boolean).join(" ");
+}
+
+export interface GeneralLike {
+  texts: string[];
+  symbol_keys: string[];
+  family_keys: string[];
+  covered: string[];
+}
+
+/** True if the general part already shows this entry (symbol, family or exact text). */
+export function inGeneral(it: LegendItem, g: GeneralLike | null | undefined): boolean {
+  if (!g || it.kind === "text" || it.kind === "line") return false;
+  if (it.family_key && (g.covered.includes(it.family_key) || g.family_keys.includes(it.family_key))) return true;
+  if (it.symbol_key && g.symbol_keys.includes(it.symbol_key)) return true;
+  const t = normText(it.text);
+  return t.length >= 3 && g.texts.includes(t);
+}
+
+/** Hide entries the general part already shows (not deleted, not those shown again on purpose). */
+export function hideCovered(doc: LegendDoc, g: GeneralLike | null | undefined): LegendDoc {
+  let changed = false;
+  const blocks = doc.blocks.map((b) => {
+    const items = b.items.map((it) => {
+      if (it.hidden || it.keep || !inGeneral(it, g)) return it;
+      changed = true;
+      return { ...it, hidden: true };
+    });
+    return items.some((it, i) => it !== b.items[i]) ? { ...b, items } : b;
+  });
+  return changed ? { ...doc, blocks } : doc;
+}
+
+/** Legend entries whose apparatus does not occur in the current imports. */
+export function staleItems(doc: LegendDoc, rows: RowLike[]): Set<string> {
+  const used = new Set(rows.filter((r) => r.total > 0).map((r) => r.family_key));
+  const out = new Set<string>();
+  for (const b of doc.blocks)
+    for (const it of b.items)
+      if (it.kind === "symbol" && it.family_key && ![it.family_key, ...(it.parts ?? []).map((p) => p.family_key)].some((k) => k && used.has(k)))
+        out.add(it.id);
+  return out;
+}
+
+/** Block for a new entry: the one of its category, else the fallback or first block. */
+export function blockForCategory(doc: LegendDoc, categories: string[], fallback: string | null): string | null {
+  for (const c of categories) {
+    const b = doc.blocks.find((x) => x.category_id === c);
+    if (b) return b.id;
+  }
+  return fallback ?? doc.blocks[0]?.id ?? null;
+}
+
+/** Description of a new entry: the company text first, else the library name. */
+/** Legend text of a symbol: company text, else the name in your Nova user stencil, else `fallback`. */
+export function describe(familyKey: string | null, fallback: string, descriptions: Record<string, string>,
+  stencilNames: Record<string, string> = {}): string {
+  return (familyKey && (descriptions[familyKey] || stencilNames[familyKey])) || fallback;
+}
+
+export function symbolRequestKey(it: { symbol_key: string | null; length_mm: number | null; width_mm: number | null; flat?: boolean }): string {
+  return `${it.symbol_key}|${it.length_mm ?? ""}|${it.width_mm ?? ""}${it.flat ? "|flat" : ""}`;
+}
