@@ -3,12 +3,12 @@
 if (document.documentElement.dataset.toolbox === 'true') {
   window.edecoToolbox = {
     async prepareLeave() {
-      if (pendingToolRequests > 0) {
-        toast('Bitte warten, bis der laufende Vorgang abgeschlossen ist.');
-        return false;
-      }
       if (document.querySelector('dialog[open]')) {
         toast('Bitte den offenen Dialog zuerst abschliessen oder schliessen.');
+        return false;
+      }
+      if (pendingToolRequests > 0) {
+        toast('Bitte warten, bis der laufende Vorgang abgeschlossen ist.');
         return false;
       }
       try {

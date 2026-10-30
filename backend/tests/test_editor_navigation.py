@@ -193,6 +193,7 @@ def test_bim_open_dialog_and_storage_failure_prevent_leaving(editor):
     playwright.expect(frame.locator("#toast")).to_contain_text("offenen Dialog")
     frame.get_by_role("button", name="Suche schliessen", exact=True).click()
     child = page.frames[1]
+    child.wait_for_function("pendingToolRequests === 0")
     child.evaluate("""() => {
       window.originalSetItem = Storage.prototype.setItem;
       Storage.prototype.setItem = () => { throw new Error('Test quota failure'); };
@@ -202,6 +203,54 @@ def test_bim_open_dialog_and_storage_failure_prevent_leaving(editor):
     child.evaluate("() => { Storage.prototype.setItem = window.originalSetItem; }")
     page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
     playwright.expect(page.get_by_role("heading", name="Ein Ort. Deine Werkzeuge.")).to_be_visible()
+
+
+def test_toolbox_shows_all_tiles_without_scroll_and_greys_only_planned_tools(editor):
+    page, _, _, _ = editor
+    page.set_viewport_size({"width": 1400, "height": 900})
+    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    playwright.expect(page.locator(".toolbox-card")).to_have_count(5)
+    assert page.locator(".toolbox").evaluate("el => el.scrollHeight <= el.clientHeight")
+    for tile in page.locator(".toolbox-card:not(.is-available)").all():
+        playwright.expect(tile.get_by_role("button")).to_be_disabled()
+        assert tile.locator(".toolbox-symbol").evaluate("el => getComputedStyle(el).filter") == "grayscale(1)"
+    playwright.expect(page.get_by_role("button", name="NOVA-Legenden öffnen", exact=True)).to_be_enabled()
+    playwright.expect(page.get_by_role("button", name="BIM2STEIGER öffnen", exact=True)).to_be_enabled()
+
+
+def test_common_updater_checks_and_requires_confirmation_before_install(editor):
+    import json
+    page, _, _, _ = editor
+    page.evaluate("""() => {
+      const original = window.fetch;
+      window.fetch = async (...args) => {
+        if (String(args[0]) === '/api/toolbox/updates') await new Promise(resolve => setTimeout(resolve, 500));
+        return original(...args);
+      };
+    }""")
+    state = {"current": "v0.2.0-build.4", "status": "unchecked", "message": "Noch nicht geprüft.",
+             "can_install": False, "packaged": True, "automatic": False,
+             "release_url": "https://github.com/alxdrg-be/edeco-tool/releases", "session_key": "test-session"}
+    actions = []
+    page.route("**/api/toolbox/updates", lambda route: route.fulfill(json=state))
+    def action(route):
+        assert route.request.headers.get("x-edeco-update") == "test-session"
+        kind = route.request.url.rsplit("/", 1)[1]
+        actions.append(kind)
+        if kind == "check":
+            route.fulfill(json={**state, "status": "available", "latest": "v0.2.0-build.5", "can_install": True, "message": "Ein Toolbox-Update ist verfügbar."})
+        else:
+            assert kind == "install" and json.loads(route.request.post_data) == {}
+            route.fulfill(json={**state, "status": "installing", "message": "Setup geprüft. Die Toolbox schliesst sich."})
+    page.route("**/api/toolbox/updates/check", action)
+    page.route("**/api/toolbox/updates/install", action)
+    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Nach Updates suchen", exact=True).click()
+    page.get_by_role("button", name="Update installieren", exact=True).click()
+    assert actions == ["check"]
+    page.get_by_role("button", name="Jetzt aktualisieren", exact=True).click()
+    playwright.expect(page.get_by_role("status").filter(has_text="Setup geprüft")).to_be_visible()
+    assert actions == ["check", "install"]
 
 
 def title(client, pid):

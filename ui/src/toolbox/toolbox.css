@@ -28,11 +28,13 @@
 .toolbox-categories .btn { padding: 7px 14px; background: none; border-color: transparent; border-radius: 8px; font-size: 12px; color: var(--muted); box-shadow: none; }
 .toolbox-categories button[aria-pressed="true"] { background: var(--panel); color: var(--fg); box-shadow: 0 1px 4px #122e3f0c; }
 .toolbox-count { margin: 26px 0 15px; color: var(--muted); font-size: 11px; }
-.toolbox-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; }
+.toolbox-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px; }
 .toolbox-card { min-width: 0; }
 .toolbox-tile { position: relative; width: 100%; min-height: 252px; display: flex; flex-direction: column; align-items: center; padding: 40px 16px 20px; border: 1px solid var(--line); border-radius: 18px; background: var(--panel); color: var(--fg); box-shadow: 0 3px 10px #233e4c04; transition: transform 160ms, box-shadow 160ms, border-color 160ms; cursor: pointer; }
 .toolbox-tile:not(:disabled):hover { transform: translateY(-4px); border-color: var(--tool); box-shadow: 0 12px 30px #233e4c12; }
 .toolbox-tile:disabled { cursor: default; opacity: 1; }
+.toolbox-card:not(.is-available) .toolbox-tile { color: var(--muted); background: var(--panel-2); }
+.toolbox-card:not(.is-available) .toolbox-symbol { filter: grayscale(1); opacity: .4; box-shadow: none; }
 .toolbox-symbol { display: grid; place-items: center; width: 76px; height: 76px; border-radius: 20px; color: white; background: linear-gradient(140deg, var(--tool), var(--tool-deep)); box-shadow: 0 7px 16px color-mix(in srgb, var(--tool) 18%, transparent); margin-bottom: 21px; }
 .toolbox-symbol svg { width: 40px; height: 40px; }
 .toolbox-tile h2 { font-size: 15px; font-weight: 650; letter-spacing: -.2px; margin: 0 0 5px; }
@@ -47,12 +49,21 @@
 .toolbox-footer { margin-top: 46px; padding-top: 20px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; font-size: 10px; color: var(--muted); }
 .toolbox-message { padding: 48px; }
 .toolbox-back { margin-bottom: 24px; }
+.toolbox-header-actions { display: flex; gap: 10px; align-items: center; }
+.toolbox-update-available { color: var(--accent); border-color: var(--accent); }
+.toolbox-update-dialog { width: min(620px, calc(100vw - 32px)); max-height: calc(100vh - 48px); overflow-y: auto; }
+.toolbox-update-version { font-size: 12px; color: var(--muted); }
+.toolbox-update-preference { display: flex; align-items: center; gap: 10px; margin: 18px 0; }
+.toolbox-update-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+.toolbox-update-notes { white-space: pre-wrap; font: inherit; color: var(--muted); }
+.toolbox-update-confirm { padding: 16px; background: var(--accent-soft); border-radius: 10px; margin-top: 16px; }
 .bim-workspace { height: 100%; display: flex; flex-direction: column; background: var(--bg); }
 .bim-toolbox-header { display: flex; align-items: center; flex-wrap: wrap; gap: 18px; padding: 14px 24px; background: var(--panel); border-bottom: 1px solid var(--line); }
 .bim-toolbox-logo { width: 110px; display: block; color: var(--logo-ink); }
 .bim-toolbox-logo svg { display: block; width: 100%; height: auto; }
 .bim-toolbox-label { color: var(--accent); font-size: 12px; font-weight: 650; margin-left: auto; }
 .bim-frame { width: 100%; flex: 1; min-height: 0; border: 0; background: var(--bg); }
-@media (max-width: 1000px) { .toolbox-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 1199px) { .toolbox-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } .toolbox-main { padding-top: 30px; } .toolbox-intro { margin-bottom: 24px; } .toolbox-tile { min-height: 220px; } }
 @media (max-width: 740px) { .toolbox-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; } .toolbox-brand { gap: 14px; font-size: 18px; } .toolbox-logo { width: 110px; } .toolbox-header { padding: 20px; gap: 10px; } .toolbox-main { padding-top: 30px; } .toolbox-filters { align-items: stretch; flex-direction: column; gap: 16px; } .toolbox-search { width: 100%; } .toolbox-tile { min-height: 230px; padding-inline: 8px; } }
 @media (max-width: 370px) { .toolbox-grid { grid-template-columns: 1fr; } }
+@media (max-width: 740px) { .toolbox-header { flex-wrap: wrap; } .toolbox-header-actions { margin-left: auto; } }

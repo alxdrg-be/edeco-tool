@@ -10,6 +10,7 @@ from nova_legend.api.app import AppState, create_app as create_nova_app
 
 from . import APP_NAME, APP_VERSION, BUILD, COMMIT
 from .bim import create_app as create_bim_app
+from .update_api import register as register_updates
 
 
 def create_app(state: AppState | None = None, ui_dir: Path | None = None):
@@ -17,6 +18,7 @@ def create_app(state: AppState | None = None, ui_dir: Path | None = None):
     app = create_nova_app(state, serve_ui=False, updates_enabled=False)
     app.title = APP_NAME
     app.version = APP_VERSION
+    register_updates(app)
 
     @app.get("/api/toolbox/status")
     def status():

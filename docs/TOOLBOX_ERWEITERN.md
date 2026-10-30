@@ -61,4 +61,9 @@ Der gemeinsame Windows-Build verwendet `packaging/edeco_toolbox.spec` und
 keine bestehende Einzelinstallation. Die beiden Einzelprogramm-Updater sind in der Toolbox deaktiviert.
 Beim Verlassen von BIM prüft `toolbox-bridge.js`, dass kein Vorgang und kein
 Dialog mehr offen ist, und speichert Favoriten, Modellimport und Ausschreibung.
-Fehler beim Schreiben des lokalen Speichers verhindern den Wechsel. Ein gemeinsamer automatischer Updater ist noch nicht implementiert.
+Fehler beim Schreiben des lokalen Speichers verhindern den Wechsel. Der gemeinsame Updater liegt in
+`backend/edeco_toolbox/updater.py`, seine lokalen, durch Sitzungsschlüssel
+abgesicherten Aktionen unter `/api/toolbox/updates`. Neue Module brauchen keinen
+eigenen Updater. Das Desktopprofil und der zuletzt genutzte Port bleiben bei
+Updates ausserhalb des Installationsordners erhalten. `main` veröffentlicht
+erfolgreiche Builds automatisch als GitHub Release.

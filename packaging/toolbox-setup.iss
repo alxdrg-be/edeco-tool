@@ -1,6 +1,6 @@
-﻿; Inno Setup script for edeco-Toolbox. Build: iscc /DAppVersion=0.1.0 packaging\setup.iss
+﻿; Inno Setup script for edeco-Toolbox. Build: iscc /DAppVersion=0.2.0 packaging\toolbox-setup.iss
 #ifndef AppVersion
-  #define AppVersion "0.1.0"
+  #define AppVersion "0.2.0"
 #endif
 
 [Setup]
@@ -15,13 +15,13 @@ DisableProgramGroupPage=yes
 PrivilegesRequired=lowest
 OutputDir=..\dist-installer
 OutputBaseFilename=edeco-Toolbox-Setup-{#AppVersion}
-SetupIconFile=app.ico
+SetupIconFile=toolbox.ico
 UninstallDisplayIcon={app}\edeco-Toolbox.exe
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
-WizardImageFile=wizard-image.png,wizard-image-2x.png
-WizardSmallImageFile=wizard-small.png
+WizardImageFile=toolbox-wizard-image.png,toolbox-wizard-image-2x.png
+WizardSmallImageFile=toolbox-wizard-small.png
 WizardImageBackColor=$00927C01
 WizardSmallImageBackColor=$00FFFFFF
 CloseApplications=yes
@@ -60,13 +60,13 @@ Name: "desktopicon"; Description: "Symbol auf dem Desktop anlegen"; GroupDescrip
 Source: "..\dist\edeco-Toolbox\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
-Name: "{group}\edeco-Toolbox"; Filename: "{app}\edeco-Toolbox.exe"
-Name: "{userdesktop}\edeco-Toolbox"; Filename: "{app}\edeco-Toolbox.exe"; Tasks: desktopicon
+Name: "{group}\edeco-Toolbox"; Filename: "{app}\edeco-Toolbox.exe"; IconFilename: "{app}\_internal\packaging\toolbox.ico"
+Name: "{userdesktop}\edeco-Toolbox"; Filename: "{app}\edeco-Toolbox.exe"; IconFilename: "{app}\_internal\packaging\toolbox.ico"; Tasks: desktopicon
 
 [Run]
 Filename: "{app}\edeco-Toolbox.exe"; Description: "edeco-Toolbox jetzt starten"; Flags: nowait postinstall skipifsilent
 ; After a silent update started from the program: restart it
-Filename: "{app}\edeco-Toolbox.exe"; Flags: nowait; Check: WizardSilent
+Filename: "{app}\edeco-Toolbox.exe"; Flags: nowait; Check: RestartAfterSilentInstall
 
 [Code]
 const
@@ -87,6 +87,11 @@ end;
 procedure InitializeWizard;
 begin
   ApplyBrand;
+end;
+
+function RestartAfterSilentInstall: Boolean;
+begin
+  Result := WizardSilent and (ExpandConstant('{param:NoAutoRun|0}') <> '1');
 end;
 
 procedure CurPageChanged(CurPageID: Integer);

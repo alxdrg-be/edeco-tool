@@ -13,7 +13,8 @@ a = Analysis(
            (str(root / "backend" / "nova_legend" / "legend" / "template_texts.json"), "nova_legend/legend"),
            (str(root / "backend" / "bim2steiger" / "data"), "bim2steiger/data"),
            (str(root / "backend" / "bim2steiger" / "web"), "bim2steiger/web"),
-           (str(root / "backend" / "bim2steiger" / "version.json"), "bim2steiger")]
+           (str(root / "backend" / "bim2steiger" / "version.json"), "bim2steiger"),
+           (str(root / "packaging" / "toolbox.ico"), "packaging")]
           + collect_data_files("ezdxf"),
     hiddenimports=(collect_submodules("edeco_toolbox") + collect_submodules("nova_legend") + collect_submodules("uvicorn")
                    + collect_submodules("ezdxf.addons.drawing") + ["ezdxf.addons.importer"]
@@ -29,7 +30,7 @@ exe = EXE(
     exclude_binaries=True,
     name="edeco-Toolbox",
     console=False,
-    icon=str(root / "packaging" / "app.ico"),
+    icon=str(root / "packaging" / "toolbox.ico"),
     version=None,
 )
 coll = COLLECT(exe, a.binaries, a.datas, name="edeco-Toolbox")

@@ -77,6 +77,35 @@ bereit:
   entpacken und `edeco-Toolbox.exe` starten; die Unterordner müssen dabei bleiben.
 
 Download: Auf GitHub **Actions → Toolbox: Windows-Setup bauen → erfolgreicher
-Lauf → Artifacts** öffnen. Der Workflow veröffentlicht kein Release.
+Lauf → Artifacts** öffnen. Nach allen erfolgreichen Prüfungen veröffentlicht
+`main` außerdem automatisch ein Release `v<Version>-build.<Nummer>` unter
+[Releases](https://github.com/alxdrg-be/edeco-tool/releases). Dort liegen Setup,
+portable ZIP und beide SHA-256-Dateien dauerhaft.
 Die Windows-EXE und das Setup werden erst in diesem Windows-Workflow erzeugt;
 sie sind kein Bestandteil des Quellcode-Imports.
+
+
+## Gemeinsame Updates und persönliche Daten
+
+Im Toolbox-Startbildschirm **Nach Updates suchen** öffnen. Installierte und
+portable Windows-Versionen prüfen standardmässig beim Start nach neuen Releases;
+im Quellcode erfolgt die Prüfung manuell. Die Option lässt sich ausschalten.
+Die installierte Windows-Version bietet nach Bestätigung den Download des
+Setups an, prüft Grösse und SHA-256 aus GitHub und schliesst die Toolbox.
+Ein unabhängiger Helfer wartet auf das Prozessende, installiert am bisherigen
+Ort und startet die Toolbox danach wieder. Portable Versionen und Quellcode
+werden nicht durch den Installer überschrieben; dort führt der Link zu Releases.
+
+Das Repository ist privat. Verwendet werden vorhandene `GH_TOKEN`-/
+`GITHUB_TOKEN`-Variablen oder GitHub-CLI-/Git-Credential-Manager-Anmeldungen
+mit Lesezugriff. Tokens bleiben im Arbeitsspeicher und werden nicht in
+Einstellungsdateien gespeichert. Eine Anmeldung allein im Browser kann das
+Programm nicht übernehmen; in diesem Fall die Releases im angemeldeten Browser
+öffnen und das Setup manuell herunterladen.
+
+Das dauerhafte Desktopprofil liegt unter `%LOCALAPPDATA%/edeco-Toolbox/webview`,
+Updateeinstellungen und letzter Port daneben. `EDECO_TOOLBOX_HOME` überschreibt
+diesen Datenordner. Bestehende Nova-Projekte bleiben an ihren bisherigen Pfaden.
+Bei einem Wechsel von einer älteren Version mit flüchtigem WebView-Profil
+BIM-Arbeitslisten vor dem Schliessen als JSON sichern und im neuen Profil laden.
+Versionen ohne gemeinsamen Updater müssen einmal manuell aktualisiert werden.

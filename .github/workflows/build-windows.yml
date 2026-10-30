@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: toolbox-windows-${{ github.ref }}
@@ -55,7 +55,7 @@ jobs:
         run: python -m unittest discover -s tests -q
       - name: Toolbox-EXE bauen
         run: |
-          python packaging/make_icon.py
+          python packaging/make_toolbox_icon.py
           pyinstaller packaging/edeco_toolbox.spec --noconfirm
       - name: EXE auf Start und Oberfläche prüfen
         shell: pwsh
@@ -92,10 +92,43 @@ jobs:
           }
           & $iscc.FullName "/DAppVersion=${{ steps.version.outputs.version }}" packaging\toolbox-setup.iss
           if ($LASTEXITCODE -ne 0) { throw 'Inno Setup fehlgeschlagen' }
-      - name: Installer-Prüfsumme erstellen
+      - name: Installation und Aktualisierung prüfen
         shell: pwsh
         run: |
-          Get-ChildItem 'dist-installer/edeco-Toolbox-Setup-*.exe' | ForEach-Object {
+          $setup = (Get-ChildItem 'dist-installer/edeco-Toolbox-Setup-*.exe' | Select-Object -First 1).FullName
+          $installDir = Join-Path $env:RUNNER_TEMP 'toolbox-install-smoke'
+          $env:EDECO_TOOLBOX_HOME = Join-Path $env:RUNNER_TEMP 'toolbox-profile-smoke'
+          $env:NOVA_LEGENDEN_HOME = Join-Path $env:RUNNER_TEMP 'toolbox-nova-smoke'
+          New-Item -ItemType Directory -Force "$env:EDECO_TOOLBOX_HOME\webview" | Out-Null
+          $marker = "$env:EDECO_TOOLBOX_HOME\webview\profile-marker.txt"
+          Set-Content $marker 'keep-profile'
+          for ($pass = 0; $pass -lt 2; $pass++) {
+            $installer = Start-Process -FilePath $setup -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/NoAutoRun=1',"/DIR=`"$installDir`"" -Wait -PassThru
+            if ($installer.ExitCode -ne 0) { throw "Installation fehlgeschlagen: $($installer.ExitCode)" }
+            if ((Get-Content $marker).Trim() -ne 'keep-profile') { throw 'Benutzerprofil wurde verändert' }
+            if (-not (Test-Path "$installDir\_internal\packaging\toolbox.ico")) { throw 'Toolbox-Icon fehlt' }
+            $p = Start-Process -FilePath "$installDir\edeco-Toolbox.exe" -ArgumentList '--server','--port','8798' -PassThru
+            try {
+              $ok = $false
+              for ($i = 0; $i -lt 60; $i++) {
+                try {
+                  $status = Invoke-RestMethod 'http://127.0.0.1:8798/api/toolbox/updates'
+                  if ($status.installed) { $ok = $true; break }
+                } catch { Start-Sleep 1 }
+              }
+              if (-not $ok) { throw 'Installierte Toolbox startet nicht' }
+            } finally { Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue }
+          }
+      - name: Portable Ausgabe und Release-Text erstellen
+        shell: pwsh
+        run: |
+          Compress-Archive -Path 'dist/edeco-Toolbox' -DestinationPath 'dist-installer/edeco-Toolbox-Portable-${{ steps.version.outputs.version }}.zip' -CompressionLevel Optimal
+          Copy-Item TOOLBOX_NEUIGKEITEN.md release-body.md
+          Add-Content release-body.md "`n`nBuild $env:GITHUB_RUN_NUMBER · Commit $env:GITHUB_SHA"
+      - name: Prüfsummen erstellen
+        shell: pwsh
+        run: |
+          Get-ChildItem 'dist-installer/*' | Where-Object { $_.Extension -in '.exe','.zip' } | ForEach-Object {
             $hash = (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
             Set-Content -Path ($_.FullName + '.sha256') -Value ($hash + '  ' + $_.Name) -Encoding ascii
           }
@@ -111,3 +144,15 @@ jobs:
           path: dist/edeco-Toolbox/
           if-no-files-found: error
           retention-days: 30
+      - name: Toolbox unter Releases veröffentlichen
+        if: github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}-build.${{ github.run_number }}
+          name: edeco Toolbox ${{ steps.version.outputs.version }} (Build ${{ github.run_number }})
+          target_commitish: ${{ github.sha }}
+          body_path: release-body.md
+          files: dist-installer/*
+          fail_on_unmatched_files: true
+          prerelease: false
+          make_latest: true
