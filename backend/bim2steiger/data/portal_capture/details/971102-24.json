@@ -1,0 +1,374 @@
+{
+  "number": "971102",
+  "va": "24",
+  "year": 2026,
+  "source": "https://digital.asteigerag.ch/dashboard",
+  "portal_page": "0_1_19_4",
+  "captured_at": "2026-10-23T18:49:44.719Z",
+  "capture_kind": "article_dialog",
+  "basic_data": [
+    {
+      "label": "Typ",
+      "value": "Einzelartikel",
+      "checkbox": null
+    },
+    {
+      "label": "Artikelnummer",
+      "value": "971102",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z1",
+      "value": "Spleissmodul 4 Kassetten SC -4 NE",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z2",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z3",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 1",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 2",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 3",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Lieferant",
+      "value": "3001 KABLAN",
+      "checkbox": null
+    },
+    {
+      "label": "Sortiment",
+      "value": "3001 KABLAN",
+      "checkbox": null
+    },
+    {
+      "label": "Bestellnummer",
+      "value": "388400032",
+      "checkbox": null
+    },
+    {
+      "label": "E-Nr",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Anschluss",
+      "value": "",
+      "checkbox": false
+    },
+    {
+      "label": "Warengruppe-Nummer",
+      "value": "4249",
+      "checkbox": null
+    },
+    {
+      "label": "Warengruppe-Rabatt (in %)",
+      "value": "20",
+      "checkbox": null
+    },
+    {
+      "label": "Warengruppe-Text",
+      "value": "(L)Kablan HAK/BEP",
+      "checkbox": null
+    },
+    {
+      "label": "Bruttomaterialpreis",
+      "value": "51.1",
+      "checkbox": null
+    },
+    {
+      "label": "Nettomaterialpreis",
+      "value": "40.88",
+      "checkbox": null
+    },
+    {
+      "label": "Recyclinggebühr",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Fremdleistung",
+      "value": "",
+      "checkbox": null
+    }
+  ],
+  "article_text": "\t\n\n\nSpleissmodul 4 Kassetten SC\n-4 NE",
+  "images": [
+    {
+      "number": "971102",
+      "va": "24",
+      "vas": [
+        "24"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 971102 / VA 24, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_1_19_4",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T18:49:44.694Z",
+      "width": 150,
+      "height": 72,
+      "file": "images/portal-2026/901e1c55e0aa7a96127e6ac20bdf441dd9f0b4d37401c51391ea53f4fa693761.png",
+      "sha256": "901e1c55e0aa7a96127e6ac20bdf441dd9f0b4d37401c51391ea53f4fa693761",
+      "ordinal": 0
+    },
+    {
+      "number": "971102",
+      "va": "24",
+      "vas": [
+        "24"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 971102 / VA 24, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_1_19_4",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T18:49:44.695Z",
+      "width": 300,
+      "height": 225,
+      "file": "images/portal-2026/0c969620f859c46fcb3f757d33c587d58827c0f85b64708b44e01acaa19eb3af.jpg",
+      "sha256": "0c969620f859c46fcb3f757d33c587d58827c0f85b64708b44e01acaa19eb3af",
+      "ordinal": 1
+    }
+  ],
+  "rows": [
+    {
+      "index": 0,
+      "level": 0,
+      "expanded": null,
+      "cells": [
+        "Spleissmodul 4 Kassetten SC -4 NE",
+        "971102",
+        "24",
+        "1",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "388400032"
+      ]
+    }
+  ],
+  "tree_attributes": [
+    [
+      "role",
+      "treegrid"
+    ],
+    [
+      "class",
+      "k-grid-aria-root"
+    ],
+    [
+      "aria-rowcount",
+      "2"
+    ],
+    [
+      "aria-colcount",
+      "11"
+    ]
+  ],
+  "calculation": [
+    [
+      {
+        "text": "Arbeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Material",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Akkord",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "Installationszeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.083"
+      },
+      {
+        "text": "Bruttomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "51.10"
+      },
+      {
+        "text": "Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "9.5782"
+      }
+    ],
+    [
+      {
+        "text": "* Stundenansatz",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "115.40"
+      },
+      {
+        "text": "Nettomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "40.88"
+      },
+      {
+        "text": "+ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "49.4648"
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "* Materialfaktor",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.21"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "+ Recyclinggebühr",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.00"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "= Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "9.5782"
+      },
+      {
+        "text": "= Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "49.4648"
+      },
+      {
+        "text": "= Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "59.043"
+      }
+    ],
+    [
+      {
+        "text": "≈ Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "9.60"
+      },
+      {
+        "text": "≈ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "49.45"
+      },
+      {
+        "text": "≈ Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "59.05"
+      }
+    ]
+  ],
+  "complete_tree": true
+}

@@ -1,0 +1,408 @@
+{
+  "number": "374160",
+  "va": "45",
+  "year": 2026,
+  "source": "https://digital.asteigerag.ch/dashboard",
+  "portal_page": "0_1_10_25",
+  "captured_at": "2026-10-23T17:35:29.962Z",
+  "capture_kind": "article_dialog",
+  "basic_data": [
+    {
+      "label": "Typ",
+      "value": "Komplett-Artikel/-Installation",
+      "checkbox": null
+    },
+    {
+      "label": "Artikelnummer",
+      "value": "374160",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z1",
+      "value": "NUP-Blindabdeckung Gr 1",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z2",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z3",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 1",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 2",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 3",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Lieferant",
+      "value": "1 Strukturen",
+      "checkbox": null
+    },
+    {
+      "label": "Sortiment",
+      "value": "2502 Feller",
+      "checkbox": null
+    },
+    {
+      "label": "Bestellnummer",
+      "value": "751.NUP.Q.61",
+      "checkbox": null
+    },
+    {
+      "label": "E-Nr",
+      "value": "374 970 000",
+      "checkbox": null
+    },
+    {
+      "label": "Anschluss",
+      "value": "",
+      "checkbox": false
+    },
+    {
+      "label": "Warengruppe-Nummer",
+      "value": "1410",
+      "checkbox": null
+    },
+    {
+      "label": "Warengruppe-Rabatt (in %)",
+      "value": "28",
+      "checkbox": null
+    },
+    {
+      "label": "Warengruppe-Text",
+      "value": "Feller Haupt-S",
+      "checkbox": null
+    },
+    {
+      "label": "Bruttomaterialpreis",
+      "value": "33.3",
+      "checkbox": null
+    },
+    {
+      "label": "Nettomaterialpreis",
+      "value": "23.976",
+      "checkbox": null
+    },
+    {
+      "label": "Recyclinggebühr",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Fremdleistung",
+      "value": "",
+      "checkbox": null
+    }
+  ],
+  "article_text": "\t\n\n\nNUP-Blindabdeckung\nGr 1",
+  "images": [
+    {
+      "number": "374160",
+      "va": "45",
+      "vas": [
+        "45"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 374160 / VA 45, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_1_10_25",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T17:35:29.941Z",
+      "width": 150,
+      "height": 147,
+      "file": "images/portal-2026/b47d3376d06bd4468bcf30e8c389ac74e345cd2c58d9d3e4ab1d941175faa0b5.png",
+      "sha256": "b47d3376d06bd4468bcf30e8c389ac74e345cd2c58d9d3e4ab1d941175faa0b5",
+      "ordinal": 0
+    },
+    {
+      "number": "374160",
+      "va": "45",
+      "vas": [
+        "45"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 374160 / VA 45, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_1_10_25",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T17:35:29.941Z",
+      "width": 300,
+      "height": 300,
+      "file": "images/portal-2026/4705d7f2b832defe6628ac507f4dd1534487d30840508e2229c7478660a06afb.jpg",
+      "sha256": "4705d7f2b832defe6628ac507f4dd1534487d30840508e2229c7478660a06afb",
+      "ordinal": 1
+    }
+  ],
+  "rows": [
+    {
+      "index": 0,
+      "level": 0,
+      "expanded": "true",
+      "cells": [
+        "NUP-Blindabdeckung Gr 1",
+        "374160",
+        "45",
+        "1",
+        "",
+        "",
+        "",
+        "",
+        "374970000",
+        "751.NUP.Q.61"
+      ]
+    },
+    {
+      "index": 1,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "NUP-Blindabdeckung Gr 1",
+        "985760",
+        "48",
+        "1",
+        "23.976",
+        "23.976",
+        "0.132",
+        "0.132",
+        "374970000",
+        "751.NUP.Q.61"
+      ]
+    },
+    {
+      "index": 2,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Einlasskasten Prefix Gr 1/Ø 30",
+        "372022",
+        "45",
+        "1",
+        "4.4148",
+        "4.4148",
+        "0.398",
+        "0.398",
+        "372711309",
+        "9940"
+      ]
+    }
+  ],
+  "tree_attributes": [
+    [
+      "role",
+      "treegrid"
+    ],
+    [
+      "class",
+      "k-grid-aria-root"
+    ],
+    [
+      "aria-rowcount",
+      "4"
+    ],
+    [
+      "aria-colcount",
+      "11"
+    ]
+  ],
+  "calculation": [
+    [
+      {
+        "text": "Arbeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Material",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Akkord",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "Installationszeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.53"
+      },
+      {
+        "text": "Bruttomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "38.96"
+      },
+      {
+        "text": "Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "61.162"
+      }
+    ],
+    [
+      {
+        "text": "* Stundenansatz",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "115.40"
+      },
+      {
+        "text": "Nettomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "28.3908"
+      },
+      {
+        "text": "+ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "34.35287"
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "* Materialfaktor",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.21"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "+ Recyclinggebühr",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.00"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "= Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "61.162"
+      },
+      {
+        "text": "= Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "34.35287"
+      },
+      {
+        "text": "= Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "95.51487"
+      }
+    ],
+    [
+      {
+        "text": "≈ Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "61.15"
+      },
+      {
+        "text": "≈ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "34.35"
+      },
+      {
+        "text": "≈ Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "95.50"
+      }
+    ]
+  ],
+  "complete_tree": true
+}

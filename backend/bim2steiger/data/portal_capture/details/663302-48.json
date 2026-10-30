@@ -1,0 +1,408 @@
+{
+  "number": "663302",
+  "va": "48",
+  "year": 2026,
+  "source": "https://digital.asteigerag.ch/dashboard",
+  "portal_page": "0_1_10_19",
+  "captured_at": "2026-10-23T17:32:15.404Z",
+  "capture_kind": "article_dialog",
+  "basic_data": [
+    {
+      "label": "Typ",
+      "value": "Komplett-Artikel/-Installation",
+      "checkbox": null
+    },
+    {
+      "label": "Artikelnummer",
+      "value": "663302",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z1",
+      "value": "Spiegelschrank Steckdose 2xT13",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z2",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z3",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 1",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 2",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 3",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Lieferant",
+      "value": "1 Strukturen",
+      "checkbox": null
+    },
+    {
+      "label": "Sortiment",
+      "value": "2702 Hager",
+      "checkbox": null
+    },
+    {
+      "label": "Bestellnummer",
+      "value": "WH39620300D",
+      "checkbox": null
+    },
+    {
+      "label": "E-Nr",
+      "value": "663 302 503",
+      "checkbox": null
+    },
+    {
+      "label": "Anschluss",
+      "value": "",
+      "checkbox": true
+    },
+    {
+      "label": "Warengruppe-Nummer",
+      "value": "2120",
+      "checkbox": null
+    },
+    {
+      "label": "Warengruppe-Rabatt (in %)",
+      "value": "30",
+      "checkbox": null
+    },
+    {
+      "label": "Warengruppe-Text",
+      "value": "Hager Basico Neben-S",
+      "checkbox": null
+    },
+    {
+      "label": "Bruttomaterialpreis",
+      "value": "25.85",
+      "checkbox": null
+    },
+    {
+      "label": "Nettomaterialpreis",
+      "value": "18.095",
+      "checkbox": null
+    },
+    {
+      "label": "Recyclinggebühr",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Fremdleistung",
+      "value": "",
+      "checkbox": null
+    }
+  ],
+  "article_text": "\t\n\n\nSpiegelschrank Steckdose\n2xT13",
+  "images": [
+    {
+      "number": "663302",
+      "va": "48",
+      "vas": [
+        "48"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 663302 / VA 48, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_1_10_19",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T17:32:15.378Z",
+      "width": 150,
+      "height": 150,
+      "file": "images/portal-2026/8a9ba5e63c4b9d6c43600515e766ab5330ffaeea0ec77211bec039d696e63d63.png",
+      "sha256": "8a9ba5e63c4b9d6c43600515e766ab5330ffaeea0ec77211bec039d696e63d63",
+      "ordinal": 0
+    },
+    {
+      "number": "663302",
+      "va": "48",
+      "vas": [
+        "48"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 663302 / VA 48, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_1_10_19",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T17:32:15.379Z",
+      "width": 300,
+      "height": 300,
+      "file": "images/portal-2026/60413f21fdf08a45748d75b9399dd61261dd6c299895231aeb02f5f985041fad.jpg",
+      "sha256": "60413f21fdf08a45748d75b9399dd61261dd6c299895231aeb02f5f985041fad",
+      "ordinal": 1
+    }
+  ],
+  "rows": [
+    {
+      "index": 0,
+      "level": 0,
+      "expanded": "true",
+      "cells": [
+        "Spiegelschrank Steckdose 2xT13",
+        "663302",
+        "48",
+        "1",
+        "",
+        "",
+        "",
+        "",
+        "663302503",
+        "WH39620300D"
+      ]
+    },
+    {
+      "index": 1,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Spiegelschrank Steckdose 2xT13",
+        "993586",
+        "48",
+        "1",
+        "18.095",
+        "18.095",
+        "0.046",
+        "0.046",
+        "663302503",
+        "WH39620300D"
+      ]
+    },
+    {
+      "index": 2,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Kabel FE0 Dca hf 3x1.5",
+        "109052",
+        "70",
+        "2",
+        "0.77",
+        "1.54",
+        "0.101",
+        "0.202",
+        "109010323",
+        "212880"
+      ]
+    }
+  ],
+  "tree_attributes": [
+    [
+      "role",
+      "treegrid"
+    ],
+    [
+      "class",
+      "k-grid-aria-root"
+    ],
+    [
+      "aria-rowcount",
+      "4"
+    ],
+    [
+      "aria-colcount",
+      "11"
+    ]
+  ],
+  "calculation": [
+    [
+      {
+        "text": "Arbeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Material",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Akkord",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "Installationszeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.248"
+      },
+      {
+        "text": "Bruttomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "25.85"
+      },
+      {
+        "text": "Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "28.6192"
+      }
+    ],
+    [
+      {
+        "text": "* Stundenansatz",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "115.40"
+      },
+      {
+        "text": "Nettomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "18.095"
+      },
+      {
+        "text": "+ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "21.89495"
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "* Materialfaktor",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.21"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "+ Recyclinggebühr",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.00"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "= Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "28.6192"
+      },
+      {
+        "text": "= Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "21.89495"
+      },
+      {
+        "text": "= Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "50.51415"
+      }
+    ],
+    [
+      {
+        "text": "≈ Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "28.60"
+      },
+      {
+        "text": "≈ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "21.90"
+      },
+      {
+        "text": "≈ Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "50.50"
+      }
+    ]
+  ],
+  "complete_tree": true
+}

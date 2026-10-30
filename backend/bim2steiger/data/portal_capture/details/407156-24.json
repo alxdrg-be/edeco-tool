@@ -1,0 +1,457 @@
+{
+  "number": "407156",
+  "va": "24",
+  "year": 2026,
+  "source": "https://digital.asteigerag.ch/dashboard",
+  "portal_page": "0_1_12_13",
+  "captured_at": "2026-10-23T17:49:04.896Z",
+  "capture_kind": "article_dialog",
+  "basic_data": [
+    {
+      "label": "Typ",
+      "value": "Komplett-Artikel/-Installation",
+      "checkbox": null
+    },
+    {
+      "label": "Artikelnummer",
+      "value": "407156",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z1",
+      "value": "REG-Schalt-/Jalousieaktor TYAS610D",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z2",
+      "value": "10/5x16A C-Last",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z3",
+      "value": "Handbedienung Zustandsanzeige",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 1",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 2",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 3",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Lieferant",
+      "value": "1 Strukturen",
+      "checkbox": null
+    },
+    {
+      "label": "Sortiment",
+      "value": "2702 Hager",
+      "checkbox": null
+    },
+    {
+      "label": "Bestellnummer",
+      "value": "TYAS610D",
+      "checkbox": null
+    },
+    {
+      "label": "E-Nr",
+      "value": "405 615 546",
+      "checkbox": null
+    },
+    {
+      "label": "Anschluss",
+      "value": "",
+      "checkbox": true
+    },
+    {
+      "label": "Warengruppe-Nummer",
+      "value": "2380",
+      "checkbox": null
+    },
+    {
+      "label": "Warengruppe-Rabatt (in %)",
+      "value": "25",
+      "checkbox": null
+    },
+    {
+      "label": "Warengruppe-Text",
+      "value": "Hager REG KNX-Material",
+      "checkbox": null
+    },
+    {
+      "label": "Bruttomaterialpreis",
+      "value": "583.89",
+      "checkbox": null
+    },
+    {
+      "label": "Nettomaterialpreis",
+      "value": "435.1175",
+      "checkbox": null
+    },
+    {
+      "label": "Recyclinggebühr",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Fremdleistung",
+      "value": "",
+      "checkbox": null
+    }
+  ],
+  "article_text": "\t\n\n\nREG-Schalt-/Jalousieaktor\nTYAS610D\n\n10/5x16A C-Last\n\n\nHandbedienung Zustandsanzeige",
+  "images": [
+    {
+      "number": "407156",
+      "va": "24",
+      "vas": [
+        "24"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 407156 / VA 24, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_1_12_13",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T17:49:04.874Z",
+      "width": 300,
+      "height": 300,
+      "file": "images/portal-2026/aff2ed726a761fa3484c4b84cd8c9882f4c81ec4c8d2cbef6b4f2d1d8dfb3983.jpg",
+      "sha256": "aff2ed726a761fa3484c4b84cd8c9882f4c81ec4c8d2cbef6b4f2d1d8dfb3983",
+      "ordinal": 0
+    }
+  ],
+  "rows": [
+    {
+      "index": 0,
+      "level": 0,
+      "expanded": "true",
+      "cells": [
+        "REG-Schalt-/Jalousieaktor TYAS610D",
+        "407156",
+        "24",
+        "1",
+        "",
+        "",
+        "",
+        "",
+        "405615546",
+        "TYAS610D"
+      ]
+    },
+    {
+      "index": 1,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "REG-Schalt-/Jalousieaktor TYAS610D",
+        "985816",
+        "24",
+        "1",
+        "428.25",
+        "428.25",
+        "0.063",
+        "0.063",
+        "405615546",
+        "TYAS610D"
+      ]
+    },
+    {
+      "index": 2,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Buskabel KNX-J-H(St)Hh B2ca hf 2x2x0.8",
+        "101528",
+        "60",
+        "1",
+        "1.2675",
+        "1.2675",
+        "0.062",
+        "0.062",
+        "101538079",
+        "TGZ181"
+      ]
+    },
+    {
+      "index": 3,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Buskabel KNX-J-H(St)Hh B2ca hf 2x2x0.8",
+        "101528",
+        "81",
+        "2",
+        "1.2675",
+        "2.535",
+        "0.146",
+        "0.292",
+        "101538079",
+        "TGZ181"
+      ]
+    },
+    {
+      "index": 4,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Litze T Dca hf 2.5",
+        "113104",
+        "60",
+        "10",
+        "0.56",
+        "5.6",
+        "0.048",
+        "0.48",
+        "113163900",
+        "220542"
+      ]
+    },
+    {
+      "index": 5,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Litze T Dca hf 2.5",
+        "113104",
+        "70",
+        "20",
+        "0.56",
+        "11.2",
+        "0.041",
+        "0.82",
+        "113163900",
+        "220542"
+      ]
+    },
+    {
+      "index": 6,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Einregulierung IBS 1.0h",
+        "999000",
+        "09",
+        "0.66",
+        "0",
+        "0",
+        "1",
+        "0.66",
+        "",
+        ""
+      ]
+    }
+  ],
+  "tree_attributes": [
+    [
+      "role",
+      "treegrid"
+    ],
+    [
+      "class",
+      "k-grid-aria-root"
+    ],
+    [
+      "aria-rowcount",
+      "8"
+    ],
+    [
+      "aria-colcount",
+      "11"
+    ]
+  ],
+  "calculation": [
+    [
+      {
+        "text": "Arbeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Material",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Akkord",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "Installationszeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "2.377"
+      },
+      {
+        "text": "Bruttomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "583.89"
+      },
+      {
+        "text": "Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "274.3058"
+      }
+    ],
+    [
+      {
+        "text": "* Stundenansatz",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "115.40"
+      },
+      {
+        "text": "Nettomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "435.1175"
+      },
+      {
+        "text": "+ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "526.49218"
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "* Materialfaktor",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.21"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "+ Recyclinggebühr",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.00"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "= Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "274.3058"
+      },
+      {
+        "text": "= Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "526.49218"
+      },
+      {
+        "text": "= Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "800.79798"
+      }
+    ],
+    [
+      {
+        "text": "≈ Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "274.30"
+      },
+      {
+        "text": "≈ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "526.50"
+      },
+      {
+        "text": "≈ Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "800.80"
+      }
+    ]
+  ],
+  "complete_tree": true
+}

@@ -1,0 +1,374 @@
+{
+  "number": "818191",
+  "va": "24",
+  "year": 2026,
+  "source": "https://digital.asteigerag.ch/dashboard",
+  "portal_page": "0_1_15_12",
+  "captured_at": "2026-10-23T18:11:54.425Z",
+  "capture_kind": "article_dialog",
+  "basic_data": [
+    {
+      "label": "Typ",
+      "value": "Einzelartikel",
+      "checkbox": null
+    },
+    {
+      "label": "Artikelnummer",
+      "value": "818191",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z1",
+      "value": "EB-Neutralleitertrenner NP250 250A",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z2",
+      "value": "Einzel-Montage",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z3",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 1",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 2",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 3",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Lieferant",
+      "value": "2702 Hager",
+      "checkbox": null
+    },
+    {
+      "label": "Sortiment",
+      "value": "2702 Hager",
+      "checkbox": null
+    },
+    {
+      "label": "Bestellnummer",
+      "value": "NP250",
+      "checkbox": null
+    },
+    {
+      "label": "E-Nr",
+      "value": "818 250 696",
+      "checkbox": null
+    },
+    {
+      "label": "Anschluss",
+      "value": "",
+      "checkbox": true
+    },
+    {
+      "label": "Warengruppe-Nummer",
+      "value": "2324",
+      "checkbox": null
+    },
+    {
+      "label": "Warengruppe-Rabatt (in %)",
+      "value": "10",
+      "checkbox": null
+    },
+    {
+      "label": "Warengruppe-Text",
+      "value": "Weber NT-Trenner",
+      "checkbox": null
+    },
+    {
+      "label": "Bruttomaterialpreis",
+      "value": "75",
+      "checkbox": null
+    },
+    {
+      "label": "Nettomaterialpreis",
+      "value": "67.5",
+      "checkbox": null
+    },
+    {
+      "label": "Recyclinggebühr",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Fremdleistung",
+      "value": "",
+      "checkbox": null
+    }
+  ],
+  "article_text": "\t\n\n\nEB-Neutralleitertrenner NP250\n250A\n\nEinzel-Montage",
+  "images": [
+    {
+      "number": "818191",
+      "va": "24",
+      "vas": [
+        "24"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 818191 / VA 24, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_1_15_12",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T18:11:54.400Z",
+      "width": 59,
+      "height": 150,
+      "file": "images/portal-2026/c912a1bc6a70a22b09677b9fd9d849b44531f85c22178dbde2edc5e10c60eb8b.png",
+      "sha256": "c912a1bc6a70a22b09677b9fd9d849b44531f85c22178dbde2edc5e10c60eb8b",
+      "ordinal": 0
+    },
+    {
+      "number": "818191",
+      "va": "24",
+      "vas": [
+        "24"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 818191 / VA 24, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_1_15_12",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T18:11:54.401Z",
+      "width": 300,
+      "height": 300,
+      "file": "images/portal-2026/f6a6e880c4854f378b0a852c42f9ee48c0430610fb95b44019ca4de88ee557fb.jpg",
+      "sha256": "f6a6e880c4854f378b0a852c42f9ee48c0430610fb95b44019ca4de88ee557fb",
+      "ordinal": 1
+    }
+  ],
+  "rows": [
+    {
+      "index": 0,
+      "level": 0,
+      "expanded": null,
+      "cells": [
+        "EB-Neutralleitertrenner NP250 250A",
+        "818191",
+        "24",
+        "1",
+        "",
+        "",
+        "",
+        "",
+        "818250696",
+        "NP250"
+      ]
+    }
+  ],
+  "tree_attributes": [
+    [
+      "role",
+      "treegrid"
+    ],
+    [
+      "class",
+      "k-grid-aria-root"
+    ],
+    [
+      "aria-rowcount",
+      "2"
+    ],
+    [
+      "aria-colcount",
+      "11"
+    ]
+  ],
+  "calculation": [
+    [
+      {
+        "text": "Arbeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Material",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Akkord",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "Installationszeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.567"
+      },
+      {
+        "text": "Bruttomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "75.00"
+      },
+      {
+        "text": "Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "65.4318"
+      }
+    ],
+    [
+      {
+        "text": "* Stundenansatz",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "115.40"
+      },
+      {
+        "text": "Nettomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "67.50"
+      },
+      {
+        "text": "+ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "81.675"
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "* Materialfaktor",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.21"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "+ Recyclinggebühr",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.00"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "= Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "65.4318"
+      },
+      {
+        "text": "= Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "81.675"
+      },
+      {
+        "text": "= Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "147.1068"
+      }
+    ],
+    [
+      {
+        "text": "≈ Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "65.45"
+      },
+      {
+        "text": "≈ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "81.70"
+      },
+      {
+        "text": "≈ Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "147.10"
+      }
+    ]
+  ],
+  "complete_tree": true
+}

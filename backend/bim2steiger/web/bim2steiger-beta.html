@@ -1,0 +1,859 @@
+<!doctype html>
+<html lang="de-CH">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#142238">
+  <meta name="description" content="BIM2STEIGER Beta – interaktiver Katalog-Prototyp mit Positionsdetails, Bauteilverweisen und Wissen griffbereit.">
+  <title>BIM2STEIGER · Beta</title>
+  <script>
+    // Darstellung vor dem ersten Rendern wiederherstellen, auch beim direkten Öffnen der Datei.
+    (() => {
+      let theme = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      try {
+        const preferences = JSON.parse(localStorage.getItem('bim2steiger:beta:preferences:v1') || '{}');
+        if (preferences?.theme === 'dark' || preferences?.theme === 'light') theme = preferences.theme;
+      } catch {}
+      document.documentElement.dataset.theme = theme;
+    })();
+  </script>
+  <style>
+    /* 01 · Design-Tokens und Basis. */
+    :root{--brand:#315ce7;--brand-soft:#eef2ff;--navy:#142238;--ink:#25344b;--muted:#738198;--line:#e5eaf1;--surface:#fff;--canvas:#f5f7fa;--amber:#9a6514;--header:76px;--sidebar:234px;--help:278px}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font:13px/1.55 "Inter","Segoe UI",Arial,sans-serif;color:var(--ink);background:var(--canvas);-webkit-font-smoothing:antialiased}button,input,select{font:inherit}button{cursor:pointer;border:0}button:disabled{cursor:default;opacity:.45}button,a,summary,select{-webkit-tap-highlight-color:transparent}button:focus-visible,a:focus-visible,summary:focus-visible,select:focus-visible{outline:3px solid #9ab3ff;outline-offset:3px}input:focus-visible{outline:2px solid #9ab3ff;outline-offset:4px}a{color:inherit;text-decoration:none}h1,h2,h3,p{margin:0}svg{display:block;flex-shrink:0}[hidden]{display:none!important}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}.icon{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.65;stroke-linecap:round;stroke-linejoin:round}.mono{font-family:Consolas,"SFMono-Regular",monospace;font-variant-numeric:tabular-nums}.eyebrow{font-size:10px;font-weight:650;letter-spacing:1.4px;text-transform:uppercase}.muted{color:var(--muted)}.flex{display:flex}.items-center{align-items:center}.gap-2{gap:8px}.gap-3{gap:12px}.button{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:9px 13px;min-height:39px;border:1px solid var(--line);border-radius:7px;background:white;color:#52627b;font-size:12px;font-weight:550}.button:hover{border-color:#c5d1f4;background:#f7f9ff}.button.primary{background:var(--brand);border-color:var(--brand);color:white;box-shadow:0 3px 7px #315ce71a}.button[aria-pressed=true]{background:#eff8f2;color:#26734b;border-color:#d4e8dc}.icon-button{width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;background:white;border:1px solid var(--line);border-radius:6px;color:#71839c}.icon-button:hover{color:var(--brand);border-color:#c6d3fa}.badge{display:inline-flex;align-items:center;gap:6px;border-radius:5px;padding:4px 8px;font-size:10px;font-weight:650}.badge.blue{background:var(--brand-soft);color:var(--brand)}.badge.beta{background:#fff6e5;color:var(--amber);border:1px solid #eed8ad;font-size:10px;letter-spacing:.8px}.status-dot{width:5px;height:5px;display:inline-block;border-radius:50%;background:currentColor}
+    /* 02 · Rahmen. Katalog und Detailansicht; Wissen lässt sich zusätzlich anpinnen. */
+    .header{height:var(--header);position:sticky;top:0;z-index:25;display:flex;align-items:center;gap:26px;padding:0 26px;background:#fff;border-bottom:1px solid var(--line)}.brand{display:flex;align-items:center;gap:10px;white-space:nowrap;font-size:17px;font-weight:800;letter-spacing:-.7px}.brand-mark{width:31px;height:35px;color:var(--brand)}.brand-word span{color:var(--brand)}.brand-group{display:flex;align-items:center;gap:13px}.search-trigger{display:flex;align-items:center;gap:11px;flex:1;min-width:80px;max-width:610px;padding:0 13px;height:41px;margin-left:8px;color:#8794a7;background:#f5f7fa;border:1px solid #e7ebf2;border-radius:8px;text-align:left;font-size:12px}.search-trigger:hover{border-color:#bdcdfa}.search-trigger kbd{margin-left:auto;background:#fff;border:1px solid #dfe5ef;border-radius:4px;padding:1px 5px;font:10px "Segoe UI",sans-serif;white-space:nowrap}.header-actions{margin-left:auto;display:flex;align-items:center;gap:20px;white-space:nowrap}.header-action{display:flex;align-items:center;gap:7px;background:transparent;color:#596b84;font-size:11px;font-weight:550}.count{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;border-radius:4px;background:var(--brand-soft);color:var(--brand);font:10px Consolas,monospace}.avatar{width:29px;height:29px;border-radius:50%;display:grid;place-items:center;background:#f1f4f8;color:#7f8da2;font-size:9px;font-weight:650}.mobile-menu{display:none}
+    .layout{display:grid;grid-template-columns:var(--sidebar) minmax(0,1fr) var(--help);min-height:calc(100dvh - var(--header))}.catalogue{position:sticky;top:var(--header);height:calc(100dvh - var(--header));display:flex;flex-direction:column;background:var(--navy);color:#91a6c3;overflow:auto}.catalogue-top{padding:27px 23px 23px;border-bottom:1px solid #ffffff0e}.workspace{font-size:9px;letter-spacing:1.5px;color:#788fac}.catalogue-top strong{display:block;font-size:13px;color:#e1e9f5;margin-top:6px;font-weight:550}.catalogue-tabs{padding:18px 13px 0}.catalogue-overview{display:flex;align-items:center;gap:9px;padding:11px;width:100%;text-align:left;border:1px solid #536b9929;background:#ffffff09;color:#ebf1fb;border-radius:6px;font-size:12px}.catalogue-overview .icon{color:#98b4ff}.catalogue-tree{padding:25px 12px 20px;flex:1}.tree-label{margin:0 10px 12px;font-size:9px;color:#7289a8}.tree-section{margin-bottom:13px}.tree-section summary{list-style:none;display:flex;align-items:center;gap:8px;color:#dae5f5;font-size:11px;cursor:pointer;padding:9px}.tree-section summary::-webkit-details-marker{display:none}.tree-section summary .icon{width:13px;height:13px;color:#8299b9}.tree-section[open]>summary .chevron{transform:rotate(90deg)}.tree-section .section-count{margin-left:auto;color:#6f88ac;font-size:9px}.tree-subtitle{font-size:10px;color:#6e86a8;margin:7px 10px 9px 29px}.tree-button{display:flex;align-items:center;gap:9px;width:100%;min-height:51px;padding:10px;margin:3px 0;text-align:left;color:#9cb0cd;background:transparent;border:1px solid transparent;border-radius:6px;font-size:11px;line-height:1.45}.tree-button:hover{background:#ffffff08;color:#edf3ff}.tree-button.selected{background:#315ce728;border-color:#6c8cde3d;color:#e4edff}.tree-button .tree-icon{display:grid;place-items:center;width:28px;height:30px;border-radius:5px;background:#ffffff07;color:#8fa8d0;flex-shrink:0}.tree-button .icon{width:16px;height:16px}.tree-button small{display:block;margin-top:4px;color:#6d87ae;font:9px Consolas,monospace}.catalogue-footer{padding:20px 22px;border-top:1px solid #ffffff12;color:#7990af;font-size:9px}.catalogue-footer strong{font-size:10px;font-weight:500;color:#c0cfe3;display:flex;align-items:center;gap:7px;margin-bottom:6px}.catalogue-footer .status-dot{color:#8db5a3}.sidebar-shade{display:none}
+    /* 03 · Detailposition. Semantische Bereiche statt eines Frameworks. */
+    .content{padding:27px 30px 22px;min-width:0;max-width:1100px;width:100%;margin:0 auto}.breadcrumb{display:flex;align-items:center;flex-wrap:wrap;gap:8px;font-size:10px;color:#91a0b4;margin-bottom:22px}.breadcrumb .icon{width:11px;height:11px}.breadcrumb span:last-child{color:#526885}.intro{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:23px}.intro h1{font-size:25px;letter-spacing:-.8px;font-weight:650;line-height:1.3}.intro p{color:#8492a7;font-size:11px;margin-top:6px}.edition{display:flex;align-items:center;gap:8px;font-size:10px;background:white;border:1px solid var(--line);padding:7px 9px;border-radius:6px;color:#8191a7;white-space:nowrap}.edition .icon{width:14px;height:14px}.beta-strip{display:flex;align-items:center;gap:8px;padding:9px 13px;border:1px solid #eddfc5;background:#fffcf6;border-radius:7px;color:#947443;font-size:10px;margin-bottom:18px}.beta-strip .icon{width:14px;height:14px}.beta-strip span:last-child{margin-left:auto;font-size:9px;color:#ac9776;white-space:nowrap}.position-card{background:white;border:1px solid var(--line);border-radius:11px;overflow:hidden;box-shadow:0 3px 12px #14223803}.position-head{padding:25px 26px 20px}.position-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:15px}.position-index{font-size:10px;color:#9aa7b8}.article-code{font-size:11px;color:#8191a7;letter-spacing:.8px;margin-bottom:7px}.title-line{display:flex;justify-content:space-between;align-items:flex-start;gap:15px}.title-line h2{font-size:29px;line-height:1.25;letter-spacing:-.8px;font-weight:650}.title-line p{font-size:12px;color:#8492a6;margin-top:7px}.va-label{display:flex;align-items:center;gap:7px;font-size:10px;color:#91a0b3;margin-top:4px;white-space:nowrap}.va-select{border:1px solid #e0e6f0;background:#f7f9fc;color:#546a88;font:11px Consolas,monospace;border-radius:5px;padding:6px 25px 6px 8px}.identities{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:22px 0 0;padding:17px 0 0;border-top:1px solid #edf0f5}.identities dt{font-size:10px;color:#91a0b2;margin-bottom:6px}.identities dd{margin:0;font-size:13px;overflow-wrap:anywhere;color:#4d627e}.identity-note{font-size:9px;color:#9aa7ba;margin-top:10px;display:flex;align-items:flex-start;gap:6px}.identity-note .icon{width:12px;height:12px;margin-top:1px}.media-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:0 22px 20px}.media-card{border:1px solid #e5ebf2;border-radius:7px;overflow:hidden;min-width:0}.media-label{display:flex;align-items:center;justify-content:space-between;padding:10px 13px;border-bottom:1px solid #eaf0f5;color:#7a8da6;font-size:9px;letter-spacing:1px}.media-label span:last-child{color:#afbac9;font:9px Consolas,monospace;letter-spacing:0}.media-stage{height:203px;position:relative;display:flex;align-items:center;justify-content:center;background:#fff}.media-stage.schema{background-color:#f8fafe;background-image:radial-gradient(#d4dfee .8px,transparent .8px);background-size:15px 15px}.schema-image{width:auto;height:123px;mix-blend-mode:multiply;object-fit:contain}.product-image{width:88%;height:178px;object-fit:contain}.media-stage>.symbol{width:102px;height:102px;color:#7592ba}.media-controls{position:absolute;right:9px;bottom:9px;display:flex;gap:5px}.media-controls .icon-button{width:28px;height:28px;background:#ffffffed}.media-controls .icon{width:14px;height:14px}.photo-tag{position:absolute;left:10px;top:10px;background:#f4f7fc;color:#8a9ab0;font-size:8px;padding:3px 6px;border-radius:4px;letter-spacing:.3px}.media-caption{min-height:49px;padding:9px 12px;border-top:1px solid #eaf0f5;font-size:9px;line-height:1.7;color:#8595ab}.media-caption strong{font-weight:550;color:#647b9c}.source-link{color:#718db8;text-decoration:underline;text-underline-offset:2px}.no-photo{padding:20px;text-align:center;display:flex;align-items:center;flex-direction:column;gap:9px;color:#a1afc1;font-size:10px}.no-photo .icon{width:30px;height:30px;stroke-width:1.2}.detail-actions{display:flex;align-items:center;gap:9px;padding:0 24px 23px}.detail-actions .button{font-size:11px}.detail-actions .text-action{margin-left:auto;font-size:10px;color:#8b9bb1;background:transparent;display:flex;align-items:center;gap:6px}.detail-actions .text-action .icon{width:13px;height:13px}.back-link{display:inline-flex;align-items:center;gap:6px;background:transparent;color:#5c7bb0;padding:0;font-size:10px;margin-bottom:15px}.back-link .icon{width:13px;height:13px}.tabs{display:flex;align-items:center;gap:25px;padding:0 24px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}.tab{position:relative;display:flex;align-items:center;gap:6px;padding:15px 0;background:transparent;color:#8f9db1;font-size:11px;white-space:nowrap}.tab[aria-selected=true]{color:var(--brand)}.tab[aria-selected=true]:after{content:"";position:absolute;bottom:-1px;left:0;right:0;background:var(--brand);height:2px}.tab-count{font:9px Consolas,monospace;color:#6e8ac7;background:#eff3ff;padding:1px 5px;border-radius:3px}.tab-panel{padding:23px 23px 15px}.section-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:17px}.section-heading h3{font-size:13px;font-weight:600}.section-heading p{font-size:9px;color:#94a2b6;margin-top:5px}.section-heading>.icon{width:16px;height:16px;color:#a5b4c9}.composition-scroll{overflow-x:auto}.composition-table{border-collapse:collapse;width:100%;table-layout:fixed;text-align:left;font-size:11px}.composition-table th{font-weight:500;background:#f7f9fc;color:#94a2b6;font-size:9px;padding:7px 8px}.composition-table th:first-child{width:42px;border-radius:4px 0 0 4px}.composition-table th:nth-child(3){width:38px}.composition-table th:nth-child(4){width:52px}.composition-table th:last-child{width:29px;border-radius:0 4px 4px 0}.composition-table th:last-child,.composition-table td:last-child{padding-left:4px;padding-right:4px}.composition-table td{border-bottom:1px solid #edf1f6;padding:6px 8px;vertical-align:middle}.composition-table tr:last-child td{border:0}.composition-table th:nth-last-child(2),.composition-table td:nth-last-child(2){text-align:right;white-space:nowrap}.component-symbol{width:26px;height:28px;display:grid;place-items:center;background:#f1f5fb;border:1px solid #e9eff7;border-radius:5px;color:#8ca3c1}.component-symbol .icon{width:18px;height:18px;stroke-width:1.3}.part-link{display:block;max-width:100%;overflow-wrap:anywhere;padding:0;background:transparent;text-align:left;color:#536b8c;font-size:11px;font-weight:500}.part-link:hover{color:var(--brand);text-decoration:underline;text-underline-offset:3px}.part-code{display:block;font-size:9px;color:#93a4bc;margin-top:1px}.part-numbers{display:flex;gap:10px;flex-wrap:wrap;font-size:8px;color:#9ba9bc;margin-top:1px}.part-numbers b{font-weight:400;color:#7b90ac;overflow-wrap:anywhere}.va-pill{background:#f3f6fb;padding:2px 5px;border-radius:3px;color:#8b9db6;font-size:9px}.quantity{font-size:11px;color:#667f9f}.quantity.negative{color:#b26e42}.row-arrow{width:21px;height:25px;display:grid;place-items:center;border-radius:4px;background:transparent;color:#8fa3bf}.row-arrow:hover{background:#eef3ff;color:var(--brand)}.row-arrow .icon{width:13px;height:13px}.table-note{display:flex;align-items:flex-start;gap:6px;color:#9aa8bb;font-size:9px;line-height:1.8;padding:13px 0 1px}.table-note .icon{width:12px;height:12px;margin-top:2px}.empty-state{text-align:center;color:#94a4b9;padding:28px 12px;font-size:11px}.empty-state>.icon{width:29px;height:29px;margin:0 auto 12px;color:#b1bfd1}.properties{display:grid;grid-template-columns:1fr 1fr;gap:14px 25px;margin:0;padding-bottom:12px}.properties dt{font-size:10px;color:#95a3b7}.properties dd{margin:5px 0 0;color:#637b9e;font-size:11px;overflow-wrap:anywhere}.original-text{white-space:pre-line;font-size:12px;line-height:1.9;color:#667c9c;padding-bottom:12px}.context-panel{margin-top:17px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 15px;background:#f9fbfd;border:1px dashed #dde5f0;border-radius:7px;color:#8c9eb7;font-size:10px}.context-panel span{display:flex;align-items:center;gap:8px}.context-panel .icon{width:15px;height:15px}.context-panel button{background:transparent;color:#6480b4;font-size:10px}.footer{display:flex;justify-content:space-between;gap:12px;padding-top:22px;color:#a1aec0;font-size:9px}
+    /* 04 · Wissen: kompakte Referenz und Bedienhilfe. */
+    .help{position:sticky;top:var(--header);height:calc(100dvh - var(--header));overflow:auto;background:white;border-left:1px solid var(--line);padding:27px 23px;color:#7d8fa8}.help-title{display:flex;align-items:center;gap:8px;color:#526a8d;font-size:13px;font-weight:600}.help-title .icon{color:#7693c1;width:17px;height:17px}.help-subtitle{font-size:10px;color:#a0aec0;margin-top:6px}.help-section{padding:23px 0 20px;border-bottom:1px solid var(--line)}.help-section summary{display:flex;align-items:center;justify-content:space-between;list-style:none;cursor:pointer;color:#6a7f9d;font-size:11px;font-weight:550}.help-section summary::-webkit-details-marker{display:none}.help-section summary:after{content:'+';font-size:15px;color:#a4b3c8}.help-section[open]>summary:after{content:'−'}.glossary{display:grid;grid-template-columns:43px 1fr;gap:13px 9px;margin:18px 0 0;font-size:10px;line-height:1.65}.glossary dt{font-weight:550;color:#627b9e}.glossary dd{margin:0;color:#8d9eb5}.help-small{font-size:9px;line-height:1.8;color:#9aaac0;margin-top:15px}.quick-guide{counter-reset:guide;list-style:none;padding:0;margin:18px 0 0;display:grid;gap:16px}.quick-guide li{counter-increment:guide;display:flex;gap:10px;font-size:10px;color:#95a5bb;line-height:1.7}.quick-guide li:before{content:'0'counter(guide);font:9px Consolas,monospace;color:#7896c7;padding-top:3px}.quick-guide strong{display:block;color:#6f87a8;font-weight:550}.tip{margin-top:23px;border:1px solid #e0e9fb;border-radius:7px;background:#f4f7ff;padding:13px;font-size:10px;line-height:1.8;color:#839bc2}.tip-title{display:flex;align-items:center;gap:6px;color:#6988bc;font-weight:550;margin-bottom:5px}.tip-title .icon{width:14px;height:14px}.beta-note{font-size:9px;color:#a4b0c2;line-height:1.9;margin-top:23px}.beta-note strong{font-weight:550;color:#8f9fb6}
+    /* 05 · Dialoge mit Fokusbegrenzung, Tastatursuche und Leerzuständen. */
+    dialog{padding:0;border:1px solid #e3e9f2;border-radius:12px;background:white;color:var(--ink);box-shadow:0 22px 100px #10223e45}dialog::backdrop{background:#12233f66;backdrop-filter:blur(5px)}.dialog-head{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:20px 23px;border-bottom:1px solid var(--line)}.dialog-head h2{font-size:16px;font-weight:600}.dialog-head p{font-size:10px;color:#94a3b8;margin-top:5px}.search-dialog{width:min(680px,calc(100% - 28px));max-height:calc(100dvh - 110px);margin:90px auto auto}.search-field{display:flex;align-items:center;gap:13px;border-bottom:1px solid var(--line);padding:20px 22px}.search-field>.icon{width:23px;height:23px;color:#6b89bd}.search-field input{flex:1;min-width:0;border:0;background:transparent;color:var(--ink);font-size:16px;outline:none}.search-field input::placeholder{color:#acb8c9}.search-meta{display:flex;align-items:center;justify-content:space-between;padding:15px 23px 8px;color:#9aa9bd;font-size:9px;letter-spacing:.8px}.search-results{padding:0 10px 10px;max-height:49dvh;overflow:auto}.search-result{display:flex;align-items:center;gap:13px;width:100%;padding:13px;text-align:left;background:white;border:1px solid transparent;border-radius:7px}.search-result.active{background:#f3f6ff;border-color:#e9effd}.search-result .result-symbol{color:#8fa9d1;background:#ecf2fc;width:39px;height:42px;display:grid;place-items:center;border-radius:6px}.search-result strong{display:block;font-size:12px;font-weight:550;color:#536c90}.search-result small{display:block;color:#94a7c0;font-size:9px;margin-top:5px}.search-result>.icon{margin-left:auto;width:15px;height:15px;color:#9fb0ca}.search-foot{display:flex;justify-content:space-between;gap:10px;border-top:1px solid var(--line);padding:12px 22px;font-size:9px;color:#9babc0}.search-foot kbd{font:9px "Segoe UI",sans-serif;color:#7c93b4}.image-dialog{width:min(720px,calc(100% - 28px));max-height:calc(100dvh - 32px);margin:auto}.image-dialog-body{padding:30px;min-height:260px;display:flex;align-items:center;justify-content:center;background:#fafbfd}.image-dialog-body img{width:auto;height:auto;max-width:min(100%,480px);max-height:64dvh;object-fit:contain}.image-dialog-body .icon{width:180px;height:180px;color:#6f8eb9}.image-dialog-caption{font-size:10px;color:#8195b2;padding:15px 23px;line-height:1.9}.toast{position:fixed;bottom:23px;left:50%;transform:translate(-50%,15px);z-index:50;background:#1b2f4d;color:#e5edf8;border:1px solid #314767;padding:11px 17px;border-radius:7px;font-size:11px;opacity:0;pointer-events:none;transition:opacity .16s,transform .16s;max-width:calc(100% - 30px);text-align:center}.toast.visible{opacity:1;transform:translate(-50%,0)}
+    @media(min-width:1700px){:root{--sidebar:258px;--help:300px}.content{padding:33px 42px}.media-stage{height:240px}.product-image{height:213px}}
+    @media(max-width:1200px){:root{--sidebar:205px;--help:242px}.header{gap:18px;padding:0 20px}.header-actions{gap:13px}.header-action .label{display:none}.content{padding:24px 20px}.help{padding:25px 18px}.intro h1{font-size:23px}.title-line h2{font-size:26px}.position-head{padding:23px 21px 19px}.media-stage{height:185px}.product-image{height:160px}.media-caption{min-height:63px}.tab-panel{padding:21px 17px 12px}.media-grid{padding:0 18px 18px}.detail-actions{padding:0 20px 20px}.search-trigger{margin-left:0}}
+    @media(max-width:930px){:root{--sidebar:205px}.layout{grid-template-columns:var(--sidebar) minmax(0,1fr)}.help{grid-column:2;position:static;height:auto;border-top:1px solid var(--line);border-left:0;display:grid;grid-template-columns:1fr 1fr;gap:0 24px;padding:25px}.help-heading,.tip,.beta-note{grid-column:1/-1}.catalogue{grid-row:1/3}.header-actions .avatar{display:none}.search-trigger kbd{display:none}.beta-strip span:last-child{display:none}.footer{flex-wrap:wrap}.header{gap:15px}.brand{font-size:16px}.brand-group{gap:9px}}
+    @media(max-width:740px){:root{--header:67px}.header{gap:11px;padding:0 15px}.mobile-menu{display:inline-flex;border:0;width:25px;background:transparent;color:#6f85a4}.brand{font-size:14px;gap:7px}.brand-mark{width:24px;height:28px}.badge.beta{font-size:8px;padding:3px 5px}.search-trigger{flex:1;height:35px;min-width:36px;max-width:none;justify-content:center;padding:0 9px}.search-trigger .search-label{display:none}.header-actions{gap:12px}.header-action{gap:5px}.header-action .icon{width:17px;height:17px}.header-actions .knowledge-button{display:none}.layout{grid-template-columns:1fr}.catalogue{position:fixed;top:var(--header);left:0;bottom:0;width:250px;height:auto;z-index:22;transform:translateX(-100%);transition:transform .2s}.nav-open .catalogue{transform:translateX(0)}.nav-open .sidebar-shade{display:block;position:fixed;inset:var(--header) 0 0;z-index:21;background:#14223866}.content{padding:21px 17px}.help{grid-column:1}.intro h1{font-size:23px}.intro{margin-bottom:19px}.breadcrumb{font-size:9px;margin-bottom:18px}.position-head{padding:21px 19px 18px}.position-index{font-size:9px}.media-grid{padding:0 15px 16px;gap:9px}.media-stage{height:180px}.schema-image{height:115px}.product-image{height:155px}.title-line h2{font-size:25px}.detail-actions .text-action{font-size:9px}.help{padding:24px 20px}.search-dialog{margin-top:35px;max-height:calc(100dvh - 65px)}.section-heading p{line-height:1.8}.media-caption{font-size:8px;min-height:61px}.media-label{padding:9px;font-size:8px}.beta-strip{font-size:9px}.tabs{gap:20px;padding:0 19px}.tab{font-size:10px}.properties{gap:16px}.search-foot{font-size:8px}}
+    @media(max-width:420px){.brand-group{gap:6px}.header{gap:8px;padding:0 11px}.brand{font-size:12px}.brand-mark{width:22px}.header-action .count{min-width:16px;height:16px;font-size:9px}.header-actions{gap:7px}.media-stage{height:151px}.schema-image{height:103px}.product-image{height:135px}.media-caption{min-height:78px;line-height:1.75}.media-label{letter-spacing:.4px}.title-line{flex-wrap:wrap;gap:7px}.va-label{margin-top:0}.help{grid-template-columns:1fr}.help-heading,.tip,.beta-note{grid-column:auto}.detail-actions{flex-wrap:wrap;gap:8px;padding:0 17px 18px}.detail-actions .text-action{margin-left:0}.intro{align-items:flex-start}.intro h1{font-size:21px}.edition{font-size:9px;padding:5px 7px}.tab-panel{padding:19px 14px 11px}.properties{grid-template-columns:1fr}.search-field{padding:18px 14px;gap:8px}.search-field input{font-size:14px}.search-foot{flex-wrap:wrap}.beta-strip{padding:8px 10px}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{transition:none!important;animation:none!important}}
+    /* Originalzeichnungen in allen Vorschauen, Produktfoto ausschliesslich im Dialog. */
+    .tree-icon.has-original,.component-symbol.has-original,.result-symbol.has-original{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr);overflow:hidden;flex-shrink:0}.original-preview{display:block;min-width:0;min-height:0;max-width:100%;max-height:100%;width:100%;height:100%;object-fit:contain}.tree-button .tree-icon.has-original{width:33px;height:38px;background:#fff;border:1px solid #ffffff30;padding:3px;color:#526b8d}.component-symbol.has-original{height:30px;background:#fff;border-color:#e8edf5;padding:2px}.result-symbol.has-original{background:#fff;border:1px solid #e5ebf3;padding:3px}
+    /* 06 · Persönlicher Arbeitsbereich: Wissen auf Wunsch und eigene Favoritenseite. */
+    .layout{grid-template-columns:var(--sidebar) minmax(0,1fr)}
+    .layout>.catalogue{grid-column:1;grid-row:1}
+    .header-actions .knowledge-button{display:flex}
+    .header-action[aria-current=page]{color:var(--brand)}
+    .theme-toggle{justify-content:center;width:28px;min-height:32px}
+    .catalogue-favorites{margin-top:8px;background:transparent;border-color:transparent;color:#9cb0cd}
+    .catalogue-favorites[aria-current=page]{background:#315ce728;border-color:#6c8cde3d;color:#e4edff}
+    .catalogue-favorites .count{margin-left:auto;background:#ffffff0c;color:#a4b9e4}
+    .knowledge-dialog{width:min(420px,calc(100% - 28px));max-height:calc(100dvh - var(--header) - 28px);margin:calc(var(--header) + 12px) 16px auto auto}
+    .knowledge-dialog::backdrop{background:#12233f35;backdrop-filter:blur(2px)}
+    .knowledge-dialog .help{display:block;position:static;width:100%;height:auto;max-height:calc(100dvh - var(--header) - 30px);border:0;padding:22px;overflow:auto}
+    .help-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+    .help-tools{display:flex;gap:5px;flex-shrink:0}
+    .help-tools .icon-button{width:27px;height:27px}
+    .help-tools .icon{width:14px;height:14px}
+    .help-tools [aria-pressed=true]{background:var(--brand-soft);color:var(--brand);border-color:#a7bcff}
+    .layout>.help{display:block;grid-column:3;grid-row:1;position:sticky;top:var(--header);height:calc(100dvh - var(--header));padding:24px 20px}
+    .help-pinned .layout{grid-template-columns:var(--sidebar) minmax(0,1fr) var(--help)}
+    .help-title{font-size:12px}
+    .help-subtitle{line-height:1.7}
+    .favorites-intro{align-items:flex-start}
+    .favorites-intro p{max-width:540px;line-height:1.8}
+    .favorites-summary{font-size:11px;color:var(--muted);margin:0 0 16px}
+    .favorite-filters{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 23px}
+    .favorite-filter{padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:#7387a5;font-size:10px;text-align:left}
+    .favorite-filter[aria-pressed=true]{color:var(--brand);background:var(--brand-soft);border-color:#b9c8fa}
+    .favorite-filter span{margin-left:6px;opacity:.7;font-family:Consolas,monospace}
+    .favorite-group{margin-bottom:23px}
+    .favorite-group-head{margin:0 0 10px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .favorite-group-head p{font-size:9px;color:var(--muted);margin-bottom:3px}
+    .favorite-group-head h2{font-size:13px;font-weight:600}
+    .favorite-list{background:var(--surface);border:1px solid var(--line);border-radius:9px;overflow:hidden}
+    .favorite-card{display:flex;align-items:center;gap:8px;padding:4px 12px;border-bottom:1px solid var(--line)}
+    .favorite-card:last-child{border-bottom:0}
+    .favorite-open{display:flex;align-items:center;gap:13px;min-width:0;flex:1;padding:12px 0;text-align:left;color:inherit;background:transparent}
+    .favorite-open:hover .favorite-name{color:var(--brand)}
+    .favorite-symbol{display:grid;place-items:center;flex-shrink:0;width:34px;height:38px;padding:4px;border:1px solid var(--line);border-radius:5px;background:#f1f5fb;color:#8ca3c1}
+    .favorite-symbol.has-original{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr);overflow:hidden;background:white}
+    .favorite-symbol .icon{width:22px;height:22px}
+    .favorite-info{min-width:0}
+    .favorite-name{display:block;font-size:12px;font-weight:550;color:#536b8c;overflow-wrap:anywhere}
+    .favorite-code{display:block;margin-top:3px;color:#879ab6;font-size:10px}
+    .favorite-identities{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:4px;color:#8f9fb5;font-size:9px;overflow-wrap:anywhere}
+    .favorite-identities b{font-weight:400;color:#647d9e}
+    .favorites-empty{padding:55px 20px;border:1px dashed var(--line);border-radius:9px;background:var(--surface);text-align:center;color:var(--muted)}
+    .favorites-empty>.icon{width:32px;height:32px;margin:0 auto 15px;color:#829ac2}
+    .favorites-empty h2{font-size:17px;font-weight:550;color:var(--ink)}
+    .favorites-empty p{font-size:11px;max-width:360px;margin:9px auto 20px;line-height:1.8}
+    .favorites-footnote{font-size:10px;color:var(--muted);line-height:1.8;margin-top:20px}
+    @media(max-width:930px){
+      .help-pinned .layout{grid-template-columns:var(--sidebar) minmax(0,1fr)}
+      .help-pinned .layout>.catalogue{grid-row:1/3}
+      .layout>.help{grid-column:2;grid-row:2;position:static;height:auto;border-left:0;border-top:1px solid var(--line)}
+    }
+    @media(max-width:740px){
+      .layout,.help-pinned .layout{grid-template-columns:1fr}
+      .layout>.help{grid-column:1}
+      .header-actions{gap:9px}
+      .theme-toggle{width:22px}
+      .knowledge-dialog{margin:calc(var(--header) + 8px) 10px auto auto;width:min(420px,calc(100% - 20px))}
+      .favorites-intro{flex-wrap:wrap}
+      .favorites-intro h1{font-size:23px}
+      .favorite-card{padding:4px 9px}
+      .favorite-open{gap:10px}
+    }
+    @media(max-width:420px){.header-actions{gap:5px}.header{gap:6px}.favorite-filter{font-size:9px}.favorite-name{font-size:11px}}
+
+    /* 07 · Nachtmodus. Originalzeichnungen und Produktfotos behalten ihre Originalfarben. */
+    html[data-theme=light]{color-scheme:light}
+    html[data-theme=dark]{color-scheme:dark;--brand:#90adff;--brand-soft:#23385c;--navy:#101c2e;--ink:#e0e9f5;--muted:#9bafc9;--line:#2c3d54;--surface:#172436;--canvas:#0d1623;--night-soft:#1e2f47;--night-text:#bdcee3}
+    [data-theme=dark] :is(.header,.position-card,.help,dialog,.button,.icon-button,.edition,.search-result){background:var(--surface);border-color:var(--line)}
+    [data-theme=dark] :is(.search-trigger,.search-trigger kbd,.va-select,.avatar,.composition-table th,.va-pill,.context-panel,.favorite-symbol:not(.has-original),.component-symbol:not(.has-original)){background:var(--night-soft);border-color:var(--line)}
+    [data-theme=dark] :is(.header-action,.button,.icon-button,.va-select,.identities dd,.part-link,.quantity,.properties dd,.original-text,.favorite-name,.favorite-identities b,.part-numbers b,.help-section summary,.glossary dt,.quick-guide strong,.help-title,.symbol-context h3,.search-result strong){color:var(--night-text)}
+    [data-theme=dark] :is(.breadcrumb,.breadcrumb span:last-child,.intro p,.article-code,.position-index,.title-line p,.identities dt,.identity-note,.media-label,.media-caption,.symbol-context,.symbol-context>.eyebrow,.symbol-context .photo-context,.tab,.section-heading p,.part-code,.part-numbers,.va-pill,.table-note,.properties dt,.footer,.help-subtitle,.glossary dd,.help-small,.quick-guide li,.beta-note,.beta-note strong,.search-trigger,.search-meta,.search-result small,.search-foot,.image-dialog-caption,.favorite-code,.favorite-identities,.favorite-filter){color:var(--muted)}
+    [data-theme=dark] :is(.identities,.tabs,.composition-table td,.media-card,.media-label,.media-caption,.search-field,.search-foot,.dialog-head,.help-section){border-color:var(--line)}
+    [data-theme=dark] .button.primary{background:#416de8;border-color:#416de8;color:#fff}
+    [data-theme=dark] .button[aria-pressed=true]{background:#183c33;border-color:#2e6854;color:#a5dbc0}
+    [data-theme=dark] :is(.button:hover,.icon-button:hover,.search-result.active,.favorite-filter[aria-pressed=true],.tip){background:var(--night-soft);border-color:#49659a}
+    [data-theme=dark] :is(.badge.blue,.count,.tab-count){background:var(--brand-soft);color:var(--brand)}
+    [data-theme=dark] .badge.beta{background:#382e1e;color:#e6c485;border-color:#655137}
+    [data-theme=dark] .beta-strip{background:#2b281f;color:#d9bf92;border-color:#4c4333}
+    [data-theme=dark] .beta-strip span:last-child{color:#c3af8f}
+    [data-theme=dark] .tip{color:#abc2e4}
+    [data-theme=dark] :is(.source-link,.tip-title,.back-link,.detail-actions .text-action,.context-panel button){color:#a0bbfa}
+    [data-theme=dark] .quantity.negative{color:#f2b58b}
+    [data-theme=dark] .tab[aria-selected=true],[data-theme=dark] .header-action[aria-current=page],[data-theme=dark] .favorite-filter[aria-pressed=true]{color:var(--brand)}
+    [data-theme=dark] .media-controls .icon-button{background:#fff;color:#526b8d;border-color:#dce4ef}
+    [data-theme=dark] .help-tools [aria-pressed=true]{color:var(--brand);background:var(--brand-soft);border-color:#5775ad}
+
+    /* 08 · Eigene Arbeitsbereiche für Dateieingang und geprüfte Ausgabe. */
+    .project-nav{margin-top:18px;padding-top:14px;border-top:1px solid #ffffff12;display:grid;gap:5px}
+    .project-nav .tree-label{margin-bottom:3px}
+    .workspace-nav{background:transparent;color:#a9bbd5;border-color:transparent}
+    .workspace-nav[aria-current=page]{color:#e4edff;background:#315ce728;border-color:#6c8cde3d}
+    .workflow-steps{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap}
+    .workflow-step{display:flex;align-items:center;gap:8px;flex:1;min-width:150px;padding:11px 13px;border:1px solid var(--line);border-radius:7px;color:var(--muted);background:var(--surface);font-size:11px}
+    .workflow-step b{font:10px Consolas,monospace;color:var(--brand)}
+    .workflow-step[aria-current=step]{border-color:var(--brand);background:var(--brand-soft);color:var(--brand)}
+    .workflow-card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:23px;margin-bottom:18px}
+    .workflow-card h2{font-size:15px;font-weight:600;margin-bottom:8px}
+    .workflow-card p{font-size:11px;color:var(--muted);line-height:1.8}
+    .format-list{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:19px 0}
+    .format-card{border:1px solid var(--line);border-radius:7px;padding:15px}
+    .format-card h3{display:flex;align-items:center;gap:9px;font-size:12px;font-weight:550;margin-bottom:6px}
+    .format-card .badge{font-size:8px;padding:2px 5px}
+    .format-card p{font-size:10px}
+    .planned{color:var(--muted);background:var(--canvas)}
+    .import-controls{display:flex;align-items:center;gap:11px;flex-wrap:wrap;padding-top:7px}
+    .file-choice{position:relative;cursor:pointer}
+    .file-choice:focus-within{outline:3px solid #9ab3ff;outline-offset:3px}
+    .file-choice input{position:absolute;inset:0;opacity:0;width:100%;cursor:pointer}
+    .file-choice:has(input:disabled){opacity:.5;cursor:default}
+    .file-choice input:disabled{cursor:default}
+    .import-status{font-size:10px;color:var(--muted);overflow-wrap:anywhere;flex:1;min-width:160px}
+    .server-hint{margin:13px 0 0;padding:12px 14px;border:1px solid var(--line);border-radius:6px;background:var(--canvas);font-size:10px;line-height:1.8;color:var(--muted)}
+    .server-hint code{font-family:Consolas,monospace;color:var(--ink)}
+    .import-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:17px 0}
+    .import-metric{border:1px solid var(--line);border-radius:7px;padding:12px;background:var(--canvas)}
+    .import-metric strong{display:block;font-size:23px;color:var(--ink);font-weight:550}
+    .import-metric span{font-size:10px;color:var(--muted)}
+    .object-list{margin-top:16px;display:grid;gap:0}
+    .object-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 0;border-top:1px solid var(--line);font-size:11px}
+    .object-row strong{display:block;font-size:11px;font-weight:500;overflow-wrap:anywhere}
+    .object-row small{display:block;color:var(--muted);font-size:9px;margin-top:3px}
+    .object-row>span:last-child{flex-shrink:0;font-size:10px;text-align:right;color:var(--muted)}
+    .export-checks{list-style:none;padding:0;margin:18px 0 23px}
+    .export-checks li{display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);padding:12px 0;font-size:11px}
+    .export-actions{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+    .workflow-note{font-size:10px;color:var(--muted);line-height:1.8}
+    @media(max-width:740px){.workflow-card{padding:18px}.format-list{grid-template-columns:1fr}.workflow-step{min-width:125px;font-size:10px}.import-metrics{gap:7px}.import-metric{padding:10px}.import-metric strong{font-size:20px}.import-metric span{font-size:9px}}
+
+    /* 09 · Zurückhaltende Artikelbilder statt einer beschrifteten Bildkarte. */
+    .symbol-layout{display:flex;align-items:center;gap:12px;padding:0 24px 16px}
+    .article-thumbnail{position:relative;display:flex;align-items:center;justify-content:center;flex-shrink:0;width:64px;height:78px;padding:3px;background:transparent;border-radius:5px;color:#8ca3c1}
+    .article-thumbnail .schema-image{display:block;width:auto;height:auto;max-width:58px;max-height:72px;mix-blend-mode:normal;border-radius:3px}
+    .article-thumbnail>.symbol{width:30px;height:30px}
+    .article-thumbnail .thumbnail-zoom{position:absolute;right:-2px;bottom:0;width:17px;height:17px;padding:2px;border:1px solid var(--line);border-radius:4px;background:var(--surface);color:var(--muted);opacity:0}
+    .article-thumbnail:hover .thumbnail-zoom,.article-thumbnail:focus-visible .thumbnail-zoom{opacity:1}
+    .article-media-actions{display:flex;align-items:center;gap:7px}
+    .article-media-actions .icon-button{width:28px;height:28px;color:var(--muted)}
+    .article-media-actions .icon{width:14px;height:14px}
+    @media(max-width:740px){.symbol-layout{padding:0 20px 16px}}
+
+/* Beta 0.3: fachliche Desktopansicht, ohne externe Schriften oder UI-Dienste. */
+:root {
+  --brand: #315ce7;
+  --brand-soft: #edf2ff;
+  --navy: #142238;
+  --ink: #25344b;
+  --muted: #596b82;
+  --line: #e5eaf1;
+  --surface: #fff;
+  --canvas: #f5f7fa;
+  --header: 68px;
+  --sidebar: 234px;
+  --help: 290px;
+}
+body { font-family: "Segoe UI", Inter, sans-serif; font-size: 13px; line-height: 1.5; }
+button, a, input, select, summary { touch-action: manipulation; }
+button, a, select, summary { scroll-margin: 85px; }
+:is(button, a, input, select, summary):focus-visible { outline: 3px solid #7b9bff; outline-offset: 3px; }
+.composition-scroll:focus-visible { outline: 3px solid #7b9bff; outline-offset: 3px; }
+.skip-link { position: fixed; z-index: 100; left: 16px; top: -80px; padding: 10px 16px; color: white; background: var(--brand); border-radius: 6px; }
+.skip-link:focus { top: 10px; }
+.header { padding: 0 24px; gap: 25px; }
+.brand { font-size: 17px; }
+.brand-mark { width: 28px; height: 32px; }
+.brand-group { gap: 11px; }
+.badge { font-size: 11px; font-weight: 600; }
+.badge.beta { font-size: 10px; }
+.search-trigger { height: 38px; max-width: 540px; color: var(--muted); font-size: 12px; }
+.search-trigger kbd { color: var(--muted); font-size: 10px; }
+.header-actions { gap: 19px; }
+.header-action { color: var(--muted); font-size: 12px; min-height: 34px; }
+.count { font-size: 11px; min-width: 20px; height: 20px; }
+.theme-toggle { width: 32px; }
+.catalogue-top { padding: 23px 20px 19px; }
+.workspace { font-size: 10px; color: #a4b4cc; letter-spacing: 1px; }
+.catalogue-top strong { font-size: 14px; color: #f0f4fa; }
+.catalogue-tabs { padding: 15px 12px 0; }
+.catalogue-overview { min-height: 39px; font-size: 12px; color: #c2cee0; border-color: transparent; background: transparent; }
+.catalogue-overview:hover { background: #ffffff09; }
+.catalogue-overview[aria-current=page] { color: #fff; background: #294370; border-color: #48628b; }
+.catalogue-overview .icon { color: #b4c7ef; width: 17px; height: 17px; }
+.catalogue-overview .catalogue-year { margin-left: auto; color: #afc1dc; font-size: 11px; }
+.catalogue-favorites { margin-top: 3px; }
+.project-nav { margin: 14px 12px 0; padding: 16px 0 0; }
+.tree-label { font-size: 10px; letter-spacing: 1px; color: #a4b4cc; margin-left: 10px; }
+.catalogue-tree { padding: 24px 12px 16px; }
+.tree-section summary { font-size: 12px; color: #e1e8f3; padding: 8px 6px; }
+.section-count { color: #b5c6df; font-size: 10px; }
+.tree-subtitle { font-size: 10px; line-height: 1.6; color: #a4b4cc; margin: 7px 7px 10px 25px; }
+.tree-button { min-height: 53px; padding: 8px; gap: 9px; border-radius: 6px; }
+.tree-button>span:last-child { font-size: 12px; line-height: 1.35; color: #d8e2f0; }
+.tree-button small { margin-top: 5px; color: #afc1dc; font-size: 10px; }
+.tree-button.selected { background: #294370; border-color: #48628b; }
+.tree-button.selected>span:last-child { color: #fff; }
+.tree-button.selected small { color: #c6d7f5; }
+.tree-icon { background: #ffffff09; color: #afc1dc; }
+.tree-button .tree-icon.has-original { width: 29px; height: 33px; padding: 2px; }
+.catalogue-footer { margin-top: auto; padding: 18px 20px; font-size: 10px; line-height: 1.8; color: #a4b4cc; }
+.catalogue-footer strong { color: #c5d2e5; font-size: 10px; }
+.content { padding: 23px 30px 20px; max-width: 1100px; }
+.breadcrumb { margin-bottom: 16px; font-size: 11px; color: var(--muted); gap: 6px; }
+.breadcrumb span:last-child { color: var(--ink); }
+.intro { margin-bottom: 17px; }
+.intro h1 { font-size: 21px; letter-spacing: -.5px; line-height: 1.35; }
+.intro p { font-size: 12px; color: var(--muted); line-height: 1.6; }
+.edition { font-size: 11px; padding: 6px 9px; color: var(--muted); }
+.beta-strip { margin-bottom: 16px; padding: 8px 12px; font-size: 11px; color: #765523; background: #fcf8ef; border-color: #ecdfc6; }
+.beta-strip span:last-child { font-size: 10px; color: #765523; }
+.position-card { border-radius: 9px; box-shadow: none; }
+.position-head { padding: 22px 25px 17px; }
+.position-top { margin-bottom: 15px; }
+.position-index { font-size: 10px; letter-spacing: .8px; color: var(--muted); }
+.article-number-row { display: flex; gap: 8px; align-items: center; margin-bottom: 6px; }
+.article-code { font-size: 18px; line-height: 1.3; color: var(--ink); font-weight: 600; letter-spacing: .7px; margin: 0; }
+.number-copy { width: 27px; height: 27px; border: 0; background: transparent; color: var(--muted); }
+.number-copy .icon { width: 14px; height: 14px; }
+.title-line h2 { font-size: 29px; line-height: 1.25; font-weight: 650; letter-spacing: -.6px; }
+.title-line p { margin-top: 6px; font-size: 13px; color: var(--muted); }
+.va-label { align-items: flex-start; flex-direction: column; gap: 6px; margin: -27px 0 0; font-size: 11px; color: var(--muted); }
+.va-select { min-width: 94px; min-height: 37px; padding: 7px 28px 7px 12px; border-radius: 6px; font-size: 14px; font-weight: 600; color: var(--ink); background: var(--canvas); border-color: var(--line); }
+.identities { gap: 24px; margin-top: 19px; padding-top: 14px; }
+.identities dt { color: var(--muted); font-size: 11px; margin-bottom: 4px; }
+.identities dt span { margin-left: 5px; font-size: 10px; }
+.identities dd { color: var(--ink); font-size: 14px; }
+.identity-value { display: flex; align-items: center; flex-wrap: wrap; gap: 5px; }
+.identity-value>span { overflow-wrap: anywhere; min-width: 0; }
+.identity-search { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; color: var(--muted); border-radius: 5px; flex-shrink: 0; }
+.identity-search .icon { width: 15px; height: 15px; }
+.identity-search:hover { color: var(--brand); background: var(--brand-soft); }
+.identity-note { font-size: 11px; line-height: 1.5; color: var(--muted); margin-top: 10px; }
+.identity-note .icon { width: 13px; height: 13px; }
+.symbol-layout { padding: 0 25px 19px; gap: 18px; }
+.article-thumbnail { width: 124px; height: 132px; padding: 10px 20px; border: 1px solid #e5eaf1; border-radius: 6px; background-color: #fff; background-image: radial-gradient(#dce3ec .7px, transparent .7px); background-size: 10px 10px; }
+.article-thumbnail .schema-image { width: auto; height: auto; max-width: 82px; max-height: 110px; border-radius: 0; }
+.article-thumbnail>.symbol { width: 32px; height: 32px; color: #6f83a0; }
+.article-thumbnail .thumbnail-zoom { opacity: 1; width: 24px; height: 24px; bottom: 5px; right: 5px; padding: 4px; color: #526784; background: white; border-color: #dbe3ee; }
+.article-media-actions { align-items: flex-start; flex-direction: column; gap: 8px; }
+.media-kind { color: var(--ink); font-size: 12px; font-weight: 600; }
+.media-missing { color: var(--muted); font-size: 11px; }
+.article-media-actions .photo-button { min-height: 33px; padding: 6px 10px; font-size: 11px; color: var(--ink); }
+.photo-context { color: var(--muted); font-size: 11px; max-width: 240px; }
+.detail-actions { padding: 0 25px 21px; }
+.detail-actions .button { font-size: 12px; }
+.button { color: var(--ink); font-size: 12px; box-shadow: none; }
+.button.primary { box-shadow: none; }
+.detail-actions .text-action { font-size: 12px; color: var(--brand); min-height: 34px; }
+.tabs { padding: 0 25px; gap: 26px; background: var(--surface); }
+.tab { padding: 14px 0; font-size: 12px; font-weight: 550; color: var(--muted); }
+.tab-count { font-size: 10px; }
+.tab-panel { padding: 18px 23px 20px; }
+.section-heading { margin-bottom: 13px; }
+.section-heading h3 { font-size: 13px; font-weight: 600; }
+.section-heading p { font-size: 11px; line-height: 1.6; color: var(--muted); }
+.composition-scroll { position: relative; border: 1px solid var(--line); border-radius: 6px; }
+.composition-table { width: 100%; min-width: 810px; font-size: 12px; table-layout: auto; }
+.composition-table :is(th,td) { padding: 10px 9px; }
+.composition-table th { color: var(--muted); font-size: 10px; font-weight: 600; background: var(--canvas); white-space: nowrap; }
+.composition-table th:first-child { width: 40px; }
+.composition-table th:nth-child(2) { min-width: 185px; }
+.composition-table th:nth-child(3) { width: 87px; }
+.composition-table th:nth-child(4) { width: 105px; }
+.composition-table th:nth-child(5) { width: 120px; }
+.composition-table th:nth-child(6) { width: 47px; }
+.composition-table th:nth-child(7) { width: 58px; text-align: right; }
+.composition-table td { color: var(--ink); border-bottom-color: var(--line); }
+.composition-table tbody tr { cursor: pointer; }
+.composition-table tbody tr:is(:hover,:focus-within) { background: var(--brand-soft); }
+.part-link { font-size: 12px; color: var(--ink); font-weight: 500; line-height: 1.4; }
+.identity-cell { font-size: 11px; white-space: nowrap; }
+.component-symbol { width: 26px; height: 28px; }
+.va-pill { font-size: 11px; color: var(--ink); background: var(--canvas); }
+.quantity { font-size: 12px; color: var(--ink); font-weight: 600; }
+.quantity.negative { color: #a94325; }
+.table-help { margin-top: 13px; color: var(--muted); font-size: 11px; }
+.table-help summary { cursor: pointer; width: fit-content; }
+.table-help p { max-width: 690px; margin-top: 8px; line-height: 1.7; }
+.empty-state { padding: 24px 14px; font-size: 12px; color: var(--muted); }
+.back-link { font-size: 12px; color: var(--brand); line-height: 1.6; }
+.properties dt { font-size: 11px; color: var(--muted); }
+.properties dd { font-size: 13px; color: var(--ink); }
+.original-text { font-size: 13px; color: var(--ink); line-height: 1.8; }
+.context-panel { padding: 12px 14px; margin-top: 14px; font-size: 11px; color: var(--muted); }
+.context-panel button { color: var(--brand); font-size: 11px; }
+.context-panel>a { color: var(--brand); font-size: 11px; white-space: nowrap; }
+.footer { font-size: 10px; color: var(--muted); padding-top: 23px; }
+.favorite-filters { margin-bottom: 22px; gap: 7px; }
+.favorite-filter { font-size: 11px; color: var(--muted); padding: 7px 10px; }
+.favorite-group-head p { font-size: 11px; color: var(--muted); }
+.favorite-group-head h2 { font-size: 13px; }
+.favorite-summary, .favorites-summary { font-size: 12px; }
+.favorite-list { border-radius: 7px; }
+.favorite-card { padding: 3px 15px; }
+.favorite-open { gap: 14px; padding: 13px 0; }
+.favorite-name { font-size: 13px; color: var(--ink); font-weight: 600; }
+.favorite-code { font-size: 12px; color: var(--ink); margin-top: 5px; }
+.favorite-identities { font-size: 11px; gap: 5px 20px; color: var(--muted); }
+.favorite-identities b { color: var(--ink); }
+.favorites-footnote { font-size: 11px; color: var(--muted); }
+.favorites-empty p { font-size: 12px; }
+.workflow-steps { margin-bottom: 20px; gap: 9px; }
+.workflow-step { min-height: 65px; padding: 12px; gap: 10px; font-size: 12px; }
+.workflow-step>b { font-size: 13px; }
+.workflow-step small { display: block; margin-top: 3px; font-size: 10px; color: var(--muted); }
+.workflow-step[aria-disabled=true] { border-style: dashed; background: transparent; }
+.workflow-step[aria-disabled=true][aria-current=step] { color: var(--ink); border-color: var(--muted); }
+.workflow-card { padding: 23px; border-radius: 8px; box-shadow: none; }
+.workflow-card h2 { font-size: 16px; font-weight: 600; }
+.workflow-card p { font-size: 12px; color: var(--muted); line-height: 1.7; }
+.workflow-card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
+.workflow-card-head h2 { margin: 0; }
+.format-list { gap: 12px; margin: 18px 0; }
+.format-card { padding: 15px; }
+.format-card h3 { font-size: 13px; }
+.format-card .badge { font-size: 10px; }
+.format-card p { font-size: 11px; }
+.planned { color: var(--muted); border: 1px solid var(--line); background: var(--canvas); }
+.import-status, .server-hint, .workflow-note { font-size: 11px; line-height: 1.7; color: var(--muted); }
+.import-metric span { font-size: 11px; color: var(--muted); }
+.import-metric strong { font-size: 25px; }
+.object-row { padding: 11px 0; font-size: 12px; }
+.object-row strong { font-size: 12px; color: var(--ink); }
+.object-row small, .object-row>span:last-child { font-size: 11px; color: var(--muted); }
+.object-row .negative { color: #a94325 !important; font-weight: 600; }
+.export-checks li { font-size: 12px; padding: 15px 0; }
+.help-title { font-size: 14px; color: var(--ink); }
+.help-subtitle, .help-small, .beta-note { font-size: 11px; color: var(--muted); }
+.help-section summary { font-size: 12px; color: var(--ink); }
+.glossary dt { font-size: 12px; color: var(--ink); }
+.glossary dd, .quick-guide li { font-size: 12px; color: var(--muted); line-height: 1.65; }
+.quick-guide strong { color: var(--ink); }
+.search-meta, .search-foot { font-size: 11px; color: var(--muted); }
+.search-result { padding: 13px 17px; }
+.search-result strong { font-size: 13px; color: var(--ink); }
+.search-result small { font-size: 11px; color: var(--muted); line-height: 1.7; }
+.image-dialog-caption { font-size: 12px; line-height: 1.7; }
+html[data-theme=dark] { --brand: #a0b8ff; --brand-soft: #23385c; --navy: #101d31; --ink: #e5edf8; --muted: #afbed2; --line: #304259; --surface: #18273b; --canvas: #101b2c; --night-soft: #21334d; --night-text: #e5edf8; }
+[data-theme=dark] .article-code, [data-theme=dark] .title-line h2 { color: var(--ink); }
+[data-theme=dark] .va-select { color: var(--ink); }
+[data-theme=dark] .number-copy { background: transparent; color: var(--muted); }
+[data-theme=dark] .composition-table tbody tr:is(:hover,:focus-within) { background: var(--brand-soft); }
+[data-theme=dark] .quantity.negative, [data-theme=dark] .object-row .negative { color: #ffb293 !important; }
+[data-theme=dark] .article-thumbnail { background-color: #fff; border-color: #455671; }
+[data-theme=dark] .article-thumbnail .thumbnail-zoom { background: #fff; color: #526784; border-color: #dbe3ee; }
+[data-theme=dark] .workflow-step[aria-disabled=true] { background: transparent; }
+[data-theme=dark] .beta-strip { background: #302c22; border-color: #5a4b31; color: #e6cca1; }
+[data-theme=dark] .beta-strip span:last-child { color: #e6cca1; }
+@media (max-width: 1150px) {
+  .header { gap: 15px; padding: 0 20px; }
+  .header-actions { gap: 13px; }
+  .header-action .label { display: none; }
+  .search-trigger { max-width: none; }
+  .help-pinned .content { padding: 23px 20px; }
+}
+@media (max-width: 740px) {
+  :root { --header: 60px; }
+  .catalogue { visibility: hidden; }
+  .nav-open .catalogue { visibility: visible; }
+  .header { padding: 0 13px; gap: 10px; }
+  .brand { font-size: 14px; gap: 6px; }
+  .brand-mark { width: 25px; height: 29px; }
+  .brand-group { gap: 8px; }
+  .header-actions { gap: 8px; }
+  .search-trigger { flex: 0 0 32px; min-width: 32px; width: 32px; height: 34px; margin-left: auto; padding: 6px; background: transparent; border-color: transparent; }
+  .search-trigger .search-label, .search-trigger kbd { display: none; }
+  .content, .help-pinned .content { padding: 20px 16px; }
+  .intro h1 { font-size: 20px; }
+  .breadcrumb { font-size: 10px; }
+  .position-head { padding: 20px 18px 17px; }
+  .title-line h2 { font-size: 26px; }
+  .va-label { font-size: 10px; margin-top: -26px; }
+  .va-select { min-width: 78px; }
+  .identities { gap: 14px; }
+  .symbol-layout { padding: 0 18px 18px; gap: 15px; }
+  .detail-actions { padding: 0 18px 20px; }
+  .tabs { padding: 0 18px; gap: 20px; }
+  .tab-panel { padding: 16px 14px; }
+  .workflow-steps { gap: 6px; }
+  .workflow-step { min-width: 100px; padding: 9px; font-size: 11px; align-items: flex-start; }
+  .workflow-step>b { font-size: 11px; }
+  .workflow-card { padding: 18px; }
+  .format-list { grid-template-columns: 1fr; }
+  .export-checks li { align-items: flex-start; }
+  .export-checks .badge { flex-shrink: 0; }
+  .footer { flex-wrap: wrap; gap: 7px; }
+  .context-panel { flex-wrap: wrap; gap: 9px; }
+}
+@media (max-width: 420px) {
+  .header { gap: 6px; padding: 0 9px; }
+  .brand { font-size: 12px; }
+  .brand-mark { width: 20px; }
+  .brand-group { gap: 5px; }
+  .badge.beta { font-size: 8px; padding: 3px 5px; }
+  .header-actions { gap: 4px; }
+  .header-action { gap: 3px; }
+  .theme-toggle { width: 25px; }
+  .content, .help-pinned .content { padding: 17px 11px; }
+  .beta-strip { font-size: 10px; }
+  .beta-strip .icon { display: none; }
+  .position-head { padding: 18px 15px 15px; }
+  .title-line { flex-wrap: wrap; }
+  .title-line>div { width: 100%; }
+  .va-label { flex-direction: row; align-items: center; margin-top: 7px; gap: 8px; }
+  .title-line h2 { font-size: 25px; }
+  .identities dt span { display: block; margin: 2px 0 0; }
+  .symbol-layout { padding: 0 15px 18px; gap: 12px; }
+  .article-thumbnail { width: 105px; height: 122px; }
+  .article-thumbnail .schema-image { max-width: 75px; max-height: 100px; }
+  .detail-actions .text-action { margin-left: 0; }
+  .workflow-step { min-width: 85px; gap: 7px; font-size: 10px; }
+  .workflow-step small { font-size: 10px; }
+  .import-metrics { grid-template-columns: 1fr; gap: 7px; }
+  .import-metric { display: flex; align-items: center; gap: 12px; }
+  .favorite-card { padding: 3px 10px; }
+}
+@media (max-width: 360px) {
+  .header { gap: 4px; padding: 0 7px; }
+  .brand { font-size: 11px; gap: 4px; }
+  .brand-mark { width: 18px; }
+  .brand-group { gap: 3px; }
+  .badge.beta { font-size: 7px; padding: 3px 4px; }
+  .search-trigger { flex-basis: 28px; min-width: 28px; width: 28px; }
+  .header-actions { gap: 2px; }
+}
+
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#mainContent">Zum Inhalt</a>
+  <!-- 06 · Kleine, lokale SVG-Bibliothek. Bauteil-Icons sind schematische UI-Symbole. -->
+  <svg aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden"><defs>
+    <symbol id="i-logo" viewBox="0 0 32 36"><path d="m16 1 14 8v18l-14 8L2 27V9Z" fill="currentColor"/><g fill="none" stroke="white" stroke-width="1.2"><path d="m9 11 7-4 7 4-7 4-7-4Zm0 0v13l7 4 7-4v-7l-7 4-7-4m7-2v13"/></g></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5 9-5Zm-9 9 9 5 9-5M3 16l9 5 9-5"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M12 5c-3-2-7-2-10-1v15c3-1 7-1 10 1 3-2 7-2 10-1V4c-3-1-7-1-10 1Zm0 0v15"/></symbol>
+    <symbol id="i-bookmark" viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4-6 4V3Z"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18M5 6h14M5 18h14"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h15m-5-5 5 5-5 5"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7v1"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 5 5L20 6"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="13" rx="2"/><path d="M16 8V3H3v13h5"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></symbol>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="M20 12H5m5-5-5 5 5 5"/></symbol>
+    <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8" cy="8" r="1.5"/><path d="m3 17 5-5 4 4 4-6 5 7"/></symbol>
+    <symbol id="i-switch" viewBox="0 0 24 24"><circle cx="12" cy="15" r="5"/><path d="M12 10V3m0 0-4 4M12 3l4 4M7 15H3m14 0h4"/></symbol>
+    <symbol id="i-box" viewBox="0 0 24 24"><path d="m3 7 9-4 9 4-9 4-9-4Zm0 0v10l9 4 9-4V7M12 11v10"/></symbol>
+    <symbol id="i-cable" viewBox="0 0 24 24"><path d="M4 7h10a5 5 0 0 1 0 10H9a3 3 0 0 1 0-6h5M4 4v6m-2-6h4M14 11h5m0-3v6"/></symbol>
+    <symbol id="i-lightbulb" viewBox="0 0 24 24"><path d="M9 18h6m-5 3h4M8 14a6 6 0 1 1 8 0l-1 4H9l-1-4Z"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20.8 14A9 9 0 0 1 10 3.2 9 9 0 1 0 20.8 14Z"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/></symbol>
+    <symbol id="i-import" viewBox="0 0 24 24"><path d="M12 3v12m-4-4 4 4 4-4M4 16v5h16v-5"/></symbol>
+    <symbol id="i-export" viewBox="0 0 24 24"><path d="M12 16V4m-4 4 4-4 4 4M4 16v5h16v-5"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path d="m15 3 6 6-3 1-4 4-1 4-7-7 4-1 4-4 1-3ZM9 15l-6 6"/></symbol>
+  </defs></svg>
+
+  <header class="header">
+    <button class="mobile-menu" id="menuToggle" aria-label="Katalog öffnen" aria-expanded="false" aria-controls="catalogueSidebar"><svg class="icon"><use href="#i-menu"/></svg></button>
+    <div class="brand-group"><a class="brand" href="#position/112001/00" aria-label="BIM2STEIGER – Startposition"><svg class="brand-mark"><use href="#i-logo"/></svg><span class="brand-word">BIM<span>2</span>STEIGER</span></a><span class="badge beta" title="Interner Entwurf – interaktiver Prototyp"><span class="status-dot"></span>BETA</span></div>
+    <button id="openSearch" class="search-trigger" aria-label="Katalog durchsuchen" aria-haspopup="dialog" aria-controls="searchDialog"><svg class="icon"><use href="#i-search"/></svg><span class="search-label">Position, E-Nr. oder B-Nr. suchen …</span><kbd>Ctrl K</kbd></button>
+    <div class="header-actions">
+      <button id="openKnowledge" class="header-action knowledge-button" aria-label="Wissen griffbereit" aria-expanded="false" aria-controls="knowledgePanel" title="Wissen griffbereit"><svg class="icon"><use href="#i-book"/></svg><span class="label">Wissen griffbereit</span></button>
+      <a id="openFavorites" class="header-action" href="#favoriten" aria-label="Favoriten öffnen" title="Favoriten öffnen"><svg class="icon"><use href="#i-bookmark"/></svg><span class="label">Favoriten</span><span class="count" id="favoriteCount">0</span></a>
+      <button id="themeToggle" class="header-action theme-toggle" aria-label="Nachtmodus aktivieren" aria-pressed="false" title="Nachtmodus aktivieren"><svg class="icon"><use href="#i-moon"/></svg></button>
+    </div>
+  </header>
+  <button class="sidebar-shade" id="sidebarShade" aria-label="Katalog schliessen"></button>
+  <div class="layout">
+    <aside class="catalogue" id="catalogueSidebar" aria-label="Katalognavigation">
+      <div class="catalogue-top"><div class="workspace eyebrow">Dein Arbeitsbereich</div><strong>Elektroplanung</strong></div>
+      <div class="catalogue-tabs"><button class="catalogue-overview" id="navCatalogue" data-select="112001/00"><svg class="icon"><use href="#i-layers"/></svg>Katalog entdecken<span class="mono catalogue-year">2026</span></button><a class="catalogue-overview catalogue-favorites" id="sidebarFavorites" href="#favoriten"><svg class="icon"><use href="#i-bookmark"/></svg>Favoriten<span class="count" id="sidebarFavoriteCount">0</span></a></div>
+
+      <nav class="catalogue-tabs project-nav" aria-label="Ausschreibungsablauf">
+        <div class="tree-label eyebrow">Ausschreibung</div>
+        <a class="catalogue-overview workspace-nav" id="navImport" href="#import"><svg class="icon"><use href="#i-import"/></svg>Dateiimport</a>
+        <a class="catalogue-overview workspace-nav" id="navExport" href="#export"><svg class="icon"><use href="#i-export"/></svg>Export nach Messerli</a>
+      </nav>
+      <nav class="catalogue-tree" aria-label="Katalogstruktur"><div class="tree-label eyebrow">Katalogstruktur</div><div id="catalogueTree"></div></nav>
+      <div class="catalogue-footer"><strong><span class="status-dot"></span>Steiger-Katalog · Beispieldaten</strong><span id="sampleCount"></span><br>Beta 0.3 · Interner Entwurf</div>
+    </aside>
+    <main class="content" id="mainContent" tabindex="-1">
+      <div id="articleView">
+      <nav class="breadcrumb" aria-label="Brotkrümelnavigation"><span>Katalog</span><svg class="icon"><use href="#i-chevron"/></svg><span id="breadcrumbKind">Komplettpositionen</span><svg class="icon"><use href="#i-chevron"/></svg><span id="breadcrumbCategory">Licht · Schalter & Taster</span></nav>
+      <div class="intro"><div><h1>Vom Baustein zum Ganzen.</h1></div><div class="edition"><svg class="icon"><use href="#i-layers"/></svg>Katalog <span class="mono">2026</span></div></div>
+      <div class="beta-strip"><svg class="icon"><use href="#i-info"/></svg><span><strong>Interner Entwurf</strong> · Ausgewählte Katalogdaten</span><span>Beta 0.3</span></div>
+      <button class="back-link" id="backToParent" hidden><svg class="icon"><use href="#i-back"/></svg><span></span></button>
+      <article class="position-card" aria-labelledby="articleTitle">
+        <div class="position-head">
+          <div class="position-top"><span class="badge blue" id="kindBadge">Komplettposition</span><span class="position-index">STEIGER / 2026</span></div>
+          <div class="article-number-row"><p class="article-code mono" id="articleCode"></p><button class="icon-button number-copy" id="copyNumber" aria-label="Artikelnummer kopieren" title="Artikelnummer kopieren"><svg class="icon"><use href="#i-copy"/></svg></button></div>
+          <div class="title-line"><div><h2 id="articleTitle"></h2><p id="articleSubtitle"></p></div><label class="va-label" for="vaSelect">Verlegungsart (VA)<select id="vaSelect" class="va-select" aria-label="Verlegungsart wählen"></select></label></div>
+          <dl class="identities"><div><dt>E-Nr. <span class="muted">ELDAS-Elektro-Nummer</span></dt><dd class="mono identity-value"><span id="eNumber">—</span><a id="eNumberSearch" class="identity-search" target="_blank" rel="noopener noreferrer" hidden><svg class="icon" aria-hidden="true"><use href="#i-globe"/></svg></a></dd></div><div><dt>B-Nr. <span class="muted">Bestellnummer</span></dt><dd class="mono identity-value"><span id="bNumber">—</span><a id="bNumberSearch" class="identity-search" target="_blank" rel="noopener noreferrer" hidden><svg class="icon" aria-hidden="true"><use href="#i-globe"/></svg></a></dd></div></dl>
+          <p class="identity-note"><svg class="icon"><use href="#i-info"/></svg><span id="identityNote"></span></p>
+        </div>
+        <!-- Originalzeichnung auf Raster; Foto ausschliesslich auf Wunsch im Dialog. -->
+        <div class="symbol-layout">
+          <button id="schemaStage" class="article-thumbnail" type="button" data-zoom="schema" aria-label="Artikelbild öffnen" title="Artikelbild öffnen"></button>
+          <div id="photoActions" class="article-media-actions"></div>
+        </div>
+        <div class="detail-actions"><button class="button primary" id="saveFavorite" aria-pressed="false"><svg class="icon"><use href="#i-plus"/></svg><span>Zu Favoriten hinzufügen</span></button><button class="text-action" id="showArticleText">Artikeltext ansehen<svg class="icon"><use href="#i-arrow"/></svg></button></div>
+        <div class="tabs" role="tablist" aria-label="Positionsdetails"><button id="tab-composition" class="tab" role="tab" aria-selected="true" aria-controls="panel-composition" data-tab="composition">Besteht aus<span class="tab-count" id="componentCount"></span></button><button id="tab-properties" class="tab" role="tab" aria-selected="false" aria-controls="panel-properties" tabindex="-1" data-tab="properties">Stammdaten</button><button id="tab-description" class="tab" role="tab" aria-selected="false" aria-controls="panel-description" tabindex="-1" data-tab="description">Artikeltext</button></div>
+        <section id="panel-composition" class="tab-panel" role="tabpanel" aria-labelledby="tab-composition"></section>
+        <section id="panel-properties" class="tab-panel" role="tabpanel" aria-labelledby="tab-properties" hidden></section>
+        <section id="panel-description" class="tab-panel" role="tabpanel" aria-labelledby="tab-description" hidden></section>
+      </article>
+      <div class="context-panel"><span><svg class="icon"><use href="#i-export"/></svg>Die Verbindung zur Ausschreibung ist noch offen.</span><a href="#export">Ausschreibung & Exportstatus →</a></div>
+      </div>
+      <section id="favoritesView" aria-labelledby="favoritesTitle" hidden>
+        <nav class="breadcrumb" aria-label="Brotkrümelnavigation"><span>Dein Arbeitsbereich</span><svg class="icon"><use href="#i-chevron"/></svg><span>Favoriten</span></nav>
+        <div class="intro favorites-intro"><div><h1 id="favoritesTitle" tabindex="-1">Favoriten</h1><p>Auf diesem Gerät gespeichert · Nach Original-Katalogpfad geordnet</p></div><a class="button" id="returnToCatalogue" href="#position/112001/00"><svg class="icon"><use href="#i-back"/></svg>Zum Katalog</a></div>
+        <p id="favoritesSummary" class="favorites-summary" role="status"></p>
+        <div id="favoriteFilters" class="favorite-filters" role="group" aria-label="Favoriten nach Kategorie filtern"></div>
+        <div id="favoriteGroups"></div>
+        <p class="favorites-footnote">Jede Artikel-/VA-Kombination bleibt ein eigener Eintrag.</p>
+      </section>
+      <section id="projectView" aria-labelledby="projectTitle" hidden>
+        <nav class="breadcrumb" aria-label="Brotkrümelnavigation"><span>Ausschreibung</span><svg class="icon"><use href="#i-chevron"/></svg><span id="projectBreadcrumb">Dateiimport</span></nav>
+        <div class="intro"><div><h1 id="projectTitle" tabindex="-1">Dateiimport</h1><p id="projectSubtitle">Planungsdaten als Ausgangspunkt für deine Ausschreibung.</p></div><span class="badge beta">BETA</span></div>
+        <nav class="workflow-steps" aria-label="Vom Modell zur Ausschreibung"><a class="workflow-step" href="#import" id="importStep"><b>01</b><span>Dateiimport<small>CSV / JSON verfügbar</small></span></a><span class="workflow-step" aria-disabled="true"><b>02</b><span>Zuordnung & Prüfung<small>Noch offen</small></span></span><span class="workflow-step" id="exportStep" aria-disabled="true"><b>03</b><span>Export nach Messerli<small>Noch offen</small></span></span></nav>
+        <div id="importPanel">
+          <section class="workflow-card" aria-labelledby="importHeading"><h2 id="importHeading">Planungsdatei importieren</h2><p>CSV- oder JSON-Datei vom eigenen Rechner auswählen. Alle importierten Objekte bleiben zunächst ungeprüft.</p>
+            <div class="format-list"><div class="format-card"><h3>CSV / JSON <span class="badge blue">Verfügbar</span></h3><p>Neutraler Objektexport mit Raum, Geschoss, Menge, Einheit und optionaler Artikel-/VA-Zuordnung.</p></div><div class="format-card"><h3>Nova / IFC <span class="badge planned">In Vorbereitung</span></h3><p>Direkte Modellimporte folgen anhand echter Beispieldateien und geprüfter Mengenregeln.</p></div></div>
+            <div class="import-controls"><label class="button primary file-choice"><svg class="icon"><use href="#i-import"/></svg>CSV / JSON auswählen<input id="modelFile" type="file" accept=".csv,.json" aria-label="CSV- oder JSON-Modelldatei auswählen"></label><span class="import-status" id="importStatus" role="status" aria-live="polite">Noch keine Datei importiert.</span></div>
+            <div class="server-hint" id="importServerHint" hidden>Für den Dateiimport die lokale Anwendung starten: <code>Start_Steiger2Bim.cmd</code>. Danach <a class="source-link" href="http://127.0.0.1:8765/bim2steiger-beta.html#import">Dateiimport in der lokalen Anwendung öffnen ↗</a>. Beim direkten Öffnen der HTML-Datei bleibt dieser Bereich eine Vorschau.</div>
+            <p class="workflow-note" style="margin-top:13px">Ein neuer Import ersetzt den bisherigen Modellimport. Die Quelldatei bleibt unverändert.</p>
+          </section>
+          <section class="workflow-card" aria-labelledby="modelHeading"><div class="workflow-card-head"><h2 id="modelHeading">Importierte Objekte</h2><span class="badge planned" id="importReviewState" hidden>Ungeprüft</span></div><p id="modelSource">Nach dem Import siehst du hier die übernommenen Objekte und offene Angaben.</p><div id="importMetrics" class="import-metrics" hidden></div><div id="importObjects" class="object-list"></div><div class="export-actions" style="margin-top:15px"><button class="button" id="saveModelReview" disabled><svg class="icon"><use href="#i-import"/></svg>Modellimport als JSON sichern</button><button class="button" id="discardModelImport" disabled>Import verwerfen</button><a class="button" href="#export">Exportstatus ansehen<svg class="icon"><use href="#i-arrow"/></svg></a></div><p class="workflow-note" style="margin-top:12px">Die JSON-Datei sichert ungeprüfte Importobjekte. Sie ist keine Messerli-Datei.</p></section>
+        </div>
+        <div id="exportPanel" hidden>
+          <section class="workflow-card" aria-labelledby="exportHeading"><h2 id="exportHeading">Übergabe nach Messerli vorbereiten</h2><p>Modellobjekte müssen zuerst passende Steiger-Positionen, VA, Mengen und Gliederungen erhalten. Die Messerli-Schnittstelle wird anhand einer echten Austauschdatei eingerichtet.</p>
+            <ul class="export-checks"><li><span>Quelldatei eingelesen</span><span class="badge planned" id="exportSourceState">Noch offen</span></li><li><span>Positionen zugeordnet und geprüft</span><span class="badge planned">Noch nicht umgesetzt</span></li><li><span>Messerli-Austauschformat geprüft</span><span class="badge planned">In Vorbereitung</span></li></ul>
+            <div class="export-actions"><button class="button primary" disabled title="Wird nach Implementierung und Prüfung der Messerli-Schnittstelle verfügbar"><svg class="icon"><use href="#i-export"/></svg>Messerli-Datei exportieren</button></div><p class="workflow-note" style="margin-top:14px">Der Export ist noch offen. Eine JSON-Sicherung des Imports steht im Dateiimport bereit.</p>
+          </section>
+          <section class="workflow-card"><h2>In der bestehenden Ausschreibung weiterarbeiten</h2><p>BKP, Raum und Mengen funktionieren bereits in der bestehenden Ausschreibungsansicht. Die Verbindung zum Beta-Import ist noch offen; importierte Objekte werden nicht automatisch übergeben.</p><div class="export-actions" style="margin-top:16px"><a class="button" id="openTenderApplication" href="http://127.0.0.1:8765/" target="_blank" rel="noopener noreferrer">Bestehende Ausschreibung öffnen ↗</a><a class="button" href="#import">Zurück zum Dateiimport</a></div></section>
+        </div>
+        <p class="workflow-note">Offene Angaben bleiben sichtbar. Für Nova-/IFC-Dateien werden noch keine automatischen Mengen oder vollständigen Ausschreibungen erzeugt.</p>
+      </section>
+      <footer class="footer"><span>BIM2STEIGER · Für deine Elektroplanung.</span><span>Beta 0.3 · Katalogstand 2026</span></footer>
+    </main>
+  </div>
+  <dialog id="knowledgeDialog" class="knowledge-dialog" aria-labelledby="knowledgeTitle">
+    <aside class="help" id="knowledgePanel" aria-labelledby="knowledgeTitle" tabindex="-1">
+      <div class="help-heading"><div><h2 class="help-title" id="knowledgeTitle"><svg class="icon"><use href="#i-book"/></svg>Wissen griffbereit</h2><p class="help-subtitle">Begriffe, Kürzel und schnelle Antworten.</p></div><div class="help-tools"><button class="icon-button" id="pinKnowledge" aria-label="Wissen anpinnen" aria-pressed="false" title="Wissen anpinnen"><svg class="icon"><use href="#i-pin"/></svg></button><button class="icon-button" id="closeKnowledge" aria-label="Wissen schliessen" title="Wissen schliessen"><svg class="icon"><use href="#i-close"/></svg></button></div></div>
+      <details class="help-section" open><summary>Welche Nummer ist welche?</summary><dl class="glossary"><dt>Art.-Nr.</dt><dd>Steiger-Artikelnummer der Position.</dd><dt>E-Nr.</dt><dd>ELDAS-Artikelnummer des Produkts.</dd><dt>B-Nr.</dt><dd>Bestell- / Typnummer aus der Quelle.</dd><dt>VA</dt><dd>Verlegungsart. Führende Nullen gehören zur Kennung.</dd></dl><p class="help-small">«—» bedeutet: nicht angegeben. Eine Komplettposition übernimmt keine Produktnummern ihrer Bestandteile.</p></details>
+      <details class="help-section" open><summary>Symbole & Abkürzungen</summary><dl class="glossary"><dt>UP</dt><dd>Unterputz</dd><dt>AP</dt><dd>Aufputz</dd><dt>w</dt><dd>weiterer, z. B. weiterer Schalter</dd><dt>MP</dt><dd>Mehrpreis</dd><dt>M+A</dt><dd>Montage und Anschluss</dd><dt><svg class="icon" style="width:15px;height:15px" aria-label="Globus"><use href="#i-globe"/></svg></dt><dd>Externe Produktsuche im neuen Tab.</dd></dl></details>
+      <details class="help-section"><summary>BIM & offene Formate</summary><dl class="glossary"><dt>BIM</dt><dd>Building Information Modeling: modellbasiert mit Bauwerksinformationen arbeiten.</dd><dt>IFC</dt><dd>Offener Standard für den Austausch von Bauwerksmodellen.</dd><dt>BCF</dt><dd>Offener Standard zum Austausch modellbezogener Prüf- und Abstimmungsthemen.</dd></dl><p class="help-small"><a class="source-link" href="https://www.buildingsmart.org/standards/bsi-standards/" target="_blank" rel="noopener noreferrer">Referenz: buildingSMART ↗</a><br>Der Prototyp enthält keinen Modellimport.</p></details>
+      <details class="help-section" open><summary>So funktioniert die Beta</summary><ol class="quick-guide"><li><span><strong>Position finden</strong>Katalog aufklappen oder mit Ctrl K suchen.</span></li><li><span><strong>Zusammenhänge öffnen</strong>Ein Bauteil unter «Besteht aus» anklicken.</span></li><li><span><strong>Bild genauer ansehen</strong>Die Lupe öffnet das Symbol in Originalgrösse. «Produktfoto ansehen» öffnet die zweite Abbildung.</span></li></ol></details>
+      <div class="tip"><div class="tip-title"><svg class="icon"><use href="#i-lightbulb"/></svg>Ein Bild, eine klare Herkunft.</div>Die Originalzeichnung gehört zum gewählten Artikel. Über «Produktfoto ansehen» öffnest du bei Bedarf die zweite Abbildung mit Quellenangabe.</div>
+      <p class="beta-note"><strong>Ein Entwurf zum Ausprobieren.</strong><br>Suche und Verweise nutzen diesen Katalogauszug. Mengen gelten je direktem Elternteil; fehlende Einheiten bleiben offen.<br><br>Kürzel: Steiger 2026, S. 21.16–21.17.</p>
+    </aside>
+  </dialog>
+  <dialog id="searchDialog" class="search-dialog" aria-label="Katalog durchsuchen">
+    <div class="search-field"><svg class="icon"><use href="#i-search"/></svg><label class="sr-only" for="searchInput">Position, E-Nr. oder B-Nr. suchen</label><input id="searchInput" type="search" placeholder="Position, E-Nr. oder B-Nr. suchen …" autocomplete="off" role="combobox" aria-expanded="true" aria-controls="searchResults" aria-autocomplete="list"><button class="icon-button" data-close="searchDialog" aria-label="Suche schliessen"><svg class="icon"><use href="#i-close"/></svg></button></div>
+    <div class="search-meta"><span id="searchLabel">Katalog entdecken</span><span id="searchCount" role="status"></span></div><div class="search-results" id="searchResults" role="listbox" aria-label="Suchergebnisse"></div><div class="search-foot"><span><kbd>↑ ↓</kbd> Navigieren &nbsp; <kbd>↵</kbd> Öffnen &nbsp; <kbd>Esc</kbd> Schliessen</span><span>Suche im Beta-Katalogauszug</span></div>
+  </dialog>
+  <dialog id="imageDialog" class="image-dialog" aria-labelledby="imageTitle"><div class="dialog-head"><div><h2 id="imageTitle">Bildansicht</h2><p id="imageSubtitle"></p></div><button class="icon-button" data-close="imageDialog" aria-label="Bildansicht schliessen"><svg class="icon"><use href="#i-close"/></svg></button></div><div id="imageBody" class="image-dialog-body"></div><p id="imageCaption" class="image-dialog-caption"></p></dialog>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <!-- 07 · Datenadapter: eingebetteter, nachvollziehbarer Katalogauszug. -->
+  <script id="betaData" type="application/json">{"version":"0.1","catalogue_year":2026,"scope":"Statischer Beta-Katalogauszug; keine Live-API-Anbindung","articles":[{"key":"112001/00","number":"112001","va":"00","name":"Schalter/Taster","short":"Schalter/Taster","subtitle":"Leitung: Decke UP Wand UP","complete":true,"symbol":"switch","e_nr":null,"b_nr":null,"parts":[{"key":"125252/30","quantity":1.5},{"key":"125252/40","quantity":2.7},{"key":"2670/30","quantity":1.0},{"key":"126562/40","quantity":0.1},{"key":"2744/40","quantity":0.3},{"key":"35120/60","quantity":19.2},{"key":"985992/70","quantity":2.0},{"key":"998123/48","quantity":1.0}],"source":"Steiger 2026 · Grunddaten 112001 / VA 00 · Rezept r_8372b1f9cb0e624fe8f5b585","text":"Schalter/Taster\n\n\nLeitung: Decke UP Wand UP","aliases":"Schalter Taster Unterputz Licht ","schema":"data:image/png;base64,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","photo_key":"998123/48","schema_info":{"width":128,"height":150,"source":"Steiger-Grunddaten 112001"},"catalogue_paths":[["Komplett-Installationen","232.5 Licht","3.3 EFH/MFH Schalter/Steckdosen/PIR"]]},{"key":"112002/00","number":"112002","va":"00","name":"w Schalter/Taster in Schaltstelle","short":"w Schalter/Taster in Schaltstelle","subtitle":"Wand UP","complete":true,"symbol":"switch","e_nr":null,"b_nr":null,"parts":[{"key":"2670/30","quantity":-1.0},{"key":"372006/30","quantity":1.0},{"key":"35120/60","quantity":14.4},{"key":"985991/70","quantity":2.0},{"key":"998123/48","quantity":1.0}],"source":"Steiger 2026 · Grunddaten 112002 / VA 00 · Rezept r_fd7556bf19f98917c4d3c48e","text":"w Schalter/Taster in Schaltstelle\n\n\nWand UP","aliases":"Schalter Taster Unterputz Licht weiterer zusätzlicher","photo_key":"998123/48","catalogue_paths":[["Komplett-Installationen","232.5 Licht","3.3 EFH/MFH Schalter/Steckdosen/PIR"]]},{"key":"112212/00","number":"112212","va":"00","name":"Wandlampenstelle m vorbereiten","short":"Wandlampenstelle","subtitle":"Lampenstelle","complete":true,"symbol":"lightbulb","e_nr":null,"b_nr":null,"parts":[{"key":"125252/30","quantity":1.2},{"key":"125252/40","quantity":2.2},{"key":"2730/30","quantity":1.0},{"key":"126562/40","quantity":0.1},{"key":"2744/40","quantity":0.1},{"key":"35120/60","quantity":12.0},{"key":"12471/09","quantity":1.0}],"source":"Steiger 2026 · Grunddaten 112212 / VA 00 · Rezept r_a2153d67106faf0037b1c161","text":"Wandlampenstelle m vorbereiten\n\n\nLampenstelle\n\n\nLeitung: Decke UP Wand UP/AP","aliases":"Wandlampe Lampenstelle Licht Unterputz","schema":"data:image/png;base64,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","schema_info":{"width":130,"height":150,"source":"Steiger-Katalogdarstellung 112212"},"photo_key":"2730/30","catalogue_paths":[["Komplett-Installationen","232.5 Licht","3.5 EFH/MFH Lampenstellen m M+A Aussenbeleuchtung"]]},{"key":"125252/30","number":"125252","va":"30","name":"KRFWG-Rohr hf fw 25","short":"KRFWG-Rohr hf fw 25","subtitle":"Kalkulationsbestandteil · Artikel und VA aus der Quellposition","complete":false,"symbol":"cable","e_nr":"125252402","b_nr":null,"text":"KRFWG-Rohr hf fw 25","source":"Steiger 2026 · Bestandteil von 112001 / VA 00 · Rezept r_8372b1f9cb0e624fe8f5b585","catalogue_paths":[["Einzel-, Komplett-Artikel","1 Rohre","1.2.1 KRFWG Kunststoffrohre flexibel"]]},{"key":"125252/40","number":"125252","va":"40","name":"KRFWG-Rohr hf fw 25","short":"KRFWG-Rohr hf fw 25","subtitle":"Kalkulationsbestandteil · Artikel und VA aus der Quellposition","complete":false,"symbol":"cable","e_nr":"125252402","b_nr":null,"text":"KRFWG-Rohr hf fw 25","source":"Steiger 2026 · Bestandteil von 112001 / VA 00 · Rezept r_8372b1f9cb0e624fe8f5b585","catalogue_paths":[["Einzel-, Komplett-Artikel","1 Rohre","1.2.1 KRFWG Kunststoffrohre flexibel"]]},{"key":"2670/30","number":"2670","va":"30","name":"Einlasskasten NIS T=59 Gr 1","short":"Einlasskasten NIS T=59 Gr 1","subtitle":"Kalkulationsbestandteil · Artikel und VA aus der Quellposition","complete":false,"symbol":"box","e_nr":"372501629","b_nr":"9921","text":"Einlasskasten NIS T=59 Gr 1","source":"Steiger 2026 · Bestandteil von 112001 / VA 00 · Rezept r_8372b1f9cb0e624fe8f5b585","catalogue_paths":[["Einzel-, Komplett-Artikel","6 Abzweigdosen, Schalungsmaterial","6.3.1 Einlasskästen"]]},{"key":"126562/40","number":"126562","va":"40","name":"Schalungsschoner 20/25","short":"Schalungsschoner 20/25","subtitle":"Kalkulationsbestandteil · Artikel und VA aus der Quellposition","complete":false,"symbol":"box","e_nr":"126564044","b_nr":"4551.14","text":"Schalungsschoner 20/25","source":"Steiger 2026 · Bestandteil von 112001 / VA 00 · Rezept r_8372b1f9cb0e624fe8f5b585","catalogue_paths":[["Einzel-, Komplett-Artikel","6 Abzweigdosen, Schalungsmaterial","6.3.6 Lampendübel Schalungsmaterial"]]},{"key":"2744/40","number":"2744","va":"40","name":"Rohrstütze 130x210x132","short":"Rohrstütze 130x210x132","subtitle":"Kalkulationsbestandteil · Artikel und VA aus der Quellposition","complete":false,"symbol":"box","e_nr":"126596150","b_nr":"4560","text":"Rohrstütze 130x210x132","source":"Steiger 2026 · Bestandteil von 112001 / VA 00 · Rezept r_8372b1f9cb0e624fe8f5b585","catalogue_paths":[["Einzel-, Komplett-Artikel","6 Abzweigdosen, Schalungsmaterial","6.3.6 Lampendübel Schalungsmaterial"]]},{"key":"35120/60","number":"35120","va":"60","name":"Draht T Dca hf 1.5","short":"Draht T Dca hf 1.5","subtitle":"Kalkulationsbestandteil · Artikel und VA aus der Quellposition","complete":false,"symbol":"cable","e_nr":"105122117","b_nr":null,"text":"Draht T Dca hf 1.5","source":"Steiger 2026 · Bestandteil von 112001 / VA 00 · Rezept r_8372b1f9cb0e624fe8f5b585","catalogue_paths":[["Einzel-, Komplett-Artikel","7 Starkstromleiter","7.1.1 Einzugshilfen Drähte/Seile hf"]]},{"key":"985992/70","number":"985992","va":"70","name":"Draht T Dca hf 4x1.5","short":"Draht T Dca hf 4x1.5","subtitle":"Kalkulationsbestandteil · Artikel und VA aus der Quellposition","complete":false,"symbol":"cable","e_nr":null,"b_nr":null,"text":"Draht T Dca hf 4x1.5","source":"Steiger 2026 · Bestandteil von 112001 / VA 00 · Rezept r_8372b1f9cb0e624fe8f5b585","catalogue_paths":[]},{"key":"998123/48","number":"998123","va":"48","name":"UP-Schalter/-Taster 1L","short":"UP-Schalter/-Taster 1L","subtitle":"Kalkulationsbestandteil · Artikel und VA aus der Quellposition","complete":false,"symbol":"switch","e_nr":"219070000","b_nr":"7563.GMI.A.61","text":"UP-Schalter/-Taster 1L","source":"Steiger 2026 · Bestandteil von 112001 / VA 00 · Rezept r_8372b1f9cb0e624fe8f5b585","photo":true,"catalogue_paths":[]},{"key":"372006/30","number":"372006","va":"30","name":"Einlasskasten 1x2","short":"Einlasskasten 1x2","subtitle":"Kalkulationsbestandteil · Artikel und VA aus der Quellposition","complete":false,"symbol":"box","e_nr":"372118219","b_nr":"9902.22","text":"Einlasskasten 1x2","source":"Steiger 2026 · Bestandteil von 112002 / VA 00 · Rezept r_fd7556bf19f98917c4d3c48e","catalogue_paths":[["Einzel-, Komplett-Artikel","6 Abzweigdosen, Schalungsmaterial","6.3.1 Einlasskästen"]]},{"key":"985991/70","number":"985991","va":"70","name":"Draht T Dca hf 3x1.5","short":"Draht T Dca hf 3x1.5","subtitle":"Kalkulationsbestandteil · Artikel und VA aus der Quellposition","complete":false,"symbol":"cable","e_nr":null,"b_nr":null,"text":"Draht T Dca hf 3x1.5","source":"Steiger 2026 · Bestandteil von 112002 / VA 00 · Rezept r_fd7556bf19f98917c4d3c48e","catalogue_paths":[]},{"key":"2730/30","number":"2730","va":"30","name":"Wandlampendübel 2 Einf","short":"Wandlampendübel 2 Einf","subtitle":"AGRO · Wandlampendübel","complete":false,"symbol":"box","e_nr":"165930028","b_nr":"9951","text":"Wandlampendübel 2 Einf","source":"Steiger 2026 · Bestandteil von 112212 / VA 00 · Rezept r_a2153d67106faf0037b1c161","schema":"data:image/png;base64,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","schema_info":{"width":83,"height":150,"source":"Steiger-Grunddaten 2730","reference_url":"https://www.kaisergroup.com/de-AGRO/p/Lampenduebel-Auslass-OE-30-mm/9951"},"photo_id":"portal_2730","catalogue_paths":[["Einzel-, Komplett-Artikel","6 Abzweigdosen, Schalungsmaterial","6.3.6 Lampendübel Schalungsmaterial"]]},{"key":"12471/09","number":"12471","va":"09","name":"Lampenstelle vorbereiten","short":"Lampenstelle vorbereiten","subtitle":"Kalkulationsbestandteil · Artikel und VA aus der Quellposition","complete":false,"symbol":"lightbulb","e_nr":null,"b_nr":null,"text":"Lampenstelle vorbereiten","source":"Steiger 2026 · Bestandteil von 112212 / VA 00 · Rezept r_a2153d67106faf0037b1c161","catalogue_paths":[["Einzel-, Komplett-Artikel","16 Leuchten","16.1.1 M+A Leuchten"]]}],"assets":{"product_photo":"data:image/jpeg;base64,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","photo_source":"https://www.brack.ch/feller-edizioliv-schalter-up-druckschalter-sch-3-weiss-1754285","photos":{"portal_2730":{"src":"data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/2wBDAQMEBAUEBQkFBQkUDQsNFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBT/wgARCAEsASwDASIAAhEBAxEB/8QAHAABAAEFAQEAAAAAAAAAAAAAAAUCAwQGBwEI/8QAGAEBAQEBAQAAAAAAAAAAAAAAAAECAwT/2gAMAwEAAhADEAAAAfqYAAAAAAAAAAAAAAAAADHyAAAAWLKZqmpQAAAAAAAAAAAAAACnSLmb12Pq1jyzkeJHbPCRuddlcy6XN1BQAAAAAAAAAAABr6QcJjXevK/XZqL3tHsVW60R13IiprqdfO8w6Va0qFl3zz5xxc6+qMniXUdScE0AAAAAAAA5b03iGs593CyN4ya8e5Zke2vZLyzGLK6pzyV572bOhKNyVw9dyfP2lblWfvnk7No27zXUhoAAAAAAABpnKs5051ZUBJkndwr9mVVY9TIws/HSIg5q7Lhc5mtI59dv3vlW4rukFrtrF3LauL9N3z6bsHJ+h2yomgAAAAAAPnq9ZdMZUXnX2acuAkVlaceqzYsOzmM67BbhzDG9ai9jsce0dt+syNS60MvaNZk8zcdu5zMdM9lFoAAA9PHvgAB89ee+dMe++DMh8zKTHy4a9Zme0wM1vlXLdn52Vh57BSFwJGVxvTfd8rNek82vN1mC6JDanYdo1HbtAoack3r+u16xnWLPtzdyMP0nZ7RKprp7Tdyzv568NwLAMiIz7iIGe1w6VzbdbGLz3c4vZc2AkNIk1365hyG8U1XKotW8vyWG6HqUbL29oG/3UbzWY5/cbVXbruawlR6VKfabxyndcdNa1n6E5lq6R561nx74Kqbxj6xt0NcXYCegPP6fVNnOoWY1/Ymd7mtZnuvKRuWL28XK6a08tWtexuXmeWe530P5p63ymzfd64DNTX0Be4TK2djtcruR0GB1q/N25OF6tl1kdcaHzb6F1Szki7b1nympVeNX6mFr87A8PRRhZEXLh7Rq+1yT83r8xvE1kxub15ZGt4PFsbmNEs1TVdxfJboHLtgzqu79Q4Fnz3J9Qw83R8jdpNeY5nadys5x1I1gKAguQ97jrOFeSsVqeWb9mzEgNh13h3xcPIs5uNN5+Dczkrrk5rMxj1aFrOn6j7blpve3qpv+3ZV5kZ12zufzd2M6MN4AAAAAAxuR9loT56t7rpe5ia5seuce0bT57nWySMdI754nsn5cecl6Vy6a1y5le2WbuUq3cyLktGdb2TOti6/x/sC9FG+YAAAAAADm3SaU+a9b2nVcdYuqivOtkkY/P3zv01WdZw9G3mH59NJqz7mucfVn1GFcysmWxt9F6dHX+Qdfs6MN8wAAAAAAAONci+uOW43wXL6dqudM7Dzd4v2btrWcH15y7QeDtXrOrXNjqqIk6k16B1/kHYNZ6KN8wAAAAAAAAEfIDgER9IccNXs37K4B5z6+iBUUtl3CzlUh3afueM9KnGshYAAAAAAAAAA89HLed/S3PjjbqW4Y6cL23tPtzo23Za5CgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP//EADIQAAEEAQMCBAUDAwUAAAAAAAMAAQIEBQYREhATICEzQBQiMDI0BxUxI0FQFhckYHD/2gAIAQEAAQUC/wAKSsIz/wDUp2BjTXa7u0mk3+Bs5aA0W4Y/SUd1uQD43UPOfvpSaEb2SlZfq6lFGAxGxeclQUZNJveZTIfEE8Um3RBcljcmXEzlk68Y1b47TohYCZ8qBn/dgoVkR/a5m58NXZ1ut0z9N+smR7MqpYGiWI2fj+5WFdsFeNgtuzGsI0pYa5YOPF3Xsx9nlbXfv7pnTP036brdPJW7gLUwnkFy5dxj/epujZCRV8HRy9DF4HGYUhcuAMdF2JWTeyLPtCjPkmkmdb9GW63WQvix1e7YvZeWOA9aDPu+TDKvAIJGi1YirhkOA8fjr8S6feK0TXJXJ7LIZoZK8CcZRmmkmdbrfqcAzSerCKuj4qmKNUF7ITu3aBtlWJA64RErxQO+PzMbKgWQpUMmx/ZCN21YAxGjNxvCaaSZ1ut9k7cGdSszk4RMeecynxhHl89Um0wz3TkkROgjcqqG/ptJY218VX9iMjjcoYlhycLjnumkmdTntA3mR0ajEizF2FQJZJ5fMGf9SsVN/CA0oqqRpxhNadNzN7D+6hNxynCJoeYHGXdNJSf5Kp+YXZWWJ2jYs7PKjs70k9V4vXnsoS+XkohZBeTElcYAtD5CD2fZtJ4vs1hni4XEXduXk/pCyshIVoVhTE0kapyZ8dxaVFlPHs6epODDqEkhAdRhsrtOc1UO1WWmrs7+J8NnJhrImZNNSuGmuUnXN2ULZoIWYNFV8kI/V/Dux0QchSgbeL+kZNGZCVquWimHfZj2jV4tnK02D/yYRrQiu3uu0u2uCt0IHWnLlQlTwZPJu8t/oUMi4n8e7EawGQ0/om83FUhjxFs2r8RgEUuKJcgbM0xBNUJ8sUzLiuK4px7qQpDJhs61zrkbcaVL+/8APh38GHtNex3jaTPGbcRmfzllu2Q37dfHU0xhaFkmTrBbMZCdgmPsIM92boy2WyeKMDksPn/NfqA/HSuGzEMgNN038OSyDAHoh99O5bCzx7+Lg6kztE7vGWQ9R+jur77zoPsq0vKEvKPmm6bJ2Tx3R67TbF5yVBfqVKRcBA7wnj9VFG1bOU7CiWE+rlhBEyYBqxlSFRX3WGzM8dSdmk2YwD1/FGeymyNBZD1HW6nJFfmeo2yryQ3UZeA9sdZGzL7E1MJDzozq1YKetkKUqJhyQSPIApuyhYImNN1ydQf50aS09piJMb0zOn+4nbZ/A0kZvLIfe6d0aXkFuRAMq7oclF0zrdXsvwjktTOzmOW1KK47qjlLFF3K2To2KXwpwwlAQ3UFFM6iRuYhHtTwej+xPwZjBxvMQcgz8H3NdfeTqTqxLypPuhIaHJQdRWUycYQyOSnfm785MmZMyZlhrD17eBjXzWGs/p5jSSL+nh2f/Qd+KjoW8haCmq2jaQVXqBqQ8WUxIslC1VLTL1n5RuttKSm6YTHXw7gmCe7CdDdRdXLDwHl7/wAYYs+S2TMmZbKLLbZYjIlpGxmSHk6/1b1AWQDkMcXHF6T+2/8AfJFfyq/y0IljOtIMgFQpKMlnch2a058kzJopmTMot5syZkJuAtFfh/WsVh2xZXDkxs1P7b/3zRVUQ1HZ2NU4oJdnITYOpC9y7xTRTMmjumizPsmiq4O8Z1or8P684RJDM4GVNS+2/wDeRFVNDUVCWyJVYjEjODZaPLJdtcVx8miojXBNBYsHTRX4fsc5p/jG/wDeRFVNDUUyNJ4CdZUO17t7rtpobKI1wXFAruecYtCK0V+H7GTNJstDsWyIqpoaj0P6KyQO6Jobrgu0uK47IQJFcIohj00V+H7LW9HhYmiu6pN8o1FMrHopkfH/ADPB4vxURvNDpbqLNCPXRX4fsrVUVwN3QMZy/wBubc3t4c+HsQZN0P6Pg2bx6K/D9reoByIMphS4krdD+j9Gtj7Nx6ujbRVicSPEA9sYMLAsxgZ42Ssej4Ys85VdOX7Sq6JZVcDRp+7duTZnTr11Y9HpWpWLj1dH3DKrpCkFV6YKkff5zTHxbVdFKrp6hUTNs3/lP//EACERAAICAQQDAQEAAAAAAAAAAAABEBECEiAwMSFAQVAT/9oACAEDAQE/Afx26Li/V1FnkT4nt00LsofgVV49DFDKMsaE+bGHDEuXEeNTqi5sub3YiH5K8RcXD2pbbMehw5SbNJ9NKNB/MWKQ9rRj0OHCVd7Oiyy9+PUsS2Ia+8WPUOPmxD4seoZ9HsQ+LFljFFFS+VbLNRd81mr8/wD/xAAgEQACAQQCAwEAAAAAAAAAAAAAARECECAwITESQFBB/9oACAECAQE/AfjxJHrQQQStaxVXI+hi5OfQqYubKqR7WVOCROyJ21k2g8dMZVFQuCebQRoZONXd1dtEkknkeRN08Ku7qzc9Zxgr1d4PFaqu7I6P3Faqu7LNamiBZra8III3QR8//8QAQxAAAQICBgUJBQQJBQAAAAAAAQIDABEEEiExQVEQICJhcRMwMkBSkaGx0SNic4HBQlBy4QUzU4KSorLw8RRgY3DC/9oACAEBAAY/AvuWa2kLOakz/wBp7TiRxMS5ZHfEwZjd9xSb9orPCNpZlkLBprMuKbPuxyNMk2s2JcHRV6dfKlGQGMVUbLXnrEEQGaWoqY+y7ijjugEGYOI67yaD7JP8x5kNkKdovYF6OHpANetPACCBsqyOia1BI3xZWX+ERaFp4pjYWDu6rUSdtyz5Y80iVqSLRFZJsjlJyANko6fhC3JhbkrK90V36UW0/iqiCaH+klFabwlZ8oWKQJPNECum5ULQszWiVu49UcyRsDmScBA5F1LtSxVW2UTHdCRcLZReI2lThLVIpBacClfq3aqhbBdRSXHXCJVnnZy+Qiq1teUfpBaz2P8A11Na+yCYmb+Y5V2ZwShPSWchHtvZtYMpuHrCwcSIkLTDdaVsEplw0fq23k4tOgSPA4GCUM8kodJKSUKTxEewere65Z4xT0uoKDsX/vdTdbaSVV0lNc3RVVYeYmpAJAlM3xdAUm4XwaU+aolMTwHqY5VVguSnsiL5GcSNi/ONohPGA424UUlPRcR5GAh6TbpuP2VekTSSkwEOWLzz6lI2oygKBmMFCJK1gnHHjoNSjOKGaiE+EEm5JkUnPKKjZ9gj+Y5wNAglSiTM36N0JBwEtFp207J6lmDeIrJtT5RJV2eoTkIUcDboqpUtHBxVUfKcf6GjANpAkoJwHZ9dX56LAPnEx/jRTG+xU+vp1OYglI4pyjNOk8IbQrpASG8aFcjV5TCtcINa0474MyPnF0T1J2z3W+EAycIGP5XQVKBScAYpyXVSddUkpnjZd1SYsMWCS+znwiYuy0p4RJwV054xsLB3aLDVMdLfdoyjpTidUyzMW6KyVTOSoeCwpKpiyGnXCSqZEzfrSnXX2UxsBKB3xa6rvjpHvi898WOq742pL8Il0FZK5i2xeecGXdB4QnhoqtJUteSb4sWhA7Lip+UbSaOvhWH0glyhrKRepo14sCorVSgb4u79WcrRCaOw2KOtu9mfjv1Sy0ZAXqHMhDhm3mcOYqrvwVCsDKE8IkLzCm20zq3yvWYLjjvJNdkGQEBDdNIdwFonHIUgl5MppcxEN0hKQlazJUsd8DXS42oocTaFC8QGKRJuleC+HppdeUZBI8ebZcBJ+yScxZzFVfR8oA8dBDon7whaVkSX0rapgPoccWsGYDj0xBqbR3Q2TYK1g5nIwmj01W3ch4/a3HfopWG03/WIqKIFIF4z38yUJM1nwhi2ZrL/AKjBcRNdHzxTx17oInAnnCtRA36BzFsBmlkqY+y7eUcd0Jba2gtQXZiBbFZJkcCICaQnlR2hfFjtU5LjZWk8Dp2lJHEx0qx3RJGwNAbBlaVRI2gwp6jCbeLfZ1pG7SdThzG2q3LGCUoCU9pUW01gcFCNmksubqwhtgKkltdYNrulcQINh5InZOW7RImYEpT4xYSI6au+OmYvhz5aJYmEuUixThrJErk4aVP0Ubd6m8+EZaxg6hO/XVyaglI6ThwgpoyZn9q59B6xWecU6ffM9GcABRdZ/ZLNnyyitR6qp2VXhZ+FUFp1C6E9+yeu+RhU05b8dV23LygNtNmscJTPdAepslG/kr+/01S61sUjwVBQtJSoXg6pGoddW3UZT0lZxbsMjoo+p3xPVCZ+zd2VccDAYpbKKRyJqScTPhBVR1PUQ5IVMeMezprax/yNyjpUc8FH0i1bP8Z9I9pSGxwSTG2px7dOqPCKjLSWk5JGvbsOjorgtupqq89QndqEYxYOI1QhPSVFRBmyi73jnEhdr8s0qUwCQbjHKIsIMlJy56o6OCheIquCaT0Vi46VcNQ8Ykr5GP7t1FrnJTuwncP8ecSFg5hCckgeEUj4n058tuprIMT6bBuX66Dwg6Tx0VVCafKJi7AiJG+Fb7IQ3g2jxP8AY1xDaO0dFI+J9OoFKgFJN4MF5gVmMRij8oPDUPHTmMRE02jygJVnfFIO+XgOYU6fwp+uikfE+nUlv0UWSmpr0g6fnqGqZXaFq7QB1wnxygJSJJF2ikfE+nUiDaDDrJsUhRGk8dQ8RoCxe35RnqySPyiqPmc9NI+J9Opt0kCxwVTxH5eWkb9Q8RprMyGbfpG0Ck79GyCeEbdm4RJIkNSkfE+nU1NPIC21XgwTRqUUDsupn4xtUtlIzAJjkHk3dFQuUMxqHiNW4d2vSPifTqxafTWTniN4iStto9FwY6TxHNexYW5vAs74m84hgZdIwptC1LrGZKurqbcSFoVeDHKNzco+eKeOg8RrSSKxyEWMFtObuzE6TSCfdaH1jYo6SrtL2j1uRtEF6iis3i3inhB4jT7Blbv4RZE3VIYH8RgF0rpB94yHhEmWkND3RL7gK6JVQ4ozUhXRMTpFI/daH1jZYC1dpzaiQsH/AFV//8QALBAAAQMCBQMFAQADAQEAAAAAAQARITFBEFFhcYGRobEgQMHR8OEwUPFgcP/aAAgBAQABPyH/AEoqMQzAm5/8m5cGptH9qaSzicf6ImRscP2jBUQQrhDXwyYHcUKCETZBEyObsdPfjwDOSoERHPe36aJ0CDgCcT9AGxRIIYJOhm1VG1ANhnBHBHvXqYSR+GTp0DKdVRGAGBDIuJ2X1tP/ABqMBMAgp/4glkHKMNRxEyahoQ7BZqrk9XT2tBDwEWufHK4EEGBBVSCKcRkkWpKG3RdkNKYHJJ+N0/lA0ITbwarUoEUE80DHQAKSakI3I04Qa7YDAIg7x4U3AjmcbwfaVo5ujXu6DsQdBXQSuUIAhAA5JgAZlRrYkNhGk0tZONg1KhT0T2RygFHSUgVlkD7cRT8bM0I/lAgMGrAblNxfkAzk5ANuXswyEB12CYOOUnGQgLolJFDojhrmRPmwlOMpX7yF2p7J5CZOyIIBIWAF0MSJhYg3qRw6PmRBm5UBjZNYVoq3Qc1DfNP7mxocnW7MnUgDId0R2VLDrIOg0Ps2yukEgz6orQzZPYyECAsg5OgqckCNCBQFWVKFGbICz5TXyiOZugNdUBQzv+H5OqIcMHAplGO3/aMvcDIfaYFu4EWGgAQT5aUyyQgObgsirO3Z/XsjmZozk1CfpCFO5sbFAIx8JESjkKJ4PinVRFW1KGwCSJjsU9WQYX6oLtnlVqkcEfuMut8Av6viLEVIWqKuyIAGqCAik07DjXCIEvF+k8j2JMlFEXTQo05Cpa/aFVKAgUiUauE4W4TAFVuxkeUMIazzUAg2B0hCnJAlyLuWupwIqZryTjI35vKN0MeAL0O0xBDu7hCZNwQQ5yR9HsTUin48GhGRVFEJ/wAcI+YZICPBQOZeEAyADKcim4wBy0uuZ67J2hMXKpzSbo8idQR3rDyAQQSM2y3TaBiimxghQdz5RFA0iBet2coO3RW4SkT4AD16rLShOehWVdmJIa+xNSnwEzkFCE6MXAp+LIwl7SC86Lz2KLoEw6Y0IVOZoKrgQGD2CzoBACkujJzl00aupWZFmE02ALsyLgCbAIFnzorcp3be11siEgWM0N/lZnRNAFg+vqIGI4Nyjh7iKt/QM8ImOSHUkCnAjmCVCvUiLCPUO7IsCL2wecaimxEF0wZtkqb9UYAbOhCnXeF2XwjqhUw0CSg4bhXoBQpqLkpw9BwG7T2Tul6JjAhS88KRDjnIrSlQKGhF9kMBXQPwgkEd8WzAmQe/X00BSrDoFQgQig4T5J4XVQne5H60wN/VNjBGTodEThK2MIuj8J90AA+ZRJEjwjZ6m2UI7Bp4X/ZyikmYiUtKIzcibZsSjVEjBn1G7NAIApBOrWgkkBDRlo5FDwQGjX1f8YmdtAIzQO5CJY3q6BSU7J1RbEDg2dE3GAYkkru4Vyr4PCvjMo2EV2/SmwEAQFCE83UeUM5y1uUeS/iMc3FDqFGt1vNiwAfl0NnH6tyjuNsDaCjsHODG6AdBiv2QZBwFwRBBzCKGI6gDJk6qHfAJJNgdYUFw18cgdFCqjPAEZw3Q9UKEd1x7qfhR+p9sT6HZoNyqGGWSY60JtVd0VUgU0tHndlCRYjgCZ6AioEQAAQVb15OBm1VG1GfJkVIgdnPCFyRlyGITaVikoUMntMUJfYUoA4TeyqGxohQAifyr1RXEl01WFo+f/EcgADEGhCdErik6hmPHqZVM2SdU8iPQRgJv0KEmgA6gUSBQIZBAIBlyggsb8daII8AZ4US75I9CxQIWYyAlrOC7GHAo5TB1Id3XzgmpEAk2jJNXCFA0UqxeUCVJEMkD4J2dOxm0gBh4LywB1M/OIIjQaa8h0uiGBBIFiDUegwmg1QnTaKSiZSJk1xcTDJnAfaygQ/CgCAVy2AZvYaoEIlh+fl6Frt8vQKDhQOiIQIG5AEiC4ZqqXbRE5DQVAVyt7QaIwjdRl2t8fnQOMMwgdBCGboqImUCvRaBJKFYYAHYvlAbzg6vXfZG/pY0AP4nXVEvOwchHAhUMIkGLhT2eFhMoCL6nyqQosokyihRW/h2uguUYEiS7tPJ4W1ORAxy0qrwBGn9UbFPKIIJo3UiOEZiv513laPW8XYlErrQkJoVjSGy/zpCaXgXB0PstpqJ/W64OHwcwilxzoGYNxjZGQRYgmPCiMsLCNmgDBNE6FgoHhdBRLhT7D+psfOYpRO2w03TrmnNBGVSwwIEBIgs4OqAXOmhMseqOgF+l31/mtSzWOYXD4A/emIdZ4VbCyhugMRkbo/iioY9kcgwRZOgLOLBVG53Qk/lUbs/LiFBDeVcp/ZQnZSQfBAu2f5wrtofI1RkLmbWmrzh37GDjCUhfZo1BEIGct0jCjDuo0Z8qYum8p7IFYRncosqLNCE1HqWgKDtfs6Jy67Z7ANeLBOCERMV6v2al35VsFKqwMpU8EP1aFOn8paoBDi1saoxyjeAEgQFEDFkMtFIZRaoOKYTRCo/yPjrh2T2IhwxTb4Egra/XpjlCuSlHCoRYIZZGToiaklHsAvo3wgdRUohtEyZuqcOSEGHVBqEWLnIzTfwsGHbPZAtsGINwj0aSb5EcNgo9Agv0M8CjLvEi5v6V6oVDAg6gXQspCDEKYzMmm5VW3JUse2ezfyaLIMi5WaU0biVRifgZ4ERN0yzAahYc7bdEwguwsmXhQGykSRM5OqDmjYYXw7Z7QNkR8wpE8PpQOZTdIUKxD8sfCaQshIX6GafEmGsgCxwTuMWTYdk9sf8ApIucyxVahjRoORwAL9DP/DRNYX+YoTdkq+OO6pgv6rNAHtx4yajKnATXOj9kF+hmPSAggwtBueiZyVXvCvZAtmVh3fSaiPfkKAYMKZe6GQAIGINCE8bVFOpmGllP8k4Gj2TI1YvdRNhXsT2RHdMgG3Y/stgcf+gOWCSDSSRkUUtu/kPpNxDNV3hAEAAoBT/5V//aAAwDAQACAAMAAAAQ888888888888888888s888x8888888888888888xql118888888888888/rm/JQm3oZ888888888gIxXIpBZWq888888888w6wStRXo2j0888888884TSbeF/IHSw888840881RUtUOq6bGM28+4FJ6++99Wt1Tx2e020/i37R5wBhEVP3aS25eDryoTEP8AGq8Q1idmCO6kQeA17v8Azxk4VTexeVsDqp7zzzzzzwvJpLF88bTAwjzzzzzzzw8SqP8AnON5E1888888888Dvbrmj4eCR8888888888slKlTKeTM8888888888889wdP888888888888888888888888888888888888888888888//EACERAQACAwACAwADAAAAAAAAAAEAERAhMTBBIEBRUGFx/9oACAEDAQE/EPrWfRCFOCkG/MtFx22zmRljs30Er2ZY14vzEyW8lhbAIuAOTduLxRW94SMH3Lfcp2w02Qt2dBLtPiqsMOQC24FmNpRvxpWydhE3A4YL+y0NwEUZ+HLSKZubgyDfwT2RUQJtLltAitJzC4R2FuV8GC2Jlv1BDc5YBZDUccSCJSbSyb+4f2wlMJmzZOWByG4kMXCrCG9Mu1QE/wBxlbyl49YkjqKbLYqt4N+JKjqc44LDWJCbM58KXNYcDYhs1kIKnPiE0xDydTowlxAMc+S50fBBH8RXXlNJExXqKvf47//EAB4RAQACAgMBAQEAAAAAAAAAAAEAERAhMDFBIFFQ/9oACAECAQE/EP44oARInOFtQ0VEjKmzWOnc/KJW+L9/CBuA0I6VRfsdNRLb4gA1i8O9QDyWaJUUzrqdRgrkIKZQowocaTajkIkdQb5EPSUXUVASVDAXKM0YlfAzabaGpTZYDad4MbMHXyraIeMkS53Qi7jsncqAlZRNQRLYrYX5ijvI1iIm46gxFUAEY6lWWSn8lMF7ADKqdwzddwioogUZYvOAag38QPEu4uMWM7cI0xXkemDUuXLx24mdkt7g9OLl57clTo/AmH7gDlXVQTK+yg/nf//EACwQAQACAgIBAwQCAgIDAQAAAAEAESExQVFhcYGRQKGx8MHRECAw4VBg8XD/2gAIAQEAAT8Q/wDC0EsRyy1YurVrz/6no24QCe1y1p1q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","width":300,"height":300,"source":"Steiger-Portal · Grunddaten 2730","url":"https://digital.asteigerag.ch/dashboard","captured_at":"2026-10-21"}}}}</script>
+  <script>
+    'use strict';
+    // 08 · Kleine Zustands- und Darstellungsschicht. Hier kann später die API anbinden.
+    const dataset=JSON.parse(document.getElementById('betaData').textContent);
+    const articles=dataset.articles, byKey=new Map(articles.map(a=>[a.key,a]));
+    const $=id=>document.getElementById(id);
+    const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const icon=(name,extra='')=>`<svg class="icon ${extra}" aria-hidden="true"><use href="#i-${name}"/></svg>`;
+    const norm=v=>String(v??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/ß/g,'ss');
+    const compact=v=>norm(v).replace(/[\s.\-/]/g,'');
+    const number=v=>String(v).length===6?String(v).replace(/(\d{3})(\d{3})/,'$1 $2'):String(v);
+    const eNumber=v=>v?String(v).replace(/^(\d{3})(\d{3})(\d{3})$/,'$1 $2 $3'):'—';
+    const qty=v=>String(v);
+    const state={selected:'112001/00',view:'article',tab:'composition',results:[],active:0,from:null,favorites:[],favoriteCategory:'all',theme:document.documentElement.dataset.theme,knowledgePinned:false};
+    const current=()=>byKey.get(state.selected);
+    let toastTimer;
+    function toast(message){$('toast').textContent=message;$('toast').classList.add('visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('visible'),2500);}
+    try{const stored=JSON.parse(localStorage.getItem('bim2steiger:beta:favoriten:v1')||'[]');if(Array.isArray(stored))state.favorites=[...new Set(stored.filter(k=>typeof k==='string'&&byKey.has(k)))];}catch{/* Ohne Speicherung funktioniert die Sitzung weiterhin. */}
+    function saveFavorites(){try{localStorage.setItem('bim2steiger:beta:favoriten:v1',JSON.stringify(state.favorites));}catch{toast('Lokale Speicherung ist nicht verfügbar.');}}
+    // Anzeigeeinstellungen und Favoriten verwenden getrennte, bestehende lokale Speicherbereiche.
+    try{const preferences=JSON.parse(localStorage.getItem('bim2steiger:beta:preferences:v1')||'{}');state.knowledgePinned=preferences?.knowledgePinned===true;}catch{}
+    function savePreferences(){try{localStorage.setItem('bim2steiger:beta:preferences:v1',JSON.stringify({theme:state.theme,knowledgePinned:state.knowledgePinned}));}catch{toast('Anzeigeeinstellungen können nicht dauerhaft gespeichert werden.');}}
+    function applyTheme(){
+      document.documentElement.dataset.theme=state.theme;
+      const dark=state.theme==='dark',label=dark?'Tagmodus aktivieren':'Nachtmodus aktivieren';
+      $('themeToggle').setAttribute('aria-pressed',String(dark));$('themeToggle').setAttribute('aria-label',label);$('themeToggle').title=label;
+      $('themeToggle').innerHTML=icon(dark?'sun':'moon');
+    }
+    function setKnowledgePinned(pinned,{persist=true,show=false}={}){
+      const panel=$('knowledgePanel'),dialog=$('knowledgeDialog');
+      state.knowledgePinned=pinned;
+      if(dialog.open)dialog.close();
+      document.body.classList.toggle('help-pinned',pinned);
+      if(pinned)document.querySelector('.layout').append(panel);else dialog.append(panel);
+      $('pinKnowledge').setAttribute('aria-pressed',String(pinned));
+      const label=pinned?'Wissen lösen':'Wissen anpinnen';$('pinKnowledge').setAttribute('aria-label',label);$('pinKnowledge').title=label;
+      $('openKnowledge').setAttribute('aria-expanded',String(pinned));
+      if(!pinned&&show){dialog.showModal();$('openKnowledge').setAttribute('aria-expanded','true');}
+      if(persist)savePreferences();
+    }
+    function openKnowledge(){
+      if(state.knowledgePinned){$('knowledgePanel').scrollIntoView({block:'nearest'});$('knowledgePanel').focus({preventScroll:true});return;}
+      if(!$('knowledgeDialog').open)$('knowledgeDialog').showModal();
+      $('openKnowledge').setAttribute('aria-expanded','true');
+    }
+    function closeKnowledge(){
+      if(state.knowledgePinned)setKnowledgePinned(false);else $('knowledgeDialog').close();
+      $('openKnowledge').setAttribute('aria-expanded','false');$('openKnowledge').focus({preventScroll:true});
+    }
+    // Katalogpfade kommen aus catalogue.json. Reine Kalkulationsbestandteile behalten eine eigene Gruppe.
+    const categoryPaths=a=>a.catalogue_paths?.length?a.catalogue_paths:[['Kalkulationsbestandteile','Ohne eigene Katalogzuordnung']];
+    function showView(view){
+      state.view=view;$('articleView').hidden=view!=='article';$('favoritesView').hidden=view!=='favorites';$('projectView').hidden=!['import','export'].includes(view);
+      const active={openFavorites:'favorites',sidebarFavorites:'favorites',navCatalogue:'article',navImport:'import',navExport:'export'};
+      for(const [id,section] of Object.entries(active)){if(view===section)$(id).setAttribute('aria-current','page');else $(id).removeAttribute('aria-current');}
+      document.querySelector('.catalogue-tree').hidden=['import','export'].includes(view);
+      const title={favorites:'Favoriten',import:'Dateiimport',export:'Export nach Messerli'}[view];
+      document.title=(title?title+' · ':'')+'BIM2STEIGER Beta';
+    }
+    function renderIdentitySearch(id,label,value,context=''){
+      const link=$(id);link.hidden=!value;
+      if(!value){link.removeAttribute('href');link.removeAttribute('aria-label');link.removeAttribute('title');return;}
+      link.href='https://www.google.ch/search?'+new URLSearchParams({q:['"'+value+'"',context].filter(Boolean).join(' ')});
+      const description=label+' '+value+' im Web suchen (neuer Tab)';
+      link.setAttribute('aria-label',description);link.title=description;
+    }
+    const photoFor=a=>a.photo_key?byKey.get(a.photo_key):(a.photo||a.photo_id)?a:null;
+    const photoAsset=a=>a?.photo_id?dataset.assets.photos[a.photo_id]:a?.photo?{src:dataset.assets.product_photo,width:800,height:600,source:'BRACK · Feller '+a.b_nr,url:dataset.assets.photo_source}:null;
+    const preview=a=>a.schema?`<img src="${a.schema}" alt="Originalsymbol Artikel ${esc(a.number)}" class="original-preview">`:icon(a.symbol);
+
+    function renderTree(){
+      const roots=articles.filter(a=>a.complete),parts=articles.filter(a=>!a.complete);
+      const item=a=>`<button class="tree-button" data-select="${esc(a.key)}"><span class="tree-icon ${a.schema?'has-original':''}">${preview(a)}</span><span>${esc(a.short||a.name)}<small>${number(a.number)} · VA ${esc(a.va)}</small></span></button>`;
+      $('catalogueTree').innerHTML=`<details class="tree-section" open><summary>${icon('chevron','chevron')}Komplettpositionen<span class="section-count mono">${roots.length}</span></summary><div class="tree-subtitle">232.5 Licht · Schalter & Taster</div>${roots.map(item).join('')}</details><details class="tree-section" id="partsTree"><summary>${icon('chevron','chevron')}Enthaltene Bauteile<span class="section-count mono">${parts.length}</span></summary>${parts.map(item).join('')}</details>`;
+      $('sampleCount').textContent=`${roots.length} Positionen · ${parts.length} Bauteilvarianten`;
+    }
+    function setTab(name,focus=false){state.tab=name;document.querySelectorAll('[data-tab]').forEach(b=>{const active=b.dataset.tab===name;b.setAttribute('aria-selected',String(active));b.tabIndex=active?0:-1;if(active&&focus)b.focus();});document.querySelectorAll('[role=tabpanel]').forEach(p=>p.hidden=p.id!==`panel-${name}`);}
+    function renderMedia(a){
+      const schema=a.schema?`<img class="schema-image" src="${a.schema}" alt="Artikelbild ${esc(a.number)}">`:icon(a.symbol,'symbol');
+      $('schemaStage').innerHTML=schema+icon('search','thumbnail-zoom');
+      const label=a.schema?'Originalzeichnung in Originalgrösse öffnen':'Schematische Vorschau öffnen';
+      $('schemaStage').title=label;$('schemaStage').setAttribute('aria-label',label);
+      const photo=photoFor(a),asset=photoAsset(photo);
+      $('photoActions').innerHTML=`<span class="media-kind">${a.schema?'Originalzeichnung':'Schematisches Symbol'}</span>`+(asset?`<button class="button photo-button" data-zoom="photo">${icon('image')}Produktfoto ansehen</button>${a.photo_key?`<span class="photo-context">Foto von Bestandteil ${number(photo.number)}</span>`:''}`:'<span class="media-missing">Kein Produktfoto erfasst.</span>');
+    }
+    function renderComposition(a){
+      $('componentCount').textContent=a.parts?.length??0;
+      if(!a.parts?.length){const parents=articles.filter(p=>p.parts?.some(i=>i.key===a.key));$('panel-composition').innerHTML=`<div class="empty-state">${icon('layers')}<p>Keine weitere Zusammensetzung im Beta-Katalogauszug.</p></div>${parents.map(p=>`<button class="back-link" data-select="${esc(p.key)}">${icon('back')}Enthalten in ${number(p.number)} · ${esc(p.name)}</button>`).join('<br>')}`;return;}
+      $('panel-composition').innerHTML=`<div class="section-heading"><h3>Zusammensetzung</h3></div><div class="composition-scroll" role="region" aria-label="Bauteile der Position, horizontal scrollbar" tabindex="0"><table class="composition-table"><thead><tr><th scope="col"><span class="sr-only">Symbol</span></th><th scope="col">Name</th><th scope="col">Artikelnummer</th><th scope="col">E-Nr.</th><th scope="col">B-Nr.</th><th scope="col">VA</th><th scope="col">Menge</th><th scope="col"><span class="sr-only">Details</span></th></tr></thead><tbody>${a.parts.map(i=>{const part=byKey.get(i.key);return `<tr data-part="${esc(part.key)}"><td><span class="component-symbol ${part.schema?'has-original':''}" title="${part.schema?'Originalsymbol aus dem Steiger-Portal':'Schematisches Bauteil-Icon'}">${preview(part)}</span></td><td><button class="part-link" data-part="${esc(part.key)}" aria-label="${esc(part.name)}, Artikel ${esc(part.number)}, VA ${esc(part.va)} öffnen">${esc(part.name)}</button></td><td class="identity-cell mono">${number(part.number)}</td><td class="identity-cell mono">${esc(eNumber(part.e_nr))}</td><td class="identity-cell mono">${esc(part.b_nr||'—')}</td><td><span class="va-pill mono">${esc(part.va)}</span></td><td class="quantity mono ${i.quantity<0?'negative':''}">${qty(i.quantity)}</td><td><span class="row-arrow" aria-hidden="true">${icon('arrow')}</span></td></tr>`;}).join('')}</tbody></table></div><details class="table-help"><summary>Hinweise zur Zusammensetzung</summary><p>Mengen gelten je direktem Elternteil. Negative Werte sind Abzüge. Fehlende Einheiten werden nicht ergänzt. Wo kein Originalsymbol erfasst ist, erscheint ein schematisches Symbol.</p></details>`;
+    }
+    function renderFavoriteButton(){const saved=state.favorites.includes(state.selected);$('saveFavorite').setAttribute('aria-pressed',String(saved));$('saveFavorite').classList.toggle('primary',!saved);$('saveFavorite').innerHTML=icon(saved?'check':'plus')+`<span>${saved?'In deinen Favoriten':'Zu Favoriten hinzufügen'}</span>`;$('favoriteCount').textContent=state.favorites.length;$('sidebarFavoriteCount').textContent=state.favorites.length;}
+    function selectArticle(key,{from=null,hash=true}={}){
+      const a=byKey.get(key);if(!a){toast('Diese Position gehört nicht zum Beta-Katalogauszug.');return;}
+      showView('article');state.selected=key;state.from=from;
+      if(hash)location.hash='position/'+key;
+      $('articleCode').textContent=number(a.number);$('articleCode').setAttribute('aria-label','Artikelnummer '+a.number);$('articleTitle').textContent=a.name;$('articleSubtitle').textContent=a.subtitle;
+      $('kindBadge').textContent=a.complete?'Komplettposition':'Bestandteil';$('breadcrumbKind').textContent=a.complete?'Komplettpositionen':'Bauteile';$('breadcrumbCategory').textContent=categoryPaths(a)[0].at(-1);
+      $('eNumber').textContent=eNumber(a.e_nr);$('bNumber').textContent=a.b_nr||'—';
+      renderIdentitySearch('eNumberSearch','E-Nr.',a.e_nr);renderIdentitySearch('bNumberSearch','B-Nr.',a.b_nr,a.name);
+      $('identityNote').textContent='Für diese Position sind keine E-/B-Nummern im Katalog erfasst.';
+      $('identityNote').parentElement.hidden=!!(a.e_nr||a.b_nr);
+      const variants=articles.filter(x=>x.number===a.number);$('vaSelect').innerHTML=variants.map(v=>`<option value="${esc(v.key)}" ${v.key===key?'selected':''}>${esc(v.va)}</option>`).join('');
+      renderMedia(a);renderComposition(a);renderFavoriteButton();
+      const properties=[['Steiger-Artikelnummer',a.number],['E-Nr.',eNumber(a.e_nr)],['B-Nr. / Bestellnummer',a.b_nr||'—'],['Verlegungsart (VA)',a.va],['Mengeneinheit','In der Quelle nicht ausgewiesen'],['Herkunft',a.source]];
+      $('panel-properties').innerHTML=`<div class="section-heading"><div><h3>Stammdaten dieser Position</h3><p>Originalnummern bleiben als Zeichenketten erhalten.</p></div></div><dl class="properties">${properties.map(([label,value])=>`<div><dt>${esc(label)}</dt><dd>${esc(value)}</dd></div>`).join('')}</dl>`;
+      $('panel-description').innerHTML=`<div class="section-heading"><div><h3>Originaler Artikeltext</h3><p>Gespeicherter Steiger-Katalogstand 2026.</p></div></div><p class="original-text">${esc(a.text)}</p>`;
+      const parent=from&&byKey.get(from);$('backToParent').hidden=!parent;if(parent)$('backToParent').querySelector('span').textContent=`Zurück zu ${number(parent.number)} · ${parent.name}`;
+      document.querySelectorAll('.tree-button').forEach(b=>{const active=b.dataset.select===key;b.classList.toggle('selected',active);if(active)b.setAttribute('aria-current','true');else b.removeAttribute('aria-current');});if(!a.complete)$('partsTree').open=true;const selectedButton=document.querySelector('.tree-button.selected');if(selectedButton){selectedButton.closest('details').open=true;selectedButton.scrollIntoView({block:'nearest',inline:'nearest'});}
+      closeSidebar();
+    }
+    function readHash(){
+      if(location.hash==='#favoriten'){showFavorites({hash:false});return;}
+      if(location.hash==='#import'||location.hash==='#export'){showProject(location.hash.slice(1));return;}
+      let key='112001/00';try{const m=location.hash.match(/^#position\/([^/]+)\/([^/]+)$/);if(m)key=decodeURIComponent(m[1])+'/'+decodeURIComponent(m[2]);}catch{}
+      if(key!==state.selected||!$('articleTitle').textContent||state.view!=='article')selectArticle(key,{hash:false});
+    }
+
+    // 09 · Lokale Suche; Tastatur, Nummernsuche und expliziter Leerzustand.
+    function renderSearch(){
+      const query=$('searchInput').value.trim(),tokens=norm(query).split(/\s+/).filter(Boolean),digits=compact(query);
+      state.results=articles.filter(a=>{const text=norm([a.number,a.va,a.name,a.subtitle,a.e_nr,a.b_nr,a.aliases].filter(Boolean).join(' '));return !query||tokens.every(t=>text.includes(t))||(digits&&[a.number,a.e_nr,a.b_nr,a.number+a.va].some(v=>v&&compact(v).includes(digits)));}).sort((a,b)=>(b.number===digits)-(a.number===digits));state.active=0;
+      $('searchLabel').textContent=query?'Suchergebnisse':'Katalog entdecken';$('searchCount').textContent=state.results.length+' Treffer';
+      $('searchResults').innerHTML=state.results.length?state.results.map((a,i)=>`<button class="search-result ${i===0?'active':''}" id="result-${i}" role="option" aria-selected="${i===0}" data-result="${i}"><span class="result-symbol ${a.schema?'has-original':''}">${preview(a)}</span><span><strong>${esc(a.name)}</strong><small><span class="mono">${number(a.number)} / VA ${esc(a.va)}</span> · ${a.complete?'Komplettposition':'Bestandteil'}</small>${a.e_nr||a.b_nr?`<small>E-Nr. ${esc(eNumber(a.e_nr))} · B-Nr. ${esc(a.b_nr||'—')}</small>`:''}</span>${icon('arrow')}</button>`).join(''):`<div class="empty-state">${icon('search')}<p>Keine Position im Beta-Katalogauszug gefunden.</p><p style="margin-top:7px;font-size:10px">Versuche «Schalter», «125252» oder «7563.GMI.A.61».</p></div>`;
+      if(state.results.length)$('searchInput').setAttribute('aria-activedescendant','result-0');else $('searchInput').removeAttribute('aria-activedescendant');
+    }
+    function openSearch(){renderSearch();$('searchDialog').showModal();$('searchInput').focus();}
+    function activateResult(index){if(!state.results.length)return;state.active=(index+state.results.length)%state.results.length;document.querySelectorAll('.search-result').forEach((b,i)=>{b.classList.toggle('active',i===state.active);b.setAttribute('aria-selected',String(i===state.active));});const target=$('result-'+state.active);$('searchInput').setAttribute('aria-activedescendant',target.id);target.scrollIntoView({block:'nearest'});}
+    function chooseResult(index){const a=state.results[index];if(!a)return;$('searchDialog').close();selectArticle(a.key);focusArticle();}
+    function focusArticle(){$('articleTitle').tabIndex=-1;$('articleTitle').focus({preventScroll:true});window.scrollTo({top:0});}
+    function openImage(kind){
+      const a=current(),photo=photoFor(a),asset=photoAsset(photo);
+      if(kind==='photo'&&!asset)return;
+      $('imageTitle').textContent=kind==='photo'?'Produktfoto · '+photo.name:(a.schema?'Originalzeichnung · ':'Symbolvorschau · ')+a.name;
+      $('imageSubtitle').textContent=`Artikel ${kind==='photo'?photo.number:a.number} / VA ${kind==='photo'?photo.va:a.va}`;
+      $('imageBody').innerHTML=kind==='photo'?`<img src="${asset.src}" alt="Produktabbildung Artikel ${esc(photo.number)} – ${esc(photo.b_nr||photo.name)}">`:a.schema?`<img src="${a.schema}" alt="Originalsymbol der Position ${esc(a.number)}">`:icon(a.symbol);
+      $('imageCaption').innerHTML=kind==='photo'?`${a.photo_key?'Bild des enthaltenen Bestandteils '+esc(photo.number)+'. ':''}Originalauflösung ${asset.width} × ${asset.height} px.<br><a class="source-link" href="${esc(asset.url)}" target="_blank" rel="noopener noreferrer">Quelle: ${esc(asset.source)} ↗</a>`:esc(a.schema?`${a.schema_info.source} · ${a.schema_info.width} × ${a.schema_info.height} px`:'Schematischer Platzhalter · Originalsymbol noch nicht hinterlegt');
+      const image=$('imageBody').querySelector('img');
+      if(image){
+        const dimensions=kind==='photo'?asset:a.schema_info;
+        if(dimensions?.width&&dimensions?.height){image.width=dimensions.width;image.height=dimensions.height;}
+        $('imageCaption').insertAdjacentHTML('beforeend','<br>Originaldarstellung ohne Hochskalierung. Eine grössere, scharfe Ansicht benötigt eine höher aufgelöste Quelldatei.');
+        if(kind==='schema'&&a.schema_info?.reference_url)$('imageCaption').insertAdjacentHTML('beforeend',`<br><a class="source-link" href="${esc(a.schema_info.reference_url)}" target="_blank" rel="noopener noreferrer">Herstellerunterlagen / CAD öffnen ↗</a>`);
+      }
+      $('imageDialog').showModal();
+    }
+    function renderFavorites(){
+      const groups=new Map();
+      for(const key of state.favorites){
+        const a=byKey.get(key);if(!a)continue;
+        for(const path of categoryPaths(a)){
+          const id=path.join(' › ');if(!groups.has(id))groups.set(id,{id,path,items:[]});
+          if(!groups.get(id).items.some(item=>item.key===key))groups.get(id).items.push(a);
+        }
+      }
+      const sorted=[...groups.values()].sort((a,b)=>a.id.localeCompare(b.id,'de-CH',{numeric:true}));
+      if(state.favoriteCategory!=='all'&&!groups.has(state.favoriteCategory))state.favoriteCategory='all';
+      $('favoritesSummary').textContent=state.favorites.length?`${state.favorites.length} ${state.favorites.length===1?'Favorit':'Favoriten'} · ${groups.size} ${groups.size===1?'Kategorie':'Kategorien'}`:'Deine persönliche Auswahl beginnt hier.';
+      const filter=(id,label,count)=>`<button class="favorite-filter" data-favorite-filter="${esc(id)}" aria-pressed="${state.favoriteCategory===id}">${esc(label)}<span>${count}</span></button>`;
+      $('favoriteFilters').innerHTML=state.favorites.length?filter('all','Alle',state.favorites.length)+sorted.map(group=>filter(group.id,group.path.at(-1),group.items.length)).join(''):'';
+      const visible=sorted.filter(group=>state.favoriteCategory==='all'||state.favoriteCategory===group.id);
+      $('favoriteGroups').innerHTML=visible.length?visible.map(group=>`<section class="favorite-group" aria-label="${esc(group.path.join(' › '))}"><div class="favorite-group-head"><div><p>${esc(group.path.slice(0,-1).join(' › '))}</p><h2>${esc(group.path.at(-1))}</h2></div><span class="count">${group.items.length}</span></div><div class="favorite-list">${group.items.sort((a,b)=>a.number.localeCompare(b.number,'de-CH',{numeric:true})||a.va.localeCompare(b.va)).map(a=>`<div class="favorite-card"><button class="favorite-open" data-favorite-open="${esc(a.key)}" aria-label="${esc(a.name)} · Artikel ${esc(a.number)} · VA ${esc(a.va)} öffnen"><span class="favorite-symbol ${a.schema?'has-original':''}">${preview(a)}</span><span class="favorite-info"><span class="favorite-name">${esc(a.name)}</span><span class="favorite-code mono">Art. ${number(a.number)} <span class="va-pill">VA ${esc(a.va)}</span></span><span class="favorite-identities"><span>E-Nr. <b class="mono">${esc(eNumber(a.e_nr))}</b></span><span>B-Nr. <b class="mono">${esc(a.b_nr||'—')}</b></span></span></span></button><button class="icon-button" data-remove-favorite="${esc(a.key)}" aria-label="${esc(a.name)} / VA ${esc(a.va)} aus Favoriten entfernen" title="Aus Favoriten entfernen">${icon('close')}</button></div>`).join('')}</div></section>`).join(''):`<div class="favorites-empty">${icon('bookmark')}<h2>Noch keine Favoriten</h2><p>Öffne eine Position und wähle «Zu Favoriten hinzufügen». Sie erscheint hier mit Symbol in ihrer Katalogkategorie.</p><button class="button primary" data-select="${esc(state.selected)}">${icon('layers')}Katalog entdecken</button></div>`;
+    }
+    function showFavorites({hash=true}={}){
+      showView('favorites');renderFavoriteButton();renderFavorites();
+      $('returnToCatalogue').href='#position/'+state.selected;
+      if(hash)location.hash='favoriten';closeSidebar();window.scrollTo({top:0});$('favoritesTitle').focus({preventScroll:true});
+    }
+    function closeSidebar(){
+      const restoreFocus=window.matchMedia('(max-width:740px)').matches&&$('catalogueSidebar').contains(document.activeElement);
+      document.body.classList.remove('nav-open');$('menuToggle').setAttribute('aria-expanded','false');
+      if(restoreFocus)$('menuToggle').focus({preventScroll:true});
+    }
+
+    let modelImport=null;
+    try{const stored=JSON.parse(localStorage.getItem('bim2steiger:beta:model-import:v1')||'null');if(stored&&typeof stored.filename==='string'&&Array.isArray(stored.elements))modelImport=stored;}catch{}
+    const hasLocalAPI=()=>/^https?:$/.test(location.protocol);
+    function renderModelImport(){
+      const elements=modelImport?.elements||[],ready=hasLocalAPI();
+      $('modelFile').disabled=!ready;$('importServerHint').hidden=ready;
+      $('openTenderApplication').href=ready?location.origin+'/':'http://127.0.0.1:8765/';
+      const objectCount=elements.length+' '+(elements.length===1?'Objekt':'Objekte');
+      $('importStatus').textContent=modelImport?modelImport.filename+' · '+objectCount:'Noch keine Datei importiert.';
+      $('modelSource').textContent=modelImport?'Quelle: '+modelImport.filename+' · Importiert am '+new Date(modelImport.imported_at).toLocaleString('de-CH'):'Nach dem Import siehst du hier die übernommenen Objekte und offene Angaben.';
+      $('importMetrics').hidden=!modelImport;$('importReviewState').hidden=!modelImport;
+      const metrics=[[elements.length,elements.length===1?'Objekt übernommen':'Objekte übernommen'],[elements.filter(e=>!e.room).length,'ohne Raumangabe'],[elements.filter(e=>!e.unit).length,'ohne Mengeneinheit']];
+      $('importMetrics').innerHTML=metrics.map(([count,label])=>`<div class="import-metric"><strong>${count}</strong><span>${label}</span></div>`).join('');
+      $('importObjects').innerHTML=elements.slice(0,10).map(e=>`<div class="object-row"><span><strong>${esc(e.name||e.id)}</strong><small>${esc([e.storey,e.room].filter(Boolean).join(' / ')||'Raum noch offen')} · ${esc(e.number?'Art. '+e.number+' / VA '+(e.va||'offen'):'Artikelzuordnung noch offen')}</small></span><span class="mono ${e.quantity<0?'negative':''}">${esc(e.quantity)} ${esc(e.unit||'Einheit offen')}</span></div>`).join('')+(modelImport?`<p class="workflow-note" style="margin-top:13px">${elements.length>10?'Vorschau der ersten 10 Objekte. ':''}Alle Importobjekte sind ungeprüft.</p><details class="table-help"><summary>Hinweis zu fehlenden Mengen</summary><p>Ohne Mengenfeld übernimmt der neutrale Import ein Objekt als Anzahl 1. Das ist keine Längen- oder Flächenermittlung.</p></details>`:'');
+      $('exportSourceState').textContent=modelImport?objectCount:'Noch offen';$('exportSourceState').className='badge '+(modelImport?'blue':'planned');
+      $('saveModelReview').disabled=!elements.length;$('discardModelImport').disabled=!modelImport;
+    }
+    function showProject(view){
+      showView(view);renderModelImport();const importing=view==='import';
+      $('projectTitle').textContent=importing?'Dateiimport':'Export nach Messerli';$('projectBreadcrumb').textContent=$('projectTitle').textContent;
+      $('projectSubtitle').textContent=importing?'Planungsdaten als Ausgangspunkt für deine Ausschreibung.':'Geprüfte Ausschreibungsdaten für die Weiterbearbeitung vorbereiten.';
+      $('importPanel').hidden=!importing;$('exportPanel').hidden=importing;
+      for(const [id,active] of [['importStep',importing],['exportStep',!importing]]){if(active)$(id).setAttribute('aria-current','step');else $(id).removeAttribute('aria-current');}
+      closeSidebar();window.scrollTo({top:0});$('projectTitle').focus({preventScroll:true});
+    }
+    $('modelFile').onchange=async e=>{
+      const file=e.target.files[0];if(!file)return;
+      const input=e.target;input.disabled=true;$('importStatus').textContent='Datei wird eingelesen …';
+      try{
+        if(!hasLocalAPI())throw new Error('Für den Import bitte die lokale Anwendung starten.');
+        if(!/\.(csv|json)$/i.test(file.name))throw new Error('Aktuell werden CSV und JSON unterstützt. Nova / IFC sind in Vorbereitung.');
+        if(file.size>40_000_000)throw new Error('Die Datei ist zu gross. Bitte einen Export unter 40 MB verwenden.');
+        const response=await fetch('/api/import',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({filename:file.name,text:await file.text()})});
+        const result=await response.json();if(!response.ok)throw new Error(result.error||'Import fehlgeschlagen.');
+        if(!Array.isArray(result.elements))throw new Error('Die Importantwort enthält keine Objektliste.');
+        modelImport={filename:file.name,imported_at:new Date().toISOString(),elements:result.elements};
+        try{localStorage.setItem('bim2steiger:beta:model-import:v1',JSON.stringify(modelImport));}catch{toast('Import bereit. Bitte als JSON sichern; lokale Speicherung ist nicht verfügbar.');}
+        renderModelImport();
+      }catch(error){$('importStatus').textContent=error.message;}finally{input.disabled=!hasLocalAPI();input.value='';}
+    };
+    $('discardModelImport').onclick=()=>{modelImport=null;try{localStorage.removeItem('bim2steiger:beta:model-import:v1');}catch{}renderModelImport();toast('Modellimport verworfen.');};
+    $('saveModelReview').onclick=()=>{
+      if(!modelImport?.elements.length)return;
+      const exportData={schema_version:'bim2steiger.model-review.v1',status:'unreviewed',created_at:new Date().toISOString(),source:{filename:modelImport.filename,imported_at:modelImport.imported_at},elements:modelImport.elements};
+      const url=URL.createObjectURL(new Blob([JSON.stringify(exportData,null,2)],{type:'application/json;charset=utf-8'}));
+      const link=document.createElement('a');link.href=url;link.download='BIM2STEIGER_Modellimport.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+    };
+
+    // 10 · Ereignisse. Daten und Ansichtswechsel bleiben voneinander getrennt.
+    document.addEventListener('click',e=>{
+      const selection=e.target.closest('[data-select]');if(selection){selectArticle(selection.dataset.select);setTab('composition');window.scrollTo({top:0});}
+      const part=e.target.closest('[data-part]');if(part){selectArticle(part.dataset.part,{from:state.selected});setTab('composition');focusArticle();}
+      const close=e.target.closest('[data-close]');if(close)$(close.dataset.close).close();
+      const result=e.target.closest('[data-result]');if(result)chooseResult(Number(result.dataset.result));
+      const zoom=e.target.closest('[data-zoom]');if(zoom)openImage(zoom.dataset.zoom);
+      const favorite=e.target.closest('[data-favorite-open]');if(favorite){selectArticle(favorite.dataset.favoriteOpen);setTab('composition');focusArticle();}
+      const remove=e.target.closest('[data-remove-favorite]');if(remove){state.favorites=state.favorites.filter(k=>k!==remove.dataset.removeFavorite);saveFavorites();renderFavoriteButton();renderFavorites();($('favoriteGroups').querySelector('[data-remove-favorite]')||$('favoritesTitle')).focus({preventScroll:true});toast('Position aus Favoriten entfernt.');}
+      const filter=e.target.closest('[data-favorite-filter]');if(filter){state.favoriteCategory=filter.dataset.favoriteFilter;renderFavorites();[...$('favoriteFilters').querySelectorAll('button')].find(b=>b.dataset.favoriteFilter===state.favoriteCategory)?.focus({preventScroll:true});}
+    });
+    $('openSearch').onclick=openSearch;$('searchInput').oninput=renderSearch;
+    $('searchInput').onkeydown=e=>{if(e.key==='ArrowDown'){e.preventDefault();activateResult(state.active+1);}else if(e.key==='ArrowUp'){e.preventDefault();activateResult(state.active-1);}else if(e.key==='Enter'){e.preventDefault();chooseResult(state.active);}};
+    $('searchResults').onfocusin=e=>{const result=e.target.closest('[data-result]');if(result)activateResult(Number(result.dataset.result));};
+    $('vaSelect').onchange=e=>selectArticle(e.target.value,{from:state.from});
+    $('backToParent').onclick=()=>{const parent=state.from;selectArticle(parent);setTab('composition');focusArticle();};
+    $('saveFavorite').onclick=()=>{const key=state.selected,saved=state.favorites.includes(key);state.favorites=saved?state.favorites.filter(k=>k!==key):[...state.favorites,key];saveFavorites();renderFavoriteButton();toast(saved?'Position aus Favoriten entfernt.':'Position zu Favoriten hinzugefügt.');};
+    for(const id of ['openFavorites','sidebarFavorites'])$(id).onclick=e=>{e.preventDefault();showFavorites();};
+    $('themeToggle').onclick=()=>{state.theme=state.theme==='dark'?'light':'dark';applyTheme();savePreferences();};
+    $('pinKnowledge').onclick=()=>{setKnowledgePinned(!state.knowledgePinned,{show:true});$('pinKnowledge').focus({preventScroll:true});};
+    $('closeKnowledge').onclick=closeKnowledge;
+    $('knowledgeDialog').addEventListener('close',()=>{$('openKnowledge').setAttribute('aria-expanded',String(state.knowledgePinned));if(!state.knowledgePinned&&!$('knowledgeDialog').open)$('openKnowledge').focus({preventScroll:true});});
+    $('copyNumber').onclick=async()=>{try{await navigator.clipboard.writeText(current().number);toast('Artikelnummer kopiert.');}catch{toast('Artikelnummer: '+current().number);}};
+    $('showArticleText').onclick=()=>{setTab('description',true);$('panel-description').scrollIntoView({block:'nearest'});};
+    $('openKnowledge').onclick=openKnowledge;
+    $('menuToggle').onclick=()=>{const open=document.body.classList.toggle('nav-open');$('menuToggle').setAttribute('aria-expanded',String(open));};$('sidebarShade').onclick=closeSidebar;
+    document.querySelectorAll('[data-tab]').forEach(b=>{b.onclick=()=>setTab(b.dataset.tab);b.onkeydown=e=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;e.preventDefault();const tabs=['composition','properties','description'],i=tabs.indexOf(state.tab);setTab(e.key==='Home'?tabs[0]:e.key==='End'?tabs[2]:tabs[(i+(e.key==='ArrowRight'?1:2))%3],true);};});
+    document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();if(!document.querySelector('dialog[open]'))openSearch();}if(e.key==='Escape')closeSidebar();});
+    document.querySelectorAll('dialog').forEach(d=>d.addEventListener('click',e=>{const r=d.getBoundingClientRect();if(e.target===d&&(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom))d.close();}));
+    window.addEventListener('hashchange',readHash);applyTheme();setKnowledgePinned(state.knowledgePinned,{persist:false});renderTree();readHash();setTab('composition');
+  </script>
+</body>
+</html>

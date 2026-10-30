@@ -1,0 +1,425 @@
+{
+  "number": "405409",
+  "va": "24",
+  "year": 2026,
+  "source": "https://digital.asteigerag.ch/dashboard",
+  "portal_page": "0_1_12_4",
+  "captured_at": "2026-10-23T17:46:46.520Z",
+  "capture_kind": "article_dialog",
+  "basic_data": [
+    {
+      "label": "Typ",
+      "value": "Komplett-Artikel/-Installation",
+      "checkbox": null
+    },
+    {
+      "label": "Artikelnummer",
+      "value": "405409",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z1",
+      "value": "REG-Spannungsversorgung Diagnose 640mA",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z2",
+      "value": "kurzschlussfest m Drossel",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z3",
+      "value": "SV/S 30.640.5.1",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 1",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 2",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 3",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Lieferant",
+      "value": "1 Strukturen",
+      "checkbox": null
+    },
+    {
+      "label": "Sortiment",
+      "value": "2001 ABB",
+      "checkbox": null
+    },
+    {
+      "label": "Bestellnummer",
+      "value": "2CDG110146R0011",
+      "checkbox": null
+    },
+    {
+      "label": "E-Nr",
+      "value": "405 800 315",
+      "checkbox": null
+    },
+    {
+      "label": "Anschluss",
+      "value": "",
+      "checkbox": true
+    },
+    {
+      "label": "Warengruppe-Nummer",
+      "value": "2282",
+      "checkbox": null
+    },
+    {
+      "label": "Warengruppe-Rabatt (in %)",
+      "value": "0",
+      "checkbox": null
+    },
+    {
+      "label": "Warengruppe-Text",
+      "value": "ABB KNX REG",
+      "checkbox": null
+    },
+    {
+      "label": "Bruttomaterialpreis",
+      "value": "213.7",
+      "checkbox": null
+    },
+    {
+      "label": "Nettomaterialpreis",
+      "value": "212.65",
+      "checkbox": null
+    },
+    {
+      "label": "Recyclinggebühr",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Fremdleistung",
+      "value": "",
+      "checkbox": null
+    }
+  ],
+  "article_text": "\t\n\n\nREG-Spannungsversorgung Diagnose\n640mA\n\nkurzschlussfest m Drossel\n\n\nSV/S 30.640.5.1",
+  "images": [
+    {
+      "number": "405409",
+      "va": "24",
+      "vas": [
+        "24"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 405409 / VA 24, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_1_12_4",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T17:46:46.491Z",
+      "width": 130,
+      "height": 150,
+      "file": "images/portal-2026/ce6e1baee6a3982438d0aad6113f5a51e088908058e9d0ad5ea8929a45e5345f.png",
+      "sha256": "ce6e1baee6a3982438d0aad6113f5a51e088908058e9d0ad5ea8929a45e5345f",
+      "ordinal": 0
+    },
+    {
+      "number": "405409",
+      "va": "24",
+      "vas": [
+        "24"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 405409 / VA 24, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_1_12_4",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T17:46:46.493Z",
+      "width": 268,
+      "height": 300,
+      "file": "images/portal-2026/cf8afb8a1764935930bad6f5cf7418cd5f48b909d0415805b251042ad99c575a.jpg",
+      "sha256": "cf8afb8a1764935930bad6f5cf7418cd5f48b909d0415805b251042ad99c575a",
+      "ordinal": 1
+    }
+  ],
+  "rows": [
+    {
+      "index": 0,
+      "level": 0,
+      "expanded": "true",
+      "cells": [
+        "REG-Spannungsversorgung Diagnose 640mA",
+        "405409",
+        "24",
+        "1",
+        "",
+        "",
+        "",
+        "",
+        "405800315",
+        "2CDG110146R0011"
+      ]
+    },
+    {
+      "index": 1,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "REG-Spannungsversorgung Diagnose 640mA",
+        "991503",
+        "24",
+        "1",
+        "211.6",
+        "211.6",
+        "0.063",
+        "0.063",
+        "405800315",
+        "2CDG110146R0011"
+      ]
+    },
+    {
+      "index": 2,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Litze T Dca hf 1.5",
+        "113103",
+        "60",
+        "3",
+        "0.35",
+        "1.05",
+        "0.048",
+        "0.144",
+        "113163800",
+        "216245"
+      ]
+    },
+    {
+      "index": 3,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Litze T Dca hf 1.5",
+        "113103",
+        "70",
+        "6",
+        "0.35",
+        "2.1",
+        "0.041",
+        "0.246",
+        "113163800",
+        "216245"
+      ]
+    }
+  ],
+  "tree_attributes": [
+    [
+      "role",
+      "treegrid"
+    ],
+    [
+      "class",
+      "k-grid-aria-root"
+    ],
+    [
+      "aria-rowcount",
+      "5"
+    ],
+    [
+      "aria-colcount",
+      "11"
+    ]
+  ],
+  "calculation": [
+    [
+      {
+        "text": "Arbeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Material",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Akkord",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "Installationszeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.453"
+      },
+      {
+        "text": "Bruttomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "213.70"
+      },
+      {
+        "text": "Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "52.2762"
+      }
+    ],
+    [
+      {
+        "text": "* Stundenansatz",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "115.40"
+      },
+      {
+        "text": "Nettomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "212.65"
+      },
+      {
+        "text": "+ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "257.3065"
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "* Materialfaktor",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.21"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "+ Recyclinggebühr",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.00"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "= Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "52.2762"
+      },
+      {
+        "text": "= Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "257.3065"
+      },
+      {
+        "text": "= Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "309.5827"
+      }
+    ],
+    [
+      {
+        "text": "≈ Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "52.30"
+      },
+      {
+        "text": "≈ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "257.30"
+      },
+      {
+        "text": "≈ Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "309.60"
+      }
+    ]
+  ],
+  "complete_tree": true
+}

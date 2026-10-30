@@ -1,0 +1,389 @@
+{
+  "number": "964809",
+  "va": "48",
+  "year": 2026,
+  "source": "https://digital.asteigerag.ch/dashboard",
+  "portal_page": "0_1_17_7",
+  "captured_at": "2026-10-23T18:34:58.905Z",
+  "capture_kind": "article_dialog",
+  "basic_data": [
+    {
+      "label": "Typ",
+      "value": "Komplett-Artikel/-Installation",
+      "checkbox": null
+    },
+    {
+      "label": "Artikelnummer",
+      "value": "964809",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z1",
+      "value": "Ruftaster-Modul m Verb-Kabel 3 Ruftaster",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z2",
+      "value": "Frontblende Al Sfera New",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z3",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 1",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 2",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 3",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Lieferant",
+      "value": "1 Strukturen",
+      "checkbox": null
+    },
+    {
+      "label": "Sortiment",
+      "value": "3103 Legrand",
+      "checkbox": null
+    },
+    {
+      "label": "Bestellnummer",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "E-Nr",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Anschluss",
+      "value": "",
+      "checkbox": false
+    },
+    {
+      "label": "Warengruppe-Nummer",
+      "value": "1622",
+      "checkbox": null
+    },
+    {
+      "label": "Warengruppe-Rabatt (in %)",
+      "value": "37",
+      "checkbox": null
+    },
+    {
+      "label": "Warengruppe-Text",
+      "value": "Legrand LT-Material",
+      "checkbox": null
+    },
+    {
+      "label": "Bruttomaterialpreis",
+      "value": "137",
+      "checkbox": null
+    },
+    {
+      "label": "Nettomaterialpreis",
+      "value": "86.31",
+      "checkbox": null
+    },
+    {
+      "label": "Recyclinggebühr",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Fremdleistung",
+      "value": "",
+      "checkbox": null
+    }
+  ],
+  "article_text": "\t\n\n\nRuftaster-Modul m Verb-Kabel\n3 Ruftaster\n\nFrontblende Al Sfera New",
+  "images": [
+    {
+      "number": "964809",
+      "va": "48",
+      "vas": [
+        "48"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 964809 / VA 48, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_1_17_7",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T18:34:58.883Z",
+      "width": 150,
+      "height": 120,
+      "file": "images/portal-2026/0a5bac22e17aff12ac947e1bd825493efc4f5c71e5a8800f2fe9ca64491128b9.png",
+      "sha256": "0a5bac22e17aff12ac947e1bd825493efc4f5c71e5a8800f2fe9ca64491128b9",
+      "ordinal": 0
+    }
+  ],
+  "rows": [
+    {
+      "index": 0,
+      "level": 0,
+      "expanded": "true",
+      "cells": [
+        "Ruftaster-Modul m Verb-Kabel 3 Ruftaster",
+        "964809",
+        "48",
+        "1",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    {
+      "index": 1,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Ruftaster-Modul m Verb-Kabel 4 Ruftaster",
+        "991288",
+        "48",
+        "1",
+        "57.96",
+        "57.96",
+        "0.065",
+        "0.065",
+        "964501690",
+        "352000"
+      ]
+    },
+    {
+      "index": 2,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Frontblende Al 3 Ruftaster",
+        "991289",
+        "48",
+        "1",
+        "28.35",
+        "28.35",
+        "0.033",
+        "0.033",
+        "964515030",
+        "352031"
+      ]
+    }
+  ],
+  "tree_attributes": [
+    [
+      "role",
+      "treegrid"
+    ],
+    [
+      "class",
+      "k-grid-aria-root"
+    ],
+    [
+      "aria-rowcount",
+      "4"
+    ],
+    [
+      "aria-colcount",
+      "11"
+    ]
+  ],
+  "calculation": [
+    [
+      {
+        "text": "Arbeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Material",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Akkord",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "Installationszeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.098"
+      },
+      {
+        "text": "Bruttomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "137.00"
+      },
+      {
+        "text": "Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "11.3092"
+      }
+    ],
+    [
+      {
+        "text": "* Stundenansatz",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "115.40"
+      },
+      {
+        "text": "Nettomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "86.31"
+      },
+      {
+        "text": "+ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "104.4351"
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "* Materialfaktor",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.21"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "+ Recyclinggebühr",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.00"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "= Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "11.3092"
+      },
+      {
+        "text": "= Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "104.4351"
+      },
+      {
+        "text": "= Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "115.7443"
+      }
+    ],
+    [
+      {
+        "text": "≈ Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "11.30"
+      },
+      {
+        "text": "≈ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "104.45"
+      },
+      {
+        "text": "≈ Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "115.75"
+      }
+    ]
+  ],
+  "complete_tree": true
+}

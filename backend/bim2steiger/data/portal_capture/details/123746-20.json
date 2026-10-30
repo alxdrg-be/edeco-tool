@@ -1,0 +1,374 @@
+{
+  "number": "123746",
+  "va": "20",
+  "year": 2026,
+  "source": "https://digital.asteigerag.ch/dashboard",
+  "portal_page": "0_1_2_23",
+  "captured_at": "2026-10-23T12:13:09.229Z",
+  "capture_kind": "article_dialog",
+  "basic_data": [
+    {
+      "checkbox": null,
+      "label": "Typ",
+      "value": "Einzelartikel"
+    },
+    {
+      "checkbox": null,
+      "label": "Artikelnummer",
+      "value": "123746"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z1",
+      "value": "Mini-Hakenschiene 125"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z2",
+      "value": "beschichtet EP"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z3",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 1",
+      "value": "GBMHS125"
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 2",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 3",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Lieferant",
+      "value": "3101 Lanz"
+    },
+    {
+      "checkbox": null,
+      "label": "Sortiment",
+      "value": "3101 Lanz"
+    },
+    {
+      "checkbox": null,
+      "label": "Bestellnummer",
+      "value": "307032"
+    },
+    {
+      "checkbox": null,
+      "label": "E-Nr",
+      "value": "127 028 626"
+    },
+    {
+      "checkbox": false,
+      "label": "Anschluss",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Nummer",
+      "value": "7522"
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Rabatt (in %)",
+      "value": "40"
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Text",
+      "value": "Lanz Kanäle"
+    },
+    {
+      "checkbox": null,
+      "label": "Bruttomaterialpreis",
+      "value": "3.32"
+    },
+    {
+      "checkbox": null,
+      "label": "Nettomaterialpreis",
+      "value": "1.992"
+    },
+    {
+      "checkbox": null,
+      "label": "Recyclinggebühr",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Fremdleistung",
+      "value": ""
+    }
+  ],
+  "article_text": "\t\n\n\nMini-Hakenschiene\n125\n\nbeschichtet EP",
+  "images": [
+    {
+      "number": "123746",
+      "va": "20",
+      "vas": [
+        "20"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 123746 / VA 20, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_1_2_23",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T12:13:07.554Z",
+      "width": 48,
+      "height": 150,
+      "file": "images/portal-2026/3712181c0fa27a84b4e97fc620bd965989214d46e9940ad23dab5bb727f0e69b.png",
+      "sha256": "3712181c0fa27a84b4e97fc620bd965989214d46e9940ad23dab5bb727f0e69b",
+      "ordinal": 0
+    },
+    {
+      "number": "123746",
+      "va": "20",
+      "vas": [
+        "20"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 123746 / VA 20, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_1_2_23",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T12:13:07.555Z",
+      "width": 300,
+      "height": 225,
+      "file": "images/portal-2026/1e2713cb77c2eb29d82dfd985f0cda088e616d577e61c1ca534abfadbd20ce5c.jpg",
+      "sha256": "1e2713cb77c2eb29d82dfd985f0cda088e616d577e61c1ca534abfadbd20ce5c",
+      "ordinal": 1
+    }
+  ],
+  "rows": [
+    {
+      "cells": [
+        "Mini-Hakenschiene 125",
+        "123746",
+        "20",
+        "1",
+        "",
+        "",
+        "",
+        "",
+        "127028626",
+        "307032"
+      ],
+      "expanded": null,
+      "index": 0,
+      "level": 0
+    }
+  ],
+  "tree_attributes": [
+    [
+      "role",
+      "treegrid"
+    ],
+    [
+      "class",
+      "k-grid-aria-root"
+    ],
+    [
+      "aria-rowcount",
+      "2"
+    ],
+    [
+      "aria-colcount",
+      "11"
+    ]
+  ],
+  "calculation": [
+    [
+      {
+        "text": "Arbeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Material",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Akkord",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "Installationszeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.188"
+      },
+      {
+        "text": "Bruttomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "3.32"
+      },
+      {
+        "text": "Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "21.6952"
+      }
+    ],
+    [
+      {
+        "text": "* Stundenansatz",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "115.40"
+      },
+      {
+        "text": "Nettomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.992"
+      },
+      {
+        "text": "+ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "2.41032"
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "* Materialfaktor",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.21"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "+ Recyclinggebühr",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.00"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "= Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "21.6952"
+      },
+      {
+        "text": "= Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "2.41032"
+      },
+      {
+        "text": "= Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "24.10552"
+      }
+    ],
+    [
+      {
+        "text": "≈ Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "21.70"
+      },
+      {
+        "text": "≈ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "2.40"
+      },
+      {
+        "text": "≈ Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "24.10"
+      }
+    ]
+  ],
+  "complete_tree": true
+}

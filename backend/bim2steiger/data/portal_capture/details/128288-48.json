@@ -1,0 +1,374 @@
+{
+  "number": "128288",
+  "va": "48",
+  "year": 2026,
+  "source": "https://digital.asteigerag.ch/dashboard",
+  "portal_page": "0_1_4_19",
+  "captured_at": "2026-10-23T13:08:10.158Z",
+  "capture_kind": "article_dialog",
+  "basic_data": [
+    {
+      "label": "Typ",
+      "value": "Einzelartikel",
+      "checkbox": null
+    },
+    {
+      "label": "Artikelnummer",
+      "value": "128288",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z1",
+      "value": "Blendenset CEE",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z2",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z3",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 1",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 2",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 3",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Lieferant",
+      "value": "2702 Hager",
+      "checkbox": null
+    },
+    {
+      "label": "Sortiment",
+      "value": "2702 Hager",
+      "checkbox": null
+    },
+    {
+      "label": "Bestellnummer",
+      "value": "G33759016",
+      "checkbox": null
+    },
+    {
+      "label": "E-Nr",
+      "value": "127 588 842",
+      "checkbox": null
+    },
+    {
+      "label": "Anschluss",
+      "value": "",
+      "checkbox": false
+    },
+    {
+      "label": "Warengruppe-Nummer",
+      "value": "2820",
+      "checkbox": null
+    },
+    {
+      "label": "Warengruppe-Rabatt (in %)",
+      "value": "44",
+      "checkbox": null
+    },
+    {
+      "label": "Warengruppe-Text",
+      "value": "Hager tehalit Formteile",
+      "checkbox": null
+    },
+    {
+      "label": "Bruttomaterialpreis",
+      "value": "11.35",
+      "checkbox": null
+    },
+    {
+      "label": "Nettomaterialpreis",
+      "value": "6.356",
+      "checkbox": null
+    },
+    {
+      "label": "Recyclinggebühr",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Fremdleistung",
+      "value": "",
+      "checkbox": null
+    }
+  ],
+  "article_text": "\t\n\n\nBlendenset\nCEE",
+  "images": [
+    {
+      "number": "128288",
+      "va": "48",
+      "vas": [
+        "48"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 128288 / VA 48, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_1_4_19",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T13:08:10.128Z",
+      "width": 138,
+      "height": 150,
+      "file": "images/portal-2026/2bc3c0fd6f019ed263e7fc7e5807e74cea777ffdf1781cda01d4175f0271c268.png",
+      "sha256": "2bc3c0fd6f019ed263e7fc7e5807e74cea777ffdf1781cda01d4175f0271c268",
+      "ordinal": 0
+    },
+    {
+      "number": "128288",
+      "va": "48",
+      "vas": [
+        "48"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 128288 / VA 48, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_1_4_19",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T13:08:10.129Z",
+      "width": 300,
+      "height": 300,
+      "file": "images/portal-2026/3323931c52420ffec7f2bc6dc3f03fee66000e0ad2484e68ecb8d6a17b8ab6f6.jpg",
+      "sha256": "3323931c52420ffec7f2bc6dc3f03fee66000e0ad2484e68ecb8d6a17b8ab6f6",
+      "ordinal": 1
+    }
+  ],
+  "rows": [
+    {
+      "index": 0,
+      "level": 0,
+      "expanded": null,
+      "cells": [
+        "Blendenset CEE",
+        "128288",
+        "48",
+        "1",
+        "",
+        "",
+        "",
+        "",
+        "127588842",
+        "G33759016"
+      ]
+    }
+  ],
+  "tree_attributes": [
+    [
+      "role",
+      "treegrid"
+    ],
+    [
+      "class",
+      "k-grid-aria-root"
+    ],
+    [
+      "aria-rowcount",
+      "2"
+    ],
+    [
+      "aria-colcount",
+      "11"
+    ]
+  ],
+  "calculation": [
+    [
+      {
+        "text": "Arbeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Material",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Akkord",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "Installationszeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.022"
+      },
+      {
+        "text": "Bruttomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "11.35"
+      },
+      {
+        "text": "Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "2.5388"
+      }
+    ],
+    [
+      {
+        "text": "* Stundenansatz",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "115.40"
+      },
+      {
+        "text": "Nettomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "6.356"
+      },
+      {
+        "text": "+ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "7.69076"
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "* Materialfaktor",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.21"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "+ Recyclinggebühr",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.00"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "= Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "2.5388"
+      },
+      {
+        "text": "= Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "7.69076"
+      },
+      {
+        "text": "= Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "10.22956"
+      }
+    ],
+    [
+      {
+        "text": "≈ Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "2.55"
+      },
+      {
+        "text": "≈ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "7.70"
+      },
+      {
+        "text": "≈ Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "10.25"
+      }
+    ]
+  ],
+  "complete_tree": true
+}

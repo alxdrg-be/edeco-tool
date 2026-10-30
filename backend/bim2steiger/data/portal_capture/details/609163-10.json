@@ -1,0 +1,408 @@
+{
+  "number": "609163",
+  "va": "10",
+  "year": 2026,
+  "source": "https://digital.asteigerag.ch/dashboard",
+  "portal_page": "0_1_10_3",
+  "captured_at": "2026-10-23T17:24:00.337Z",
+  "capture_kind": "article_dialog",
+  "basic_data": [
+    {
+      "label": "Typ",
+      "value": "Komplett-Artikel/-Installation",
+      "checkbox": null
+    },
+    {
+      "label": "Artikelnummer",
+      "value": "609163",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z1",
+      "value": "AP-Kleinkombination T23",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z2",
+      "value": "Doppelschalter/-taster",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z3",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 1",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 2",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 3",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Lieferant",
+      "value": "1 Strukturen",
+      "checkbox": null
+    },
+    {
+      "label": "Sortiment",
+      "value": "2502 Feller",
+      "checkbox": null
+    },
+    {
+      "label": "Bestellnummer",
+      "value": "87161.GX.54.A.61",
+      "checkbox": null
+    },
+    {
+      "label": "E-Nr",
+      "value": "216 261 000",
+      "checkbox": null
+    },
+    {
+      "label": "Anschluss",
+      "value": "",
+      "checkbox": true
+    },
+    {
+      "label": "Warengruppe-Nummer",
+      "value": "1410",
+      "checkbox": null
+    },
+    {
+      "label": "Warengruppe-Rabatt (in %)",
+      "value": "28",
+      "checkbox": null
+    },
+    {
+      "label": "Warengruppe-Text",
+      "value": "Feller Haupt-S",
+      "checkbox": null
+    },
+    {
+      "label": "Bruttomaterialpreis",
+      "value": "76.9",
+      "checkbox": null
+    },
+    {
+      "label": "Nettomaterialpreis",
+      "value": "55.368",
+      "checkbox": null
+    },
+    {
+      "label": "Recyclinggebühr",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Fremdleistung",
+      "value": "",
+      "checkbox": null
+    }
+  ],
+  "article_text": "\t\n\n\nAP-Kleinkombination\nT23\n\nDoppelschalter/-taster",
+  "images": [
+    {
+      "number": "609163",
+      "va": "10",
+      "vas": [
+        "10"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 609163 / VA 10, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_1_10_3",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T17:24:00.309Z",
+      "width": 150,
+      "height": 147,
+      "file": "images/portal-2026/5cf46e8c6127f8b840c360b06eff3bb4f2fcff2322ab72a22e362ea4574a89b4.png",
+      "sha256": "5cf46e8c6127f8b840c360b06eff3bb4f2fcff2322ab72a22e362ea4574a89b4",
+      "ordinal": 0
+    },
+    {
+      "number": "609163",
+      "va": "10",
+      "vas": [
+        "10"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 609163 / VA 10, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_1_10_3",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T17:24:00.310Z",
+      "width": 300,
+      "height": 300,
+      "file": "images/portal-2026/b59c9c9735beda67072b652b4412a5ce395c3acc1188f74635c72c9098575f9c.jpg",
+      "sha256": "b59c9c9735beda67072b652b4412a5ce395c3acc1188f74635c72c9098575f9c",
+      "ordinal": 1
+    }
+  ],
+  "rows": [
+    {
+      "index": 0,
+      "level": 0,
+      "expanded": "true",
+      "cells": [
+        "AP-Kleinkombination T23",
+        "609163",
+        "10",
+        "1",
+        "",
+        "",
+        "",
+        "",
+        "216261000",
+        "87161.GX.54.A.61"
+      ]
+    },
+    {
+      "index": 1,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "AP-Kleinkombination T23",
+        "989516",
+        "10",
+        "1",
+        "55.368",
+        "55.368",
+        "0.106",
+        "0.106",
+        "216261000",
+        "87161.GX.54.A.61"
+      ]
+    },
+    {
+      "index": 2,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Kabel FE0 Dca hf 8x1.5",
+        "109056",
+        "70",
+        "2",
+        "2.88",
+        "5.76",
+        "0.211",
+        "0.422",
+        "109010833",
+        "212886"
+      ]
+    }
+  ],
+  "tree_attributes": [
+    [
+      "role",
+      "treegrid"
+    ],
+    [
+      "class",
+      "k-grid-aria-root"
+    ],
+    [
+      "aria-rowcount",
+      "4"
+    ],
+    [
+      "aria-colcount",
+      "11"
+    ]
+  ],
+  "calculation": [
+    [
+      {
+        "text": "Arbeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Material",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Akkord",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "Installationszeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.528"
+      },
+      {
+        "text": "Bruttomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "76.90"
+      },
+      {
+        "text": "Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "60.9312"
+      }
+    ],
+    [
+      {
+        "text": "* Stundenansatz",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "115.40"
+      },
+      {
+        "text": "Nettomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "55.368"
+      },
+      {
+        "text": "+ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "66.99528"
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "* Materialfaktor",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.21"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "+ Recyclinggebühr",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.00"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "= Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "60.9312"
+      },
+      {
+        "text": "= Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "66.99528"
+      },
+      {
+        "text": "= Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "127.92648"
+      }
+    ],
+    [
+      {
+        "text": "≈ Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "60.95"
+      },
+      {
+        "text": "≈ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "67.00"
+      },
+      {
+        "text": "≈ Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "127.95"
+      }
+    ]
+  ],
+  "complete_tree": true
+}

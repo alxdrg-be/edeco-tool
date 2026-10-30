@@ -1,0 +1,389 @@
+{
+  "number": "120603",
+  "va": "00",
+  "year": 2026,
+  "source": "https://digital.asteigerag.ch/dashboard",
+  "portal_page": "0_0_8_4",
+  "captured_at": "2026-10-23T05:56:37.986Z",
+  "capture_kind": "article_dialog",
+  "basic_data": [
+    {
+      "checkbox": null,
+      "label": "Typ",
+      "value": "Komplett-Artikel/-Installation"
+    },
+    {
+      "checkbox": null,
+      "label": "Artikelnummer",
+      "value": "120603"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z1",
+      "value": "L /w Warntongeber"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z2",
+      "value": "Inbetriebnahme Lieferant"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z3",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 1",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 2",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 3",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Lieferant",
+      "value": "1 Strukturen"
+    },
+    {
+      "checkbox": null,
+      "label": "Sortiment",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Bestellnummer",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "E-Nr",
+      "value": ""
+    },
+    {
+      "checkbox": false,
+      "label": "Anschluss",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Nummer",
+      "value": "1"
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Rabatt (in %)",
+      "value": "0"
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Text",
+      "value": "Komplett-Installationen"
+    },
+    {
+      "checkbox": null,
+      "label": "Bruttomaterialpreis",
+      "value": "83"
+    },
+    {
+      "checkbox": null,
+      "label": "Nettomaterialpreis",
+      "value": "66"
+    },
+    {
+      "checkbox": null,
+      "label": "Recyclinggebühr",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Fremdleistung",
+      "value": ""
+    }
+  ],
+  "article_text": "\t\n\n\nL /w Warntongeber\n\n\nInbetriebnahme Lieferant",
+  "images": [
+    {
+      "number": "120603",
+      "va": "00",
+      "vas": [
+        "00"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 120603 / VA 00, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_0_8_4",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T05:56:36.708Z",
+      "width": 150,
+      "height": 120,
+      "file": "images/portal-2026/c21daa5a86f6aeb5f4323af7aa41bca3fe9ef8830e8784024062d6ea46ad1bda.png",
+      "sha256": "c21daa5a86f6aeb5f4323af7aa41bca3fe9ef8830e8784024062d6ea46ad1bda",
+      "ordinal": 0
+    }
+  ],
+  "rows": [
+    {
+      "cells": [
+        "L /w Warntongeber",
+        "120603",
+        "00",
+        "1",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "expanded": "true",
+      "index": 0,
+      "level": 0
+    },
+    {
+      "cells": [
+        "Warntongeber 95dB 24VDC",
+        "993454",
+        "100",
+        "1",
+        "51",
+        "51",
+        "0",
+        "0",
+        "",
+        "GWA100.010"
+      ],
+      "expanded": null,
+      "index": 1,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Inbetriebnahme /w Warnleuchte/-tongeber",
+        "993459",
+        "100",
+        "1",
+        "15",
+        "15",
+        "0",
+        "0",
+        "",
+        "IBS Warnleuchte/-tongeber"
+      ],
+      "expanded": null,
+      "index": 2,
+      "level": 1
+    }
+  ],
+  "tree_attributes": [
+    [
+      "role",
+      "treegrid"
+    ],
+    [
+      "class",
+      "k-grid-aria-root"
+    ],
+    [
+      "aria-rowcount",
+      "4"
+    ],
+    [
+      "aria-colcount",
+      "11"
+    ]
+  ],
+  "calculation": [
+    [
+      {
+        "text": "Arbeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Material",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Akkord",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "Installationszeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.00"
+      },
+      {
+        "text": "Bruttomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "83.00"
+      },
+      {
+        "text": "Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.00"
+      }
+    ],
+    [
+      {
+        "text": "* Stundenansatz",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "115.40"
+      },
+      {
+        "text": "Nettomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "66.00"
+      },
+      {
+        "text": "+ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "79.86"
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "* Materialfaktor",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.21"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "+ Recyclinggebühr",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.00"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "= Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.00"
+      },
+      {
+        "text": "= Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "79.86"
+      },
+      {
+        "text": "= Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "79.86"
+      }
+    ],
+    [
+      {
+        "text": "≈ Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.00"
+      },
+      {
+        "text": "≈ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "79.85"
+      },
+      {
+        "text": "≈ Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "79.85"
+      }
+    ]
+  ],
+  "complete_tree": true
+}

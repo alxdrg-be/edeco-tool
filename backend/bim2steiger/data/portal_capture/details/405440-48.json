@@ -1,0 +1,408 @@
+{
+  "number": "405440",
+  "va": "48",
+  "year": 2026,
+  "source": "https://digital.asteigerag.ch/dashboard",
+  "portal_page": "0_1_12_2",
+  "captured_at": "2026-10-23T17:45:32.374Z",
+  "capture_kind": "article_dialog",
+  "basic_data": [
+    {
+      "label": "Typ",
+      "value": "Komplett-Artikel/-Installation",
+      "checkbox": null
+    },
+    {
+      "label": "Artikelnummer",
+      "value": "405440",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z1",
+      "value": "UP-KNX-Glastaster II Smart 6fach",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z2",
+      "value": "Temperaturfühler",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z3",
+      "value": "o Progr",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 1",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 2",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 3",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Lieferant",
+      "value": "1 Strukturen",
+      "checkbox": null
+    },
+    {
+      "label": "Sortiment",
+      "value": "3203 MDT",
+      "checkbox": null
+    },
+    {
+      "label": "Bestellnummer",
+      "value": "BE-GT2TW.02",
+      "checkbox": null
+    },
+    {
+      "label": "E-Nr",
+      "value": "305 260 077",
+      "checkbox": null
+    },
+    {
+      "label": "Anschluss",
+      "value": "",
+      "checkbox": true
+    },
+    {
+      "label": "Warengruppe-Nummer",
+      "value": "3911",
+      "checkbox": null
+    },
+    {
+      "label": "Warengruppe-Rabatt (in %)",
+      "value": "30",
+      "checkbox": null
+    },
+    {
+      "label": "Warengruppe-Text",
+      "value": "MDT KNX Gruppe A",
+      "checkbox": null
+    },
+    {
+      "label": "Bruttomaterialpreis",
+      "value": "250.59",
+      "checkbox": null
+    },
+    {
+      "label": "Nettomaterialpreis",
+      "value": "175.5402",
+      "checkbox": null
+    },
+    {
+      "label": "Recyclinggebühr",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Fremdleistung",
+      "value": "",
+      "checkbox": null
+    }
+  ],
+  "article_text": "\t\n\n\nUP-KNX-Glastaster II Smart\n6fach\n\nTemperaturfühler\n\n\no Progr",
+  "images": [
+    {
+      "number": "405440",
+      "va": "48",
+      "vas": [
+        "48"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 405440 / VA 48, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_1_12_2",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T17:45:32.335Z",
+      "width": 149,
+      "height": 150,
+      "file": "images/portal-2026/cce85f57a68d5710c7f95d5bd50c998b0b3b86f1e33ee4c23de0b6504eb46f19.png",
+      "sha256": "cce85f57a68d5710c7f95d5bd50c998b0b3b86f1e33ee4c23de0b6504eb46f19",
+      "ordinal": 0
+    },
+    {
+      "number": "405440",
+      "va": "48",
+      "vas": [
+        "48"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 405440 / VA 48, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_1_12_2",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T17:45:32.335Z",
+      "width": 300,
+      "height": 300,
+      "file": "images/portal-2026/9917a9c8b01a522753a16cb76da6a8e15aa086ba605f99cf6c0e589f6b76aa2d.jpg",
+      "sha256": "9917a9c8b01a522753a16cb76da6a8e15aa086ba605f99cf6c0e589f6b76aa2d",
+      "ordinal": 1
+    }
+  ],
+  "rows": [
+    {
+      "index": 0,
+      "level": 0,
+      "expanded": "true",
+      "cells": [
+        "UP-KNX-Glastaster II Smart 6fach",
+        "405440",
+        "48",
+        "1",
+        "",
+        "",
+        "",
+        "",
+        "305260077",
+        "BE-GT2TW.02"
+      ]
+    },
+    {
+      "index": 1,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "UP-KNX-Glastaster II Smart 6fach",
+        "985444",
+        "48",
+        "1",
+        "174.3",
+        "174.3",
+        "0.125",
+        "0.125",
+        "305260077",
+        "BE-GT2TW.02"
+      ]
+    },
+    {
+      "index": 2,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Buskabel KNX-J-H(St)Hh B2ca hf 2x2x0.8",
+        "101528",
+        "81",
+        "2",
+        "1.2675",
+        "2.535",
+        "0.146",
+        "0.292",
+        "101538079",
+        "TGZ181"
+      ]
+    }
+  ],
+  "tree_attributes": [
+    [
+      "role",
+      "treegrid"
+    ],
+    [
+      "class",
+      "k-grid-aria-root"
+    ],
+    [
+      "aria-rowcount",
+      "4"
+    ],
+    [
+      "aria-colcount",
+      "11"
+    ]
+  ],
+  "calculation": [
+    [
+      {
+        "text": "Arbeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Material",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Akkord",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "Installationszeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.417"
+      },
+      {
+        "text": "Bruttomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "249.00"
+      },
+      {
+        "text": "Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "48.1218"
+      }
+    ],
+    [
+      {
+        "text": "* Stundenansatz",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "115.40"
+      },
+      {
+        "text": "Nettomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "174.30"
+      },
+      {
+        "text": "+ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "210.903"
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "* Materialfaktor",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.21"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "+ Recyclinggebühr",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.00"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "= Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "48.1218"
+      },
+      {
+        "text": "= Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "210.903"
+      },
+      {
+        "text": "= Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "259.0248"
+      }
+    ],
+    [
+      {
+        "text": "≈ Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "48.10"
+      },
+      {
+        "text": "≈ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "210.90"
+      },
+      {
+        "text": "≈ Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "259.00"
+      }
+    ]
+  ],
+  "complete_tree": true
+}

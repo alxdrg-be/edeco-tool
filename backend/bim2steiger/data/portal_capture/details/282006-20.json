@@ -1,0 +1,374 @@
+{
+  "number": "282006",
+  "va": "20",
+  "year": 2026,
+  "source": "https://digital.asteigerag.ch/dashboard",
+  "portal_page": "0_1_10_25",
+  "captured_at": "2026-10-23T17:35:36.044Z",
+  "capture_kind": "article_dialog",
+  "basic_data": [
+    {
+      "label": "Typ",
+      "value": "Einzelartikel",
+      "checkbox": null
+    },
+    {
+      "label": "Artikelnummer",
+      "value": "282006",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z1",
+      "value": "AP-Rahmen Edizio Gr 1",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z2",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z3",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 1",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 2",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 3",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Lieferant",
+      "value": "2502 Feller",
+      "checkbox": null
+    },
+    {
+      "label": "Sortiment",
+      "value": "2502 Feller",
+      "checkbox": null
+    },
+    {
+      "label": "Bestellnummer",
+      "value": "985.GX.54.EA.61",
+      "checkbox": null
+    },
+    {
+      "label": "E-Nr",
+      "value": "283 203 000",
+      "checkbox": null
+    },
+    {
+      "label": "Anschluss",
+      "value": "",
+      "checkbox": false
+    },
+    {
+      "label": "Warengruppe-Nummer",
+      "value": "1410",
+      "checkbox": null
+    },
+    {
+      "label": "Warengruppe-Rabatt (in %)",
+      "value": "28",
+      "checkbox": null
+    },
+    {
+      "label": "Warengruppe-Text",
+      "value": "Feller Haupt-S",
+      "checkbox": null
+    },
+    {
+      "label": "Bruttomaterialpreis",
+      "value": "5.6",
+      "checkbox": null
+    },
+    {
+      "label": "Nettomaterialpreis",
+      "value": "4.032",
+      "checkbox": null
+    },
+    {
+      "label": "Recyclinggebühr",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Fremdleistung",
+      "value": "",
+      "checkbox": null
+    }
+  ],
+  "article_text": "\t\n\n\nAP-Rahmen Edizio\nGr 1",
+  "images": [
+    {
+      "number": "282006",
+      "va": "20",
+      "vas": [
+        "20"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 282006 / VA 20, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_1_10_25",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T17:35:36.022Z",
+      "width": 150,
+      "height": 150,
+      "file": "images/portal-2026/21fa3cd250584ee39db82ce2c276528f9376bd1370d0a383aa80eedbdd2fbced.png",
+      "sha256": "21fa3cd250584ee39db82ce2c276528f9376bd1370d0a383aa80eedbdd2fbced",
+      "ordinal": 0
+    },
+    {
+      "number": "282006",
+      "va": "20",
+      "vas": [
+        "20"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 282006 / VA 20, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_1_10_25",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T17:35:36.023Z",
+      "width": 300,
+      "height": 300,
+      "file": "images/portal-2026/74f93f6ca63980ef4612d65bf2f4e675de7b1654d629123c4b916c7572bc14e3.jpg",
+      "sha256": "74f93f6ca63980ef4612d65bf2f4e675de7b1654d629123c4b916c7572bc14e3",
+      "ordinal": 1
+    }
+  ],
+  "rows": [
+    {
+      "index": 0,
+      "level": 0,
+      "expanded": null,
+      "cells": [
+        "AP-Rahmen Edizio Gr 1",
+        "282006",
+        "20",
+        "1",
+        "",
+        "",
+        "",
+        "",
+        "283203000",
+        "985.GX.54.EA.61"
+      ]
+    }
+  ],
+  "tree_attributes": [
+    [
+      "role",
+      "treegrid"
+    ],
+    [
+      "class",
+      "k-grid-aria-root"
+    ],
+    [
+      "aria-rowcount",
+      "2"
+    ],
+    [
+      "aria-colcount",
+      "11"
+    ]
+  ],
+  "calculation": [
+    [
+      {
+        "text": "Arbeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Material",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Akkord",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "Installationszeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.157"
+      },
+      {
+        "text": "Bruttomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "5.60"
+      },
+      {
+        "text": "Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "18.1178"
+      }
+    ],
+    [
+      {
+        "text": "* Stundenansatz",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "115.40"
+      },
+      {
+        "text": "Nettomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "4.032"
+      },
+      {
+        "text": "+ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "4.87872"
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "* Materialfaktor",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.21"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "+ Recyclinggebühr",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.00"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "= Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "18.1178"
+      },
+      {
+        "text": "= Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "4.87872"
+      },
+      {
+        "text": "= Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "22.99652"
+      }
+    ],
+    [
+      {
+        "text": "≈ Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "18.10"
+      },
+      {
+        "text": "≈ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "4.90"
+      },
+      {
+        "text": "≈ Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "23.00"
+      }
+    ]
+  ],
+  "complete_tree": true
+}

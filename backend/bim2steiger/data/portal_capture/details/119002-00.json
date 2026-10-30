@@ -1,0 +1,389 @@
+{
+  "number": "119002",
+  "va": "00",
+  "year": 2026,
+  "source": "https://digital.asteigerag.ch/dashboard",
+  "portal_page": "0_0_6_1",
+  "captured_at": "2026-10-23T05:19:10.196Z",
+  "capture_kind": "article_dialog",
+  "basic_data": [
+    {
+      "checkbox": null,
+      "label": "Typ",
+      "value": "Komplett-Artikel/-Installation"
+    },
+    {
+      "checkbox": null,
+      "label": "Artikelnummer",
+      "value": "119002"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z1",
+      "value": "MP Drehschalter 1L"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z2",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z3",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 1",
+      "value": "MPD"
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 2",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 3",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Lieferant",
+      "value": "1 Strukturen"
+    },
+    {
+      "checkbox": null,
+      "label": "Sortiment",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Bestellnummer",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "E-Nr",
+      "value": ""
+    },
+    {
+      "checkbox": true,
+      "label": "Anschluss",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Nummer",
+      "value": "1"
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Rabatt (in %)",
+      "value": "0"
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Text",
+      "value": "Komplett-Installationen"
+    },
+    {
+      "checkbox": null,
+      "label": "Bruttomaterialpreis",
+      "value": "23.5"
+    },
+    {
+      "checkbox": null,
+      "label": "Nettomaterialpreis",
+      "value": "16.92"
+    },
+    {
+      "checkbox": null,
+      "label": "Recyclinggebühr",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Fremdleistung",
+      "value": ""
+    }
+  ],
+  "article_text": "\t\n\n\nMP Drehschalter\n1L",
+  "images": [
+    {
+      "number": "119002",
+      "va": "00",
+      "vas": [
+        "00"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 119002 / VA 00, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_0_6_1",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T05:19:08.983Z",
+      "width": 150,
+      "height": 150,
+      "file": "images/portal-2026/5e4bd9168e3cea7ad3045627c0d601435c289baa2f4030f34b10ce66662b2b0e.png",
+      "sha256": "5e4bd9168e3cea7ad3045627c0d601435c289baa2f4030f34b10ce66662b2b0e",
+      "ordinal": 0
+    }
+  ],
+  "rows": [
+    {
+      "cells": [
+        "MP Drehschalter 1L",
+        "119002",
+        "00",
+        "1",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "expanded": "true",
+      "index": 0,
+      "level": 0
+    },
+    {
+      "cells": [
+        "UP-Drehschalter 16A 0/1L",
+        "998101",
+        "48",
+        "1",
+        "36.216",
+        "36.216",
+        "0.125",
+        "0.125",
+        "217500000",
+        "7411.GMI.A.61"
+      ],
+      "expanded": null,
+      "index": 1,
+      "level": 1
+    },
+    {
+      "cells": [
+        "UP-Schalter/-Taster 1L",
+        "998123",
+        "48",
+        "-1",
+        "19.296",
+        "-19.296",
+        "0.125",
+        "-0.125",
+        "219070000",
+        "7563.GMI.A.61"
+      ],
+      "expanded": null,
+      "index": 2,
+      "level": 1
+    }
+  ],
+  "tree_attributes": [
+    [
+      "role",
+      "treegrid"
+    ],
+    [
+      "class",
+      "k-grid-aria-root"
+    ],
+    [
+      "aria-rowcount",
+      "4"
+    ],
+    [
+      "aria-colcount",
+      "11"
+    ]
+  ],
+  "calculation": [
+    [
+      {
+        "text": "Arbeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Material",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Akkord",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "Installationszeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.00"
+      },
+      {
+        "text": "Bruttomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "23.50"
+      },
+      {
+        "text": "Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.00"
+      }
+    ],
+    [
+      {
+        "text": "* Stundenansatz",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "115.40"
+      },
+      {
+        "text": "Nettomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "16.92"
+      },
+      {
+        "text": "+ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "20.4732"
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "* Materialfaktor",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.21"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "+ Recyclinggebühr",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.00"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "= Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.00"
+      },
+      {
+        "text": "= Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "20.4732"
+      },
+      {
+        "text": "= Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "20.4732"
+      }
+    ],
+    [
+      {
+        "text": "≈ Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.00"
+      },
+      {
+        "text": "≈ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "20.45"
+      },
+      {
+        "text": "≈ Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "20.45"
+      }
+    ]
+  ],
+  "complete_tree": true
+}

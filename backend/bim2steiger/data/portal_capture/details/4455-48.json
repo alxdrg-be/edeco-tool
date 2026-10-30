@@ -1,0 +1,355 @@
+{
+  "number": "4455",
+  "va": "48",
+  "year": 2026,
+  "source": "https://digital.asteigerag.ch/dashboard",
+  "portal_page": "0_1_10_19",
+  "captured_at": "2026-10-23T17:32:31.136Z",
+  "capture_kind": "article_dialog",
+  "basic_data": [
+    {
+      "label": "Typ",
+      "value": "Einzelartikel",
+      "checkbox": null
+    },
+    {
+      "label": "Artikelnummer",
+      "value": "4455",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z1",
+      "value": "Kombinationsplatte Al FLF 5x4",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z2",
+      "value": "225.0x312.5",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z3",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 1",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 2",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 3",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Lieferant",
+      "value": "2502 Feller",
+      "checkbox": null
+    },
+    {
+      "label": "Sortiment",
+      "value": "2502 Feller",
+      "checkbox": null
+    },
+    {
+      "label": "Bestellnummer",
+      "value": "2814-5.FLF.52",
+      "checkbox": null
+    },
+    {
+      "label": "E-Nr",
+      "value": "375 145 110",
+      "checkbox": null
+    },
+    {
+      "label": "Anschluss",
+      "value": "",
+      "checkbox": false
+    },
+    {
+      "label": "Warengruppe-Nummer",
+      "value": "1420",
+      "checkbox": null
+    },
+    {
+      "label": "Warengruppe-Rabatt (in %)",
+      "value": "28",
+      "checkbox": null
+    },
+    {
+      "label": "Warengruppe-Text",
+      "value": "Feller Neben-S",
+      "checkbox": null
+    },
+    {
+      "label": "Bruttomaterialpreis",
+      "value": "184.45",
+      "checkbox": null
+    },
+    {
+      "label": "Nettomaterialpreis",
+      "value": "132.804",
+      "checkbox": null
+    },
+    {
+      "label": "Recyclinggebühr",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Fremdleistung",
+      "value": "",
+      "checkbox": null
+    }
+  ],
+  "article_text": "\t\n\n\nKombinationsplatte Al\nFLF 5x4\n\n225.0x312.5",
+  "images": [
+    {
+      "number": "4455",
+      "va": "48",
+      "vas": [
+        "48"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 4455 / VA 48, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_1_10_19",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T17:32:31.111Z",
+      "width": 300,
+      "height": 300,
+      "file": "images/portal-2026/dc7ebe79fe48e39743f96a8838b9d8b33949b46fa9bb1b540e458f0f0a38b1ab.jpg",
+      "sha256": "dc7ebe79fe48e39743f96a8838b9d8b33949b46fa9bb1b540e458f0f0a38b1ab",
+      "ordinal": 0
+    }
+  ],
+  "rows": [
+    {
+      "index": 0,
+      "level": 0,
+      "expanded": null,
+      "cells": [
+        "Kombinationsplatte Al FLF 5x4",
+        "4455",
+        "48",
+        "1",
+        "",
+        "",
+        "",
+        "",
+        "375145110",
+        "2814-5.FLF.52"
+      ]
+    }
+  ],
+  "tree_attributes": [
+    [
+      "role",
+      "treegrid"
+    ],
+    [
+      "class",
+      "k-grid-aria-root"
+    ],
+    [
+      "aria-rowcount",
+      "2"
+    ],
+    [
+      "aria-colcount",
+      "11"
+    ]
+  ],
+  "calculation": [
+    [
+      {
+        "text": "Arbeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Material",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Akkord",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "Installationszeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.125"
+      },
+      {
+        "text": "Bruttomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "184.45"
+      },
+      {
+        "text": "Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "14.425"
+      }
+    ],
+    [
+      {
+        "text": "* Stundenansatz",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "115.40"
+      },
+      {
+        "text": "Nettomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "132.804"
+      },
+      {
+        "text": "+ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "160.69284"
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "* Materialfaktor",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.21"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "+ Recyclinggebühr",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.00"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "= Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "14.425"
+      },
+      {
+        "text": "= Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "160.69284"
+      },
+      {
+        "text": "= Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "175.11784"
+      }
+    ],
+    [
+      {
+        "text": "≈ Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "14.45"
+      },
+      {
+        "text": "≈ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "160.70"
+      },
+      {
+        "text": "≈ Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "175.10"
+      }
+    ]
+  ],
+  "complete_tree": true
+}

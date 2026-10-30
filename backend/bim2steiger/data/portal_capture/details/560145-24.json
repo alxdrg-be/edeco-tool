@@ -1,0 +1,408 @@
+{
+  "number": "560145",
+  "va": "24",
+  "year": 2026,
+  "source": "https://digital.asteigerag.ch/dashboard",
+  "portal_page": "0_1_15_22",
+  "captured_at": "2026-10-23T18:14:40.952Z",
+  "capture_kind": "article_dialog",
+  "basic_data": [
+    {
+      "label": "Typ",
+      "value": "Komplett-Artikel/-Installation",
+      "checkbox": null
+    },
+    {
+      "label": "Artikelnummer",
+      "value": "560145",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z1",
+      "value": "AP-Magnetfussantenne z 560140",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z2",
+      "value": "2.5m Kabel",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z3",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 1",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 2",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 3",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Lieferant",
+      "value": "1 Strukturen",
+      "checkbox": null
+    },
+    {
+      "label": "Sortiment",
+      "value": "2205 ComatReleco",
+      "checkbox": null
+    },
+    {
+      "label": "Bestellnummer",
+      "value": "CMS-ANT-MAG1/INT-2.5M",
+      "checkbox": null
+    },
+    {
+      "label": "E-Nr",
+      "value": "505 799 952",
+      "checkbox": null
+    },
+    {
+      "label": "Anschluss",
+      "value": "",
+      "checkbox": false
+    },
+    {
+      "label": "Warengruppe-Nummer",
+      "value": "8221",
+      "checkbox": null
+    },
+    {
+      "label": "Warengruppe-Rabatt (in %)",
+      "value": "15",
+      "checkbox": null
+    },
+    {
+      "label": "Warengruppe-Text",
+      "value": "Comat SG2 Neben-S",
+      "checkbox": null
+    },
+    {
+      "label": "Bruttomaterialpreis",
+      "value": "69.95",
+      "checkbox": null
+    },
+    {
+      "label": "Nettomaterialpreis",
+      "value": "59.4575",
+      "checkbox": null
+    },
+    {
+      "label": "Recyclinggebühr",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Fremdleistung",
+      "value": "",
+      "checkbox": null
+    }
+  ],
+  "article_text": "\t\n\n\nAP-Magnetfussantenne z 560140\n\n\n2.5m Kabel",
+  "images": [
+    {
+      "number": "560145",
+      "va": "24",
+      "vas": [
+        "24"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 560145 / VA 24, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_1_15_22",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T18:14:40.928Z",
+      "width": 85,
+      "height": 150,
+      "file": "images/portal-2026/8c7de88f5fa857d44daf2e04d050eb8dd0c7ce87ea7c8e3db724b8bc29a88295.png",
+      "sha256": "8c7de88f5fa857d44daf2e04d050eb8dd0c7ce87ea7c8e3db724b8bc29a88295",
+      "ordinal": 0
+    },
+    {
+      "number": "560145",
+      "va": "24",
+      "vas": [
+        "24"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 560145 / VA 24, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_1_15_22",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T18:14:40.929Z",
+      "width": 300,
+      "height": 258,
+      "file": "images/portal-2026/58707512d29e9169665b5dd6bdd0a82c344307a50cf6ebbbcf9bab8b8945df41.jpg",
+      "sha256": "58707512d29e9169665b5dd6bdd0a82c344307a50cf6ebbbcf9bab8b8945df41",
+      "ordinal": 1
+    }
+  ],
+  "rows": [
+    {
+      "index": 0,
+      "level": 0,
+      "expanded": "true",
+      "cells": [
+        "AP-Magnetfussantenne z 560140",
+        "560145",
+        "24",
+        "1",
+        "",
+        "",
+        "",
+        "",
+        "505799952",
+        "CMS-ANT-MAG1/INT-2.5M"
+      ]
+    },
+    {
+      "index": 1,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "AP-Magnetfussantenne z 560140",
+        "993278",
+        "24",
+        "1",
+        "59.4575",
+        "59.4575",
+        "0.05",
+        "0.05",
+        "505799952",
+        "CMS-ANT-MAG1/INT-2.5M"
+      ]
+    },
+    {
+      "index": 2,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Koaxialkabel 75 Ohm Dca hf DG113",
+        "191661",
+        "064",
+        "2.5",
+        "1.23",
+        "3.075",
+        "0.114",
+        "0.285",
+        "",
+        "B 1514/DG113ZH-100"
+      ]
+    }
+  ],
+  "tree_attributes": [
+    [
+      "role",
+      "treegrid"
+    ],
+    [
+      "class",
+      "k-grid-aria-root"
+    ],
+    [
+      "aria-rowcount",
+      "4"
+    ],
+    [
+      "aria-colcount",
+      "11"
+    ]
+  ],
+  "calculation": [
+    [
+      {
+        "text": "Arbeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Material",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Akkord",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "Installationszeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.335"
+      },
+      {
+        "text": "Bruttomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "69.95"
+      },
+      {
+        "text": "Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "38.659"
+      }
+    ],
+    [
+      {
+        "text": "* Stundenansatz",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "115.40"
+      },
+      {
+        "text": "Nettomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "59.4575"
+      },
+      {
+        "text": "+ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "71.94358"
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "* Materialfaktor",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.21"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "+ Recyclinggebühr",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.00"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "= Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "38.659"
+      },
+      {
+        "text": "= Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "71.94358"
+      },
+      {
+        "text": "= Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "110.60258"
+      }
+    ],
+    [
+      {
+        "text": "≈ Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "38.65"
+      },
+      {
+        "text": "≈ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "71.95"
+      },
+      {
+        "text": "≈ Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "110.60"
+      }
+    ]
+  ],
+  "complete_tree": true
+}

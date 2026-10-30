@@ -1,0 +1,442 @@
+{
+  "number": "978170",
+  "va": "20",
+  "year": 2026,
+  "source": "https://digital.asteigerag.ch/dashboard",
+  "portal_page": "0_1_15_27",
+  "captured_at": "2026-10-23T18:16:03.000Z",
+  "capture_kind": "article_dialog",
+  "basic_data": [
+    {
+      "label": "Typ",
+      "value": "Komplett-Artikel/-Installation",
+      "checkbox": null
+    },
+    {
+      "label": "Artikelnummer",
+      "value": "978170",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z1",
+      "value": "AP-Steuerung Cube M",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z2",
+      "value": "Last-/Lademanagement -50 Ladestationen",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z3",
+      "value": "Grundkonfiguration IBS Lieferant",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 1",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 2",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 3",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Lieferant",
+      "value": "1 Strukturen",
+      "checkbox": null
+    },
+    {
+      "label": "Sortiment",
+      "value": "2801 Invisia",
+      "checkbox": null
+    },
+    {
+      "label": "Bestellnummer",
+      "value": "INVISIA_CUBE-TYP-M_v2025",
+      "checkbox": null
+    },
+    {
+      "label": "E-Nr",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Anschluss",
+      "value": "",
+      "checkbox": true
+    },
+    {
+      "label": "Warengruppe-Nummer",
+      "value": "4281",
+      "checkbox": null
+    },
+    {
+      "label": "Warengruppe-Rabatt (in %)",
+      "value": "20",
+      "checkbox": null
+    },
+    {
+      "label": "Warengruppe-Text",
+      "value": "(L)Invisia Material",
+      "checkbox": null
+    },
+    {
+      "label": "Bruttomaterialpreis",
+      "value": "4800",
+      "checkbox": null
+    },
+    {
+      "label": "Nettomaterialpreis",
+      "value": "4040",
+      "checkbox": null
+    },
+    {
+      "label": "Recyclinggebühr",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Fremdleistung",
+      "value": "",
+      "checkbox": null
+    }
+  ],
+  "article_text": "\t\n\n\nAP-Steuerung\nCube M\n\nLast-/Lademanagement -50 Ladestationen\n\n\nGrundkonfiguration IBS Lieferant\n\n\n400x400x220\n\n\nLTE-Router m Antenne 4m Kabel (Lief)",
+  "images": [
+    {
+      "number": "978170",
+      "va": "20",
+      "vas": [
+        "20"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 978170 / VA 20, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_1_15_27",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T18:16:02.976Z",
+      "width": 124,
+      "height": 150,
+      "file": "images/portal-2026/97ca1bbf36c17b1cc7fb449036064b518fbaa628b87e88d930c28879050ed5ae.png",
+      "sha256": "97ca1bbf36c17b1cc7fb449036064b518fbaa628b87e88d930c28879050ed5ae",
+      "ordinal": 0
+    },
+    {
+      "number": "978170",
+      "va": "20",
+      "vas": [
+        "20"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 978170 / VA 20, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_1_15_27",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T18:16:02.978Z",
+      "width": 198,
+      "height": 300,
+      "file": "images/portal-2026/6fe7546ad8d0c8c38c6607143e6e6a022d4326acb804f7132ace902ab8c5d9a3.jpg",
+      "sha256": "6fe7546ad8d0c8c38c6607143e6e6a022d4326acb804f7132ace902ab8c5d9a3",
+      "ordinal": 1
+    }
+  ],
+  "rows": [
+    {
+      "index": 0,
+      "level": 0,
+      "expanded": "true",
+      "cells": [
+        "AP-Steuerung Cube M",
+        "978170",
+        "20",
+        "1",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "INVISIA_CUBE-TYP-M_v2025"
+      ]
+    },
+    {
+      "index": 1,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "AP-Steuerung Cube M",
+        "985690",
+        "20",
+        "1",
+        "3040",
+        "3040",
+        "0.745",
+        "0.745",
+        "",
+        "INVISIA_CUBE-TYP-M_v2025"
+      ]
+    },
+    {
+      "index": 2,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Last-/Lademanagement Grundkonfiguration",
+        "985160",
+        "100",
+        "1",
+        "1000",
+        "1000",
+        "0",
+        "0",
+        "",
+        "GF_SERVER_Lastmanagement"
+      ]
+    },
+    {
+      "index": 3,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Kabel FE0 Dca hf 5x1.5",
+        "109054",
+        "70",
+        "2",
+        "1.21",
+        "2.42",
+        "0.145",
+        "0.29",
+        "109010523",
+        "212884"
+      ]
+    },
+    {
+      "index": 4,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Kabel FE0 Dca hf 7x1.5",
+        "109055",
+        "70",
+        "2",
+        "2.31",
+        "4.62",
+        "0.189",
+        "0.378",
+        "109010733",
+        "212885"
+      ]
+    }
+  ],
+  "tree_attributes": [
+    [
+      "role",
+      "treegrid"
+    ],
+    [
+      "class",
+      "k-grid-aria-root"
+    ],
+    [
+      "aria-rowcount",
+      "6"
+    ],
+    [
+      "aria-colcount",
+      "11"
+    ]
+  ],
+  "calculation": [
+    [
+      {
+        "text": "Arbeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Material",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Akkord",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "Installationszeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.413"
+      },
+      {
+        "text": "Bruttomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "4800.00"
+      },
+      {
+        "text": "Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "163.0602"
+      }
+    ],
+    [
+      {
+        "text": "* Stundenansatz",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "115.40"
+      },
+      {
+        "text": "Nettomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "4040.00"
+      },
+      {
+        "text": "+ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "4888.40"
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "* Materialfaktor",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.21"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "+ Recyclinggebühr",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.00"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "= Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "163.0602"
+      },
+      {
+        "text": "= Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "4888.40"
+      },
+      {
+        "text": "= Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "5051.4602"
+      }
+    ],
+    [
+      {
+        "text": "≈ Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "163.05"
+      },
+      {
+        "text": "≈ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "4888.40"
+      },
+      {
+        "text": "≈ Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "5051.45"
+      }
+    ]
+  ],
+  "complete_tree": true
+}

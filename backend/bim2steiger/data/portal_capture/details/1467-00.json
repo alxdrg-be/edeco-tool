@@ -1,0 +1,406 @@
+{
+  "number": "1467",
+  "va": "00",
+  "year": 2026,
+  "source": "https://digital.asteigerag.ch/dashboard",
+  "portal_page": "0_0_4_15",
+  "captured_at": "2026-10-23T05:13:42.364Z",
+  "capture_kind": "article_dialog",
+  "basic_data": [
+    {
+      "checkbox": null,
+      "label": "Typ",
+      "value": "Komplett-Artikel/-Installation"
+    },
+    {
+      "checkbox": null,
+      "label": "Artikelnummer",
+      "value": "1467"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z1",
+      "value": "Steigzone Gitterbahn -600x60"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z2",
+      "value": "beschichtet PE"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z3",
+      "value": "Klemmstück"
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 1",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 2",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 3",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Lieferant",
+      "value": "1 Strukturen"
+    },
+    {
+      "checkbox": null,
+      "label": "Sortiment",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Bestellnummer",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "E-Nr",
+      "value": ""
+    },
+    {
+      "checkbox": false,
+      "label": "Anschluss",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Nummer",
+      "value": "1"
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Rabatt (in %)",
+      "value": "0"
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Text",
+      "value": "Komplett-Installationen"
+    },
+    {
+      "checkbox": null,
+      "label": "Bruttomaterialpreis",
+      "value": "39.7636"
+    },
+    {
+      "checkbox": null,
+      "label": "Nettomaterialpreis",
+      "value": "23.85816"
+    },
+    {
+      "checkbox": null,
+      "label": "Recyclinggebühr",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Fremdleistung",
+      "value": ""
+    }
+  ],
+  "article_text": "\t\n\n\nSteigzone Gitterbahn\n-600x60\n\nbeschichtet PE\n\n\nKlemmstück\n\n\nZubehör, wie Verbinder etc",
+  "images": [
+    {
+      "number": "1467",
+      "va": "00",
+      "vas": [
+        "00"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 1467 / VA 00, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_0_4_15",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T05:13:42.050Z",
+      "width": 107,
+      "height": 150,
+      "file": "images/portal-2026/810fdbe169617705529267709d1bd881400702326e21d025e58047f01a7683f2.png",
+      "sha256": "810fdbe169617705529267709d1bd881400702326e21d025e58047f01a7683f2",
+      "ordinal": 0
+    }
+  ],
+  "rows": [
+    {
+      "cells": [
+        "Steigzone Gitterbahn -600x60",
+        "1467",
+        "00",
+        "1",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "expanded": "true",
+      "index": 0,
+      "level": 0
+    },
+    {
+      "cells": [
+        "Gitterbahn 600x60",
+        "122666",
+        "24",
+        "1",
+        "20.574",
+        "20.574",
+        "0.327",
+        "0.327",
+        "127020056",
+        "307185"
+      ],
+      "expanded": null,
+      "index": 1,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Stossverbinder galv verz",
+        "123526",
+        "100",
+        "0.66",
+        "1.596",
+        "1.05336",
+        "0",
+        "0",
+        "127028006",
+        "304598"
+      ],
+      "expanded": null,
+      "index": 2,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Klemmstück kurz galv verz",
+        "123529",
+        "20",
+        "2.2",
+        "1.014",
+        "2.2308",
+        "0.161",
+        "0.3542",
+        "127099226",
+        "308949"
+      ],
+      "expanded": null,
+      "index": 3,
+      "level": 1
+    }
+  ],
+  "tree_attributes": [
+    [
+      "role",
+      "treegrid"
+    ],
+    [
+      "class",
+      "k-grid-aria-root"
+    ],
+    [
+      "aria-rowcount",
+      "5"
+    ],
+    [
+      "aria-colcount",
+      "11"
+    ]
+  ],
+  "calculation": [
+    [
+      {
+        "text": "Arbeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Material",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Akkord",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "Installationszeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.6812"
+      },
+      {
+        "text": "Bruttomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "39.7636"
+      },
+      {
+        "text": "Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "78.61048"
+      }
+    ],
+    [
+      {
+        "text": "* Stundenansatz",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "115.40"
+      },
+      {
+        "text": "Nettomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "23.85816"
+      },
+      {
+        "text": "+ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "28.86837"
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "* Materialfaktor",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.21"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "+ Recyclinggebühr",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.00"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "= Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "78.61048"
+      },
+      {
+        "text": "= Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "28.86837"
+      },
+      {
+        "text": "= Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "107.47885"
+      }
+    ],
+    [
+      {
+        "text": "≈ Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "78.60"
+      },
+      {
+        "text": "≈ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "28.85"
+      },
+      {
+        "text": "≈ Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "107.50"
+      }
+    ]
+  ],
+  "complete_tree": true
+}

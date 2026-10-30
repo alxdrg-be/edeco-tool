@@ -1,0 +1,408 @@
+{
+  "number": "405850",
+  "va": "10",
+  "year": 2026,
+  "source": "https://digital.asteigerag.ch/dashboard",
+  "portal_page": "0_1_12_2",
+  "captured_at": "2026-10-23T17:45:55.072Z",
+  "capture_kind": "article_dialog",
+  "basic_data": [
+    {
+      "label": "Typ",
+      "value": "Komplett-Artikel/-Installation",
+      "checkbox": null
+    },
+    {
+      "label": "Artikelnummer",
+      "value": "405850",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z1",
+      "value": "AP-KNX-Luftgütesensor",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z2",
+      "value": "CO2 Temperatur Feuchtigkeit",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z3",
+      "value": "o Progr",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 1",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 2",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 3",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Lieferant",
+      "value": "1 Strukturen",
+      "checkbox": null
+    },
+    {
+      "label": "Sortiment",
+      "value": "2001 ABB",
+      "checkbox": null
+    },
+    {
+      "label": "Bestellnummer",
+      "value": "2CDG120059R0011",
+      "checkbox": null
+    },
+    {
+      "label": "E-Nr",
+      "value": "205 380 105",
+      "checkbox": null
+    },
+    {
+      "label": "Anschluss",
+      "value": "",
+      "checkbox": true
+    },
+    {
+      "label": "Warengruppe-Nummer",
+      "value": "2282",
+      "checkbox": null
+    },
+    {
+      "label": "Warengruppe-Rabatt (in %)",
+      "value": "0",
+      "checkbox": null
+    },
+    {
+      "label": "Warengruppe-Text",
+      "value": "ABB KNX REG",
+      "checkbox": null
+    },
+    {
+      "label": "Bruttomaterialpreis",
+      "value": "242.7",
+      "checkbox": null
+    },
+    {
+      "label": "Nettomaterialpreis",
+      "value": "242.7",
+      "checkbox": null
+    },
+    {
+      "label": "Recyclinggebühr",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Fremdleistung",
+      "value": "",
+      "checkbox": null
+    }
+  ],
+  "article_text": "\t\n\n\nAP-KNX-Luftgütesensor\n\n\nCO2 Temperatur Feuchtigkeit\n\n\no Progr",
+  "images": [
+    {
+      "number": "405850",
+      "va": "10",
+      "vas": [
+        "10"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 405850 / VA 10, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_1_12_2",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T17:45:55.040Z",
+      "width": 149,
+      "height": 150,
+      "file": "images/portal-2026/191ad575e4a2a4061bd059bd50924370d7070a98567af4584e6eb10c4bab8cad.png",
+      "sha256": "191ad575e4a2a4061bd059bd50924370d7070a98567af4584e6eb10c4bab8cad",
+      "ordinal": 0
+    },
+    {
+      "number": "405850",
+      "va": "10",
+      "vas": [
+        "10"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 405850 / VA 10, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_1_12_2",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T17:45:55.041Z",
+      "width": 300,
+      "height": 300,
+      "file": "images/portal-2026/9826bc8ebbf47bee89d8a8b7c3fbdbabf8ec2ffd4c46b456b43f405a569c4d49.jpg",
+      "sha256": "9826bc8ebbf47bee89d8a8b7c3fbdbabf8ec2ffd4c46b456b43f405a569c4d49",
+      "ordinal": 1
+    }
+  ],
+  "rows": [
+    {
+      "index": 0,
+      "level": 0,
+      "expanded": "true",
+      "cells": [
+        "AP-KNX-Luftgütesensor",
+        "405850",
+        "10",
+        "1",
+        "",
+        "",
+        "",
+        "",
+        "205380105",
+        "2CDG120059R0011"
+      ]
+    },
+    {
+      "index": 1,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "AP-KNX-Luftgütesensor",
+        "992948",
+        "10",
+        "1",
+        "242.7",
+        "242.7",
+        "0.106",
+        "0.106",
+        "205380105",
+        "2CDG120059R0011"
+      ]
+    },
+    {
+      "index": 2,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Buskabel KNX-J-H(St)Hh B2ca hf 2x2x0.8",
+        "101528",
+        "81",
+        "2",
+        "1.2675",
+        "2.535",
+        "0.146",
+        "0.292",
+        "101538079",
+        "TGZ181"
+      ]
+    }
+  ],
+  "tree_attributes": [
+    [
+      "role",
+      "treegrid"
+    ],
+    [
+      "class",
+      "k-grid-aria-root"
+    ],
+    [
+      "aria-rowcount",
+      "4"
+    ],
+    [
+      "aria-colcount",
+      "11"
+    ]
+  ],
+  "calculation": [
+    [
+      {
+        "text": "Arbeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Material",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Akkord",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "Installationszeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.398"
+      },
+      {
+        "text": "Bruttomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "242.70"
+      },
+      {
+        "text": "Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "45.9292"
+      }
+    ],
+    [
+      {
+        "text": "* Stundenansatz",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "115.40"
+      },
+      {
+        "text": "Nettomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "242.70"
+      },
+      {
+        "text": "+ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "293.667"
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "* Materialfaktor",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.21"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "+ Recyclinggebühr",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.00"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "= Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "45.9292"
+      },
+      {
+        "text": "= Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "293.667"
+      },
+      {
+        "text": "= Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "339.5962"
+      }
+    ],
+    [
+      {
+        "text": "≈ Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "45.95"
+      },
+      {
+        "text": "≈ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "293.65"
+      },
+      {
+        "text": "≈ Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "339.60"
+      }
+    ]
+  ],
+  "complete_tree": true
+}

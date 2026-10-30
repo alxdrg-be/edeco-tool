@@ -1,0 +1,408 @@
+{
+  "number": "156065",
+  "va": "24",
+  "year": 2026,
+  "source": "https://digital.asteigerag.ch/dashboard",
+  "portal_page": "0_1_9_2",
+  "captured_at": "2026-10-23T13:45:48.400Z",
+  "capture_kind": "article_dialog",
+  "basic_data": [
+    {
+      "label": "Typ",
+      "value": "Komplett-Artikel/-Installation",
+      "checkbox": null
+    },
+    {
+      "label": "Artikelnummer",
+      "value": "156065",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z1",
+      "value": "Kabelmuffe FDM Ø 60x165 IP68 -5x2.5",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z2",
+      "value": "4 Kabel Ø 5-14",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z3",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 1",
+      "value": "KM5X2.5",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 2",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 3",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Lieferant",
+      "value": "1 Strukturen",
+      "checkbox": null
+    },
+    {
+      "label": "Sortiment",
+      "value": "2302 demelectric",
+      "checkbox": null
+    },
+    {
+      "label": "Bestellnummer",
+      "value": "FFDM1",
+      "checkbox": null
+    },
+    {
+      "label": "E-Nr",
+      "value": "120 611 109",
+      "checkbox": null
+    },
+    {
+      "label": "Anschluss",
+      "value": "",
+      "checkbox": true
+    },
+    {
+      "label": "Warengruppe-Nummer",
+      "value": "3139",
+      "checkbox": null
+    },
+    {
+      "label": "Warengruppe-Rabatt (in %)",
+      "value": "15",
+      "checkbox": null
+    },
+    {
+      "label": "Warengruppe-Text",
+      "value": "Schrumpfmaterial weitere",
+      "checkbox": null
+    },
+    {
+      "label": "Bruttomaterialpreis",
+      "value": "40",
+      "checkbox": null
+    },
+    {
+      "label": "Nettomaterialpreis",
+      "value": "34",
+      "checkbox": null
+    },
+    {
+      "label": "Recyclinggebühr",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Fremdleistung",
+      "value": "",
+      "checkbox": null
+    }
+  ],
+  "article_text": "\t\n\n\nKabelmuffe FDM Ø 60x165 IP68\n-5x2.5\n\n4 Kabel Ø 5-14",
+  "images": [
+    {
+      "number": "156065",
+      "va": "24",
+      "vas": [
+        "24"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 156065 / VA 24, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_1_9_2",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T13:45:48.359Z",
+      "width": 150,
+      "height": 74,
+      "file": "images/portal-2026/a1b19025874efa4ca9e9574aca6418dcf5f23c93f67d579f645e2ec40a1cd5ec.png",
+      "sha256": "a1b19025874efa4ca9e9574aca6418dcf5f23c93f67d579f645e2ec40a1cd5ec",
+      "ordinal": 0
+    },
+    {
+      "number": "156065",
+      "va": "24",
+      "vas": [
+        "24"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 156065 / VA 24, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_1_9_2",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T13:45:48.360Z",
+      "width": 300,
+      "height": 183,
+      "file": "images/portal-2026/4123a94bc7ab418fc5e69a62c2f000d8b8c9e16207f00ba567ebaa854beae422.jpg",
+      "sha256": "4123a94bc7ab418fc5e69a62c2f000d8b8c9e16207f00ba567ebaa854beae422",
+      "ordinal": 1
+    }
+  ],
+  "rows": [
+    {
+      "index": 0,
+      "level": 0,
+      "expanded": "true",
+      "cells": [
+        "Kabelmuffe FDM Ø 60x165 IP68 -5x2.5",
+        "156065",
+        "24",
+        "1",
+        "",
+        "",
+        "",
+        "",
+        "120611109",
+        "FFDM1"
+      ]
+    },
+    {
+      "index": 1,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Kabelmuffe FDM Ø 60x165 IP68 -5x2.5",
+        "989587",
+        "24",
+        "1",
+        "34",
+        "34",
+        "0.21",
+        "0.21",
+        "120611109",
+        "FFDM1"
+      ]
+    },
+    {
+      "index": 2,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Kabel FE0 Dca hf 5x2.5",
+        "109063",
+        "70",
+        "2",
+        "1.91",
+        "3.82",
+        "0.145",
+        "0.29",
+        "109020523",
+        "212895"
+      ]
+    }
+  ],
+  "tree_attributes": [
+    [
+      "role",
+      "treegrid"
+    ],
+    [
+      "class",
+      "k-grid-aria-root"
+    ],
+    [
+      "aria-rowcount",
+      "4"
+    ],
+    [
+      "aria-colcount",
+      "11"
+    ]
+  ],
+  "calculation": [
+    [
+      {
+        "text": "Arbeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Material",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Akkord",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "Installationszeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.50"
+      },
+      {
+        "text": "Bruttomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "40.00"
+      },
+      {
+        "text": "Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "57.70"
+      }
+    ],
+    [
+      {
+        "text": "* Stundenansatz",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "115.40"
+      },
+      {
+        "text": "Nettomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "34.00"
+      },
+      {
+        "text": "+ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "41.14"
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "* Materialfaktor",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.21"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "+ Recyclinggebühr",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.00"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "= Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "57.70"
+      },
+      {
+        "text": "= Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "41.14"
+      },
+      {
+        "text": "= Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "98.84"
+      }
+    ],
+    [
+      {
+        "text": "≈ Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "57.70"
+      },
+      {
+        "text": "≈ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "41.15"
+      },
+      {
+        "text": "≈ Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "98.85"
+      }
+    ]
+  ],
+  "complete_tree": true
+}

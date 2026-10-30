@@ -1,0 +1,408 @@
+{
+  "number": "910185",
+  "va": "24",
+  "year": 2026,
+  "source": "https://digital.asteigerag.ch/dashboard",
+  "portal_page": "0_1_16_5",
+  "captured_at": "2026-10-23T18:22:37.751Z",
+  "capture_kind": "article_dialog",
+  "basic_data": [
+    {
+      "label": "Typ",
+      "value": "Komplett-Artikel/-Installation",
+      "checkbox": null
+    },
+    {
+      "label": "Artikelnummer",
+      "value": "910185",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z1",
+      "value": "EB-Leuchte dimmbar Ø 100x60",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z2",
+      "value": "schwenkbar 960lm 11W dimmbar",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z3",
+      "value": "Axo",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 1",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 2",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 3",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Lieferant",
+      "value": "1 Strukturen",
+      "checkbox": null
+    },
+    {
+      "label": "Sortiment",
+      "value": "1005 Grossist",
+      "checkbox": null
+    },
+    {
+      "label": "Bestellnummer",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "E-Nr",
+      "value": "941 323 073",
+      "checkbox": null
+    },
+    {
+      "label": "Anschluss",
+      "value": "",
+      "checkbox": true
+    },
+    {
+      "label": "Warengruppe-Nummer",
+      "value": "4771",
+      "checkbox": null
+    },
+    {
+      "label": "Warengruppe-Rabatt (in %)",
+      "value": "35",
+      "checkbox": null
+    },
+    {
+      "label": "Warengruppe-Text",
+      "value": "Max Hauri Leuchten Top",
+      "checkbox": null
+    },
+    {
+      "label": "Bruttomaterialpreis",
+      "value": "69",
+      "checkbox": null
+    },
+    {
+      "label": "Nettomaterialpreis",
+      "value": "44.85",
+      "checkbox": null
+    },
+    {
+      "label": "Recyclinggebühr",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Fremdleistung",
+      "value": "",
+      "checkbox": null
+    }
+  ],
+  "article_text": "\t\n\n\nEB-Leuchte dimmbar\nØ 100x60\n\nschwenkbar 960lm 11W dimmbar\n\n\nAxo",
+  "images": [
+    {
+      "number": "910185",
+      "va": "24",
+      "vas": [
+        "24"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 910185 / VA 24, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_1_16_5",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T18:22:37.710Z",
+      "width": 150,
+      "height": 93,
+      "file": "images/portal-2026/acf7344951d2a43ab9aa75b3ef590ffde5623160e06555eb729c42a3420f4cd5.png",
+      "sha256": "acf7344951d2a43ab9aa75b3ef590ffde5623160e06555eb729c42a3420f4cd5",
+      "ordinal": 0
+    },
+    {
+      "number": "910185",
+      "va": "24",
+      "vas": [
+        "24"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 910185 / VA 24, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_1_16_5",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T18:22:37.711Z",
+      "width": 300,
+      "height": 189,
+      "file": "images/portal-2026/92d83845226dd78ae2d88c37e65e310644b239f89d0f2665b5fcf227a7e969f3.jpg",
+      "sha256": "92d83845226dd78ae2d88c37e65e310644b239f89d0f2665b5fcf227a7e969f3",
+      "ordinal": 1
+    }
+  ],
+  "rows": [
+    {
+      "index": 0,
+      "level": 0,
+      "expanded": "true",
+      "cells": [
+        "EB-Leuchte dimmbar Ø 100x60",
+        "910185",
+        "24",
+        "1",
+        "",
+        "",
+        "",
+        "",
+        "941323073",
+        ""
+      ]
+    },
+    {
+      "index": 1,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "EB-Leuchte dimmbar Ø 100x60",
+        "985416",
+        "100",
+        "1",
+        "44.85",
+        "44.85",
+        "0",
+        "0",
+        "941323073",
+        ""
+      ]
+    },
+    {
+      "index": 2,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "M+A EB-Leuchte Ø -150",
+        "900040",
+        "24",
+        "1",
+        "0",
+        "0",
+        "0.513",
+        "0.513",
+        "",
+        ""
+      ]
+    }
+  ],
+  "tree_attributes": [
+    [
+      "role",
+      "treegrid"
+    ],
+    [
+      "class",
+      "k-grid-aria-root"
+    ],
+    [
+      "aria-rowcount",
+      "4"
+    ],
+    [
+      "aria-colcount",
+      "11"
+    ]
+  ],
+  "calculation": [
+    [
+      {
+        "text": "Arbeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Material",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Akkord",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "Installationszeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.513"
+      },
+      {
+        "text": "Bruttomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "69.00"
+      },
+      {
+        "text": "Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "59.2002"
+      }
+    ],
+    [
+      {
+        "text": "* Stundenansatz",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "115.40"
+      },
+      {
+        "text": "Nettomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "44.85"
+      },
+      {
+        "text": "+ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "54.4485"
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "* Materialfaktor",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.21"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "+ Recyclinggebühr",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.18"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "= Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "59.2002"
+      },
+      {
+        "text": "= Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "54.4485"
+      },
+      {
+        "text": "= Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "113.6487"
+      }
+    ],
+    [
+      {
+        "text": "≈ Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "59.20"
+      },
+      {
+        "text": "≈ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "54.45"
+      },
+      {
+        "text": "≈ Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "113.65"
+      }
+    ]
+  ],
+  "complete_tree": true
+}

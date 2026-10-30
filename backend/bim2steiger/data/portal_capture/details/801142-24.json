@@ -1,0 +1,440 @@
+{
+  "number": "801142",
+  "va": "24",
+  "year": 2026,
+  "source": "https://digital.asteigerag.ch/dashboard",
+  "portal_page": "0_1_15_38",
+  "captured_at": "2026-10-23T18:20:13.157Z",
+  "capture_kind": "article_dialog",
+  "basic_data": [
+    {
+      "label": "Typ",
+      "value": "Komplett-Artikel/-Installation",
+      "checkbox": null
+    },
+    {
+      "label": "Artikelnummer",
+      "value": "801142",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z1",
+      "value": "REG-Hilfskontakt z MS",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z2",
+      "value": "EB in best Verteilung vor Ort",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z3",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 1",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 2",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 3",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Lieferant",
+      "value": "1 Strukturen",
+      "checkbox": null
+    },
+    {
+      "label": "Sortiment",
+      "value": "3802 Schneider",
+      "checkbox": null
+    },
+    {
+      "label": "Bestellnummer",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "E-Nr",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Anschluss",
+      "value": "",
+      "checkbox": true
+    },
+    {
+      "label": "Warengruppe-Nummer",
+      "value": "2411",
+      "checkbox": null
+    },
+    {
+      "label": "Warengruppe-Rabatt (in %)",
+      "value": "35",
+      "checkbox": null
+    },
+    {
+      "label": "Warengruppe-Text",
+      "value": "SE Schütze/Motorschutz",
+      "checkbox": null
+    },
+    {
+      "label": "Bruttomaterialpreis",
+      "value": "18.25",
+      "checkbox": null
+    },
+    {
+      "label": "Nettomaterialpreis",
+      "value": "11.6525",
+      "checkbox": null
+    },
+    {
+      "label": "Recyclinggebühr",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Fremdleistung",
+      "value": "",
+      "checkbox": null
+    }
+  ],
+  "article_text": "\t\n\n\nREG-Hilfskontakt z MS\n\n\nEB in best Verteilung vor Ort",
+  "images": [
+    {
+      "number": "801142",
+      "va": "24",
+      "vas": [
+        "24"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 801142 / VA 24, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_1_15_38",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T18:20:13.133Z",
+      "width": 92,
+      "height": 150,
+      "file": "images/portal-2026/3f55536a3baf58d961be9092025d70c741e7edcd529de1357de40fbdb4557b43.png",
+      "sha256": "3f55536a3baf58d961be9092025d70c741e7edcd529de1357de40fbdb4557b43",
+      "ordinal": 0
+    }
+  ],
+  "rows": [
+    {
+      "index": 0,
+      "level": 0,
+      "expanded": "true",
+      "cells": [
+        "REG-Hilfskontakt z MS",
+        "801142",
+        "24",
+        "1",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    {
+      "index": 1,
+      "level": 1,
+      "expanded": "true",
+      "cells": [
+        "REG-Hilfskontakt 1S+1Ö GV2ME",
+        "501530",
+        "24",
+        "1",
+        "11.6525",
+        "11.6525",
+        "0.323",
+        "0.323",
+        "501419110",
+        "GVAN11"
+      ]
+    },
+    {
+      "index": 2,
+      "level": 2,
+      "expanded": null,
+      "cells": [
+        "REG-Hilfskontakt 1S+1Ö GV2ME",
+        "989134",
+        "24",
+        "1",
+        "10.9525",
+        "10.9525",
+        "0.063",
+        "0.063",
+        "501419110",
+        "GVAN11"
+      ]
+    },
+    {
+      "index": 3,
+      "level": 2,
+      "expanded": null,
+      "cells": [
+        "Litze T Dca hf 1.5",
+        "113103",
+        "60",
+        "2",
+        "0.35",
+        "0.7",
+        "0.048",
+        "0.096",
+        "113163800",
+        "216245"
+      ]
+    },
+    {
+      "index": 4,
+      "level": 2,
+      "expanded": null,
+      "cells": [
+        "Litze T Dca hf 1.5",
+        "113103",
+        "70",
+        "4",
+        "0.35",
+        "1.4",
+        "0.041",
+        "0.164",
+        "113163800",
+        "216245"
+      ]
+    },
+    {
+      "index": 5,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Installationsstunde",
+        "995102",
+        "09",
+        "0.35",
+        "0",
+        "0",
+        "1",
+        "0.35",
+        "",
+        ""
+      ]
+    }
+  ],
+  "tree_attributes": [
+    [
+      "role",
+      "treegrid"
+    ],
+    [
+      "class",
+      "k-grid-aria-root"
+    ],
+    [
+      "aria-rowcount",
+      "7"
+    ],
+    [
+      "aria-colcount",
+      "11"
+    ]
+  ],
+  "calculation": [
+    [
+      {
+        "text": "Arbeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Material",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Akkord",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "Installationszeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.673"
+      },
+      {
+        "text": "Bruttomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "18.25"
+      },
+      {
+        "text": "Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "77.6642"
+      }
+    ],
+    [
+      {
+        "text": "* Stundenansatz",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "115.40"
+      },
+      {
+        "text": "Nettomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "11.6525"
+      },
+      {
+        "text": "+ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "14.09953"
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "* Materialfaktor",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.21"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "+ Recyclinggebühr",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.00"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "= Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "77.6642"
+      },
+      {
+        "text": "= Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "14.09953"
+      },
+      {
+        "text": "= Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "91.76373"
+      }
+    ],
+    [
+      {
+        "text": "≈ Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "77.65"
+      },
+      {
+        "text": "≈ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "14.10"
+      },
+      {
+        "text": "≈ Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "91.75"
+      }
+    ]
+  ],
+  "complete_tree": true
+}

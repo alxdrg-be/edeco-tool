@@ -1,0 +1,389 @@
+{
+  "number": "109918",
+  "va": "00",
+  "year": 2026,
+  "source": "https://digital.asteigerag.ch/dashboard",
+  "portal_page": "0_0_0_5",
+  "captured_at": "2026-10-23T04:53:55.314Z",
+  "capture_kind": "article_dialog",
+  "basic_data": [
+    {
+      "checkbox": null,
+      "label": "Typ",
+      "value": "Komplett-Artikel/-Installation"
+    },
+    {
+      "checkbox": null,
+      "label": "Artikelnummer",
+      "value": "109918"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z1",
+      "value": "Steuerleitungsklemmen plomb -6x1.5"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z2",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z3",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 1",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 2",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 3",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Lieferant",
+      "value": "1 Strukturen"
+    },
+    {
+      "checkbox": null,
+      "label": "Sortiment",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Bestellnummer",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "E-Nr",
+      "value": ""
+    },
+    {
+      "checkbox": true,
+      "label": "Anschluss",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Nummer",
+      "value": "1"
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Rabatt (in %)",
+      "value": "0"
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Text",
+      "value": "Komplett-Installationen"
+    },
+    {
+      "checkbox": null,
+      "label": "Bruttomaterialpreis",
+      "value": "16.1"
+    },
+    {
+      "checkbox": null,
+      "label": "Nettomaterialpreis",
+      "value": "9.338"
+    },
+    {
+      "checkbox": null,
+      "label": "Recyclinggebühr",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Fremdleistung",
+      "value": ""
+    }
+  ],
+  "article_text": "\t\n\n\nSteuerleitungsklemmen plomb\n-6x1.5",
+  "images": [
+    {
+      "number": "109918",
+      "va": "00",
+      "vas": [
+        "00"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 109918 / VA 00, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_0_0_5",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T04:53:54.983Z",
+      "width": 83,
+      "height": 150,
+      "file": "images/portal-2026/753171ad0ed12a14995bb8c04c7db61292d38dbcd8ac4f8b6016d55d6f711f1c.png",
+      "sha256": "753171ad0ed12a14995bb8c04c7db61292d38dbcd8ac4f8b6016d55d6f711f1c",
+      "ordinal": 0
+    }
+  ],
+  "rows": [
+    {
+      "cells": [
+        "Steuerleitungsklemmen plomb -6x1.5",
+        "109918",
+        "00",
+        "1",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "expanded": "true",
+      "index": 0,
+      "level": 0
+    },
+    {
+      "cells": [
+        "Kabel FE0 Dca num 0-5 hf 6x1.5",
+        "109037",
+        "70",
+        "2",
+        "2.2",
+        "4.4",
+        "0.167",
+        "0.334",
+        "109010615",
+        "220514"
+      ],
+      "expanded": null,
+      "index": 1,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Steuerleitungsklemmen 7x6",
+        "822618",
+        "24",
+        "1",
+        "9.338",
+        "9.338",
+        "0.152",
+        "0.152",
+        "822900514",
+        "K54C"
+      ],
+      "expanded": null,
+      "index": 2,
+      "level": 1
+    }
+  ],
+  "tree_attributes": [
+    [
+      "role",
+      "treegrid"
+    ],
+    [
+      "class",
+      "k-grid-aria-root"
+    ],
+    [
+      "aria-rowcount",
+      "4"
+    ],
+    [
+      "aria-colcount",
+      "11"
+    ]
+  ],
+  "calculation": [
+    [
+      {
+        "text": "Arbeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Material",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Akkord",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "Installationszeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.486"
+      },
+      {
+        "text": "Bruttomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "16.10"
+      },
+      {
+        "text": "Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "56.0844"
+      }
+    ],
+    [
+      {
+        "text": "* Stundenansatz",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "115.40"
+      },
+      {
+        "text": "Nettomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "9.338"
+      },
+      {
+        "text": "+ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "11.29898"
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "* Materialfaktor",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.21"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "+ Recyclinggebühr",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.00"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "= Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "56.0844"
+      },
+      {
+        "text": "= Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "11.29898"
+      },
+      {
+        "text": "= Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "67.38338"
+      }
+    ],
+    [
+      {
+        "text": "≈ Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "56.10"
+      },
+      {
+        "text": "≈ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "11.30"
+      },
+      {
+        "text": "≈ Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "67.40"
+      }
+    ]
+  ],
+  "complete_tree": true
+}

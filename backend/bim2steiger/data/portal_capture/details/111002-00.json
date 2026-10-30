@@ -1,0 +1,406 @@
+{
+  "number": "111002",
+  "va": "00",
+  "year": 2026,
+  "source": "https://digital.asteigerag.ch/dashboard",
+  "portal_page": "0_0_6_5",
+  "captured_at": "2026-10-23T05:22:21.220Z",
+  "capture_kind": "article_dialog",
+  "basic_data": [
+    {
+      "checkbox": null,
+      "label": "Typ",
+      "value": "Komplett-Artikel/-Installation"
+    },
+    {
+      "checkbox": null,
+      "label": "Artikelnummer",
+      "value": "111002"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z1",
+      "value": "w Schalter/Taster in Schaltstelle"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z2",
+      "value": "Wand AP"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z3",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 1",
+      "value": "APWS"
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 2",
+      "value": "APWT"
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 3",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Lieferant",
+      "value": "1 Strukturen"
+    },
+    {
+      "checkbox": null,
+      "label": "Sortiment",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Bestellnummer",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "E-Nr",
+      "value": ""
+    },
+    {
+      "checkbox": true,
+      "label": "Anschluss",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Nummer",
+      "value": "1"
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Rabatt (in %)",
+      "value": "0"
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Text",
+      "value": "Komplett-Installationen"
+    },
+    {
+      "checkbox": null,
+      "label": "Bruttomaterialpreis",
+      "value": "36.932"
+    },
+    {
+      "checkbox": null,
+      "label": "Nettomaterialpreis",
+      "value": "24.912"
+    },
+    {
+      "checkbox": null,
+      "label": "Recyclinggebühr",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Fremdleistung",
+      "value": ""
+    }
+  ],
+  "article_text": "\t\n\n\nw Schalter/Taster in Schaltstelle\n\n\nWand AP",
+  "images": [
+    {
+      "number": "111002",
+      "va": "00",
+      "vas": [
+        "00"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 111002 / VA 00, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_0_6_5",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T05:22:19.968Z",
+      "width": 150,
+      "height": 91,
+      "file": "images/portal-2026/b6f4afe01f687273465359cde29b368c0e25569252248398373292d70c6ad0cb.png",
+      "sha256": "b6f4afe01f687273465359cde29b368c0e25569252248398373292d70c6ad0cb",
+      "ordinal": 0
+    }
+  ],
+  "rows": [
+    {
+      "cells": [
+        "w Schalter/Taster in Schaltstelle",
+        "111002",
+        "00",
+        "1",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "expanded": "true",
+      "index": 0,
+      "level": 0
+    },
+    {
+      "cells": [
+        "Draht T Dca hf 1.5",
+        "35120",
+        "60",
+        "14.4",
+        "0.265",
+        "3.816",
+        "0.013",
+        "0.1872",
+        "105122117",
+        ""
+      ],
+      "expanded": null,
+      "index": 1,
+      "level": 1
+    },
+    {
+      "cells": [
+        "AP-Schalter/-Taster 1L",
+        "998180",
+        "20",
+        "1",
+        "21.096",
+        "21.096",
+        "0.152",
+        "0.152",
+        "219071000",
+        "7563.GX.54.A.61"
+      ],
+      "expanded": null,
+      "index": 2,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Draht T Dca hf 3x1.5",
+        "985991",
+        "70",
+        "2",
+        "",
+        "",
+        "0.063",
+        "0.126",
+        "",
+        ""
+      ],
+      "expanded": null,
+      "index": 3,
+      "level": 1
+    }
+  ],
+  "tree_attributes": [
+    [
+      "role",
+      "treegrid"
+    ],
+    [
+      "class",
+      "k-grid-aria-root"
+    ],
+    [
+      "aria-rowcount",
+      "5"
+    ],
+    [
+      "aria-colcount",
+      "11"
+    ]
+  ],
+  "calculation": [
+    [
+      {
+        "text": "Arbeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Material",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Akkord",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "Installationszeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.4652"
+      },
+      {
+        "text": "Bruttomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "36.932"
+      },
+      {
+        "text": "Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "53.68408"
+      }
+    ],
+    [
+      {
+        "text": "* Stundenansatz",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "115.40"
+      },
+      {
+        "text": "Nettomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "24.912"
+      },
+      {
+        "text": "+ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "30.14352"
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "* Materialfaktor",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.21"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "+ Recyclinggebühr",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.00"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "= Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "53.68408"
+      },
+      {
+        "text": "= Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "30.14352"
+      },
+      {
+        "text": "= Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "83.8276"
+      }
+    ],
+    [
+      {
+        "text": "≈ Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "53.70"
+      },
+      {
+        "text": "≈ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "30.15"
+      },
+      {
+        "text": "≈ Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "83.85"
+      }
+    ]
+  ],
+  "complete_tree": true
+}

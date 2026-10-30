@@ -1,0 +1,423 @@
+{
+  "number": "966520",
+  "va": "20",
+  "year": 2026,
+  "source": "https://digital.asteigerag.ch/dashboard",
+  "portal_page": "0_1_18_10",
+  "captured_at": "2026-10-23T18:42:45.770Z",
+  "capture_kind": "article_dialog",
+  "basic_data": [
+    {
+      "label": "Typ",
+      "value": "Komplett-Artikel/-Installation",
+      "checkbox": null
+    },
+    {
+      "label": "Artikelnummer",
+      "value": "966520",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z1",
+      "value": "NAP-Dose Kat 6A 1xRJ45/s",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z2",
+      "value": "freenet",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z3",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 1",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 2",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 3",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Lieferant",
+      "value": "1 Strukturen",
+      "checkbox": null
+    },
+    {
+      "label": "Sortiment",
+      "value": "3701 R&M",
+      "checkbox": null
+    },
+    {
+      "label": "Bestellnummer",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "E-Nr",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Anschluss",
+      "value": "",
+      "checkbox": true
+    },
+    {
+      "label": "Warengruppe-Nummer",
+      "value": "1813",
+      "checkbox": null
+    },
+    {
+      "label": "Warengruppe-Rabatt (in %)",
+      "value": "18",
+      "checkbox": null
+    },
+    {
+      "label": "Warengruppe-Text",
+      "value": "R+M UGV Freenet",
+      "checkbox": null
+    },
+    {
+      "label": "Bruttomaterialpreis",
+      "value": "70.63",
+      "checkbox": null
+    },
+    {
+      "label": "Nettomaterialpreis",
+      "value": "57.499",
+      "checkbox": null
+    },
+    {
+      "label": "Recyclinggebühr",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Fremdleistung",
+      "value": "",
+      "checkbox": null
+    }
+  ],
+  "article_text": "\t\n\n\nNAP-Dose Kat 6A\n1xRJ45/s\n\nfreenet",
+  "images": [
+    {
+      "number": "966520",
+      "va": "20",
+      "vas": [
+        "20"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 966520 / VA 20, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_1_18_10",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T18:42:45.731Z",
+      "width": 145,
+      "height": 150,
+      "file": "images/portal-2026/785e674bd605828909ee10c19e4bf051e6ac771e36fbef8e488bfc8b5d3d7eaf.png",
+      "sha256": "785e674bd605828909ee10c19e4bf051e6ac771e36fbef8e488bfc8b5d3d7eaf",
+      "ordinal": 0
+    }
+  ],
+  "rows": [
+    {
+      "index": 0,
+      "level": 0,
+      "expanded": "true",
+      "cells": [
+        "NAP-Dose Kat 6A 1xRJ45/s",
+        "966520",
+        "20",
+        "1",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    {
+      "index": 1,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "NAP-Montageset RJ45 Kat 6A/8.1 2 Port",
+        "993211",
+        "20",
+        "1",
+        "46.658",
+        "46.658",
+        "0.24",
+        "0.24",
+        "977871005",
+        "R880928"
+      ]
+    },
+    {
+      "index": 2,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Anschlussmodul Kat 6A 1xRJ45/s",
+        "977860",
+        "100",
+        "1",
+        "8.405",
+        "8.405",
+        "0.009",
+        "0.009",
+        "966733885",
+        "R509504"
+      ]
+    },
+    {
+      "index": 3,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Datenkabel S/FTP Dca Kat 7 7002",
+        "102179",
+        "81",
+        "2",
+        "0.975",
+        "1.95",
+        "0.204",
+        "0.408",
+        "102617608",
+        "17738800DL"
+      ]
+    },
+    {
+      "index": 4,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Kabelverschraubung Is hf 20",
+        "121741",
+        "53",
+        "2",
+        "1.218",
+        "2.436",
+        "0.08",
+        "0.16",
+        "121742639",
+        ""
+      ]
+    }
+  ],
+  "tree_attributes": [
+    [
+      "role",
+      "treegrid"
+    ],
+    [
+      "class",
+      "k-grid-aria-root"
+    ],
+    [
+      "aria-rowcount",
+      "6"
+    ],
+    [
+      "aria-colcount",
+      "11"
+    ]
+  ],
+  "calculation": [
+    [
+      {
+        "text": "Arbeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Material",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Akkord",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "Installationszeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.808"
+      },
+      {
+        "text": "Bruttomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "70.63"
+      },
+      {
+        "text": "Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "93.2432"
+      }
+    ],
+    [
+      {
+        "text": "* Stundenansatz",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "115.40"
+      },
+      {
+        "text": "Nettomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "57.499"
+      },
+      {
+        "text": "+ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "69.57379"
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "* Materialfaktor",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.21"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "+ Recyclinggebühr",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.00"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "= Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "93.2432"
+      },
+      {
+        "text": "= Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "69.57379"
+      },
+      {
+        "text": "= Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "162.81699"
+      }
+    ],
+    [
+      {
+        "text": "≈ Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "93.25"
+      },
+      {
+        "text": "≈ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "69.55"
+      },
+      {
+        "text": "≈ Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "162.80"
+      }
+    ]
+  ],
+  "complete_tree": true
+}

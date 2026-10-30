@@ -1,0 +1,476 @@
+{
+  "number": "408010",
+  "va": "24",
+  "year": 2026,
+  "source": "https://digital.asteigerag.ch/dashboard",
+  "portal_page": "0_1_12_27",
+  "captured_at": "2026-10-23T17:54:18.250Z",
+  "capture_kind": "article_dialog",
+  "basic_data": [
+    {
+      "label": "Typ",
+      "value": "Komplett-Artikel/-Installation",
+      "checkbox": null
+    },
+    {
+      "label": "Artikelnummer",
+      "value": "408010",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z1",
+      "value": "REG-Eingangsbaugruppe 8x230V",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z2",
+      "value": "INNOXEL",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z3",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 1",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 2",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 3",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Lieferant",
+      "value": "1 Strukturen",
+      "checkbox": null
+    },
+    {
+      "label": "Sortiment",
+      "value": "4502 ZidaTech",
+      "checkbox": null
+    },
+    {
+      "label": "Bestellnummer",
+      "value": "410.300.010",
+      "checkbox": null
+    },
+    {
+      "label": "E-Nr",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Anschluss",
+      "value": "",
+      "checkbox": true
+    },
+    {
+      "label": "Warengruppe-Nummer",
+      "value": "3860",
+      "checkbox": null
+    },
+    {
+      "label": "Warengruppe-Rabatt (in %)",
+      "value": "0",
+      "checkbox": null
+    },
+    {
+      "label": "Warengruppe-Text",
+      "value": "(L)INNOXEL Bussystem",
+      "checkbox": null
+    },
+    {
+      "label": "Bruttomaterialpreis",
+      "value": "280.29",
+      "checkbox": null
+    },
+    {
+      "label": "Nettomaterialpreis",
+      "value": "277.0675",
+      "checkbox": null
+    },
+    {
+      "label": "Recyclinggebühr",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Fremdleistung",
+      "value": "",
+      "checkbox": null
+    }
+  ],
+  "article_text": "\t\n\n\nREG-Eingangsbaugruppe\n8x230V\n\nINNOXEL",
+  "images": [
+    {
+      "number": "408010",
+      "va": "24",
+      "vas": [
+        "24"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 408010 / VA 24, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_1_12_27",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T17:54:18.221Z",
+      "width": 137,
+      "height": 150,
+      "file": "images/portal-2026/b935d3ae092ef4794b9d9097ef6801cfc77aa680a4f29b1ed3dba9f530eb07ef.png",
+      "sha256": "b935d3ae092ef4794b9d9097ef6801cfc77aa680a4f29b1ed3dba9f530eb07ef",
+      "ordinal": 0
+    },
+    {
+      "number": "408010",
+      "va": "24",
+      "vas": [
+        "24"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 408010 / VA 24, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_1_12_27",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T17:54:18.222Z",
+      "width": 300,
+      "height": 300,
+      "file": "images/portal-2026/37936be1ddd7567af773bfdaa0babf07897156e27beeaf18094c59c94657f908.jpg",
+      "sha256": "37936be1ddd7567af773bfdaa0babf07897156e27beeaf18094c59c94657f908",
+      "ordinal": 1
+    }
+  ],
+  "rows": [
+    {
+      "index": 0,
+      "level": 0,
+      "expanded": "true",
+      "cells": [
+        "REG-Eingangsbaugruppe 8x230V",
+        "408010",
+        "24",
+        "1",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "410.300.010"
+      ]
+    },
+    {
+      "index": 1,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "REG-Eingangsbaugruppe 8x230V",
+        "992953",
+        "24",
+        "1",
+        "273",
+        "273",
+        "0.063",
+        "0.063",
+        "",
+        "410.300.010"
+      ]
+    },
+    {
+      "index": 2,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Litze T Dca hf 1.5",
+        "113103",
+        "60",
+        "8",
+        "0.35",
+        "2.8",
+        "0.048",
+        "0.384",
+        "113163800",
+        "216245"
+      ]
+    },
+    {
+      "index": 3,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Litze T Dca hf 1.5",
+        "113103",
+        "70",
+        "16",
+        "0.35",
+        "5.6",
+        "0.041",
+        "0.656",
+        "113163800",
+        "216245"
+      ]
+    },
+    {
+      "index": 4,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Buskabel KNX-J-H(St)Hh B2ca hf 2x2x0.8",
+        "101528",
+        "60",
+        "1",
+        "1.2675",
+        "1.2675",
+        "0.062",
+        "0.062",
+        "101538079",
+        "TGZ181"
+      ]
+    },
+    {
+      "index": 5,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Buskabel KNX-J-H(St)Hh B2ca hf 2x2x0.8",
+        "101528",
+        "81",
+        "2",
+        "1.2675",
+        "2.535",
+        "0.146",
+        "0.292",
+        "101538079",
+        "TGZ181"
+      ]
+    },
+    {
+      "index": 6,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Einregulierung IBS 1.0h",
+        "999000",
+        "09",
+        "0.33",
+        "0",
+        "0",
+        "1",
+        "0.33",
+        "",
+        ""
+      ]
+    }
+  ],
+  "tree_attributes": [
+    [
+      "role",
+      "treegrid"
+    ],
+    [
+      "class",
+      "k-grid-aria-root"
+    ],
+    [
+      "aria-rowcount",
+      "8"
+    ],
+    [
+      "aria-colcount",
+      "11"
+    ]
+  ],
+  "calculation": [
+    [
+      {
+        "text": "Arbeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Material",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Akkord",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "Installationszeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.787"
+      },
+      {
+        "text": "Bruttomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "280.29"
+      },
+      {
+        "text": "Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "206.2198"
+      }
+    ],
+    [
+      {
+        "text": "* Stundenansatz",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "115.40"
+      },
+      {
+        "text": "Nettomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "277.0675"
+      },
+      {
+        "text": "+ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "335.25168"
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "* Materialfaktor",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.21"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "+ Recyclinggebühr",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.00"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "= Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "206.2198"
+      },
+      {
+        "text": "= Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "335.25168"
+      },
+      {
+        "text": "= Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "541.47148"
+      }
+    ],
+    [
+      {
+        "text": "≈ Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "206.20"
+      },
+      {
+        "text": "≈ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "335.25"
+      },
+      {
+        "text": "≈ Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "541.45"
+      }
+    ]
+  ],
+  "complete_tree": true
+}

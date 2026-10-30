@@ -1,0 +1,408 @@
+{
+  "number": "829465",
+  "va": "45",
+  "year": 2026,
+  "source": "https://digital.asteigerag.ch/dashboard",
+  "portal_page": "0_1_14_12",
+  "captured_at": "2026-10-23T18:05:32.040Z",
+  "capture_kind": "article_dialog",
+  "basic_data": [
+    {
+      "label": "Typ",
+      "value": "Komplett-Artikel/-Installation",
+      "checkbox": null
+    },
+    {
+      "label": "Artikelnummer",
+      "value": "829465",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z1",
+      "value": "UP-AZK leer T+T- Fach",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z2",
+      "value": "Platz f HAK",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z3",
+      "value": "o Klemmen",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 1",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 2",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 3",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Lieferant",
+      "value": "1 Strukturen",
+      "checkbox": null
+    },
+    {
+      "label": "Sortiment",
+      "value": "2701 HAG",
+      "checkbox": null
+    },
+    {
+      "label": "Bestellnummer",
+      "value": "UP-H28 TT",
+      "checkbox": null
+    },
+    {
+      "label": "E-Nr",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Anschluss",
+      "value": "",
+      "checkbox": false
+    },
+    {
+      "label": "Warengruppe-Nummer",
+      "value": "3597",
+      "checkbox": null
+    },
+    {
+      "label": "Warengruppe-Rabatt (in %)",
+      "value": "0",
+      "checkbox": null
+    },
+    {
+      "label": "Warengruppe-Text",
+      "value": "(L)HAG Gretener Verteiler",
+      "checkbox": null
+    },
+    {
+      "label": "Bruttomaterialpreis",
+      "value": "732.6",
+      "checkbox": null
+    },
+    {
+      "label": "Nettomaterialpreis",
+      "value": "732.6",
+      "checkbox": null
+    },
+    {
+      "label": "Recyclinggebühr",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Fremdleistung",
+      "value": "",
+      "checkbox": null
+    }
+  ],
+  "article_text": "\t\n\n\nUP-AZK leer\nT+T- Fach\n\nPlatz f HAK\n\n\no Klemmen\n\n\nRegenzarge 600x700x230 Al",
+  "images": [
+    {
+      "number": "829465",
+      "va": "45",
+      "vas": [
+        "45"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 829465 / VA 45, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_1_14_12",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T18:05:32.015Z",
+      "width": 122,
+      "height": 150,
+      "file": "images/portal-2026/fa6aa0a13cf9ba732af7d652a0531c3c1e3fb9836c70177aeff81a1f7e88818d.png",
+      "sha256": "fa6aa0a13cf9ba732af7d652a0531c3c1e3fb9836c70177aeff81a1f7e88818d",
+      "ordinal": 0
+    },
+    {
+      "number": "829465",
+      "va": "45",
+      "vas": [
+        "45"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 829465 / VA 45, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_1_14_12",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T18:05:32.016Z",
+      "width": 300,
+      "height": 167,
+      "file": "images/portal-2026/6201a6f5e3327a7c01c1cacce3f924123d171b774d55d78ce2ef37faed3c1a2e.jpg",
+      "sha256": "6201a6f5e3327a7c01c1cacce3f924123d171b774d55d78ce2ef37faed3c1a2e",
+      "ordinal": 1
+    }
+  ],
+  "rows": [
+    {
+      "index": 0,
+      "level": 0,
+      "expanded": "true",
+      "cells": [
+        "UP-AZK leer T+T- Fach",
+        "829465",
+        "45",
+        "1",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "UP-H28 TT"
+      ]
+    },
+    {
+      "index": 1,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "UP-AZK leer Modell 28 T+T",
+        "990880",
+        "45",
+        "1",
+        "719",
+        "719",
+        "1.683",
+        "1.683",
+        "",
+        "UP-H28 TT"
+      ]
+    },
+    {
+      "index": 2,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Regenzarge Typ C /m",
+        "991329",
+        "100",
+        "0.68",
+        "20",
+        "13.6",
+        "0",
+        "0",
+        "",
+        "331.RZC.000"
+      ]
+    }
+  ],
+  "tree_attributes": [
+    [
+      "role",
+      "treegrid"
+    ],
+    [
+      "class",
+      "k-grid-aria-root"
+    ],
+    [
+      "aria-rowcount",
+      "4"
+    ],
+    [
+      "aria-colcount",
+      "11"
+    ]
+  ],
+  "calculation": [
+    [
+      {
+        "text": "Arbeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Material",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Akkord",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "Installationszeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.683"
+      },
+      {
+        "text": "Bruttomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "732.60"
+      },
+      {
+        "text": "Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "194.2182"
+      }
+    ],
+    [
+      {
+        "text": "* Stundenansatz",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "115.40"
+      },
+      {
+        "text": "Nettomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "732.60"
+      },
+      {
+        "text": "+ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "886.446"
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "* Materialfaktor",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.21"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "+ Recyclinggebühr",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.00"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "= Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "194.2182"
+      },
+      {
+        "text": "= Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "886.446"
+      },
+      {
+        "text": "= Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1080.6642"
+      }
+    ],
+    [
+      {
+        "text": "≈ Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "194.20"
+      },
+      {
+        "text": "≈ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "886.45"
+      },
+      {
+        "text": "≈ Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1080.65"
+      }
+    ]
+  ],
+  "complete_tree": true
+}

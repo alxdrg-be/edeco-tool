@@ -1,0 +1,374 @@
+{
+  "number": "152536",
+  "va": "10",
+  "year": 2026,
+  "source": "https://digital.asteigerag.ch/dashboard",
+  "portal_page": "0_1_6_4",
+  "captured_at": "2026-10-23T13:12:12.584Z",
+  "capture_kind": "article_dialog",
+  "basic_data": [
+    {
+      "label": "Typ",
+      "value": "Einzelartikel",
+      "checkbox": null
+    },
+    {
+      "label": "Artikelnummer",
+      "value": "152536",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z1",
+      "value": "NAP-Schlaufdose hf 81x81x38",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z2",
+      "value": "850°C",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z3",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 1",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 2",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 3",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Lieferant",
+      "value": "2003 AGRO",
+      "checkbox": null
+    },
+    {
+      "label": "Sortiment",
+      "value": "2003 AGRO",
+      "checkbox": null
+    },
+    {
+      "label": "Bestellnummer",
+      "value": "9820",
+      "checkbox": null
+    },
+    {
+      "label": "E-Nr",
+      "value": "152 085 008",
+      "checkbox": null
+    },
+    {
+      "label": "Anschluss",
+      "value": "",
+      "checkbox": false
+    },
+    {
+      "label": "Warengruppe-Nummer",
+      "value": "3010",
+      "checkbox": null
+    },
+    {
+      "label": "Warengruppe-Rabatt (in %)",
+      "value": "22",
+      "checkbox": null
+    },
+    {
+      "label": "Warengruppe-Text",
+      "value": "Agro Dosen/Dübel",
+      "checkbox": null
+    },
+    {
+      "label": "Bruttomaterialpreis",
+      "value": "6.31",
+      "checkbox": null
+    },
+    {
+      "label": "Nettomaterialpreis",
+      "value": "4.9218",
+      "checkbox": null
+    },
+    {
+      "label": "Recyclinggebühr",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Fremdleistung",
+      "value": "",
+      "checkbox": null
+    }
+  ],
+  "article_text": "\t\n\n\nNAP-Schlaufdose hf\n81x81x38\n\n850°C",
+  "images": [
+    {
+      "number": "152536",
+      "va": "10",
+      "vas": [
+        "10"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 152536 / VA 10, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_1_6_4",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T13:12:12.554Z",
+      "width": 130,
+      "height": 150,
+      "file": "images/portal-2026/f4496be20fae1b604f7cd9b787936c1fd486c3f9eda6c563062602ef80a37c9a.png",
+      "sha256": "f4496be20fae1b604f7cd9b787936c1fd486c3f9eda6c563062602ef80a37c9a",
+      "ordinal": 0
+    },
+    {
+      "number": "152536",
+      "va": "10",
+      "vas": [
+        "10"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 152536 / VA 10, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_1_6_4",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T13:12:12.555Z",
+      "width": 300,
+      "height": 300,
+      "file": "images/portal-2026/152a0d278de88d2b412c25d11288e5f56d261c091019aa8165b3440e7770b2bc.jpg",
+      "sha256": "152a0d278de88d2b412c25d11288e5f56d261c091019aa8165b3440e7770b2bc",
+      "ordinal": 1
+    }
+  ],
+  "rows": [
+    {
+      "index": 0,
+      "level": 0,
+      "expanded": null,
+      "cells": [
+        "NAP-Schlaufdose hf 81x81x38",
+        "152536",
+        "10",
+        "1",
+        "",
+        "",
+        "",
+        "",
+        "152085008",
+        "9820"
+      ]
+    }
+  ],
+  "tree_attributes": [
+    [
+      "role",
+      "treegrid"
+    ],
+    [
+      "class",
+      "k-grid-aria-root"
+    ],
+    [
+      "aria-rowcount",
+      "2"
+    ],
+    [
+      "aria-colcount",
+      "11"
+    ]
+  ],
+  "calculation": [
+    [
+      {
+        "text": "Arbeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Material",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Akkord",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "Installationszeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.209"
+      },
+      {
+        "text": "Bruttomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "6.31"
+      },
+      {
+        "text": "Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "24.1186"
+      }
+    ],
+    [
+      {
+        "text": "* Stundenansatz",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "115.40"
+      },
+      {
+        "text": "Nettomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "4.9218"
+      },
+      {
+        "text": "+ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "5.95538"
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "* Materialfaktor",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.21"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "+ Recyclinggebühr",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.00"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "= Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "24.1186"
+      },
+      {
+        "text": "= Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "5.95538"
+      },
+      {
+        "text": "= Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "30.07398"
+      }
+    ],
+    [
+      {
+        "text": "≈ Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "24.10"
+      },
+      {
+        "text": "≈ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "5.95"
+      },
+      {
+        "text": "≈ Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "30.05"
+      }
+    ]
+  ],
+  "complete_tree": true
+}

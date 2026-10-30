@@ -8,9 +8,11 @@ sie werden zur Laufzeit weder gewechselt noch heruntergeladen.
 
 - NOVA-Legenden ist integriert. Seine vorhandenen Einstellungen, Firmenordner und
   Projektdateien bleiben unter den bisherigen Pfaden verwendbar.
-- BIM2STEIGER ist noch nicht integriert. Die gelieferte ZIP überschreitet die
-  Importgrenze von 32 MiB. Benötigt wird eine Quellcode-ZIP ohne generierte
-  Abhängigkeiten und Buildausgaben. Der BIM2STEIGER-Branch bleibt unverändert.
+- BIM2STEIGER ist unter `backend/bim2steiger/` inklusive Originalkatalog integriert.
+  Der Adapter `backend/edeco_toolbox/bim.py` stellt seine vorhandene Fachlogik
+  als ASGI-Unteranwendung bereit. Die Oberfläche wird unter
+  `/tools/bim2steiger/` im gemeinsamen Fenster eingebettet; ein zweiter Prozess
+  oder Server ist nicht erforderlich.
 - Berechnungen, Blitzschutz und Dateien umbenennen sind geplante Werkzeuge;
   die Kacheln sind deaktiviert und enthalten noch keine Fachfunktionen.
 
@@ -38,7 +40,9 @@ mit denselben gemeinsamen Designvariablen festlegen.
 Neue Fachlogik unter `backend/edeco_toolbox/tools/<tool_id>/` ablegen. Einen
 FastAPI-`APIRouter` in `backend/edeco_toolbox/app.py` unter
 `/api/tools/<tool-id>` einbinden, **vor** dem statischen UI-Mount. Der
-NOVA-Legenden-Adapter behält seine vorhandenen `/api`-Pfade bei.
+NOVA-Legenden-Adapter behält seine vorhandenen `/api`-Pfade bei. BIM kapselt seine
+Pfade vollständig unter `/tools/bim2steiger/api/`. Sein kleines `localUrl`-Hilfsmittel
+übersetzt lokale URLs für diesen Mount; Bilder und Skripte bleiben relativ.
 
 Werkzeuge mit anderem Technologieaufbau benötigen einen passenden Adapter;
 Quellcode aus fremden Branches nicht blind über die gemeinsamen Dateien kopieren.
@@ -54,5 +58,7 @@ Die Browser-Tests decken auch den Wechsel zur Toolbox und Speicherfehler ab.
 
 Der gemeinsame Windows-Build verwendet `packaging/edeco_toolbox.spec` und
 `packaging/toolbox-setup.iss`. Er besitzt eine eigene Installer-ID und ersetzt
-keine bestehende Einzelinstallation. Der alte Nova-Updater ist in der Toolbox
-deaktiviert. Ein gemeinsamer automatischer Updater ist noch nicht implementiert.
+keine bestehende Einzelinstallation. Die beiden Einzelprogramm-Updater sind in der Toolbox deaktiviert.
+Beim Verlassen von BIM prüft `toolbox-bridge.js`, dass kein Vorgang und kein
+Dialog mehr offen ist, und speichert Favoriten, Modellimport und Ausschreibung.
+Fehler beim Schreiben des lokalen Speichers verhindern den Wechsel. Ein gemeinsamer automatischer Updater ist noch nicht implementiert.

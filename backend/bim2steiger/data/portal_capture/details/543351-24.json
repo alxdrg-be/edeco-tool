@@ -1,0 +1,459 @@
+{
+  "number": "543351",
+  "va": "24",
+  "year": 2026,
+  "source": "https://digital.asteigerag.ch/dashboard",
+  "portal_page": "0_1_15_21",
+  "captured_at": "2026-10-23T18:14:35.160Z",
+  "capture_kind": "article_dialog",
+  "basic_data": [
+    {
+      "label": "Typ",
+      "value": "Komplett-Artikel/-Installation",
+      "checkbox": null
+    },
+    {
+      "label": "Artikelnummer",
+      "value": "543351",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z1",
+      "value": "EB-Schütz 4P AC1 70A AF40-40-00-11",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z2",
+      "value": "Steuerspannung 24-60V AC/DC",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z3",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 1",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 2",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 3",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Lieferant",
+      "value": "1 Strukturen",
+      "checkbox": null
+    },
+    {
+      "label": "Sortiment",
+      "value": "2001 ABB",
+      "checkbox": null
+    },
+    {
+      "label": "Bestellnummer",
+      "value": "1SBL347201R1100",
+      "checkbox": null
+    },
+    {
+      "label": "E-Nr",
+      "value": "510 100 484",
+      "checkbox": null
+    },
+    {
+      "label": "Anschluss",
+      "value": "",
+      "checkbox": true
+    },
+    {
+      "label": "Warengruppe-Nummer",
+      "value": "2254",
+      "checkbox": null
+    },
+    {
+      "label": "Warengruppe-Rabatt (in %)",
+      "value": "33",
+      "checkbox": null
+    },
+    {
+      "label": "Warengruppe-Text",
+      "value": "ABB Schaltapparate weitere",
+      "checkbox": null
+    },
+    {
+      "label": "Bruttomaterialpreis",
+      "value": "406.12",
+      "checkbox": null
+    },
+    {
+      "label": "Nettomaterialpreis",
+      "value": "265.484",
+      "checkbox": null
+    },
+    {
+      "label": "Recyclinggebühr",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Fremdleistung",
+      "value": "",
+      "checkbox": null
+    }
+  ],
+  "article_text": "\t\n\n\nEB-Schütz 4P AC1 70A\nAF40-40-00-11\n\nSteuerspannung 24-60V AC/DC",
+  "images": [
+    {
+      "number": "543351",
+      "va": "24",
+      "vas": [
+        "24"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 543351 / VA 24, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_1_15_21",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T18:14:35.128Z",
+      "width": 113,
+      "height": 150,
+      "file": "images/portal-2026/24f5e99d9408b1b78fd077ff69d62d9293c2dd1691b6ee73d8597a4677d75ae4.png",
+      "sha256": "24f5e99d9408b1b78fd077ff69d62d9293c2dd1691b6ee73d8597a4677d75ae4",
+      "ordinal": 0
+    },
+    {
+      "number": "543351",
+      "va": "24",
+      "vas": [
+        "24"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 543351 / VA 24, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_1_15_21",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T18:14:35.130Z",
+      "width": 223,
+      "height": 300,
+      "file": "images/portal-2026/40c2ae06c73183ca31efc8f8fae7f84dd699f83a0d042eaaec7f431265e947ee.jpg",
+      "sha256": "40c2ae06c73183ca31efc8f8fae7f84dd699f83a0d042eaaec7f431265e947ee",
+      "ordinal": 1
+    }
+  ],
+  "rows": [
+    {
+      "index": 0,
+      "level": 0,
+      "expanded": "true",
+      "cells": [
+        "EB-Schütz 4P AC1 70A AF40-40-00-11",
+        "543351",
+        "24",
+        "1",
+        "",
+        "",
+        "",
+        "",
+        "510100484",
+        "1SBL347201R1100"
+      ]
+    },
+    {
+      "index": 1,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "EB-Schütz 4P AC1 70A AF40-40-00-11",
+        "985226",
+        "24",
+        "1",
+        "246.024",
+        "246.024",
+        "0.063",
+        "0.063",
+        "510100484",
+        "1SBL347201R1100"
+      ]
+    },
+    {
+      "index": 2,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Litze T Dca hf 1.5",
+        "113103",
+        "60",
+        "2",
+        "0.35",
+        "0.7",
+        "0.048",
+        "0.096",
+        "113163800",
+        "216245"
+      ]
+    },
+    {
+      "index": 3,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Litze T Dca hf 1.5",
+        "113103",
+        "70",
+        "4",
+        "0.35",
+        "1.4",
+        "0.041",
+        "0.164",
+        "113163800",
+        "216245"
+      ]
+    },
+    {
+      "index": 4,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Litze T Dca hf 25",
+        "113109",
+        "60",
+        "4",
+        "4.69",
+        "18.76",
+        "0.09",
+        "0.36",
+        "113164400",
+        "220561"
+      ]
+    },
+    {
+      "index": 5,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Litze T Dca hf 25",
+        "113109",
+        "70",
+        "8",
+        "4.69",
+        "37.52",
+        "0.114",
+        "0.912",
+        "113164400",
+        "220561"
+      ]
+    }
+  ],
+  "tree_attributes": [
+    [
+      "role",
+      "treegrid"
+    ],
+    [
+      "class",
+      "k-grid-aria-root"
+    ],
+    [
+      "aria-rowcount",
+      "7"
+    ],
+    [
+      "aria-colcount",
+      "11"
+    ]
+  ],
+  "calculation": [
+    [
+      {
+        "text": "Arbeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Material",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Akkord",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "Installationszeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.595"
+      },
+      {
+        "text": "Bruttomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "406.12"
+      },
+      {
+        "text": "Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "184.063"
+      }
+    ],
+    [
+      {
+        "text": "* Stundenansatz",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "115.40"
+      },
+      {
+        "text": "Nettomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "265.484"
+      },
+      {
+        "text": "+ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "321.23564"
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "* Materialfaktor",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.21"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "+ Recyclinggebühr",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.00"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "= Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "184.063"
+      },
+      {
+        "text": "= Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "321.23564"
+      },
+      {
+        "text": "= Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "505.29864"
+      }
+    ],
+    [
+      {
+        "text": "≈ Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "184.05"
+      },
+      {
+        "text": "≈ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "321.25"
+      },
+      {
+        "text": "≈ Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "505.30"
+      }
+    ]
+  ],
+  "complete_tree": true
+}

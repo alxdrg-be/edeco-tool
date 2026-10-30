@@ -1,0 +1,476 @@
+{
+  "number": "966076",
+  "va": "24",
+  "year": 2026,
+  "source": "https://digital.asteigerag.ch/dashboard",
+  "portal_page": "0_1_17_5",
+  "captured_at": "2026-10-23T18:34:18.139Z",
+  "capture_kind": "article_dialog",
+  "basic_data": [
+    {
+      "label": "Typ",
+      "value": "Komplett-Artikel/-Installation",
+      "checkbox": null
+    },
+    {
+      "label": "Artikelnummer",
+      "value": "966076",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z1",
+      "value": "REG-Schaltgerät BRE2",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z2",
+      "value": "1 Eing 24VDC",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z3",
+      "value": "1 Ausg 230V/3A",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 1",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 2",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 3",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Lieferant",
+      "value": "1 Strukturen",
+      "checkbox": null
+    },
+    {
+      "label": "Sortiment",
+      "value": "3002 Koch",
+      "checkbox": null
+    },
+    {
+      "label": "Bestellnummer",
+      "value": "DQ00.0012",
+      "checkbox": null
+    },
+    {
+      "label": "E-Nr",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Anschluss",
+      "value": "",
+      "checkbox": true
+    },
+    {
+      "label": "Warengruppe-Nummer",
+      "value": "4119",
+      "checkbox": null
+    },
+    {
+      "label": "Warengruppe-Rabatt (in %)",
+      "value": "33",
+      "checkbox": null
+    },
+    {
+      "label": "Warengruppe-Text",
+      "value": "(L) Koch Türsprechanlagen",
+      "checkbox": null
+    },
+    {
+      "label": "Bruttomaterialpreis",
+      "value": "141.85",
+      "checkbox": null
+    },
+    {
+      "label": "Nettomaterialpreis",
+      "value": "103.305",
+      "checkbox": null
+    },
+    {
+      "label": "Recyclinggebühr",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Fremdleistung",
+      "value": "",
+      "checkbox": null
+    }
+  ],
+  "article_text": "\t\n\n\nREG-Schaltgerät\nBRE2\n\n1 Eing 24VDC\n\n\n1 Ausg 230V/3A",
+  "images": [
+    {
+      "number": "966076",
+      "va": "24",
+      "vas": [
+        "24"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 966076 / VA 24, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_1_17_5",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T18:34:18.115Z",
+      "width": 90,
+      "height": 150,
+      "file": "images/portal-2026/eccb70433af6225ee3ca237c66e723d06e241eb5482021b1b86d0d988c07ad27.png",
+      "sha256": "eccb70433af6225ee3ca237c66e723d06e241eb5482021b1b86d0d988c07ad27",
+      "ordinal": 0
+    },
+    {
+      "number": "966076",
+      "va": "24",
+      "vas": [
+        "24"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 966076 / VA 24, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_1_17_5",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T18:34:18.117Z",
+      "width": 200,
+      "height": 300,
+      "file": "images/portal-2026/9ca72fe7080eab74c6bbbea4422b12bea0c4916b5c5c82e4c173a65f00de17ca.jpg",
+      "sha256": "9ca72fe7080eab74c6bbbea4422b12bea0c4916b5c5c82e4c173a65f00de17ca",
+      "ordinal": 1
+    }
+  ],
+  "rows": [
+    {
+      "index": 0,
+      "level": 0,
+      "expanded": "true",
+      "cells": [
+        "REG-Schaltgerät BRE2",
+        "966076",
+        "24",
+        "1",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "DQ00.0012"
+      ]
+    },
+    {
+      "index": 1,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "REG-Schaltgerät BRE2",
+        "994043",
+        "24",
+        "1",
+        "76.38",
+        "76.38",
+        "0.201",
+        "0.201",
+        "",
+        "DQ00.0012"
+      ]
+    },
+    {
+      "index": 2,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Einregulierung IBS Koch",
+        "994044",
+        "100",
+        "1",
+        "26",
+        "26",
+        "0",
+        "0",
+        "",
+        "DU00.0010"
+      ]
+    },
+    {
+      "index": 3,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Litze T Dca hf 1.5",
+        "113103",
+        "60",
+        "1",
+        "0.35",
+        "0.35",
+        "0.048",
+        "0.048",
+        "113163800",
+        "216245"
+      ]
+    },
+    {
+      "index": 4,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Litze T Dca hf 1.5",
+        "113103",
+        "70",
+        "2",
+        "0.35",
+        "0.7",
+        "0.041",
+        "0.082",
+        "113163800",
+        "216245"
+      ]
+    },
+    {
+      "index": 5,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Kabel U72 Cca hf 1x4x0.8",
+        "102261",
+        "60",
+        "1",
+        "0.575",
+        "0.575",
+        "0.062",
+        "0.062",
+        "102068304",
+        ""
+      ]
+    },
+    {
+      "index": 6,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Kabel U72 Cca hf 1x4x0.8",
+        "102261",
+        "81",
+        "2",
+        "0.575",
+        "1.15",
+        "0.124",
+        "0.248",
+        "102068304",
+        ""
+      ]
+    }
+  ],
+  "tree_attributes": [
+    [
+      "role",
+      "treegrid"
+    ],
+    [
+      "class",
+      "k-grid-aria-root"
+    ],
+    [
+      "aria-rowcount",
+      "8"
+    ],
+    [
+      "aria-colcount",
+      "11"
+    ]
+  ],
+  "calculation": [
+    [
+      {
+        "text": "Arbeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Material",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Akkord",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "Installationszeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.641"
+      },
+      {
+        "text": "Bruttomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "141.85"
+      },
+      {
+        "text": "Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "73.9714"
+      }
+    ],
+    [
+      {
+        "text": "* Stundenansatz",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "115.40"
+      },
+      {
+        "text": "Nettomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "103.305"
+      },
+      {
+        "text": "+ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "125.45905"
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "* Materialfaktor",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.21"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "+ Recyclinggebühr",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.46"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "= Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "73.9714"
+      },
+      {
+        "text": "= Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "125.45905"
+      },
+      {
+        "text": "= Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "199.43045"
+      }
+    ],
+    [
+      {
+        "text": "≈ Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "73.95"
+      },
+      {
+        "text": "≈ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "125.45"
+      },
+      {
+        "text": "≈ Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "199.45"
+      }
+    ]
+  ],
+  "complete_tree": true
+}

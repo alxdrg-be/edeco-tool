@@ -1,0 +1,510 @@
+{
+  "number": "907521",
+  "va": "20",
+  "year": 2026,
+  "source": "https://digital.asteigerag.ch/dashboard",
+  "portal_page": "0_1_13_3",
+  "captured_at": "2026-10-23T17:58:09.376Z",
+  "capture_kind": "article_dialog",
+  "basic_data": [
+    {
+      "label": "Typ",
+      "value": "Komplett-Artikel/-Installation",
+      "checkbox": null
+    },
+    {
+      "label": "Artikelnummer",
+      "value": "907521",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z1",
+      "value": "Handtuchradiator Elea",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z2",
+      "value": "Elektroheizeinsatz MOA-IR",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z3",
+      "value": "450x1320",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 1",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 2",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 3",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Lieferant",
+      "value": "1 Strukturen",
+      "checkbox": null
+    },
+    {
+      "label": "Sortiment",
+      "value": "3822 Systec Therm",
+      "checkbox": null
+    },
+    {
+      "label": "Bestellnummer",
+      "value": "I-3975010",
+      "checkbox": null
+    },
+    {
+      "label": "E-Nr",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Anschluss",
+      "value": "",
+      "checkbox": true
+    },
+    {
+      "label": "Warengruppe-Nummer",
+      "value": "4401",
+      "checkbox": null
+    },
+    {
+      "label": "Warengruppe-Rabatt (in %)",
+      "value": "25",
+      "checkbox": null
+    },
+    {
+      "label": "Warengruppe-Text",
+      "value": "(L)Systec Therm",
+      "checkbox": null
+    },
+    {
+      "label": "Bruttomaterialpreis",
+      "value": "1670",
+      "checkbox": null
+    },
+    {
+      "label": "Nettomaterialpreis",
+      "value": "1252.5",
+      "checkbox": null
+    },
+    {
+      "label": "Recyclinggebühr",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Fremdleistung",
+      "value": "",
+      "checkbox": null
+    }
+  ],
+  "article_text": "\t\n\n\nHandtuchradiator\nElea\n\nElektroheizeinsatz MOA-IR\n\n\n450x1320",
+  "images": [
+    {
+      "number": "907521",
+      "va": "20",
+      "vas": [
+        "20"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 907521 / VA 20, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_1_13_3",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T17:58:09.353Z",
+      "width": 61,
+      "height": 150,
+      "file": "images/portal-2026/a8f42b7a66c289773c11e5a0972fb1f1b9b432b601699738a7b977cee1a53b1b.png",
+      "sha256": "a8f42b7a66c289773c11e5a0972fb1f1b9b432b601699738a7b977cee1a53b1b",
+      "ordinal": 0
+    },
+    {
+      "number": "907521",
+      "va": "20",
+      "vas": [
+        "20"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 907521 / VA 20, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_1_13_3",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T17:58:09.354Z",
+      "width": 106,
+      "height": 300,
+      "file": "images/portal-2026/432b0e67e2c7755e1b17c6f00d8fdd25248a1a058ad38a87e600c292bbb8c3a7.jpg",
+      "sha256": "432b0e67e2c7755e1b17c6f00d8fdd25248a1a058ad38a87e600c292bbb8c3a7",
+      "ordinal": 1
+    }
+  ],
+  "rows": [
+    {
+      "index": 0,
+      "level": 0,
+      "expanded": "true",
+      "cells": [
+        "Handtuchradiator Elea",
+        "907521",
+        "20",
+        "1",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "I-3975010"
+      ]
+    },
+    {
+      "index": 1,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Handtuchradiator Elea",
+        "992904",
+        "100",
+        "1",
+        "1087.5",
+        "1087.5",
+        "0",
+        "0",
+        "",
+        "I-3975010"
+      ]
+    },
+    {
+      "index": 2,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Elektroheizeinsatz MOA-IR",
+        "992902",
+        "100",
+        "1",
+        "165",
+        "165",
+        "1.345",
+        "1.345",
+        "",
+        "I-3988612"
+      ]
+    },
+    {
+      "index": 3,
+      "level": 1,
+      "expanded": "true",
+      "cells": [
+        "M+A+FK Handtuchradiator",
+        "12452",
+        "20",
+        "1",
+        "0",
+        "0",
+        "1.624",
+        "1.624",
+        "",
+        "191103033Cca"
+      ]
+    },
+    {
+      "index": 4,
+      "level": 2,
+      "expanded": null,
+      "cells": [
+        "Kabel flex Cca hf 3x1.5",
+        "106702",
+        "064",
+        "1.2",
+        "0.91",
+        "1.092",
+        "0.11",
+        "0.132",
+        "",
+        "191103033Cca"
+      ]
+    },
+    {
+      "index": 5,
+      "level": 2,
+      "expanded": null,
+      "cells": [
+        "Kabel flex Cca hf 3x1.5",
+        "106702",
+        "70",
+        "1",
+        "0.91",
+        "0.91",
+        "0.121",
+        "0.121",
+        "",
+        "191103033Cca"
+      ]
+    },
+    {
+      "index": 6,
+      "level": 2,
+      "expanded": null,
+      "cells": [
+        "Bef m Schraube Ø -10",
+        "12010",
+        "20",
+        "4",
+        "0",
+        "0",
+        "0.193",
+        "0.772",
+        "",
+        ""
+      ]
+    },
+    {
+      "index": 7,
+      "level": 2,
+      "expanded": null,
+      "cells": [
+        "Apparatemontage 4-6 Bef 15-30kg",
+        "12006",
+        "24",
+        "1",
+        "0",
+        "0",
+        "0.399",
+        "0.399",
+        "",
+        ""
+      ]
+    },
+    {
+      "index": 8,
+      "level": 2,
+      "expanded": null,
+      "cells": [
+        "Funktionskontrolle 1.0h",
+        "12574",
+        "09",
+        "0.2",
+        "0",
+        "0",
+        "1",
+        "0.2",
+        "",
+        ""
+      ]
+    }
+  ],
+  "tree_attributes": [
+    [
+      "role",
+      "treegrid"
+    ],
+    [
+      "class",
+      "k-grid-aria-root"
+    ],
+    [
+      "aria-rowcount",
+      "10"
+    ],
+    [
+      "aria-colcount",
+      "11"
+    ]
+  ],
+  "calculation": [
+    [
+      {
+        "text": "Arbeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Material",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Akkord",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "Installationszeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.624"
+      },
+      {
+        "text": "Bruttomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1670.00"
+      },
+      {
+        "text": "Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "187.4096"
+      }
+    ],
+    [
+      {
+        "text": "* Stundenansatz",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "115.40"
+      },
+      {
+        "text": "Nettomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1252.50"
+      },
+      {
+        "text": "+ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1515.525"
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "* Materialfaktor",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.21"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "+ Recyclinggebühr",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.00"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "= Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "187.4096"
+      },
+      {
+        "text": "= Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1515.525"
+      },
+      {
+        "text": "= Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1702.9346"
+      }
+    ],
+    [
+      {
+        "text": "≈ Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "187.40"
+      },
+      {
+        "text": "≈ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1515.55"
+      },
+      {
+        "text": "≈ Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1702.95"
+      }
+    ]
+  ],
+  "complete_tree": true
+}

@@ -8,17 +8,18 @@ farbige Werkzeugkacheln, Suche, Kategorien und Hell-/Dunkelmodus.
 | Werkzeug | Stand | Kennfarbe |
 | --- | --- | --- |
 | NOVA-Legenden | Integriert | Petrol |
-| BIM2STEIGER | Quellcode-Import ausstehend | Blau |
+| BIM2STEIGER | Integriert, inklusive lokalem Katalog | Blau |
 | Berechnungstool | Geplant | Violett |
 | Blitzschutz | Geplant | Orange |
 | Dateien umbenennen | Geplant | Grün |
 
-Die BIM2STEIGER-ZIP überschreitet die Importgrenze von 32 MiB. Für die Integration
-wird eine kleinere Quellcode-ZIP ohne `node_modules`, `.venv`, `dist` und `build`
-benötigt. Die weiteren Fachwerkzeuge sind noch nicht implementiert.
+BIM2STEIGER verwendet seinen vorhandenen Katalog mit 11’777 Katalogartikeln,
+Originalbildern, Favoriten, Modellimport und Ausschreibungen. Es läuft unter
+`/tools/bim2steiger/` im selben lokalen Server und Desktopfenster wie Nova.
+Die weiteren Fachwerkzeuge sind noch nicht implementiert.
 
-Der Branch `Nova-Legenden` enthält den ursprünglichen ZIP-Import. Der Branch
-`toolbox` enthält die gemeinsame Anwendung; `main` bleibt vorerst unverändert.
+Die Branches `Nova-Legenden` und `BIM2STEIGER` enthalten die ursprünglichen
+Programme. Der Branch `toolbox` enthält die gemeinsame Anwendung; `main` bleibt vorerst unverändert.
 Branches sind Entwicklungsstände, keine zur Laufzeit geladenen Plugins.
 
 ## Aus dem Quellcode starten
@@ -35,6 +36,9 @@ Der Server lauscht ausschließlich auf `127.0.0.1`.
 
 NOVA-Legenden verwendet weiterhin seine bestehenden Datenpfade. Für eine
 isolierte Testumgebung `NOVA_LEGENDEN_HOME` auf einen eigenen Ordner setzen.
+BIM-Favoriten und Ausschreibungen verwenden weiterhin die bisherigen lokalen
+Browserspeicherschlüssel. Bei einem Wechsel von Host oder Port bestehende
+Arbeitslisten im Einzelprogramm als JSON sichern und in der Toolbox laden.
 Die gemeinsame Toolbox-Oberfläche startet mit `python -m edeco_toolbox`
 (bei gesetztem `PYTHONPATH=backend`).
 
@@ -42,6 +46,7 @@ Die gemeinsame Toolbox-Oberfläche startet mit `python -m edeco_toolbox`
 
 ```sh
 .venv/bin/python -m pytest backend/tests -q
+(cd backend/bim2steiger && ../../.venv/bin/python -m unittest discover -s tests -q)
 cd ui
 npm test
 npm run build
@@ -55,6 +60,7 @@ werden ohne den lokalen Ordner `samples` übersprungen.
 Frontend mit automatischem Neuladen: Im Ordner `ui` `npm run dev` starten;
 parallel den Python-Server mit `bash start.sh --server --port 8765` ausführen.
 
+BIM-Importherkunft: [Importstand](docs/BIM2STEIGER_IMPORT.md).
 Weitere Module: [Toolbox erweitern](docs/TOOLBOX_ERWEITERN.md).
 Nova-Funktionen: [ursprüngliche Dokumentation](docs/NOVA_LEGENDEN.md).
 

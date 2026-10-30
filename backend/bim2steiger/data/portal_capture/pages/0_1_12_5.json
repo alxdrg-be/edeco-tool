@@ -1,0 +1,364 @@
+{
+  "year": 2026,
+  "page": "0_1_12_5",
+  "label": "12.2.2 KNX Eingänge Wetterstationen",
+  "source": "https://digital.asteigerag.ch/dashboard",
+  "captured_at": "2026-10-21T12:46:31.698Z",
+  "articles": [
+    {
+      "number": "405494",
+      "vas": [
+        "24"
+      ],
+      "text": "REG-Binäreingang\n4xKontaktabfrage\n\n\nHandbedienung Zustandsanzeige\n\n\nBE/S 4.20.3.2",
+      "images": [
+        {
+          "number": "405494",
+          "va": "24",
+          "vas": [
+            "24"
+          ],
+          "kind": "preview",
+          "role": "Originale Katalogvorschau",
+          "source": "Steiger-Portal, Katalogvorschau 405494, Katalog 2026",
+          "source_url": "https://digital.asteigerag.ch/dashboard",
+          "portal_page": "0_1_12_5",
+          "catalogue_year": 2026,
+          "captured_at": "2026-10-21T12:46:31.688Z",
+          "width": 81,
+          "height": 150,
+          "file": "images/portal-2026/3bdb2839b0e91d07a88baae070d9347de265ba04d8138f1151fe3ad63a31d25d.png",
+          "sha256": "3bdb2839b0e91d07a88baae070d9347de265ba04d8138f1151fe3ad63a31d25d"
+        }
+      ]
+    },
+    {
+      "number": "405495",
+      "vas": [
+        "24"
+      ],
+      "text": "BE/S 10.20.3.2\n10xKontaktabfrage",
+      "images": []
+    },
+    {
+      "number": "405496",
+      "vas": [
+        "24"
+      ],
+      "text": "BE/S 16.20.3.2\n16xKontaktabfrage",
+      "images": []
+    },
+    {
+      "number": "405497",
+      "vas": [
+        "24"
+      ],
+      "text": "BE/S 4.230.3.2\n4x10-230V",
+      "images": []
+    },
+    {
+      "number": "405499",
+      "vas": [
+        "24"
+      ],
+      "text": "BE/S 10.230.3.2\n10x10-230V",
+      "images": []
+    },
+    {
+      "number": "405501",
+      "vas": [
+        "24"
+      ],
+      "text": "BE/S 16.230.3.2\n16x10-230V",
+      "images": []
+    },
+    {
+      "number": "405527",
+      "vas": [
+        "48"
+      ],
+      "text": "EB-Universalschnittstelle\n2fach\n\n\nUS/U 2.3",
+      "images": [
+        {
+          "number": "405527",
+          "va": "48",
+          "vas": [
+            "48"
+          ],
+          "kind": "preview",
+          "role": "Originale Katalogvorschau",
+          "source": "Steiger-Portal, Katalogvorschau 405527, Katalog 2026",
+          "source_url": "https://digital.asteigerag.ch/dashboard",
+          "portal_page": "0_1_12_5",
+          "catalogue_year": 2026,
+          "captured_at": "2026-10-21T12:46:31.689Z",
+          "width": 150,
+          "height": 138,
+          "file": "images/portal-2026/13476fdbdc8c743d1e8c15057ea976d1f3c2d2da1256e1bc56138f57d6632f2d.png",
+          "sha256": "13476fdbdc8c743d1e8c15057ea976d1f3c2d2da1256e1bc56138f57d6632f2d"
+        }
+      ]
+    },
+    {
+      "number": "405528",
+      "vas": [
+        "48"
+      ],
+      "text": "US/U 4.3\n4fach",
+      "images": []
+    },
+    {
+      "number": "405423",
+      "vas": [
+        "24"
+      ],
+      "text": "REG-Analogeingang\n4fach\n\n\nAE/S 4.1.1.3",
+      "images": [
+        {
+          "number": "405423",
+          "va": "24",
+          "vas": [
+            "24"
+          ],
+          "kind": "preview",
+          "role": "Originale Katalogvorschau",
+          "source": "Steiger-Portal, Katalogvorschau 405423, Katalog 2026",
+          "source_url": "https://digital.asteigerag.ch/dashboard",
+          "portal_page": "0_1_12_5",
+          "catalogue_year": 2026,
+          "captured_at": "2026-10-21T12:46:31.690Z",
+          "width": 859,
+          "height": 992,
+          "file": "images/portal-2026/e4c0e95aa5cef559c1bbb36f969c782da8b2173047752084c68f1afd0b4347db.png",
+          "sha256": "e4c0e95aa5cef559c1bbb36f969c782da8b2173047752084c68f1afd0b4347db"
+        }
+      ]
+    },
+    {
+      "number": "405526",
+      "vas": [
+        "10",
+        "20"
+      ],
+      "text": "NAP-Analogeingang\n2fach\n\n\nAE/A 2.1",
+      "images": [
+        {
+          "number": "405526",
+          "va": null,
+          "vas": [
+            "10",
+            "20"
+          ],
+          "kind": "preview",
+          "role": "Originale Katalogvorschau",
+          "source": "Steiger-Portal, Katalogvorschau 405526, Katalog 2026",
+          "source_url": "https://digital.asteigerag.ch/dashboard",
+          "portal_page": "0_1_12_5",
+          "catalogue_year": 2026,
+          "captured_at": "2026-10-21T12:46:31.691Z",
+          "width": 142,
+          "height": 150,
+          "file": "images/portal-2026/3ca1f038818c5734c688b228df537a5697b7a2b4601446980cb87402b7f8c183.png",
+          "sha256": "3ca1f038818c5734c688b228df537a5697b7a2b4601446980cb87402b7f8c183"
+        }
+      ]
+    },
+    {
+      "number": "405566",
+      "vas": [
+        "24"
+      ],
+      "text": "REG-Wetterzentrale o Sensor\n\n\nWZ/S 1.3.1.2",
+      "images": [
+        {
+          "number": "405566",
+          "va": "24",
+          "vas": [
+            "24"
+          ],
+          "kind": "preview",
+          "role": "Originale Katalogvorschau",
+          "source": "Steiger-Portal, Katalogvorschau 405566, Katalog 2026",
+          "source_url": "https://digital.asteigerag.ch/dashboard",
+          "portal_page": "0_1_12_5",
+          "catalogue_year": 2026,
+          "captured_at": "2026-10-21T12:46:31.692Z",
+          "width": 131,
+          "height": 150,
+          "file": "images/portal-2026/5a0ca527123b6da450a0814d7c230e716677f6102a1e46fa933def35b0ba040b.png",
+          "sha256": "5a0ca527123b6da450a0814d7c230e716677f6102a1e46fa933def35b0ba040b"
+        }
+      ]
+    },
+    {
+      "number": "405652",
+      "vas": [
+        "24"
+      ],
+      "text": "NAP-Wettersensor\n\n\nWind Regen Licht Temp GPS\n\n\nWES/A 4.1.1",
+      "images": [
+        {
+          "number": "405652",
+          "va": "24",
+          "vas": [
+            "24"
+          ],
+          "kind": "preview",
+          "role": "Originale Katalogvorschau",
+          "source": "Steiger-Portal, Katalogvorschau 405652, Katalog 2026",
+          "source_url": "https://digital.asteigerag.ch/dashboard",
+          "portal_page": "0_1_12_5",
+          "catalogue_year": 2026,
+          "captured_at": "2026-10-21T12:46:31.693Z",
+          "width": 112,
+          "height": 150,
+          "file": "images/portal-2026/b2237fe8886050c174cfe2ff115c3d4765024b75441c05d3c34a9e510e0ebac5.png",
+          "sha256": "b2237fe8886050c174cfe2ff115c3d4765024b75441c05d3c34a9e510e0ebac5"
+        }
+      ]
+    },
+    {
+      "number": "405653",
+      "vas": [
+        "10",
+        "20"
+      ],
+      "text": "Wandbefestigung Wettersensor\n\n\nWB/Z1.2.1",
+      "images": [
+        {
+          "number": "405653",
+          "va": null,
+          "vas": [
+            "10",
+            "20"
+          ],
+          "kind": "preview",
+          "role": "Originale Katalogvorschau",
+          "source": "Steiger-Portal, Katalogvorschau 405653, Katalog 2026",
+          "source_url": "https://digital.asteigerag.ch/dashboard",
+          "portal_page": "0_1_12_5",
+          "catalogue_year": 2026,
+          "captured_at": "2026-10-21T12:46:31.694Z",
+          "width": 150,
+          "height": 93,
+          "file": "images/portal-2026/5bf07a4cfe37a3ac029b214ef61a77f4bcda1994d7ac637b0d3d552ff76dd8b8.png",
+          "sha256": "5bf07a4cfe37a3ac029b214ef61a77f4bcda1994d7ac637b0d3d552ff76dd8b8"
+        }
+      ]
+    },
+    {
+      "number": "405654",
+      "vas": [
+        "24"
+      ],
+      "text": "Mastadapter Ø 50\n\n\nMA/Z1.50.1",
+      "images": [
+        {
+          "number": "405654",
+          "va": "24",
+          "vas": [
+            "24"
+          ],
+          "kind": "preview",
+          "role": "Originale Katalogvorschau",
+          "source": "Steiger-Portal, Katalogvorschau 405654, Katalog 2026",
+          "source_url": "https://digital.asteigerag.ch/dashboard",
+          "portal_page": "0_1_12_5",
+          "catalogue_year": 2026,
+          "captured_at": "2026-10-21T12:46:31.695Z",
+          "width": 108,
+          "height": 150,
+          "file": "images/portal-2026/018f96ad7571ebcc1ba156999985eb42ccfbb38ff0f3b5a9f688a080757559ec.png",
+          "sha256": "018f96ad7571ebcc1ba156999985eb42ccfbb38ff0f3b5a9f688a080757559ec"
+        }
+      ]
+    },
+    {
+      "number": "405680",
+      "vas": [
+        "10",
+        "20"
+      ],
+      "text": "NAP-Wetterstation\nHome\n\n\nWind Licht Temp\n\n\n5m Kabel\n\n\nSCN-WS3HW.01",
+      "images": [
+        {
+          "number": "405680",
+          "va": null,
+          "vas": [
+            "10",
+            "20"
+          ],
+          "kind": "preview",
+          "role": "Originale Katalogvorschau",
+          "source": "Steiger-Portal, Katalogvorschau 405680, Katalog 2026",
+          "source_url": "https://digital.asteigerag.ch/dashboard",
+          "portal_page": "0_1_12_5",
+          "catalogue_year": 2026,
+          "captured_at": "2026-10-21T12:46:31.696Z",
+          "width": 143,
+          "height": 150,
+          "file": "images/portal-2026/5a4eb8bee9b67108f96434937b54f8cf8928da0e26ccc0c74472499251094d92.png",
+          "sha256": "5a4eb8bee9b67108f96434937b54f8cf8928da0e26ccc0c74472499251094d92"
+        }
+      ]
+    },
+    {
+      "number": "405670",
+      "vas": [
+        "10",
+        "20"
+      ],
+      "text": "GPS Wind\t\nSuntracer sl light\n\n\nRegen Licht Temp\t\n\n\n10m Kabel m Stecker eins",
+      "images": [
+        {
+          "number": "405670",
+          "va": null,
+          "vas": [
+            "10",
+            "20"
+          ],
+          "kind": "preview",
+          "role": "Originale Katalogvorschau",
+          "source": "Steiger-Portal, Katalogvorschau 405670, Katalog 2026",
+          "source_url": "https://digital.asteigerag.ch/dashboard",
+          "portal_page": "0_1_12_5",
+          "catalogue_year": 2026,
+          "captured_at": "2026-10-21T12:46:31.697Z",
+          "width": 150,
+          "height": 87,
+          "file": "images/portal-2026/1905b9a53d870c1aa9a20485912cd1fb5ffae3afe986348e73860562c0beb4a1.png",
+          "sha256": "1905b9a53d870c1aa9a20485912cd1fb5ffae3afe986348e73860562c0beb4a1"
+        }
+      ]
+    },
+    {
+      "number": "405675",
+      "vas": [
+        "10",
+        "20"
+      ],
+      "text": "Ausleger fix z Wetterstation 405670",
+      "images": [
+        {
+          "number": "405675",
+          "va": null,
+          "vas": [
+            "10",
+            "20"
+          ],
+          "kind": "preview",
+          "role": "Originale Katalogvorschau",
+          "source": "Steiger-Portal, Katalogvorschau 405675, Katalog 2026",
+          "source_url": "https://digital.asteigerag.ch/dashboard",
+          "portal_page": "0_1_12_5",
+          "catalogue_year": 2026,
+          "captured_at": "2026-10-21T12:46:31.698Z",
+          "width": 41,
+          "height": 150,
+          "file": "images/portal-2026/5f684449ccdf26fe18835bcbb91100ea83c5166de4ab613be682f21260c2602b.png",
+          "sha256": "5f684449ccdf26fe18835bcbb91100ea83c5166de4ab613be682f21260c2602b"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,493 @@
+{
+  "number": "907581",
+  "va": "10",
+  "year": 2026,
+  "source": "https://digital.asteigerag.ch/dashboard",
+  "portal_page": "0_1_13_2",
+  "captured_at": "2026-10-23T17:57:51.842Z",
+  "capture_kind": "article_dialog",
+  "basic_data": [
+    {
+      "label": "Typ",
+      "value": "Komplett-Artikel/-Installation",
+      "checkbox": null
+    },
+    {
+      "label": "Artikelnummer",
+      "value": "907581",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z1",
+      "value": "Infrarot-Glasheizkörper Solaris 1000W",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z2",
+      "value": "1050x630",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z3",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 1",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 2",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 3",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Lieferant",
+      "value": "1 Strukturen",
+      "checkbox": null
+    },
+    {
+      "label": "Sortiment",
+      "value": "3822 Systec Therm",
+      "checkbox": null
+    },
+    {
+      "label": "Bestellnummer",
+      "value": "Q-3320031",
+      "checkbox": null
+    },
+    {
+      "label": "E-Nr",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Anschluss",
+      "value": "",
+      "checkbox": true
+    },
+    {
+      "label": "Warengruppe-Nummer",
+      "value": "4401",
+      "checkbox": null
+    },
+    {
+      "label": "Warengruppe-Rabatt (in %)",
+      "value": "25",
+      "checkbox": null
+    },
+    {
+      "label": "Warengruppe-Text",
+      "value": "(L)Systec Therm",
+      "checkbox": null
+    },
+    {
+      "label": "Bruttomaterialpreis",
+      "value": "1950",
+      "checkbox": null
+    },
+    {
+      "label": "Nettomaterialpreis",
+      "value": "1462.5",
+      "checkbox": null
+    },
+    {
+      "label": "Recyclinggebühr",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Fremdleistung",
+      "value": "",
+      "checkbox": null
+    }
+  ],
+  "article_text": "\t\n\n\nInfrarot-Glasheizkörper Solaris\n1000W\n\n1050x630",
+  "images": [
+    {
+      "number": "907581",
+      "va": "10",
+      "vas": [
+        "10"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 907581 / VA 10, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_1_13_2",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T17:57:51.818Z",
+      "width": 150,
+      "height": 142,
+      "file": "images/portal-2026/bf1e56208be82a6bbc7ffe23cc885ccd09c94e7b1cbfb239349c5d151aed513e.png",
+      "sha256": "bf1e56208be82a6bbc7ffe23cc885ccd09c94e7b1cbfb239349c5d151aed513e",
+      "ordinal": 0
+    },
+    {
+      "number": "907581",
+      "va": "10",
+      "vas": [
+        "10"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 907581 / VA 10, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_1_13_2",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T17:57:51.819Z",
+      "width": 262,
+      "height": 300,
+      "file": "images/portal-2026/8af779cdeaecbb62d61f4b375698322721ebfae55391d75915aa6b90ac94f830.jpg",
+      "sha256": "8af779cdeaecbb62d61f4b375698322721ebfae55391d75915aa6b90ac94f830",
+      "ordinal": 1
+    }
+  ],
+  "rows": [
+    {
+      "index": 0,
+      "level": 0,
+      "expanded": "true",
+      "cells": [
+        "Infrarot-Glasheizkörper Solaris 1000W",
+        "907581",
+        "10",
+        "1",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "Q-3320031"
+      ]
+    },
+    {
+      "index": 1,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Infrarot-Glasheizkörper Solaris 1000W",
+        "992910",
+        "100",
+        "1",
+        "1462.5",
+        "1462.5",
+        "0",
+        "0",
+        "",
+        "Q-3320031"
+      ]
+    },
+    {
+      "index": 2,
+      "level": 1,
+      "expanded": "true",
+      "cells": [
+        "M+A+FK Infrarotheizkörper",
+        "12455",
+        "10",
+        "1",
+        "0",
+        "0",
+        "1.38",
+        "1.38",
+        "",
+        "191103033Cca"
+      ]
+    },
+    {
+      "index": 3,
+      "level": 2,
+      "expanded": null,
+      "cells": [
+        "Kabel flex Cca hf 3x1.5",
+        "106702",
+        "064",
+        "1.2",
+        "0.91",
+        "1.092",
+        "0.11",
+        "0.132",
+        "",
+        "191103033Cca"
+      ]
+    },
+    {
+      "index": 4,
+      "level": 2,
+      "expanded": null,
+      "cells": [
+        "Kabel flex Cca hf 3x1.5",
+        "106702",
+        "70",
+        "1",
+        "0.91",
+        "0.91",
+        "0.121",
+        "0.121",
+        "",
+        "191103033Cca"
+      ]
+    },
+    {
+      "index": 5,
+      "level": 2,
+      "expanded": null,
+      "cells": [
+        "Bef m Schraube Ø -10",
+        "12010",
+        "10",
+        "4",
+        "0",
+        "0",
+        "0.132",
+        "0.528",
+        "",
+        ""
+      ]
+    },
+    {
+      "index": 6,
+      "level": 2,
+      "expanded": null,
+      "cells": [
+        "Apparatemontage 4-6 Bef 15-30kg",
+        "12006",
+        "24",
+        "1",
+        "0",
+        "0",
+        "0.399",
+        "0.399",
+        "",
+        ""
+      ]
+    },
+    {
+      "index": 7,
+      "level": 2,
+      "expanded": null,
+      "cells": [
+        "Funktionskontrolle 1.0h",
+        "12574",
+        "09",
+        "0.2",
+        "0",
+        "0",
+        "1",
+        "0.2",
+        "",
+        ""
+      ]
+    }
+  ],
+  "tree_attributes": [
+    [
+      "role",
+      "treegrid"
+    ],
+    [
+      "class",
+      "k-grid-aria-root"
+    ],
+    [
+      "aria-rowcount",
+      "9"
+    ],
+    [
+      "aria-colcount",
+      "11"
+    ]
+  ],
+  "calculation": [
+    [
+      {
+        "text": "Arbeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Material",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Akkord",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "Installationszeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.38"
+      },
+      {
+        "text": "Bruttomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1950.00"
+      },
+      {
+        "text": "Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "159.252"
+      }
+    ],
+    [
+      {
+        "text": "* Stundenansatz",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "115.40"
+      },
+      {
+        "text": "Nettomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1462.50"
+      },
+      {
+        "text": "+ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1769.625"
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "* Materialfaktor",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.21"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "+ Recyclinggebühr",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.00"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "= Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "159.252"
+      },
+      {
+        "text": "= Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1769.625"
+      },
+      {
+        "text": "= Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1928.877"
+      }
+    ],
+    [
+      {
+        "text": "≈ Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "159.25"
+      },
+      {
+        "text": "≈ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1769.65"
+      },
+      {
+        "text": "≈ Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1928.90"
+      }
+    ]
+  ],
+  "complete_tree": true
+}

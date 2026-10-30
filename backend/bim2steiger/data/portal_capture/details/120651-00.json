@@ -1,0 +1,780 @@
+{
+  "number": "120651",
+  "va": "00",
+  "year": 2026,
+  "source": "https://digital.asteigerag.ch/dashboard",
+  "portal_page": "0_0_8_1",
+  "captured_at": "2026-10-23T05:48:14.170Z",
+  "capture_kind": "article_dialog",
+  "basic_data": [
+    {
+      "checkbox": null,
+      "label": "Typ",
+      "value": "Komplett-Artikel/-Installation"
+    },
+    {
+      "checkbox": null,
+      "label": "Artikelnummer",
+      "value": "120651"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z1",
+      "value": "Heizung"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z2",
+      "value": "Installation enthält:"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z3",
+      "value": "1 Pumpe"
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 1",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 2",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 3",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Lieferant",
+      "value": "1 Strukturen"
+    },
+    {
+      "checkbox": null,
+      "label": "Sortiment",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Bestellnummer",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "E-Nr",
+      "value": ""
+    },
+    {
+      "checkbox": true,
+      "label": "Anschluss",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Nummer",
+      "value": "1"
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Rabatt (in %)",
+      "value": "0"
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Text",
+      "value": "Komplett-Installationen"
+    },
+    {
+      "checkbox": null,
+      "label": "Bruttomaterialpreis",
+      "value": "107.005"
+    },
+    {
+      "checkbox": null,
+      "label": "Nettomaterialpreis",
+      "value": "73.1331"
+    },
+    {
+      "checkbox": null,
+      "label": "Recyclinggebühr",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Fremdleistung",
+      "value": ""
+    }
+  ],
+  "article_text": "\t\n\n\nHeizung\n\n\nInstallation enthält:\n\n\n1 Pumpe\n\n\n1 Mischventil\n\n\n1 Fühler\n\n\n1 Aussenfühler\n\n\nMithilfe IBS\n\n\no Zuleitung",
+  "images": [
+    {
+      "number": "120651",
+      "va": "00",
+      "vas": [
+        "00"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 120651 / VA 00, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_0_8_1",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T05:48:12.947Z",
+      "width": 85,
+      "height": 150,
+      "file": "images/portal-2026/01479de2b004ec7b7aba9dbde2d376bff77eeb30e8b2e6cc17cfdab86d25e32a.png",
+      "sha256": "01479de2b004ec7b7aba9dbde2d376bff77eeb30e8b2e6cc17cfdab86d25e32a",
+      "ordinal": 0
+    }
+  ],
+  "rows": [
+    {
+      "cells": [
+        "Heizung",
+        "120651",
+        "00",
+        "1",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "expanded": "true",
+      "index": 0,
+      "level": 0
+    },
+    {
+      "cells": [
+        "KIR-Rohr hf lichtgr -20",
+        "125140",
+        "20",
+        "1.5",
+        "1.764",
+        "2.646",
+        "0.222",
+        "0.333",
+        "125076209",
+        ""
+      ],
+      "expanded": null,
+      "index": 1,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Al-Rohr 32",
+        "155003",
+        "24",
+        "1",
+        "3.13",
+        "3.13",
+        "0.124",
+        "0.124",
+        "125061499",
+        ""
+      ],
+      "expanded": null,
+      "index": 2,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Rohrschelle verz M6 32",
+        "1203",
+        "24",
+        "8",
+        "2.2058",
+        "17.6464",
+        "0.045",
+        "0.36",
+        "126142040",
+        ""
+      ],
+      "expanded": null,
+      "index": 3,
+      "level": 1
+    },
+    {
+      "cells": [
+        "KRFWG-Rohr hf fw 25",
+        "125252",
+        "30",
+        "2.5",
+        "0.63",
+        "1.575",
+        "0.323",
+        "0.8075",
+        "125252402",
+        ""
+      ],
+      "expanded": null,
+      "index": 4,
+      "level": 1
+    },
+    {
+      "cells": [
+        "KRFWG-Rohr hf fw 25",
+        "125252",
+        "40",
+        "7.5",
+        "0.63",
+        "4.725",
+        "0.082",
+        "0.615",
+        "125252402",
+        ""
+      ],
+      "expanded": null,
+      "index": 5,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Geräteträger m Einlasskasten universal",
+        "372910",
+        "20",
+        "1",
+        "28.197",
+        "28.197",
+        "0.248",
+        "0.248",
+        "372900909",
+        "9966.11"
+      ],
+      "expanded": null,
+      "index": 6,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Rohrstütze 130x210x132",
+        "2744",
+        "40",
+        "1",
+        "4.017",
+        "4.017",
+        "0.144",
+        "0.144",
+        "126596150",
+        "4560"
+      ],
+      "expanded": null,
+      "index": 7,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Übergangsdübel KRFG-Rohre 20/25",
+        "126580",
+        "40",
+        "1",
+        "4.0092",
+        "4.0092",
+        "0.152",
+        "0.152",
+        "126589052",
+        "4530"
+      ],
+      "expanded": null,
+      "index": 8,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Steuerkabel Cca hf 2x1",
+        "113451",
+        "060",
+        "1.5",
+        "0.625",
+        "0.9375",
+        "0.057",
+        "0.0855",
+        "117510293",
+        "775832023"
+      ],
+      "expanded": null,
+      "index": 9,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Steuerkabel Cca hf 2x1",
+        "113451",
+        "064",
+        "0.5",
+        "0.625",
+        "0.3125",
+        "0.11",
+        "0.055",
+        "117510293",
+        "775832023"
+      ],
+      "expanded": null,
+      "index": 10,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Steuerkabel Cca hf 2x1",
+        "113451",
+        "70",
+        "1",
+        "0.625",
+        "0.625",
+        "0.096",
+        "0.096",
+        "117510293",
+        "775832023"
+      ],
+      "expanded": null,
+      "index": 11,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Steuerkabel Cca hf 3x1",
+        "113452",
+        "060",
+        "1.5",
+        "0.8",
+        "1.2",
+        "0.057",
+        "0.0855",
+        "117510393",
+        "775832033"
+      ],
+      "expanded": null,
+      "index": 12,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Steuerkabel Cca hf 3x1",
+        "113452",
+        "064",
+        "0.5",
+        "0.8",
+        "0.4",
+        "0.11",
+        "0.055",
+        "117510393",
+        "775832033"
+      ],
+      "expanded": null,
+      "index": 13,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Steuerkabel Cca hf 3x1",
+        "113452",
+        "70",
+        "1",
+        "0.8",
+        "0.8",
+        "0.121",
+        "0.121",
+        "117510393",
+        "775832033"
+      ],
+      "expanded": null,
+      "index": 14,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Steuerkabel Cca hf 4x1",
+        "113453",
+        "060",
+        "1.5",
+        "1.03",
+        "1.545",
+        "0.057",
+        "0.0855",
+        "117510493",
+        "775832043"
+      ],
+      "expanded": null,
+      "index": 15,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Steuerkabel Cca hf 4x1",
+        "113453",
+        "064",
+        "1",
+        "1.03",
+        "1.03",
+        "0.11",
+        "0.11",
+        "117510493",
+        "775832043"
+      ],
+      "expanded": null,
+      "index": 16,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Steuerkabel Cca hf 4x1",
+        "113453",
+        "70",
+        "1",
+        "1.03",
+        "1.03",
+        "0.148",
+        "0.148",
+        "117510493",
+        "775832043"
+      ],
+      "expanded": null,
+      "index": 17,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Kabel U72 Cca hf 1x4x0.8",
+        "102261",
+        "60",
+        "11.5",
+        "0.575",
+        "6.6125",
+        "0.062",
+        "0.713",
+        "102068304",
+        ""
+      ],
+      "expanded": null,
+      "index": 18,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Kabel U72 Cca hf 1x4x0.8",
+        "102261",
+        "64",
+        "1",
+        "0.575",
+        "0.575",
+        "0.115",
+        "0.115",
+        "102068304",
+        ""
+      ],
+      "expanded": null,
+      "index": 19,
+      "level": 1
+    },
+    {
+      "cells": [
+        "M+A+FK Aussenfühler",
+        "12093",
+        "20",
+        "1",
+        "0",
+        "0",
+        "0.851",
+        "0.851",
+        "",
+        ""
+      ],
+      "expanded": "true",
+      "index": 20,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Funktionskontrolle 1.0h",
+        "12574",
+        "09",
+        "0.2",
+        "0",
+        "0",
+        "1",
+        "0.2",
+        "",
+        ""
+      ],
+      "expanded": null,
+      "index": 21,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Apparatemontage 2 Bef -6kg",
+        "12002",
+        "20",
+        "1",
+        "0",
+        "0",
+        "0.403",
+        "0.403",
+        "",
+        ""
+      ],
+      "expanded": null,
+      "index": 22,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Kabel U72 Dca hf 1x4x0.5",
+        "102201",
+        "81",
+        "2",
+        "0.365",
+        "0.73",
+        "0.124",
+        "0.248",
+        "102991004",
+        ""
+      ],
+      "expanded": null,
+      "index": 23,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Mithilfe bei Inbetriebsetzung 1.0h",
+        "12584",
+        "09",
+        "0.5",
+        "0",
+        "0",
+        "1",
+        "0.5",
+        "",
+        ""
+      ],
+      "expanded": null,
+      "index": 24,
+      "level": 1
+    },
+    {
+      "cells": [
+        "D+M Abdeckung -3 Bef Ø -10",
+        "2721",
+        "09",
+        "0.5",
+        "0",
+        "0",
+        "0.437",
+        "0.2185",
+        "",
+        ""
+      ],
+      "expanded": null,
+      "index": 25,
+      "level": 1
+    }
+  ],
+  "tree_attributes": [
+    [
+      "role",
+      "treegrid"
+    ],
+    [
+      "class",
+      "k-grid-aria-root"
+    ],
+    [
+      "aria-rowcount",
+      "27"
+    ],
+    [
+      "aria-colcount",
+      "11"
+    ]
+  ],
+  "calculation": [
+    [
+      {
+        "text": "Arbeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Material",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Akkord",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "Installationszeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "6.0225"
+      },
+      {
+        "text": "Bruttomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "107.005"
+      },
+      {
+        "text": "Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "694.9965"
+      }
+    ],
+    [
+      {
+        "text": "* Stundenansatz",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "115.40"
+      },
+      {
+        "text": "Nettomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "73.1331"
+      },
+      {
+        "text": "+ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "88.49105"
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "* Materialfaktor",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.21"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "+ Recyclinggebühr",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.00"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "= Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "694.9965"
+      },
+      {
+        "text": "= Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "88.49105"
+      },
+      {
+        "text": "= Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "783.48755"
+      }
+    ],
+    [
+      {
+        "text": "≈ Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "695.00"
+      },
+      {
+        "text": "≈ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "88.50"
+      },
+      {
+        "text": "≈ Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "783.50"
+      }
+    ]
+  ],
+  "complete_tree": true
+}

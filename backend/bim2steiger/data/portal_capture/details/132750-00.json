@@ -1,0 +1,474 @@
+{
+  "number": "132750",
+  "va": "00",
+  "year": 2026,
+  "source": "https://digital.asteigerag.ch/dashboard",
+  "portal_page": "0_0_11_3",
+  "captured_at": "2026-10-23T05:56:15.262Z",
+  "capture_kind": "article_dialog",
+  "basic_data": [
+    {
+      "checkbox": null,
+      "label": "Typ",
+      "value": "Komplett-Artikel/-Installation"
+    },
+    {
+      "checkbox": null,
+      "label": "Artikelnummer",
+      "value": "132750"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z1",
+      "value": "Erschliessung Whg Leerrohr 1xM32 /m"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z2",
+      "value": "ab Verteilanlage Anteil Schlaufdose"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z3",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 1",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 2",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 3",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Lieferant",
+      "value": "1 Strukturen"
+    },
+    {
+      "checkbox": null,
+      "label": "Sortiment",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Bestellnummer",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "E-Nr",
+      "value": ""
+    },
+    {
+      "checkbox": false,
+      "label": "Anschluss",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Nummer",
+      "value": "1"
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Rabatt (in %)",
+      "value": "0"
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Text",
+      "value": "Komplett-Installationen"
+    },
+    {
+      "checkbox": null,
+      "label": "Bruttomaterialpreis",
+      "value": "4.2682"
+    },
+    {
+      "checkbox": null,
+      "label": "Nettomaterialpreis",
+      "value": "2.786148"
+    },
+    {
+      "checkbox": null,
+      "label": "Recyclinggebühr",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Fremdleistung",
+      "value": ""
+    }
+  ],
+  "article_text": "\t\n\n\nErschliessung Whg Leerrohr 1xM32\n/m\n\nab Verteilanlage Anteil Schlaufdose",
+  "images": [
+    {
+      "number": "132750",
+      "va": "00",
+      "vas": [
+        "00"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 132750 / VA 00, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_0_11_3",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T05:56:14.021Z",
+      "width": 150,
+      "height": 138,
+      "file": "images/portal-2026/cc4d822623119aa83d0ddbcd623de42d8e2be67e5038ce74af249e33b1802130.png",
+      "sha256": "cc4d822623119aa83d0ddbcd623de42d8e2be67e5038ce74af249e33b1802130",
+      "ordinal": 0
+    }
+  ],
+  "rows": [
+    {
+      "cells": [
+        "Erschliessung Whg Leerrohr 1xM32 /m",
+        "132750",
+        "00",
+        "1",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "expanded": "true",
+      "index": 0,
+      "level": 0
+    },
+    {
+      "cells": [
+        "KRFWG-Rohr hf fw 32",
+        "125253",
+        "10",
+        "0.18",
+        "0.8415",
+        "0.15147",
+        "0.115",
+        "0.0207",
+        "125252502",
+        ""
+      ],
+      "expanded": null,
+      "index": 1,
+      "level": 1
+    },
+    {
+      "cells": [
+        "KRFWG-Rohr hf fw 32",
+        "125253",
+        "30",
+        "0.18",
+        "0.8415",
+        "0.15147",
+        "0.407",
+        "0.07326",
+        "125252502",
+        ""
+      ],
+      "expanded": null,
+      "index": 2,
+      "level": 1
+    },
+    {
+      "cells": [
+        "KRFWG-Rohr hf fw 32",
+        "125253",
+        "40",
+        "0.52",
+        "0.8415",
+        "0.43758",
+        "0.082",
+        "0.04264",
+        "125252502",
+        ""
+      ],
+      "expanded": null,
+      "index": 3,
+      "level": 1
+    },
+    {
+      "cells": [
+        "UP-Schlaufdose 170x115x95",
+        "26220",
+        "30",
+        "0.06",
+        "22.0428",
+        "1.322568",
+        "0.541",
+        "0.03246",
+        "",
+        ""
+      ],
+      "expanded": "true",
+      "index": 4,
+      "level": 1
+    },
+    {
+      "cells": [
+        "UP-Schlaufdose 170x115x95",
+        "2622",
+        "30",
+        "1",
+        "14.3988",
+        "14.3988",
+        "0.476",
+        "0.476",
+        "155010698",
+        "9911.01"
+      ],
+      "expanded": null,
+      "index": 5,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Schraubdeckel 185x130",
+        "2848",
+        "48",
+        "1",
+        "7.644",
+        "7.644",
+        "0.065",
+        "0.065",
+        "155910608",
+        "9911.02"
+      ],
+      "expanded": null,
+      "index": 6,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Rohrstütze 130x210x132",
+        "2744",
+        "40",
+        "0.18",
+        "4.017",
+        "0.72306",
+        "0.144",
+        "0.02592",
+        "126596150",
+        "4560"
+      ],
+      "expanded": null,
+      "index": 7,
+      "level": 1
+    }
+  ],
+  "tree_attributes": [
+    [
+      "role",
+      "treegrid"
+    ],
+    [
+      "class",
+      "k-grid-aria-root"
+    ],
+    [
+      "aria-rowcount",
+      "9"
+    ],
+    [
+      "aria-colcount",
+      "11"
+    ]
+  ],
+  "calculation": [
+    [
+      {
+        "text": "Arbeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Material",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Akkord",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "Installationszeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.19498"
+      },
+      {
+        "text": "Bruttomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "4.2682"
+      },
+      {
+        "text": "Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "22.50069"
+      }
+    ],
+    [
+      {
+        "text": "* Stundenansatz",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "115.40"
+      },
+      {
+        "text": "Nettomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "2.786148"
+      },
+      {
+        "text": "+ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "3.37124"
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "* Materialfaktor",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.21"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "+ Recyclinggebühr",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.00"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "= Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "22.50069"
+      },
+      {
+        "text": "= Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "3.37124"
+      },
+      {
+        "text": "= Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "25.87193"
+      }
+    ],
+    [
+      {
+        "text": "≈ Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "22.50"
+      },
+      {
+        "text": "≈ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "3.35"
+      },
+      {
+        "text": "≈ Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "25.85"
+      }
+    ]
+  ],
+  "complete_tree": true
+}

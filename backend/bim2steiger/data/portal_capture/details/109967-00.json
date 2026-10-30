@@ -1,0 +1,559 @@
+{
+  "number": "109967",
+  "va": "00",
+  "year": 2026,
+  "source": "https://digital.asteigerag.ch/dashboard",
+  "portal_page": "0_0_0_5",
+  "captured_at": "2026-10-23T04:53:53.076Z",
+  "capture_kind": "article_dialog",
+  "basic_data": [
+    {
+      "checkbox": null,
+      "label": "Typ",
+      "value": "Komplett-Artikel/-Installation"
+    },
+    {
+      "checkbox": null,
+      "label": "Artikelnummer",
+      "value": "109967"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z1",
+      "value": "Boilersteuerung m Abgangskl"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z2",
+      "value": "m Steuerschalter"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z3",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 1",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 2",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 3",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Lieferant",
+      "value": "1 Strukturen"
+    },
+    {
+      "checkbox": null,
+      "label": "Sortiment",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Bestellnummer",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "E-Nr",
+      "value": ""
+    },
+    {
+      "checkbox": true,
+      "label": "Anschluss",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Nummer",
+      "value": "1"
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Rabatt (in %)",
+      "value": "0"
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Text",
+      "value": "Komplett-Installationen"
+    },
+    {
+      "checkbox": null,
+      "label": "Bruttomaterialpreis",
+      "value": "179.742"
+    },
+    {
+      "checkbox": null,
+      "label": "Nettomaterialpreis",
+      "value": "162.472"
+    },
+    {
+      "checkbox": null,
+      "label": "Recyclinggebühr",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Fremdleistung",
+      "value": ""
+    }
+  ],
+  "article_text": "\t\n\n\nBoilersteuerung m Abgangskl\n\n\nm Steuerschalter",
+  "images": [
+    {
+      "number": "109967",
+      "va": "00",
+      "vas": [
+        "00"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 109967 / VA 00, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_0_0_5",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T04:53:52.765Z",
+      "width": 71,
+      "height": 150,
+      "file": "images/portal-2026/f4b7fd4fb8a40e1da6c879ba10f8b2ca3275fd2cd3095547e776a34105e5e417.png",
+      "sha256": "f4b7fd4fb8a40e1da6c879ba10f8b2ca3275fd2cd3095547e776a34105e5e417",
+      "ordinal": 0
+    }
+  ],
+  "rows": [
+    {
+      "cells": [
+        "Boilersteuerung m Abgangskl",
+        "109967",
+        "00",
+        "1",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "expanded": "true",
+      "index": 0,
+      "level": 0
+    },
+    {
+      "cells": [
+        "REG-Boiler-Steuerschütz WV S1",
+        "507342",
+        "24",
+        "1",
+        "153.771",
+        "153.771",
+        "0.943",
+        "0.943",
+        "507344058",
+        ""
+      ],
+      "expanded": "true",
+      "index": 1,
+      "level": 1
+    },
+    {
+      "cells": [
+        "REG-Boiler-Steuerschütz WV S1",
+        "993339",
+        "24",
+        "1",
+        "147.155",
+        "147.155",
+        "0.063",
+        "0.063",
+        "507344058",
+        ""
+      ],
+      "expanded": null,
+      "index": 2,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Litze T Dca hf 1.5",
+        "113103",
+        "60",
+        "3",
+        "0.35",
+        "1.05",
+        "0.048",
+        "0.144",
+        "113163800",
+        "216245"
+      ],
+      "expanded": null,
+      "index": 3,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Litze T Dca hf 1.5",
+        "113103",
+        "70",
+        "6",
+        "0.35",
+        "2.1",
+        "0.041",
+        "0.246",
+        "113163800",
+        "216245"
+      ],
+      "expanded": null,
+      "index": 4,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Litze T Dca hf 2.5",
+        "113104",
+        "60",
+        "3",
+        "0.56",
+        "1.68",
+        "0.048",
+        "0.144",
+        "113163900",
+        "220542"
+      ],
+      "expanded": null,
+      "index": 5,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Litze T Dca hf 2.5",
+        "113104",
+        "70",
+        "6",
+        "0.56",
+        "3.36",
+        "0.041",
+        "0.246",
+        "113163900",
+        "220542"
+      ],
+      "expanded": null,
+      "index": 6,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Plombierwinkel ESB PLK24",
+        "993337",
+        "24",
+        "2",
+        "1.943",
+        "3.886",
+        "0.05",
+        "0.1",
+        "507399000",
+        "GHE3201903R0001"
+      ],
+      "expanded": null,
+      "index": 7,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Klemmensatz kompl 4x2.5",
+        "546121",
+        "24",
+        "1",
+        "8.701",
+        "8.701",
+        "0.3688",
+        "0.3688",
+        "",
+        ""
+      ],
+      "expanded": "true",
+      "index": 8,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Durchgangsklemme 4L gn/ge 2.5",
+        "158460",
+        "24",
+        "1",
+        "3.241",
+        "3.241",
+        "0.019",
+        "0.019",
+        "158490164",
+        "2002-1407"
+      ],
+      "expanded": null,
+      "index": 9,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Durchgangsklemme 4L 2.5",
+        "158450",
+        "24",
+        "3",
+        "1.148",
+        "3.444",
+        "0.019",
+        "0.057",
+        "158490154",
+        "2002-1404"
+      ],
+      "expanded": null,
+      "index": 10,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Litze T Dca hf 2.5",
+        "990612",
+        "60",
+        "3.6",
+        "0.56",
+        "2.016",
+        "0.013",
+        "0.0468",
+        "113163950",
+        "220440"
+      ],
+      "expanded": null,
+      "index": 11,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Litze T Dca hf 2.5",
+        "990612",
+        "70",
+        "6",
+        "0.56",
+        "3.36",
+        "0.041",
+        "0.246",
+        "113163950",
+        "220440"
+      ],
+      "expanded": null,
+      "index": 12,
+      "level": 2
+    }
+  ],
+  "tree_attributes": [
+    [
+      "role",
+      "treegrid"
+    ],
+    [
+      "class",
+      "k-grid-aria-root"
+    ],
+    [
+      "aria-rowcount",
+      "14"
+    ],
+    [
+      "aria-colcount",
+      "11"
+    ]
+  ],
+  "calculation": [
+    [
+      {
+        "text": "Arbeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Material",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Akkord",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "Installationszeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.3118"
+      },
+      {
+        "text": "Bruttomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "179.742"
+      },
+      {
+        "text": "Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "151.38172"
+      }
+    ],
+    [
+      {
+        "text": "* Stundenansatz",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "115.40"
+      },
+      {
+        "text": "Nettomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "162.472"
+      },
+      {
+        "text": "+ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "196.59112"
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "* Materialfaktor",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.21"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "+ Recyclinggebühr",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.00"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "= Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "151.38172"
+      },
+      {
+        "text": "= Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "196.59112"
+      },
+      {
+        "text": "= Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "347.97284"
+      }
+    ],
+    [
+      {
+        "text": "≈ Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "151.40"
+      },
+      {
+        "text": "≈ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "196.60"
+      },
+      {
+        "text": "≈ Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "347.95"
+      }
+    ]
+  ],
+  "complete_tree": true
+}

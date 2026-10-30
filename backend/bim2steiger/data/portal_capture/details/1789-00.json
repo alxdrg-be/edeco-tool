@@ -1,0 +1,474 @@
+{
+  "number": "1789",
+  "va": "00",
+  "year": 2026,
+  "source": "https://digital.asteigerag.ch/dashboard",
+  "portal_page": "0_0_4_3",
+  "captured_at": "2026-10-23T04:56:05.213Z",
+  "capture_kind": "article_dialog",
+  "basic_data": [
+    {
+      "checkbox": null,
+      "label": "Typ",
+      "value": "Komplett-Artikel/-Installation"
+    },
+    {
+      "checkbox": null,
+      "label": "Artikelnummer",
+      "value": "1789"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z1",
+      "value": "w G-/U-Kanal -100x75"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z2",
+      "value": "beschichtet PE"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z3",
+      "value": "z Hakenschiene/-Stütze"
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 1",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 2",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 3",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Lieferant",
+      "value": "1 Strukturen"
+    },
+    {
+      "checkbox": null,
+      "label": "Sortiment",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Bestellnummer",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "E-Nr",
+      "value": ""
+    },
+    {
+      "checkbox": false,
+      "label": "Anschluss",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Nummer",
+      "value": "1"
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Rabatt (in %)",
+      "value": "0"
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Text",
+      "value": "Komplett-Installationen"
+    },
+    {
+      "checkbox": null,
+      "label": "Bruttomaterialpreis",
+      "value": "51.346"
+    },
+    {
+      "checkbox": null,
+      "label": "Nettomaterialpreis",
+      "value": "30.8076"
+    },
+    {
+      "checkbox": null,
+      "label": "Recyclinggebühr",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Fremdleistung",
+      "value": ""
+    }
+  ],
+  "article_text": "\t\n\n\nw G-/U-Kanal\n-100x75\n\nbeschichtet PE\n\n\nz Hakenschiene/-Stütze\n\n\nAusschnitte/RA\n\n\nZubehör, wie Verbinder etc",
+  "images": [
+    {
+      "number": "1789",
+      "va": "00",
+      "vas": [
+        "00"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 1789 / VA 00, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_0_4_3",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T04:56:04.880Z",
+      "width": 126,
+      "height": 150,
+      "file": "images/portal-2026/eebd14d15910abf7d2c73fff9934386270a3c96903f2f5d9110c46646e91581c.png",
+      "sha256": "eebd14d15910abf7d2c73fff9934386270a3c96903f2f5d9110c46646e91581c",
+      "ordinal": 0
+    }
+  ],
+  "rows": [
+    {
+      "cells": [
+        "w G-/U-Kanal -100x75",
+        "1789",
+        "00",
+        "1",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "expanded": "true",
+      "index": 0,
+      "level": 0
+    },
+    {
+      "cells": [
+        "Richtungsänderung Gitterbahn -300",
+        "12040",
+        "09",
+        "0.08",
+        "0",
+        "0",
+        "0.79",
+        "0.0632",
+        "",
+        ""
+      ],
+      "expanded": null,
+      "index": 1,
+      "level": 1
+    },
+    {
+      "cells": [
+        "G-Kanal 100x75",
+        "122823",
+        "24",
+        "1",
+        "16.986",
+        "16.986",
+        "0.242",
+        "0.242",
+        "127020246",
+        "307005"
+      ],
+      "expanded": null,
+      "index": 2,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Hakenschiene-Stütze 300",
+        "1786",
+        "20",
+        "-0.8",
+        "20.514",
+        "-16.4112",
+        "0.372",
+        "-0.2976",
+        "127081126",
+        "307062"
+      ],
+      "expanded": null,
+      "index": 3,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Hakenschiene-Stütze 500",
+        "123757",
+        "20",
+        "0.8",
+        "28.638",
+        "22.9104",
+        "0.372",
+        "0.2976",
+        "127081146",
+        "307064"
+      ],
+      "expanded": null,
+      "index": 4,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Eckverbinder galv verz",
+        "123527",
+        "100",
+        "1",
+        "1.596",
+        "1.596",
+        "0",
+        "0",
+        "127028016",
+        "304599"
+      ],
+      "expanded": null,
+      "index": 5,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Blockierblech A4 m Schraubengarnitur",
+        "123768",
+        "24",
+        "0.8",
+        "6.468",
+        "5.1744",
+        "0.072",
+        "0.0576",
+        "127095006",
+        "307056"
+      ],
+      "expanded": null,
+      "index": 6,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Sicherungs-Clips A4 G-Kanal 100x75",
+        "123742",
+        "24",
+        "0.5",
+        "1.104",
+        "0.552",
+        "0.019",
+        "0.0095",
+        "127028216",
+        "307026"
+      ],
+      "expanded": null,
+      "index": 7,
+      "level": 1
+    }
+  ],
+  "tree_attributes": [
+    [
+      "role",
+      "treegrid"
+    ],
+    [
+      "class",
+      "k-grid-aria-root"
+    ],
+    [
+      "aria-rowcount",
+      "9"
+    ],
+    [
+      "aria-colcount",
+      "11"
+    ]
+  ],
+  "calculation": [
+    [
+      {
+        "text": "Arbeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Material",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Akkord",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "Installationszeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.3723"
+      },
+      {
+        "text": "Bruttomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "51.346"
+      },
+      {
+        "text": "Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "42.96342"
+      }
+    ],
+    [
+      {
+        "text": "* Stundenansatz",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "115.40"
+      },
+      {
+        "text": "Nettomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "30.8076"
+      },
+      {
+        "text": "+ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "37.2772"
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "* Materialfaktor",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.21"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "+ Recyclinggebühr",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.00"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "= Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "42.96342"
+      },
+      {
+        "text": "= Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "37.2772"
+      },
+      {
+        "text": "= Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "80.24062"
+      }
+    ],
+    [
+      {
+        "text": "≈ Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "42.95"
+      },
+      {
+        "text": "≈ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "37.30"
+      },
+      {
+        "text": "≈ Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "80.25"
+      }
+    ]
+  ],
+  "complete_tree": true
+}

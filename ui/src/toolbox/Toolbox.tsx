@@ -4,6 +4,7 @@ import { applyTheme, effectiveDark, loadTheme } from "../theme";
 import { filterTools, TOOLS } from "./catalog";
 import { MODULES } from "./modules";
 import ToolIcon from "./ToolIcon";
+import { api } from "../api";
 import "./toolbox.css";
 
 class ToolBoundary extends Component<{ children: ReactNode; onHome: () => void }, { failed: boolean }> {
@@ -72,6 +73,7 @@ export default function Toolbox() {
           const next = effectiveDark(theme) ? "light" : "dark";
           applyTheme(next);
           setTheme(next);
+          api.saveTheme(next).catch(() => undefined);
         }}>{effectiveDark(theme) ? "☀ Hell" : "☾ Dunkel"}</button>
     </header>
     <main className="toolbox-main">

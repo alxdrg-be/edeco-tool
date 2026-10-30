@@ -1,0 +1,491 @@
+{
+  "number": "1871",
+  "va": "00",
+  "year": 2026,
+  "source": "https://digital.asteigerag.ch/dashboard",
+  "portal_page": "0_0_4_8",
+  "captured_at": "2026-10-23T04:55:33.230Z",
+  "capture_kind": "article_dialog",
+  "basic_data": [
+    {
+      "checkbox": null,
+      "label": "Typ",
+      "value": "Komplett-Artikel/-Installation"
+    },
+    {
+      "checkbox": null,
+      "label": "Artikelnummer",
+      "value": "1871"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z1",
+      "value": "Kabelkanal GFK 200x50"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z2",
+      "value": "Wandausleger f-verz"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z3",
+      "value": "Formstücke"
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 1",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 2",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 3",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Lieferant",
+      "value": "1 Strukturen"
+    },
+    {
+      "checkbox": null,
+      "label": "Sortiment",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Bestellnummer",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "E-Nr",
+      "value": ""
+    },
+    {
+      "checkbox": false,
+      "label": "Anschluss",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Nummer",
+      "value": "1"
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Rabatt (in %)",
+      "value": "0"
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Text",
+      "value": "Komplett-Installationen"
+    },
+    {
+      "checkbox": null,
+      "label": "Bruttomaterialpreis",
+      "value": "104.3275"
+    },
+    {
+      "checkbox": null,
+      "label": "Nettomaterialpreis",
+      "value": "86.591825"
+    },
+    {
+      "checkbox": null,
+      "label": "Recyclinggebühr",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Fremdleistung",
+      "value": ""
+    }
+  ],
+  "article_text": "\t\n\n\nKabelkanal GFK\n200x50\n\nWandausleger f-verz\n\n\nFormstücke\n\n\nZubehör, wie Schrauben etc",
+  "images": [
+    {
+      "number": "1871",
+      "va": "00",
+      "vas": [
+        "00"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 1871 / VA 00, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_0_4_8",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T04:55:32.896Z",
+      "width": 118,
+      "height": 150,
+      "file": "images/portal-2026/3f94a70e8102fa26479ff31a25d0355c4d9b099aacfa21e9d50af4cf599770df.png",
+      "sha256": "3f94a70e8102fa26479ff31a25d0355c4d9b099aacfa21e9d50af4cf599770df",
+      "ordinal": 0
+    }
+  ],
+  "rows": [
+    {
+      "cells": [
+        "Kabelkanal GFK 200x50",
+        "1871",
+        "00",
+        "1",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "expanded": "true",
+      "index": 0,
+      "level": 0
+    },
+    {
+      "cells": [
+        "Ausschnitt Is -10 50x60",
+        "12063",
+        "09",
+        "0.05",
+        "0",
+        "0",
+        "0.166",
+        "0.0083",
+        "",
+        ""
+      ],
+      "expanded": null,
+      "index": 1,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Becherschraube A2 M6x20",
+        "989825",
+        "100",
+        "2.2",
+        "0.5395",
+        "1.1869",
+        "0",
+        "0",
+        "127190018",
+        "FKM 6x20 E3"
+      ],
+      "expanded": null,
+      "index": 2,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Trennbolzen GFK K2 50",
+        "988845",
+        "24",
+        "1",
+        "6.7977",
+        "6.7977",
+        "0.027",
+        "0.027",
+        "",
+        "TB50"
+      ],
+      "expanded": null,
+      "index": 3,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Wandausleger f-verz 200 S",
+        "989811",
+        "20",
+        "0.8",
+        "38.595",
+        "30.876",
+        "0.186",
+        "0.1488",
+        "127182028",
+        "A 200 S"
+      ],
+      "expanded": null,
+      "index": 4,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Horiz-Winkel 90° GFK K2 200x50",
+        "989803",
+        "24",
+        "0.15",
+        "74.2435",
+        "11.136525",
+        "0.649",
+        "0.09735",
+        "127114538",
+        "KKW 50.200"
+      ],
+      "expanded": null,
+      "index": 5,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Kanal GFK K2 ungelocht m Muffe 200x50",
+        "989785",
+        "24",
+        "1",
+        "35.607",
+        "35.607",
+        "0.245",
+        "0.245",
+        "127110538",
+        "KK 50.200"
+      ],
+      "expanded": null,
+      "index": 6,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Endstück GFK K2 200x50",
+        "989805",
+        "24",
+        "0.05",
+        "19.754",
+        "0.9877",
+        "0.182",
+        "0.0091",
+        "127113838",
+        "KKKE 50.200"
+      ],
+      "expanded": null,
+      "index": 7,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Durchgangsloch Is -10 Ø -6",
+        "11901",
+        "09",
+        "1",
+        "0",
+        "0",
+        "0.015",
+        "0.015",
+        "",
+        ""
+      ],
+      "expanded": null,
+      "index": 8,
+      "level": 1
+    }
+  ],
+  "tree_attributes": [
+    [
+      "role",
+      "treegrid"
+    ],
+    [
+      "class",
+      "k-grid-aria-root"
+    ],
+    [
+      "aria-rowcount",
+      "10"
+    ],
+    [
+      "aria-colcount",
+      "11"
+    ]
+  ],
+  "calculation": [
+    [
+      {
+        "text": "Arbeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Material",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Akkord",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "Installationszeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.55055"
+      },
+      {
+        "text": "Bruttomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "104.3275"
+      },
+      {
+        "text": "Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "63.53347"
+      }
+    ],
+    [
+      {
+        "text": "* Stundenansatz",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "115.40"
+      },
+      {
+        "text": "Nettomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "86.591825"
+      },
+      {
+        "text": "+ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "104.77611"
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "* Materialfaktor",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.21"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "+ Recyclinggebühr",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.00"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "= Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "63.53347"
+      },
+      {
+        "text": "= Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "104.77611"
+      },
+      {
+        "text": "= Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "168.30958"
+      }
+    ],
+    [
+      {
+        "text": "≈ Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "63.55"
+      },
+      {
+        "text": "≈ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "104.80"
+      },
+      {
+        "text": "≈ Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "168.30"
+      }
+    ]
+  ],
+  "complete_tree": true
+}

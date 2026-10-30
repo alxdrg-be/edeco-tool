@@ -1,0 +1,593 @@
+{
+  "number": "132012",
+  "va": "00",
+  "year": 2026,
+  "source": "https://digital.asteigerag.ch/dashboard",
+  "portal_page": "0_0_14_1",
+  "captured_at": "2026-10-23T05:58:30.081Z",
+  "capture_kind": "article_dialog",
+  "basic_data": [
+    {
+      "checkbox": null,
+      "label": "Typ",
+      "value": "Komplett-Artikel/-Installation"
+    },
+    {
+      "checkbox": null,
+      "label": "Artikelnummer",
+      "value": "132012"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z1",
+      "value": "Best Sonnerieanlage EFH 230V"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z2",
+      "value": "Auswechslung Drähte Apparat Gong"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z3",
+      "value": "Anteil Rohr"
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 1",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 2",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 3",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Lieferant",
+      "value": "1 Strukturen"
+    },
+    {
+      "checkbox": null,
+      "label": "Sortiment",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Bestellnummer",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "E-Nr",
+      "value": ""
+    },
+    {
+      "checkbox": true,
+      "label": "Anschluss",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Nummer",
+      "value": "1"
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Rabatt (in %)",
+      "value": "0"
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Text",
+      "value": "Komplett-Installationen"
+    },
+    {
+      "checkbox": null,
+      "label": "Bruttomaterialpreis",
+      "value": "185.683"
+    },
+    {
+      "checkbox": null,
+      "label": "Nettomaterialpreis",
+      "value": "134.11495"
+    },
+    {
+      "checkbox": null,
+      "label": "Recyclinggebühr",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Fremdleistung",
+      "value": ""
+    }
+  ],
+  "article_text": "\t\n\n\nBest Sonnerieanlage\nEFH 230V\n\nAuswechslung Drähte Apparat Gong\n\n\nAnteil Rohr",
+  "images": [
+    {
+      "number": "132012",
+      "va": "00",
+      "vas": [
+        "00"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 132012 / VA 00, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_0_14_1",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T05:58:28.852Z",
+      "width": 73,
+      "height": 150,
+      "file": "images/portal-2026/5b14279b97f95825edbeaf8905baff66317dae447222bbad3efad07dda457c7f.png",
+      "sha256": "5b14279b97f95825edbeaf8905baff66317dae447222bbad3efad07dda457c7f",
+      "ordinal": 0
+    }
+  ],
+  "rows": [
+    {
+      "cells": [
+        "Best Sonnerieanlage EFH 230V",
+        "132012",
+        "00",
+        "1",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "expanded": "true",
+      "index": 0,
+      "level": 0
+    },
+    {
+      "cells": [
+        "KRFWG-Rohr hf fw -20",
+        "125251",
+        "30",
+        "1.5",
+        "0.4365",
+        "0.65475",
+        "0.313",
+        "0.4695",
+        "125252202",
+        ""
+      ],
+      "expanded": null,
+      "index": 1,
+      "level": 1
+    },
+    {
+      "cells": [
+        "KRFWG-Rohr hf fw -20",
+        "125251",
+        "030",
+        "0.3",
+        "0.4365",
+        "0.13095",
+        "0.313",
+        "0.0939",
+        "125252202",
+        ""
+      ],
+      "expanded": null,
+      "index": 2,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Einlasskasten NIS T=59 Gr 1",
+        "2670",
+        "030",
+        "1",
+        "1.2402",
+        "1.2402",
+        "0.234",
+        "0.234",
+        "372501629",
+        "9921"
+      ],
+      "expanded": null,
+      "index": 3,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Einlasskasten NIS T=59 Gr 1",
+        "2670",
+        "30",
+        "1",
+        "1.2402",
+        "1.2402",
+        "0.234",
+        "0.234",
+        "372501629",
+        "9921"
+      ],
+      "expanded": null,
+      "index": 4,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Geräteträger m Einlasskasten Gr 1",
+        "372050",
+        "20",
+        "1",
+        "25.628",
+        "25.628",
+        "0.316",
+        "0.316",
+        "372025109",
+        "101-E-16/20"
+      ],
+      "expanded": null,
+      "index": 5,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Wandlampendübel 2 Einf",
+        "2730",
+        "030",
+        "1",
+        "1.8252",
+        "1.8252",
+        "0.208",
+        "0.208",
+        "165930028",
+        "9951"
+      ],
+      "expanded": null,
+      "index": 6,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Draht T Dca hf 1.5",
+        "35120",
+        "60",
+        "29.6",
+        "0.265",
+        "7.844",
+        "0.013",
+        "0.3848",
+        "105122117",
+        ""
+      ],
+      "expanded": null,
+      "index": 7,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Draht T Dca hf 2x1.5",
+        "985989",
+        "70",
+        "2",
+        "",
+        "",
+        "0.042",
+        "0.084",
+        "",
+        ""
+      ],
+      "expanded": null,
+      "index": 8,
+      "level": 1
+    },
+    {
+      "cells": [
+        "AP-Gong \"Doppelklang\" 230V",
+        "995725",
+        "024",
+        "1",
+        "21.42",
+        "21.42",
+        "0.106",
+        "0.106",
+        "961601853",
+        ""
+      ],
+      "expanded": null,
+      "index": 9,
+      "level": 1
+    },
+    {
+      "cells": [
+        "UP-Gong Gr 1 230V",
+        "989040",
+        "48",
+        "1",
+        "78.804",
+        "78.804",
+        "0.125",
+        "0.125",
+        "863050000",
+        "3070-230.GMI.A.61"
+      ],
+      "expanded": null,
+      "index": 10,
+      "level": 1
+    },
+    {
+      "cells": [
+        "UP-Sonnerietaster Gr 1",
+        "995727",
+        "48",
+        "1",
+        "19.944",
+        "19.944",
+        "0.125",
+        "0.125",
+        "863020000",
+        "1262.GMI.A.61"
+      ],
+      "expanded": null,
+      "index": 11,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Draht T Dca hf 4x1.5",
+        "985992",
+        "70",
+        "2",
+        "",
+        "",
+        "0.084",
+        "0.168",
+        "",
+        ""
+      ],
+      "expanded": null,
+      "index": 12,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Installationsstunde",
+        "995102",
+        "09",
+        "0.2",
+        "0",
+        "0",
+        "1",
+        "0.2",
+        "",
+        ""
+      ],
+      "expanded": null,
+      "index": 13,
+      "level": 1
+    },
+    {
+      "cells": [
+        "D Apparat Gr 1",
+        "125801",
+        "09",
+        "1",
+        "0",
+        "0",
+        "0.125",
+        "0.125",
+        "",
+        ""
+      ],
+      "expanded": null,
+      "index": 14,
+      "level": 1
+    }
+  ],
+  "tree_attributes": [
+    [
+      "role",
+      "treegrid"
+    ],
+    [
+      "class",
+      "k-grid-aria-root"
+    ],
+    [
+      "aria-rowcount",
+      "16"
+    ],
+    [
+      "aria-colcount",
+      "11"
+    ]
+  ],
+  "calculation": [
+    [
+      {
+        "text": "Arbeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Material",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Akkord",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "Installationszeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "2.8732"
+      },
+      {
+        "text": "Bruttomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "185.683"
+      },
+      {
+        "text": "Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "331.56728"
+      }
+    ],
+    [
+      {
+        "text": "* Stundenansatz",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "115.40"
+      },
+      {
+        "text": "Nettomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "134.11495"
+      },
+      {
+        "text": "+ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "162.27909"
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "* Materialfaktor",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.21"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "+ Recyclinggebühr",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.00"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "= Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "331.56728"
+      },
+      {
+        "text": "= Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "162.27909"
+      },
+      {
+        "text": "= Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "493.84637"
+      }
+    ],
+    [
+      {
+        "text": "≈ Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "331.55"
+      },
+      {
+        "text": "≈ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "162.30"
+      },
+      {
+        "text": "≈ Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "493.85"
+      }
+    ]
+  ],
+  "complete_tree": true
+}

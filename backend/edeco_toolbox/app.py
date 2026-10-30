@@ -9,6 +9,7 @@ from nova_legend import config
 from nova_legend.api.app import AppState, create_app as create_nova_app
 
 from . import APP_NAME, APP_VERSION
+from .bim import create_app as create_bim_app
 
 
 def create_app(state: AppState | None = None, ui_dir: Path | None = None):
@@ -22,6 +23,7 @@ def create_app(state: AppState | None = None, ui_dir: Path | None = None):
         return {"name": APP_NAME, "version": APP_VERSION}
 
     # Future tool routers belong here, under /api/tools/<tool-id>.
+    app.mount("/tools/bim2steiger", create_bim_app(), name="bim2steiger")
     ui = ui_dir or config.resource_dir() / "ui" / "dist"
     if (ui / "index.html").is_file():
         app.mount("/", StaticFiles(directory=ui, html=True), name="toolbox-ui")

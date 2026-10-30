@@ -1,0 +1,437 @@
+{
+  "year": 2026,
+  "page": "0_1_15_26",
+  "label": "15.10.4 Energiemonitoring Modbus M-Bus VNB",
+  "source": "https://digital.asteigerag.ch/dashboard",
+  "captured_at": "2026-10-21T12:48:55.105Z",
+  "articles": [
+    {
+      "number": "981860",
+      "vas": [
+        "24"
+      ],
+      "text": "REG-Kontrolleinheit\nSCU100\n\n\nModbus -16 Zähler InSiteBus -96 Sensoren\n\n\nWandleranschluss\n\n\nEthernet",
+      "images": [
+        {
+          "number": "981860",
+          "va": "24",
+          "vas": [
+            "24"
+          ],
+          "kind": "preview",
+          "role": "Originale Katalogvorschau",
+          "source": "Steiger-Portal, Katalogvorschau 981860, Katalog 2026",
+          "source_url": "https://digital.asteigerag.ch/dashboard",
+          "portal_page": "0_1_15_26",
+          "catalogue_year": 2026,
+          "captured_at": "2026-10-21T12:48:55.089Z",
+          "width": 150,
+          "height": 102,
+          "file": "images/portal-2026/e774e2b25f674bc66bc48aa0081b12e5d307d3c57fcb985c76ebe4eae8fe8151.png",
+          "sha256": "e774e2b25f674bc66bc48aa0081b12e5d307d3c57fcb985c76ebe4eae8fe8151"
+        }
+      ]
+    },
+    {
+      "number": "981871",
+      "vas": [
+        "24"
+      ],
+      "text": "Energiezähler 1L DT\nD11 15-M 40\n\n\nDirektmessung -40A Imp-Ausg\n\n\nModbus\n\n\nMID zertifiziert Klasse B",
+      "images": [
+        {
+          "number": "981871",
+          "va": "24",
+          "vas": [
+            "24"
+          ],
+          "kind": "preview",
+          "role": "Originale Katalogvorschau",
+          "source": "Steiger-Portal, Katalogvorschau 981871, Katalog 2026",
+          "source_url": "https://digital.asteigerag.ch/dashboard",
+          "portal_page": "0_1_15_26",
+          "catalogue_year": 2026,
+          "captured_at": "2026-10-21T12:48:55.090Z",
+          "width": 76,
+          "height": 150,
+          "file": "images/portal-2026/ece380682119f4f9211840794728758a898d91f21853ea813b05df82fb15164c.png",
+          "sha256": "ece380682119f4f9211840794728758a898d91f21853ea813b05df82fb15164c"
+        }
+      ]
+    },
+    {
+      "number": "981872",
+      "vas": [
+        "24"
+      ],
+      "text": "3L -65A\t\nD13 15-M 65",
+      "images": [
+        {
+          "number": "981872",
+          "va": "24",
+          "vas": [
+            "24"
+          ],
+          "kind": "preview",
+          "role": "Originale Katalogvorschau",
+          "source": "Steiger-Portal, Katalogvorschau 981872, Katalog 2026",
+          "source_url": "https://digital.asteigerag.ch/dashboard",
+          "portal_page": "0_1_15_26",
+          "catalogue_year": 2026,
+          "captured_at": "2026-10-21T12:48:55.091Z",
+          "width": 115,
+          "height": 150,
+          "file": "images/portal-2026/fb58308d9b31d93f1a5e767655da9d93913f9e666733ef6ea55cfa3f3686eac1.png",
+          "sha256": "fb58308d9b31d93f1a5e767655da9d93913f9e666733ef6ea55cfa3f3686eac1"
+        }
+      ]
+    },
+    {
+      "number": "981875",
+      "vas": [
+        "24"
+      ],
+      "text": "Wandleranschluss\t\nB24 212-600\n\n\nx/5A x/1A\t\n\n\nMETAS zertifiziert Klasse B",
+      "images": []
+    },
+    {
+      "number": "981865",
+      "vas": [
+        "24"
+      ],
+      "text": "DT\t\nB24 352-600",
+      "images": []
+    },
+    {
+      "number": "981868",
+      "vas": [
+        "24"
+      ],
+      "text": "Eingansmodul 4 Eing 24VDC\nDM11\n\n\nInSiteBus",
+      "images": [
+        {
+          "number": "981868",
+          "va": "24",
+          "vas": [
+            "24"
+          ],
+          "kind": "preview",
+          "role": "Originale Katalogvorschau",
+          "source": "Steiger-Portal, Katalogvorschau 981868, Katalog 2026",
+          "source_url": "https://digital.asteigerag.ch/dashboard",
+          "portal_page": "0_1_15_26",
+          "catalogue_year": 2026,
+          "captured_at": "2026-10-21T12:48:55.092Z",
+          "width": 92,
+          "height": 150,
+          "file": "images/portal-2026/e69205c3129dbe91e6d9b443c8c4854a2d681636366e1e41128d998998098f28.png",
+          "sha256": "e69205c3129dbe91e6d9b443c8c4854a2d681636366e1e41128d998998098f28"
+        }
+      ]
+    },
+    {
+      "number": "981869",
+      "vas": [
+        "24"
+      ],
+      "text": "Ausgangsmodul 4 Ausg 240V/2.5A\nDM00",
+      "images": []
+    },
+    {
+      "number": "981901",
+      "vas": [
+        "24"
+      ],
+      "text": "REG-Datenzentrale M-Bus\nMUC easy plus\n\n\n3 Eing S0 1 Ausg 24VDC\n\n\nLAN LTE-Modem o SIM-Karte\n\n\nSpeicherplatz 4 GB\n\n\nIBS + Prüfung Lieferant",
+      "images": [
+        {
+          "number": "981901",
+          "va": "24",
+          "vas": [
+            "24"
+          ],
+          "kind": "preview",
+          "role": "Originale Katalogvorschau",
+          "source": "Steiger-Portal, Katalogvorschau 981901, Katalog 2026",
+          "source_url": "https://digital.asteigerag.ch/dashboard",
+          "portal_page": "0_1_15_26",
+          "catalogue_year": 2026,
+          "captured_at": "2026-10-21T12:48:55.092Z",
+          "width": 125,
+          "height": 150,
+          "file": "images/portal-2026/a34069cec6920120fa56927d02b671b5507dc32860e15f70c181ff452db63480.png",
+          "sha256": "a34069cec6920120fa56927d02b671b5507dc32860e15f70c181ff452db63480"
+        }
+      ]
+    },
+    {
+      "number": "981902",
+      "vas": [
+        "24"
+      ],
+      "text": "Energiezähler 1L\nM1PRO 40\n\n\nDirektmessung -40A\n\n\nM-Bus\n\n\nMID zertifiziert Klasse B",
+      "images": [
+        {
+          "number": "981902",
+          "va": "24",
+          "vas": [
+            "24"
+          ],
+          "kind": "preview",
+          "role": "Originale Katalogvorschau",
+          "source": "Steiger-Portal, Katalogvorschau 981902, Katalog 2026",
+          "source_url": "https://digital.asteigerag.ch/dashboard",
+          "portal_page": "0_1_15_26",
+          "catalogue_year": 2026,
+          "captured_at": "2026-10-21T12:48:55.094Z",
+          "width": 31,
+          "height": 150,
+          "file": "images/portal-2026/1f0cd526a8e10168497d6935d50dd9ac1ab6021ec02da7a9d241968edbf674c6.png",
+          "sha256": "1f0cd526a8e10168497d6935d50dd9ac1ab6021ec02da7a9d241968edbf674c6"
+        }
+      ]
+    },
+    {
+      "number": "981903",
+      "vas": [
+        "24"
+      ],
+      "text": "3L DT -80A\t\nM3PRO 80",
+      "images": [
+        {
+          "number": "981903",
+          "va": "24",
+          "vas": [
+            "24"
+          ],
+          "kind": "preview",
+          "role": "Originale Katalogvorschau",
+          "source": "Steiger-Portal, Katalogvorschau 981903, Katalog 2026",
+          "source_url": "https://digital.asteigerag.ch/dashboard",
+          "portal_page": "0_1_15_26",
+          "catalogue_year": 2026,
+          "captured_at": "2026-10-21T12:48:55.095Z",
+          "width": 121,
+          "height": 150,
+          "file": "images/portal-2026/4b2b378b01bc4c26cac343076f5c1179a693cc4b949ae31b028ae9e44074f681.png",
+          "sha256": "4b2b378b01bc4c26cac343076f5c1179a693cc4b949ae31b028ae9e44074f681"
+        }
+      ]
+    },
+    {
+      "number": "981904",
+      "vas": [
+        "24"
+      ],
+      "text": "Wandleranschluss\t\nM3PRO CT\n\n\nx/5A x/1A",
+      "images": []
+    },
+    {
+      "number": "981900",
+      "vas": [
+        "24"
+      ],
+      "text": "Stromwandler-Set\n300/5A\n\n\n3 Stromwandler geeicht 2VA Klasse 0.5\n\n\n1 Klemmenblock Stromwandler 3P",
+      "images": [
+        {
+          "number": "981900",
+          "va": "24",
+          "vas": [
+            "24"
+          ],
+          "kind": "preview",
+          "role": "Originale Katalogvorschau",
+          "source": "Steiger-Portal, Katalogvorschau 981900, Katalog 2026",
+          "source_url": "https://digital.asteigerag.ch/dashboard",
+          "portal_page": "0_1_15_26",
+          "catalogue_year": 2026,
+          "captured_at": "2026-10-21T12:48:55.097Z",
+          "width": 105,
+          "height": 150,
+          "file": "images/portal-2026/86c4daedaa621c2d56f7dc87c98062cd7e31e1a228e002ab781d02943f921e7b.png",
+          "sha256": "86c4daedaa621c2d56f7dc87c98062cd7e31e1a228e002ab781d02943f921e7b"
+        }
+      ]
+    },
+    {
+      "number": "981905",
+      "vas": [
+        "100"
+      ],
+      "text": "IBS M-Bus Lieferant\n1. Zähler\n\n\nProjektbegleitung",
+      "images": [
+        {
+          "number": "981905",
+          "va": "100",
+          "vas": [
+            "100"
+          ],
+          "kind": "preview",
+          "role": "Originale Katalogvorschau",
+          "source": "Steiger-Portal, Katalogvorschau 981905, Katalog 2026",
+          "source_url": "https://digital.asteigerag.ch/dashboard",
+          "portal_page": "0_1_15_26",
+          "catalogue_year": 2026,
+          "captured_at": "2026-10-21T12:48:55.097Z",
+          "width": 150,
+          "height": 150,
+          "file": "images/portal-2026/91517d3c3f204b6f6f17dcc64ae30b30e15d063a7fa7d7e3b508c7c697b6eb74.png",
+          "sha256": "91517d3c3f204b6f6f17dcc64ae30b30e15d063a7fa7d7e3b508c7c697b6eb74"
+        }
+      ]
+    },
+    {
+      "number": "981906",
+      "vas": [
+        "100"
+      ],
+      "text": "/w Zähler",
+      "images": []
+    },
+    {
+      "number": "405880",
+      "vas": [
+        "24"
+      ],
+      "text": "REG-Energie-Analyzer\nQA/S 3.16.1\n\n\nM-Bus -16 TN\n\n\nEthernet",
+      "images": [
+        {
+          "number": "405880",
+          "va": "24",
+          "vas": [
+            "24"
+          ],
+          "kind": "preview",
+          "role": "Originale Katalogvorschau",
+          "source": "Steiger-Portal, Katalogvorschau 405880, Katalog 2026",
+          "source_url": "https://digital.asteigerag.ch/dashboard",
+          "portal_page": "0_1_15_26",
+          "catalogue_year": 2026,
+          "captured_at": "2026-10-21T12:48:55.098Z",
+          "width": 129,
+          "height": 150,
+          "file": "images/portal-2026/256557be50d73296437f22dbc3da31e9c7861a4aaf84fc178d5aa4ca1c3be62b.png",
+          "sha256": "256557be50d73296437f22dbc3da31e9c7861a4aaf84fc178d5aa4ca1c3be62b"
+        }
+      ]
+    },
+    {
+      "number": "405885",
+      "vas": [
+        "24"
+      ],
+      "text": "Gateway\nEX.1 Energy Edge\n\n\nEing 2x24VDC RS485\n\n\nAusg 2x4A 1x0-10V\n\n\nEthernet",
+      "images": [
+        {
+          "number": "405885",
+          "va": "24",
+          "vas": [
+            "24"
+          ],
+          "kind": "preview",
+          "role": "Originale Katalogvorschau",
+          "source": "Steiger-Portal, Katalogvorschau 405885, Katalog 2026",
+          "source_url": "https://digital.asteigerag.ch/dashboard",
+          "portal_page": "0_1_15_26",
+          "catalogue_year": 2026,
+          "captured_at": "2026-10-21T12:48:55.099Z",
+          "width": 134,
+          "height": 150,
+          "file": "images/portal-2026/732f3f049b24206c3f6d0919b82b7c1ef04780aef1989ae97b24aaf6e918209d.png",
+          "sha256": "732f3f049b24206c3f6d0919b82b7c1ef04780aef1989ae97b24aaf6e918209d"
+        }
+      ]
+    },
+    {
+      "number": "981951",
+      "vas": [
+        "10",
+        "20"
+      ],
+      "text": "Energiedaten-Gateway VNB\nwhatwatt Go\n\n\nLAN/WiFi Lizenz Free\n\n\n60x45x26",
+      "images": [
+        {
+          "number": "981951",
+          "va": null,
+          "vas": [
+            "10",
+            "20"
+          ],
+          "kind": "preview",
+          "role": "Originale Katalogvorschau",
+          "source": "Steiger-Portal, Katalogvorschau 981951, Katalog 2026",
+          "source_url": "https://digital.asteigerag.ch/dashboard",
+          "portal_page": "0_1_15_26",
+          "catalogue_year": 2026,
+          "captured_at": "2026-10-21T12:48:55.100Z",
+          "width": 111,
+          "height": 150,
+          "file": "images/portal-2026/8d41f27305a3b9297e5904d8c1321d3a1a4ce232e4594c4e10e5cad41f0a042a.png",
+          "sha256": "8d41f27305a3b9297e5904d8c1321d3a1a4ce232e4594c4e10e5cad41f0a042a"
+        }
+      ]
+    },
+    {
+      "number": "981952",
+      "vas": [
+        "24"
+      ],
+      "text": "Adapter VNB z 981951\t\nKamstrup\n\n\n88x88x25",
+      "images": [
+        {
+          "number": "981952",
+          "va": "24",
+          "vas": [
+            "24"
+          ],
+          "kind": "preview",
+          "role": "Originale Katalogvorschau",
+          "source": "Steiger-Portal, Katalogvorschau 981952, Katalog 2026",
+          "source_url": "https://digital.asteigerag.ch/dashboard",
+          "portal_page": "0_1_15_26",
+          "catalogue_year": 2026,
+          "captured_at": "2026-10-21T12:48:55.103Z",
+          "width": 150,
+          "height": 100,
+          "file": "images/portal-2026/c0a79d8fc8ae5d5f21cddb55752b5f739e5d83567228cda197711b10812607c4.png",
+          "sha256": "c0a79d8fc8ae5d5f21cddb55752b5f739e5d83567228cda197711b10812607c4"
+        }
+      ]
+    },
+    {
+      "number": "981955",
+      "vas": [
+        "09"
+      ],
+      "text": "Lizenz\nwhatwatt Plus",
+      "images": [
+        {
+          "number": "981955",
+          "va": "09",
+          "vas": [
+            "09"
+          ],
+          "kind": "preview",
+          "role": "Originale Katalogvorschau",
+          "source": "Steiger-Portal, Katalogvorschau 981955, Katalog 2026",
+          "source_url": "https://digital.asteigerag.ch/dashboard",
+          "portal_page": "0_1_15_26",
+          "catalogue_year": 2026,
+          "captured_at": "2026-10-21T12:48:55.105Z",
+          "width": 110,
+          "height": 150,
+          "file": "images/portal-2026/2060deec57739560940a28306adb3e9d7da239a46bbb00341946972137f65ed7.png",
+          "sha256": "2060deec57739560940a28306adb3e9d7da239a46bbb00341946972137f65ed7"
+        }
+      ]
+    },
+    {
+      "number": "981956",
+      "vas": [
+        "09"
+      ],
+      "text": "Pro",
+      "images": []
+    }
+  ]
+}

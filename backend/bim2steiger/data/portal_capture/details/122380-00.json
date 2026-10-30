@@ -1,0 +1,508 @@
+{
+  "number": "122380",
+  "va": "00",
+  "year": 2026,
+  "source": "https://digital.asteigerag.ch/dashboard",
+  "portal_page": "0_0_8_8",
+  "captured_at": "2026-10-23T05:56:52.236Z",
+  "capture_kind": "article_dialog",
+  "basic_data": [
+    {
+      "checkbox": null,
+      "label": "Typ",
+      "value": "Komplett-Artikel/-Installation"
+    },
+    {
+      "checkbox": null,
+      "label": "Artikelnummer",
+      "value": "122380"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z1",
+      "value": "L Rauch-/Wärmeabzugsanlage MFH o Inst"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z2",
+      "value": "f Fenster/Kuppel -1000x1200"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z3",
+      "value": "1 Ketten-/Zahnstangenantrieb (L+M)"
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 1",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 2",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 3",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Lieferant",
+      "value": "1 Strukturen"
+    },
+    {
+      "checkbox": null,
+      "label": "Sortiment",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Bestellnummer",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "E-Nr",
+      "value": ""
+    },
+    {
+      "checkbox": false,
+      "label": "Anschluss",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Nummer",
+      "value": "1"
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Rabatt (in %)",
+      "value": "0"
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Text",
+      "value": "Komplett-Installationen"
+    },
+    {
+      "checkbox": null,
+      "label": "Bruttomaterialpreis",
+      "value": "2866"
+    },
+    {
+      "checkbox": null,
+      "label": "Nettomaterialpreis",
+      "value": "2114.2"
+    },
+    {
+      "checkbox": null,
+      "label": "Recyclinggebühr",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Fremdleistung",
+      "value": ""
+    }
+  ],
+  "article_text": "\t\n\n\nL Rauch-/Wärmeabzugsanlage MFH o Inst\n\n\nf Fenster/Kuppel -1000x1200\n\n\n1 Ketten-/Zahnstangenantrieb (L+M)\n\n\n1 Rauchabzugstaster\n\n\n1 Lüftertaster\n\n\n1 Steuerkasten 1 Gruppe\n\n\n1 Inbetriebnahme Lieferant",
+  "images": [
+    {
+      "number": "122380",
+      "va": "00",
+      "vas": [
+        "00"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 122380 / VA 00, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_0_8_8",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T05:56:51.059Z",
+      "width": 73,
+      "height": 150,
+      "file": "images/portal-2026/0785fdf1d327999cc6c7bb6222309fbe4cf6eaf0a5eb3a0de7ca4df647c0d5e5.png",
+      "sha256": "0785fdf1d327999cc6c7bb6222309fbe4cf6eaf0a5eb3a0de7ca4df647c0d5e5",
+      "ordinal": 0
+    }
+  ],
+  "rows": [
+    {
+      "cells": [
+        "L Rauch-/Wärmeabzugsanlage MFH o Inst",
+        "122380",
+        "00",
+        "1",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "expanded": "true",
+      "index": 0,
+      "level": 0
+    },
+    {
+      "cells": [
+        "RWA-Zentrale CPS-B 5A",
+        "993447",
+        "100",
+        "1",
+        "775.6",
+        "775.6",
+        "0",
+        "0",
+        "",
+        "D30.119.15"
+      ],
+      "expanded": null,
+      "index": 1,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Inbetriebnahme RWA Lieferant",
+        "991921",
+        "100",
+        "1",
+        "360",
+        "360",
+        "0",
+        "0",
+        "",
+        "D99.998.20"
+      ],
+      "expanded": null,
+      "index": 2,
+      "level": 1
+    },
+    {
+      "cells": [
+        "AP-Rauchabzugs-Taster Al or Vds",
+        "991916",
+        "100",
+        "1",
+        "135.8",
+        "135.8",
+        "0",
+        "0",
+        "",
+        "D65.403.23"
+      ],
+      "expanded": null,
+      "index": 3,
+      "level": 1
+    },
+    {
+      "cells": [
+        "UP-Lüfter-Taster 24V",
+        "991917",
+        "100",
+        "1",
+        "60.2",
+        "60.2",
+        "0",
+        "0",
+        "",
+        "D63.701.29"
+      ],
+      "expanded": null,
+      "index": 4,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Winkelkonsole ZA",
+        "991919",
+        "100",
+        "1",
+        "32.9",
+        "32.9",
+        "0",
+        "0",
+        "",
+        "D20.052.60"
+      ],
+      "expanded": null,
+      "index": 5,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Flügelkonsole ZA",
+        "991920",
+        "100",
+        "1",
+        "16.8",
+        "16.8",
+        "0",
+        "0",
+        "",
+        "D20.050.80"
+      ],
+      "expanded": null,
+      "index": 6,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Zahnstangenantrieb 24V 800N/500 PLP",
+        "991918",
+        "20",
+        "1",
+        "546",
+        "546",
+        "2.5",
+        "2.5",
+        "",
+        "D27.005.35"
+      ],
+      "expanded": null,
+      "index": 7,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Trennrelaismodul 24V 230V/ 5A steckbar",
+        "991915",
+        "24",
+        "1",
+        "91.7",
+        "91.7",
+        "0.083",
+        "0.083",
+        "",
+        "D30.525.80"
+      ],
+      "expanded": null,
+      "index": 8,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Akku 12 V 3.2-3.4Ah",
+        "993448",
+        "24",
+        "2",
+        "47.6",
+        "95.2",
+        "0.083",
+        "0.166",
+        "",
+        "D70.200.02"
+      ],
+      "expanded": null,
+      "index": 9,
+      "level": 1
+    }
+  ],
+  "tree_attributes": [
+    [
+      "role",
+      "treegrid"
+    ],
+    [
+      "class",
+      "k-grid-aria-root"
+    ],
+    [
+      "aria-rowcount",
+      "11"
+    ],
+    [
+      "aria-colcount",
+      "11"
+    ]
+  ],
+  "calculation": [
+    [
+      {
+        "text": "Arbeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Material",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Akkord",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "Installationszeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "2.749"
+      },
+      {
+        "text": "Bruttomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "2866.00"
+      },
+      {
+        "text": "Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "317.2346"
+      }
+    ],
+    [
+      {
+        "text": "* Stundenansatz",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "115.40"
+      },
+      {
+        "text": "Nettomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "2114.20"
+      },
+      {
+        "text": "+ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "2558.182"
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "* Materialfaktor",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.21"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "+ Recyclinggebühr",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.00"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "= Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "317.2346"
+      },
+      {
+        "text": "= Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "2558.182"
+      },
+      {
+        "text": "= Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "2875.4166"
+      }
+    ],
+    [
+      {
+        "text": "≈ Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "317.25"
+      },
+      {
+        "text": "≈ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "2558.20"
+      },
+      {
+        "text": "≈ Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "2875.40"
+      }
+    ]
+  ],
+  "complete_tree": true
+}

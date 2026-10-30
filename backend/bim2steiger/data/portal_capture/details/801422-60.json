@@ -1,0 +1,491 @@
+{
+  "number": "801422",
+  "va": "60",
+  "year": 2026,
+  "source": "https://digital.asteigerag.ch/dashboard",
+  "portal_page": "0_1_15_40",
+  "captured_at": "2026-10-23T18:20:57.638Z",
+  "capture_kind": "article_dialog",
+  "basic_data": [
+    {
+      "label": "Typ",
+      "value": "Komplett-Artikel/-Installation",
+      "checkbox": null
+    },
+    {
+      "label": "Artikelnummer",
+      "value": "801422",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z1",
+      "value": "Zählerverdrahtung 4-Leiter -10",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z2",
+      "value": "EB in best Verteilung vor Ort",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z3",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 1",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 2",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 3",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Lieferant",
+      "value": "1 Strukturen",
+      "checkbox": null
+    },
+    {
+      "label": "Sortiment",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Bestellnummer",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "E-Nr",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Anschluss",
+      "value": "",
+      "checkbox": true
+    },
+    {
+      "label": "Warengruppe-Nummer",
+      "value": "1",
+      "checkbox": null
+    },
+    {
+      "label": "Warengruppe-Rabatt (in %)",
+      "value": "0",
+      "checkbox": null
+    },
+    {
+      "label": "Warengruppe-Text",
+      "value": "Komplett-Installationen",
+      "checkbox": null
+    },
+    {
+      "label": "Bruttomaterialpreis",
+      "value": "22.095",
+      "checkbox": null
+    },
+    {
+      "label": "Nettomaterialpreis",
+      "value": "11.0475",
+      "checkbox": null
+    },
+    {
+      "label": "Recyclinggebühr",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Fremdleistung",
+      "value": "",
+      "checkbox": null
+    }
+  ],
+  "article_text": "\t\n\n\nZählerverdrahtung 4-Leiter\n-10\n\nEB in best Verteilung vor Ort",
+  "images": [
+    {
+      "number": "801422",
+      "va": "60",
+      "vas": [
+        "60"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 801422 / VA 60, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_1_15_40",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T18:20:57.611Z",
+      "width": 51,
+      "height": 150,
+      "file": "images/portal-2026/c1c9a8b99612f5394099e1f292825e14c3337a1bea32be42268a12df93ca2dfe.png",
+      "sha256": "c1c9a8b99612f5394099e1f292825e14c3337a1bea32be42268a12df93ca2dfe",
+      "ordinal": 0
+    }
+  ],
+  "rows": [
+    {
+      "index": 0,
+      "level": 0,
+      "expanded": "true",
+      "cells": [
+        "Zählerverdrahtung 4-Leiter -10",
+        "801422",
+        "60",
+        "1",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    {
+      "index": 1,
+      "level": 1,
+      "expanded": "true",
+      "cells": [
+        "Zählerverdrahtung 4-Leiter 10",
+        "62873",
+        "60",
+        "1",
+        "11.0475",
+        "11.0475",
+        "0.8715",
+        "0.8715",
+        "",
+        ""
+      ]
+    },
+    {
+      "index": 2,
+      "level": 2,
+      "expanded": null,
+      "cells": [
+        "Litze T Dca hf 1.5",
+        "113103",
+        "60",
+        "3",
+        "0.35",
+        "1.05",
+        "0.048",
+        "0.144",
+        "113163800",
+        "216245"
+      ]
+    },
+    {
+      "index": 3,
+      "level": 2,
+      "expanded": null,
+      "cells": [
+        "Litze T Dca hf 1.5",
+        "113103",
+        "70",
+        "2",
+        "0.35",
+        "0.7",
+        "0.041",
+        "0.082",
+        "113163800",
+        "216245"
+      ]
+    },
+    {
+      "index": 4,
+      "level": 2,
+      "expanded": null,
+      "cells": [
+        "Litze T Dca hf 2.5",
+        "113104",
+        "60",
+        "1.5",
+        "0.56",
+        "0.84",
+        "0.048",
+        "0.072",
+        "113163900",
+        "220542"
+      ]
+    },
+    {
+      "index": 5,
+      "level": 2,
+      "expanded": null,
+      "cells": [
+        "Litze T Dca hf 2.5",
+        "113104",
+        "70",
+        "1",
+        "0.56",
+        "0.56",
+        "0.041",
+        "0.041",
+        "113163900",
+        "220542"
+      ]
+    },
+    {
+      "index": 6,
+      "level": 2,
+      "expanded": null,
+      "cells": [
+        "Litze T Dca hf 10",
+        "113107",
+        "60",
+        "4.5",
+        "2.035",
+        "9.1575",
+        "0.077",
+        "0.3465",
+        "113164200",
+        "220559"
+      ]
+    },
+    {
+      "index": 7,
+      "level": 2,
+      "expanded": null,
+      "cells": [
+        "Litze T Dca hf 10",
+        "113107",
+        "70",
+        "3",
+        "2.035",
+        "6.105",
+        "0.062",
+        "0.186",
+        "113164200",
+        "220559"
+      ]
+    },
+    {
+      "index": 8,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Installationsstunde",
+        "995102",
+        "09",
+        "0.35",
+        "0",
+        "0",
+        "1",
+        "0.35",
+        "",
+        ""
+      ]
+    }
+  ],
+  "tree_attributes": [
+    [
+      "role",
+      "treegrid"
+    ],
+    [
+      "class",
+      "k-grid-aria-root"
+    ],
+    [
+      "aria-rowcount",
+      "10"
+    ],
+    [
+      "aria-colcount",
+      "11"
+    ]
+  ],
+  "calculation": [
+    [
+      {
+        "text": "Arbeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Material",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Akkord",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "Installationszeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.2215"
+      },
+      {
+        "text": "Bruttomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "22.095"
+      },
+      {
+        "text": "Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "140.9611"
+      }
+    ],
+    [
+      {
+        "text": "* Stundenansatz",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "115.40"
+      },
+      {
+        "text": "Nettomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "11.0475"
+      },
+      {
+        "text": "+ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "13.36748"
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "* Materialfaktor",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.21"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "+ Recyclinggebühr",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.00"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "= Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "140.9611"
+      },
+      {
+        "text": "= Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "13.36748"
+      },
+      {
+        "text": "= Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "154.32858"
+      }
+    ],
+    [
+      {
+        "text": "≈ Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "140.95"
+      },
+      {
+        "text": "≈ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "13.35"
+      },
+      {
+        "text": "≈ Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "154.35"
+      }
+    ]
+  ],
+  "complete_tree": true
+}

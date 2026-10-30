@@ -1,0 +1,474 @@
+{
+  "number": "801300",
+  "va": "24",
+  "year": 2026,
+  "source": "https://digital.asteigerag.ch/dashboard",
+  "portal_page": "0_1_15_39",
+  "captured_at": "2026-10-23T18:20:30.733Z",
+  "capture_kind": "article_dialog",
+  "basic_data": [
+    {
+      "label": "Typ",
+      "value": "Komplett-Artikel/-Installation",
+      "checkbox": null
+    },
+    {
+      "label": "Artikelnummer",
+      "value": "801300",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z1",
+      "value": "REG-Kombiableiter 4L 50kA",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z2",
+      "value": "EB in best Verteilung vor Ort",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z3",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 1",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 2",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 3",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Lieferant",
+      "value": "1 Strukturen",
+      "checkbox": null
+    },
+    {
+      "label": "Sortiment",
+      "value": "3501 PHOENIX",
+      "checkbox": null
+    },
+    {
+      "label": "Bestellnummer",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "E-Nr",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Anschluss",
+      "value": "",
+      "checkbox": true
+    },
+    {
+      "label": "Warengruppe-Nummer",
+      "value": "8199",
+      "checkbox": null
+    },
+    {
+      "label": "Warengruppe-Rabatt (in %)",
+      "value": "0",
+      "checkbox": null
+    },
+    {
+      "label": "Warengruppe-Text",
+      "value": "(L)Phoenix netto",
+      "checkbox": null
+    },
+    {
+      "label": "Bruttomaterialpreis",
+      "value": "306.98",
+      "checkbox": null
+    },
+    {
+      "label": "Nettomaterialpreis",
+      "value": "278.49",
+      "checkbox": null
+    },
+    {
+      "label": "Recyclinggebühr",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Fremdleistung",
+      "value": "",
+      "checkbox": null
+    }
+  ],
+  "article_text": "\t\n\n\nREG-Kombiableiter 4L\n50kA\n\nEB in best Verteilung vor Ort",
+  "images": [
+    {
+      "number": "801300",
+      "va": "24",
+      "vas": [
+        "24"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 801300 / VA 24, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_1_15_39",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T18:20:30.447Z",
+      "width": 109,
+      "height": 150,
+      "file": "images/portal-2026/48bb46790e14e419e85dd9b213c1e0d14b73afd7a9e697ef87f9ab67f22a34e5.png",
+      "sha256": "48bb46790e14e419e85dd9b213c1e0d14b73afd7a9e697ef87f9ab67f22a34e5",
+      "ordinal": 0
+    }
+  ],
+  "rows": [
+    {
+      "index": 0,
+      "level": 0,
+      "expanded": "true",
+      "cells": [
+        "REG-Kombiableiter 4L 50kA",
+        "801300",
+        "24",
+        "1",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    {
+      "index": 1,
+      "level": 1,
+      "expanded": "true",
+      "cells": [
+        "REG-Kombiableiter Typ 1+2 TN-S 4L",
+        "808603",
+        "24",
+        "1",
+        "278.49",
+        "278.49",
+        "2.101",
+        "2.101",
+        "808488003",
+        "2800183"
+      ]
+    },
+    {
+      "index": 2,
+      "level": 2,
+      "expanded": null,
+      "cells": [
+        "REG-Kombiableiter Typ 1+2 TN-S 4L",
+        "990462",
+        "24",
+        "1",
+        "250",
+        "250",
+        "0.063",
+        "0.063",
+        "808488003",
+        "2800183"
+      ]
+    },
+    {
+      "index": 3,
+      "level": 2,
+      "expanded": null,
+      "cells": [
+        "Litze T Dca hf 1.5",
+        "113103",
+        "60",
+        "1",
+        "0.35",
+        "0.35",
+        "0.048",
+        "0.048",
+        "113163800",
+        "216245"
+      ]
+    },
+    {
+      "index": 4,
+      "level": 2,
+      "expanded": null,
+      "cells": [
+        "Litze T Dca hf 1.5",
+        "113103",
+        "70",
+        "2",
+        "0.35",
+        "0.7",
+        "0.041",
+        "0.082",
+        "113163800",
+        "216245"
+      ]
+    },
+    {
+      "index": 5,
+      "level": 2,
+      "expanded": null,
+      "cells": [
+        "Litze T Dca hf 25",
+        "113109",
+        "60",
+        "6",
+        "4.69",
+        "28.14",
+        "0.09",
+        "0.54",
+        "113164400",
+        "220561"
+      ]
+    },
+    {
+      "index": 6,
+      "level": 2,
+      "expanded": null,
+      "cells": [
+        "Litze T Dca hf 25",
+        "113109",
+        "70",
+        "12",
+        "4.69",
+        "56.28",
+        "0.114",
+        "1.368",
+        "113164400",
+        "220561"
+      ]
+    },
+    {
+      "index": 7,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Installationsstunde",
+        "995102",
+        "09",
+        "0.35",
+        "0",
+        "0",
+        "1",
+        "0.35",
+        "",
+        ""
+      ]
+    }
+  ],
+  "tree_attributes": [
+    [
+      "role",
+      "treegrid"
+    ],
+    [
+      "class",
+      "k-grid-aria-root"
+    ],
+    [
+      "aria-rowcount",
+      "9"
+    ],
+    [
+      "aria-colcount",
+      "11"
+    ]
+  ],
+  "calculation": [
+    [
+      {
+        "text": "Arbeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Material",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Akkord",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "Installationszeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "2.451"
+      },
+      {
+        "text": "Bruttomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "306.98"
+      },
+      {
+        "text": "Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "282.8454"
+      }
+    ],
+    [
+      {
+        "text": "* Stundenansatz",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "115.40"
+      },
+      {
+        "text": "Nettomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "278.49"
+      },
+      {
+        "text": "+ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "336.9729"
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "* Materialfaktor",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.21"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "+ Recyclinggebühr",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.00"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "= Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "282.8454"
+      },
+      {
+        "text": "= Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "336.9729"
+      },
+      {
+        "text": "= Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "619.8183"
+      }
+    ],
+    [
+      {
+        "text": "≈ Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "282.85"
+      },
+      {
+        "text": "≈ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "336.95"
+      },
+      {
+        "text": "≈ Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "619.80"
+      }
+    ]
+  ],
+  "complete_tree": true
+}

@@ -46,6 +46,12 @@
 .toolbox-footer { margin-top: 46px; padding-top: 20px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; font-size: 10px; color: var(--muted); }
 .toolbox-message { padding: 48px; }
 .toolbox-back { margin-bottom: 24px; }
+.bim-workspace { height: 100%; display: flex; flex-direction: column; background: var(--bg); }
+.bim-toolbox-header { display: flex; align-items: center; flex-wrap: wrap; gap: 18px; padding: 14px 24px; background: var(--panel); border-bottom: 1px solid var(--line); }
+.bim-toolbox-logo { width: 110px; display: block; color: var(--logo-ink); }
+.bim-toolbox-logo svg { display: block; width: 100%; height: auto; }
+.bim-toolbox-label { color: var(--accent); font-size: 12px; font-weight: 650; margin-left: auto; }
+.bim-frame { width: 100%; flex: 1; min-height: 0; border: 0; background: var(--bg); }
 @media (max-width: 1000px) { .toolbox-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 740px) { .toolbox-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; } .toolbox-brand { gap: 14px; font-size: 18px; } .toolbox-logo { width: 110px; } .toolbox-header { padding: 20px; gap: 10px; } .toolbox-main { padding-top: 30px; } .toolbox-filters { align-items: stretch; flex-direction: column; gap: 16px; } .toolbox-search { width: 100%; } .toolbox-tile { min-height: 230px; padding-inline: 8px; } }
 @media (max-width: 370px) { .toolbox-grid { grid-template-columns: 1fr; } }

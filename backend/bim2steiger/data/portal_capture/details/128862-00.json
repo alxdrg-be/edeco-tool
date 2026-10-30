@@ -1,0 +1,525 @@
+{
+  "number": "128862",
+  "va": "00",
+  "year": 2026,
+  "source": "https://digital.asteigerag.ch/dashboard",
+  "portal_page": "0_0_4_12",
+  "captured_at": "2026-10-23T04:57:14.353Z",
+  "capture_kind": "article_dialog",
+  "basic_data": [
+    {
+      "checkbox": null,
+      "label": "Typ",
+      "value": "Komplett-Artikel/-Installation"
+    },
+    {
+      "checkbox": null,
+      "label": "Artikelnummer",
+      "value": "128862"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z1",
+      "value": "Brüstungskanal Al BRA 170x68"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z2",
+      "value": "Formstücke/RA"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z3",
+      "value": "Ausschnitte"
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 1",
+      "value": "BRA170X68"
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 2",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 3",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Lieferant",
+      "value": "1 Strukturen"
+    },
+    {
+      "checkbox": null,
+      "label": "Sortiment",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Bestellnummer",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "E-Nr",
+      "value": ""
+    },
+    {
+      "checkbox": false,
+      "label": "Anschluss",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Nummer",
+      "value": "1"
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Rabatt (in %)",
+      "value": "0"
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Text",
+      "value": "Komplett-Installationen"
+    },
+    {
+      "checkbox": null,
+      "label": "Bruttomaterialpreis",
+      "value": "220.00375"
+    },
+    {
+      "checkbox": null,
+      "label": "Nettomaterialpreis",
+      "value": "123.2021"
+    },
+    {
+      "checkbox": null,
+      "label": "Recyclinggebühr",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Fremdleistung",
+      "value": ""
+    }
+  ],
+  "article_text": "\t\n\n\nBrüstungskanal Al\nBRA 170x68\n\nFormstücke/RA\n\n\nAusschnitte",
+  "images": [
+    {
+      "number": "128862",
+      "va": "00",
+      "vas": [
+        "00"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 128862 / VA 00, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_0_4_12",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T04:57:14.031Z",
+      "width": 132,
+      "height": 150,
+      "file": "images/portal-2026/6afb2cbc5d12132186616ed528f858d780f097f09334d9cdb5d52d0c8b498b12.png",
+      "sha256": "6afb2cbc5d12132186616ed528f858d780f097f09334d9cdb5d52d0c8b498b12",
+      "ordinal": 0
+    }
+  ],
+  "rows": [
+    {
+      "cells": [
+        "Brüstungskanal Al BRA 170x68",
+        "128862",
+        "00",
+        "1",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "expanded": "true",
+      "index": 0,
+      "level": 0
+    },
+    {
+      "cells": [
+        "Richtungsänderung Kanal Me 170-250",
+        "12057",
+        "09",
+        "0.1",
+        "0",
+        "0",
+        "1.345",
+        "0.1345",
+        "",
+        ""
+      ],
+      "expanded": null,
+      "index": 1,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Ausschnitt Me -2 100x60",
+        "12079",
+        "09",
+        "0.25",
+        "0",
+        "0",
+        "0.281",
+        "0.07025",
+        "",
+        ""
+      ],
+      "expanded": null,
+      "index": 2,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Endplatte Is hf BR 170x68",
+        "128232",
+        "24",
+        "0.2",
+        "8.792",
+        "1.7584",
+        "0.05",
+        "0.01",
+        "127560402",
+        "BR6517069016"
+      ],
+      "expanded": null,
+      "index": 3,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Kanal Al BRA 170x68",
+        "155732",
+        "20",
+        "1",
+        "90.636",
+        "90.636",
+        "0.456",
+        "0.456",
+        "",
+        ""
+      ],
+      "expanded": "true",
+      "index": 4,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Grundprofil Al BRA 170x68",
+        "991102",
+        "20",
+        "1",
+        "72.24",
+        "72.24",
+        "0.456",
+        "0.456",
+        "127820272",
+        "BRA6517019016"
+      ],
+      "expanded": null,
+      "index": 5,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Oberteil Al BRA 80",
+        "991107",
+        "100",
+        "1",
+        "18.396",
+        "18.396",
+        "0",
+        "0",
+        "127840072",
+        "BRA08029016"
+      ],
+      "expanded": null,
+      "index": 6,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Ausseneck Al BRA 170x68",
+        "155754",
+        "24",
+        "0.25",
+        "110.2388",
+        "27.5597",
+        "0.125",
+        "0.03125",
+        "127853472",
+        "BRA6517039016"
+      ],
+      "expanded": "true",
+      "index": 7,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Ausseneck Al BRA 170x68",
+        "991110",
+        "10",
+        "1",
+        "104.72",
+        "104.72",
+        "0.125",
+        "0.125",
+        "127853472",
+        "BRA6517039016"
+      ],
+      "expanded": null,
+      "index": 8,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Oberteil Al BRA 80",
+        "991107",
+        "100",
+        "0.3",
+        "18.396",
+        "5.5188",
+        "0",
+        "0",
+        "127840072",
+        "BRA08029016"
+      ],
+      "expanded": null,
+      "index": 9,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Kupplung /Paar BRA",
+        "990766",
+        "24",
+        "0.5",
+        "6.496",
+        "3.248",
+        "0.05",
+        "0.025",
+        "127863052",
+        "BRAX9"
+      ],
+      "expanded": null,
+      "index": 10,
+      "level": 1
+    }
+  ],
+  "tree_attributes": [
+    [
+      "role",
+      "treegrid"
+    ],
+    [
+      "class",
+      "k-grid-aria-root"
+    ],
+    [
+      "aria-rowcount",
+      "12"
+    ],
+    [
+      "aria-colcount",
+      "11"
+    ]
+  ],
+  "calculation": [
+    [
+      {
+        "text": "Arbeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Material",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Akkord",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "Installationszeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.727"
+      },
+      {
+        "text": "Bruttomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "220.00375"
+      },
+      {
+        "text": "Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "83.8958"
+      }
+    ],
+    [
+      {
+        "text": "* Stundenansatz",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "115.40"
+      },
+      {
+        "text": "Nettomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "123.2021"
+      },
+      {
+        "text": "+ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "149.07454"
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "* Materialfaktor",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.21"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "+ Recyclinggebühr",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.00"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "= Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "83.8958"
+      },
+      {
+        "text": "= Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "149.07454"
+      },
+      {
+        "text": "= Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "232.97034"
+      }
+    ],
+    [
+      {
+        "text": "≈ Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "83.90"
+      },
+      {
+        "text": "≈ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "149.05"
+      },
+      {
+        "text": "≈ Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "232.95"
+      }
+    ]
+  ],
+  "complete_tree": true
+}

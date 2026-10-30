@@ -5,4 +5,5 @@ export interface ToolProps { onHome: () => void }
 
 export const MODULES: Readonly<Record<string, LazyExoticComponent<ComponentType<ToolProps>> | undefined>> = {
   "nova-legenden": lazy(() => import("../App")),
+  "bim2steiger": lazy(() => import("./BimTool")),
 };

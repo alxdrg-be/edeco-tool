@@ -1,0 +1,661 @@
+{
+  "number": "120530",
+  "va": "00",
+  "year": 2026,
+  "source": "https://digital.asteigerag.ch/dashboard",
+  "portal_page": "0_0_8_8",
+  "captured_at": "2026-10-23T05:57:06.798Z",
+  "capture_kind": "article_dialog",
+  "basic_data": [
+    {
+      "checkbox": null,
+      "label": "Typ",
+      "value": "Komplett-Artikel/-Installation"
+    },
+    {
+      "checkbox": null,
+      "label": "Artikelnummer",
+      "value": "120530"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z1",
+      "value": "Wärmeabzug Liftschacht"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z2",
+      "value": "Installation enthält:"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z3",
+      "value": "1 Klappenantrieb"
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 1",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 2",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 3",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Lieferant",
+      "value": "1 Strukturen"
+    },
+    {
+      "checkbox": null,
+      "label": "Sortiment",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Bestellnummer",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "E-Nr",
+      "value": ""
+    },
+    {
+      "checkbox": true,
+      "label": "Anschluss",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Nummer",
+      "value": "1"
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Rabatt (in %)",
+      "value": "0"
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Text",
+      "value": "Komplett-Installationen"
+    },
+    {
+      "checkbox": null,
+      "label": "Bruttomaterialpreis",
+      "value": "19.133"
+    },
+    {
+      "checkbox": null,
+      "label": "Nettomaterialpreis",
+      "value": "14.7853"
+    },
+    {
+      "checkbox": null,
+      "label": "Recyclinggebühr",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Fremdleistung",
+      "value": ""
+    }
+  ],
+  "article_text": "\t\n\n\nWärmeabzug Liftschacht\n\n\nInstallation enthält:\n\n\n1 Klappenantrieb\n\n\n1 Thermostat\n\n\nMithilfe IBS\n\n\no Zuleitung",
+  "images": [
+    {
+      "number": "120530",
+      "va": "00",
+      "vas": [
+        "00"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 120530 / VA 00, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_0_8_8",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T05:57:05.583Z",
+      "width": 139,
+      "height": 150,
+      "file": "images/portal-2026/8ba8497e0561a850d3cff1a3ca172143bbf53a639363498617e5dfaab14835c7.png",
+      "sha256": "8ba8497e0561a850d3cff1a3ca172143bbf53a639363498617e5dfaab14835c7",
+      "ordinal": 0
+    }
+  ],
+  "rows": [
+    {
+      "cells": [
+        "Wärmeabzug Liftschacht",
+        "120530",
+        "00",
+        "1",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "expanded": "true",
+      "index": 0,
+      "level": 0
+    },
+    {
+      "cells": [
+        "KIR-Rohr hf lichtgr -20",
+        "125140",
+        "20",
+        "2.5",
+        "1.764",
+        "4.41",
+        "0.222",
+        "0.555",
+        "125076209",
+        ""
+      ],
+      "expanded": null,
+      "index": 1,
+      "level": 1
+    },
+    {
+      "cells": [
+        "NAP-Schlaufdose hf 81x81x38",
+        "152536",
+        "20",
+        "1",
+        "4.9218",
+        "4.9218",
+        "0.262",
+        "0.262",
+        "152085008",
+        "9820"
+      ],
+      "expanded": null,
+      "index": 2,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Kabel FE05 Cca hf 3x1.5",
+        "106002",
+        "60",
+        "1.6",
+        "1.08",
+        "1.728",
+        "0.057",
+        "0.0912",
+        "",
+        "312549"
+      ],
+      "expanded": null,
+      "index": 3,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Kabel FE05 Cca hf 3x1.5",
+        "106002",
+        "64",
+        "1",
+        "1.08",
+        "1.08",
+        "0.11",
+        "0.11",
+        "",
+        "312549"
+      ],
+      "expanded": null,
+      "index": 4,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Kabel flex Cca hf 3x1.5",
+        "106702",
+        "60",
+        "1.8",
+        "0.91",
+        "1.638",
+        "0.057",
+        "0.1026",
+        "",
+        "191103033Cca"
+      ],
+      "expanded": null,
+      "index": 5,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Kabel flex Cca hf 3x1.5",
+        "106702",
+        "64",
+        "0.7",
+        "0.91",
+        "0.637",
+        "0.11",
+        "0.077",
+        "",
+        "191103033Cca"
+      ],
+      "expanded": null,
+      "index": 6,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Kabel flex Cca hf 3x1.5",
+        "106702",
+        "70",
+        "1",
+        "0.91",
+        "0.91",
+        "0.121",
+        "0.121",
+        "",
+        "191103033Cca"
+      ],
+      "expanded": null,
+      "index": 7,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Kabel flex Cca hf 3x1.5",
+        "106702",
+        "71",
+        "1",
+        "0.91",
+        "0.91",
+        "0.272",
+        "0.272",
+        "",
+        "191103033Cca"
+      ],
+      "expanded": null,
+      "index": 8,
+      "level": 1
+    },
+    {
+      "cells": [
+        "M+A+FK Fühler/Thermostat -5x1.5",
+        "12094",
+        "20",
+        "1",
+        "0",
+        "0",
+        "1.147",
+        "1.147",
+        "",
+        ""
+      ],
+      "expanded": "true",
+      "index": 9,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Funktionskontrolle 1.0h",
+        "12574",
+        "09",
+        "0.2",
+        "0",
+        "0",
+        "1",
+        "0.2",
+        "",
+        ""
+      ],
+      "expanded": null,
+      "index": 10,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Apparatemontage 2 Bef -6kg",
+        "12002",
+        "20",
+        "1",
+        "0",
+        "0",
+        "0.403",
+        "0.403",
+        "",
+        ""
+      ],
+      "expanded": null,
+      "index": 11,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Steuerkabel Cca hf 5x1.5",
+        "113464",
+        "70",
+        "1",
+        "1.79",
+        "1.79",
+        "0.174",
+        "0.174",
+        "117515593",
+        "775833053"
+      ],
+      "expanded": null,
+      "index": 12,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Steuerkabel Cca hf 5x1.5",
+        "113464",
+        "71",
+        "1",
+        "1.79",
+        "1.79",
+        "0.37",
+        "0.37",
+        "117515593",
+        "775833053"
+      ],
+      "expanded": null,
+      "index": 13,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Funktionskontrolle 1.0h",
+        "12574",
+        "09",
+        "0.5",
+        "0",
+        "0",
+        "1",
+        "0.5",
+        "",
+        ""
+      ],
+      "expanded": null,
+      "index": 14,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Mithilfe bei Inbetriebsetzung 1.0h",
+        "12584",
+        "09",
+        "1",
+        "0",
+        "0",
+        "1",
+        "1",
+        "",
+        ""
+      ],
+      "expanded": null,
+      "index": 15,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Beschriftungsband -20 Z",
+        "8911",
+        "24",
+        "1",
+        "0.3705",
+        "0.3705",
+        "0.102",
+        "0.102",
+        "173704540",
+        ""
+      ],
+      "expanded": "true",
+      "index": 16,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Schriftbandkassette B=12 8m",
+        "999014",
+        "100",
+        "0.02",
+        "18.525",
+        "0.3705",
+        "0",
+        "0",
+        "173704540",
+        ""
+      ],
+      "expanded": null,
+      "index": 17,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Beschriftung -20 Zeichen",
+        "999013",
+        "24",
+        "1",
+        "0",
+        "0",
+        "0.102",
+        "0.102",
+        "",
+        ""
+      ],
+      "expanded": null,
+      "index": 18,
+      "level": 2
+    }
+  ],
+  "tree_attributes": [
+    [
+      "role",
+      "treegrid"
+    ],
+    [
+      "class",
+      "k-grid-aria-root"
+    ],
+    [
+      "aria-rowcount",
+      "20"
+    ],
+    [
+      "aria-colcount",
+      "11"
+    ]
+  ],
+  "calculation": [
+    [
+      {
+        "text": "Arbeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Material",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Akkord",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "Installationszeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "4.3398"
+      },
+      {
+        "text": "Bruttomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "19.133"
+      },
+      {
+        "text": "Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "500.81292"
+      }
+    ],
+    [
+      {
+        "text": "* Stundenansatz",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "115.40"
+      },
+      {
+        "text": "Nettomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "14.7853"
+      },
+      {
+        "text": "+ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "17.89021"
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "* Materialfaktor",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.21"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "+ Recyclinggebühr",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.00"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "= Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "500.81292"
+      },
+      {
+        "text": "= Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "17.89021"
+      },
+      {
+        "text": "= Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "518.70313"
+      }
+    ],
+    [
+      {
+        "text": "≈ Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "500.80"
+      },
+      {
+        "text": "≈ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "17.90"
+      },
+      {
+        "text": "≈ Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "518.70"
+      }
+    ]
+  ],
+  "complete_tree": true
+}

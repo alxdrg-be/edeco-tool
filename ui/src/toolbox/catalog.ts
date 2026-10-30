@@ -13,7 +13,7 @@ export const TOOLS: readonly ToolInfo[] = [
   { id: "nova-legenden", title: "NOVA-Legenden", category: "Elektroplanung", symbol: "NL", color: "petrol",
     description: "Pläne importieren, Symbole zuordnen und elektrische Legenden erstellen.", status: "available" },
   { id: "bim2steiger", title: "BIM2STEIGER", category: "BIM", symbol: "B2S", color: "blue",
-    description: "Die Einbindung des Programms wird vorbereitet.", status: "awaiting-source" },
+    description: "Steiger-Katalog durchsuchen, BIM-Objekte zuordnen und Ausschreibungen erstellen.", status: "available" },
   { id: "berechnungen", title: "Berechnungstool", category: "Elektroplanung", symbol: "∑", color: "violet",
     description: "Platz für kommende Berechnungen in der Elektroplanung.", status: "planned" },
   { id: "blitzschutz", title: "Blitzschutz", category: "Elektroplanung", symbol: "ϟ", color: "orange",

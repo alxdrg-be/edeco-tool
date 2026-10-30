@@ -1,0 +1,576 @@
+{
+  "number": "5524",
+  "va": "24",
+  "year": 2026,
+  "source": "https://digital.asteigerag.ch/dashboard",
+  "portal_page": "0_1_15_22",
+  "captured_at": "2026-10-23T18:14:52.736Z",
+  "capture_kind": "article_dialog",
+  "basic_data": [
+    {
+      "label": "Typ",
+      "value": "Komplett-Artikel/-Installation",
+      "checkbox": null
+    },
+    {
+      "label": "Artikelnummer",
+      "value": "5524",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z1",
+      "value": "WZU-Steuerung 48V 3 Whg",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z2",
+      "value": "Netzteil Schütze",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z3",
+      "value": "Schlüsselleser Schlüssel",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 1",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 2",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 3",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Lieferant",
+      "value": "1 Strukturen",
+      "checkbox": null
+    },
+    {
+      "label": "Sortiment",
+      "value": "3809 SIPA",
+      "checkbox": null
+    },
+    {
+      "label": "Bestellnummer",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "E-Nr",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Anschluss",
+      "value": "",
+      "checkbox": true
+    },
+    {
+      "label": "Warengruppe-Nummer",
+      "value": "3899",
+      "checkbox": null
+    },
+    {
+      "label": "Warengruppe-Rabatt (in %)",
+      "value": "0",
+      "checkbox": null
+    },
+    {
+      "label": "Warengruppe-Text",
+      "value": "Schaltgeräte netto",
+      "checkbox": null
+    },
+    {
+      "label": "Bruttomaterialpreis",
+      "value": "425.23",
+      "checkbox": null
+    },
+    {
+      "label": "Nettomaterialpreis",
+      "value": "414.999",
+      "checkbox": null
+    },
+    {
+      "label": "Recyclinggebühr",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Fremdleistung",
+      "value": "",
+      "checkbox": null
+    }
+  ],
+  "article_text": "\t\n\n\nWZU-Steuerung 48V\n3 Whg\n\nNetzteil Schütze\n\n\nSchlüsselleser Schlüssel\n\n\nausbaubar -7Whg kompl verdr",
+  "images": [
+    {
+      "number": "5524",
+      "va": "24",
+      "vas": [
+        "24"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 5524 / VA 24, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_1_15_22",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T18:14:52.708Z",
+      "width": 141,
+      "height": 150,
+      "file": "images/portal-2026/709eddd45bf1f7f9b751f9c7bb900026a84ec96253574d63af971be1fd297fba.png",
+      "sha256": "709eddd45bf1f7f9b751f9c7bb900026a84ec96253574d63af971be1fd297fba",
+      "ordinal": 0
+    }
+  ],
+  "rows": [
+    {
+      "index": 0,
+      "level": 0,
+      "expanded": "true",
+      "cells": [
+        "WZU-Steuerung 48V 3 Whg",
+        "5524",
+        "24",
+        "1",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    {
+      "index": 1,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "REG-Schlüsselleser WZU 48V 3-7 Whg",
+        "999630",
+        "100",
+        "1",
+        "183",
+        "183",
+        "0",
+        "0",
+        "",
+        "Y80303"
+      ]
+    },
+    {
+      "index": 2,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "REG-Netzteil WZU 48V",
+        "999632",
+        "24",
+        "1",
+        "103",
+        "103",
+        "0.123",
+        "0.123",
+        "437900136",
+        "Y85200"
+      ]
+    },
+    {
+      "index": 3,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "REG-Schütz 4S 25A R25-40",
+        "997247",
+        "24",
+        "4",
+        "22",
+        "88",
+        "0.063",
+        "0.252",
+        "",
+        "M23440"
+      ]
+    },
+    {
+      "index": 4,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Sammelschienen-Set 4 Schütze",
+        "997246",
+        "24",
+        "1",
+        "16",
+        "16",
+        "0.167",
+        "0.167",
+        "",
+        "Y89074"
+      ]
+    },
+    {
+      "index": 5,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "AP-Klemmenabdeckung z Schlüsselleser",
+        "997240",
+        "100",
+        "1",
+        "10",
+        "10",
+        "0",
+        "0",
+        "437900036",
+        "Y821"
+      ]
+    },
+    {
+      "index": 6,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Kabel FE0 Dca hf 5x1.5",
+        "109054",
+        "70",
+        "2",
+        "1.21",
+        "2.42",
+        "0.145",
+        "0.29",
+        "109010523",
+        "212884"
+      ]
+    },
+    {
+      "index": 7,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Litze T Dca hf 1.5",
+        "113103",
+        "60",
+        "11",
+        "0.35",
+        "3.85",
+        "0.048",
+        "0.528",
+        "113163800",
+        "216245"
+      ]
+    },
+    {
+      "index": 8,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Litze T Dca hf 1.5",
+        "113103",
+        "70",
+        "22",
+        "0.35",
+        "7.7",
+        "0.041",
+        "0.902",
+        "113163800",
+        "216245"
+      ]
+    },
+    {
+      "index": 9,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Litze T Dca hf 2.5",
+        "113104",
+        "60",
+        "9",
+        "0.56",
+        "5.04",
+        "0.048",
+        "0.432",
+        "113163900",
+        "220542"
+      ]
+    },
+    {
+      "index": 10,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Litze T Dca hf 2.5",
+        "113104",
+        "70",
+        "18",
+        "0.56",
+        "10.08",
+        "0.041",
+        "0.738",
+        "113163900",
+        "220542"
+      ]
+    },
+    {
+      "index": 11,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Reihenklemme 2.5",
+        "158150",
+        "24",
+        "5",
+        "0.8446",
+        "4.223",
+        "0.019",
+        "0.095",
+        "158100157",
+        "30150BL"
+      ]
+    },
+    {
+      "index": 12,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Abschlusswand 2.5-4",
+        "158170",
+        "24",
+        "1",
+        "0.4264",
+        "0.4264",
+        "0.019",
+        "0.019",
+        "158108237",
+        "3460"
+      ]
+    },
+    {
+      "index": 13,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Arretierstück Makrolon",
+        "158421",
+        "24",
+        "2",
+        "0.7298",
+        "1.4596",
+        "0.05",
+        "0.1",
+        "158910037",
+        "3418"
+      ]
+    }
+  ],
+  "tree_attributes": [
+    [
+      "role",
+      "treegrid"
+    ],
+    [
+      "class",
+      "k-grid-aria-root"
+    ],
+    [
+      "aria-rowcount",
+      "15"
+    ],
+    [
+      "aria-colcount",
+      "11"
+    ]
+  ],
+  "calculation": [
+    [
+      {
+        "text": "Arbeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Material",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Akkord",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "Installationszeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "3.646"
+      },
+      {
+        "text": "Bruttomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "425.23"
+      },
+      {
+        "text": "Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "420.7484"
+      }
+    ],
+    [
+      {
+        "text": "* Stundenansatz",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "115.40"
+      },
+      {
+        "text": "Nettomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "414.999"
+      },
+      {
+        "text": "+ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "502.14879"
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "* Materialfaktor",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.21"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "+ Recyclinggebühr",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.00"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "= Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "420.7484"
+      },
+      {
+        "text": "= Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "502.14879"
+      },
+      {
+        "text": "= Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "922.89719"
+      }
+    ],
+    [
+      {
+        "text": "≈ Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "420.75"
+      },
+      {
+        "text": "≈ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "502.15"
+      },
+      {
+        "text": "≈ Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "922.90"
+      }
+    ]
+  ],
+  "complete_tree": true
+}

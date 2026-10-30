@@ -1,0 +1,17 @@
+/* Shared edeco typography, surfaces and control geometry; BIM uses a blue accent. */
+html[data-toolbox=true][data-theme] {
+  --brand: #3877d4; --brand-soft: #ecf2fc; --ink: #203039; --muted: #64757f;
+  --line: #e1e8ec; --surface: #fff; --canvas: #f4f7f8;
+  font-family: "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+}
+html[data-toolbox=true][data-theme=dark] {
+  --brand: #8db9ff; --brand-soft: #1b314e; --ink: #e8f0f3; --muted: #a3b5bf;
+  --line: #2d414d; --surface: #17232b; --canvas: #10191f;
+  --navy: #10191f; --night-soft: #1c2b34; --night-text: #e8f0f3;
+}
+html[data-toolbox=true] body { font-family: inherit; background: var(--canvas); }
+html[data-toolbox=true] .header { background: var(--surface); box-shadow: none; }
+html[data-toolbox=true] .brand-mark { display: none; }
+html[data-toolbox=true] :is(.button,.search-trigger,input,select,textarea) { border-radius: 8px; }
+html[data-toolbox=true] :is(.position-card,.home-card,.chapter-card,dialog) { border-radius: 14px; }
+html[data-toolbox=true] .brand-word { font-weight: 650; }

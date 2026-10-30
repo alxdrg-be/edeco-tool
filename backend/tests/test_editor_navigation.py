@@ -119,7 +119,7 @@ def test_returning_to_toolbox_saves_the_open_legend_and_filters_tools(editor):
     page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
     playwright.expect(page.get_by_role("heading", name="Ein Ort. Deine Werkzeuge.")).to_be_visible()
     assert title(client, pid) == "Aus der Toolbox gespeichert"
-    playwright.expect(page.get_by_role("button", name="BIM2STEIGER: noch nicht verfügbar")).to_be_disabled()
+    playwright.expect(page.get_by_role("button", name="BIM2STEIGER öffnen")).to_be_enabled()
     search = page.get_by_role("searchbox", name="Werkzeug suchen")
     search.fill("blitz")
     playwright.expect(page.locator(".toolbox-card")).to_have_count(1)
@@ -148,6 +148,60 @@ def test_failed_save_keeps_the_user_in_the_module_when_returning_to_toolbox(edit
     page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
     playwright.expect(page.get_by_role("heading", name="Ein Ort. Deine Werkzeuge.")).to_be_visible()
     assert title(client, pid) == "Darf nicht verloren gehen"
+
+
+def open_bim_from_editor(page):
+    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="BIM2STEIGER öffnen", exact=True).click()
+    frame = page.frame_locator('iframe[title="BIM2STEIGER"]')
+    playwright.expect(frame.locator("#catalogueCoverage")).to_contain_text(re.compile(r"11.777"))
+    return frame
+
+
+def test_bim_catalogue_favorites_and_tender_survive_returning_to_toolbox(editor):
+    page, _, _, _ = editor
+    frame = open_bim_from_editor(page)
+    frame.locator("#openSearch").click()
+    frame.locator("#searchInput").fill("112001")
+    frame.locator(".search-result").first.click()
+    playwright.expect(frame.locator("#articleTitle")).not_to_be_empty()
+    playwright.expect(frame.locator("#addTender")).to_be_enabled()
+    frame.locator("#saveFavorite").click()
+    playwright.expect(frame.locator("#saveFavorite")).to_have_attribute("aria-pressed", "true")
+    frame.locator("#addTender").click()
+    form = frame.locator("#tenderForm")
+    form.locator('[name="quantity"]').fill("2")
+    form.locator('[name="unit"]').select_option("Stk")
+    form.locator('[name="bkp"]').fill("232.5")
+    form.locator('[name="room"]').fill("R1")
+    form.get_by_role("button", name="Position übernehmen", exact=True).click()
+    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    playwright.expect(page.get_by_role("heading", name="Ein Ort. Deine Werkzeuge.")).to_be_visible()
+    assert page.evaluate("JSON.parse(localStorage.getItem('steiger2bim.tender.v1'))[0].quantity") == 2
+    page.get_by_role("button", name="BIM2STEIGER öffnen", exact=True).click()
+    frame = page.frame_locator('iframe[title="BIM2STEIGER"]')
+    playwright.expect(frame.locator("#favoriteCount")).to_have_text("1")
+    frame.locator("#openTender").click()
+    playwright.expect(frame.locator("#tenderLines")).to_contain_text("112001")
+
+
+def test_bim_open_dialog_and_storage_failure_prevent_leaving(editor):
+    page, _, _, _ = editor
+    frame = open_bim_from_editor(page)
+    frame.locator("#openSearch").click()
+    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    playwright.expect(frame.locator("#toast")).to_contain_text("offenen Dialog")
+    frame.get_by_role("button", name="Suche schliessen", exact=True).click()
+    child = page.frames[1]
+    child.evaluate("""() => {
+      window.originalSetItem = Storage.prototype.setItem;
+      Storage.prototype.setItem = () => { throw new Error('Test quota failure'); };
+    }""")
+    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    playwright.expect(frame.locator("#toast")).to_contain_text("Speicherung fehlgeschlagen")
+    child.evaluate("() => { Storage.prototype.setItem = window.originalSetItem; }")
+    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    playwright.expect(page.get_by_role("heading", name="Ein Ort. Deine Werkzeuge.")).to_be_visible()
 
 
 def title(client, pid):

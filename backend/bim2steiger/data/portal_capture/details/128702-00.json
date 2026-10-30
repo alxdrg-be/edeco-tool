@@ -1,0 +1,542 @@
+{
+  "number": "128702",
+  "va": "00",
+  "year": 2026,
+  "source": "https://digital.asteigerag.ch/dashboard",
+  "portal_page": "0_0_4_12",
+  "captured_at": "2026-10-23T05:11:04.802Z",
+  "capture_kind": "article_dialog",
+  "basic_data": [
+    {
+      "checkbox": null,
+      "label": "Typ",
+      "value": "Komplett-Artikel/-Installation"
+    },
+    {
+      "checkbox": null,
+      "label": "Artikelnummer",
+      "value": "128702"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z1",
+      "value": "Brüstungskanal Stahlblech BRS 170x68"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z2",
+      "value": "Formstücke/RA"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z3",
+      "value": "Ausschnitte"
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 1",
+      "value": "BRS170X68"
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 2",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 3",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Lieferant",
+      "value": "1 Strukturen"
+    },
+    {
+      "checkbox": null,
+      "label": "Sortiment",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Bestellnummer",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "E-Nr",
+      "value": ""
+    },
+    {
+      "checkbox": false,
+      "label": "Anschluss",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Nummer",
+      "value": "1"
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Rabatt (in %)",
+      "value": "0"
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Text",
+      "value": "Komplett-Installationen"
+    },
+    {
+      "checkbox": null,
+      "label": "Bruttomaterialpreis",
+      "value": "151.41075"
+    },
+    {
+      "checkbox": null,
+      "label": "Nettomaterialpreis",
+      "value": "84.79002"
+    },
+    {
+      "checkbox": null,
+      "label": "Recyclinggebühr",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Fremdleistung",
+      "value": ""
+    }
+  ],
+  "article_text": "\t\n\n\nBrüstungskanal Stahlblech\nBRS 170x68\n\nFormstücke/RA\n\n\nAusschnitte",
+  "images": [
+    {
+      "number": "128702",
+      "va": "00",
+      "vas": [
+        "00"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 128702 / VA 00, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_0_4_12",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T05:11:04.498Z",
+      "width": 104,
+      "height": 150,
+      "file": "images/portal-2026/a70977a721c269ee54f3b64a17a12bb5947520a834d9f270515f6e4090645a51.png",
+      "sha256": "a70977a721c269ee54f3b64a17a12bb5947520a834d9f270515f6e4090645a51",
+      "ordinal": 0
+    }
+  ],
+  "rows": [
+    {
+      "cells": [
+        "Brüstungskanal Stahlblech BRS 170x68",
+        "128702",
+        "00",
+        "1",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "expanded": "true",
+      "index": 0,
+      "level": 0
+    },
+    {
+      "cells": [
+        "Richtungsänderung Kanal Me 170-250",
+        "12057",
+        "09",
+        "0.1",
+        "0",
+        "0",
+        "1.345",
+        "0.1345",
+        "",
+        ""
+      ],
+      "expanded": null,
+      "index": 1,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Ausschnitt Me -2 100x60",
+        "12079",
+        "09",
+        "0.25",
+        "0",
+        "0",
+        "0.281",
+        "0.07025",
+        "",
+        ""
+      ],
+      "expanded": null,
+      "index": 2,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Kanal Stahlblech BRS 170x68",
+        "128602",
+        "20",
+        "1",
+        "57.456",
+        "57.456",
+        "0.456",
+        "0.456",
+        "",
+        ""
+      ],
+      "expanded": "true",
+      "index": 3,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Grundprofil Stahlblech BRS 170x68",
+        "990908",
+        "20",
+        "1",
+        "40.824",
+        "40.824",
+        "0.456",
+        "0.456",
+        "127514072",
+        "BRS6517019016"
+      ],
+      "expanded": null,
+      "index": 4,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Oberteil Stahlblech BRS 80",
+        "990913",
+        "100",
+        "1",
+        "16.632",
+        "16.632",
+        "0",
+        "0",
+        "127513272",
+        "BRS08029016"
+      ],
+      "expanded": null,
+      "index": 5,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Ausseneck Stahlblech BRS 170x68",
+        "128625",
+        "20",
+        "0.25",
+        "57.23928",
+        "14.30982",
+        "0.183",
+        "0.04575",
+        "127559972",
+        "BRS6517039016"
+      ],
+      "expanded": "true",
+      "index": 6,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Ausseneck Stahlblech BRS 170x68",
+        "992209",
+        "20",
+        "1",
+        "52.416",
+        "52.416",
+        "0.183",
+        "0.183",
+        "127559972",
+        "BRS6517039016"
+      ],
+      "expanded": null,
+      "index": 7,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Oberteil Stahlblech BRS 80",
+        "990913",
+        "100",
+        "0.29",
+        "16.632",
+        "4.82328",
+        "0",
+        "0",
+        "127513272",
+        "BRS08029016"
+      ],
+      "expanded": null,
+      "index": 8,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Endplatte Stahlblech BRS 170x68",
+        "128636",
+        "24",
+        "0.2",
+        "15.456",
+        "3.0912",
+        "0.05",
+        "0.01",
+        "127536272",
+        "BRS6517069016"
+      ],
+      "expanded": null,
+      "index": 9,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Kupplung /Paar BRS 170x68",
+        "990754",
+        "24",
+        "0.75",
+        "6.188",
+        "4.641",
+        "0.05",
+        "0.0375",
+        "127591832",
+        "BRS651709"
+      ],
+      "expanded": null,
+      "index": 10,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Klammer Stahlblech verz BR",
+        "128669",
+        "24",
+        "1",
+        "5.292",
+        "5.292",
+        "0.05",
+        "0.05",
+        "127549552",
+        "L4253BCHR"
+      ],
+      "expanded": null,
+      "index": 11,
+      "level": 1
+    }
+  ],
+  "tree_attributes": [
+    [
+      "role",
+      "treegrid"
+    ],
+    [
+      "class",
+      "k-grid-aria-root"
+    ],
+    [
+      "aria-rowcount",
+      "13"
+    ],
+    [
+      "aria-colcount",
+      "11"
+    ]
+  ],
+  "calculation": [
+    [
+      {
+        "text": "Arbeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Material",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Akkord",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "Installationszeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.804"
+      },
+      {
+        "text": "Bruttomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "151.41075"
+      },
+      {
+        "text": "Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "92.7816"
+      }
+    ],
+    [
+      {
+        "text": "* Stundenansatz",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "115.40"
+      },
+      {
+        "text": "Nettomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "84.79002"
+      },
+      {
+        "text": "+ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "102.59592"
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "* Materialfaktor",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.21"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "+ Recyclinggebühr",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.00"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "= Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "92.7816"
+      },
+      {
+        "text": "= Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "102.59592"
+      },
+      {
+        "text": "= Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "195.37752"
+      }
+    ],
+    [
+      {
+        "text": "≈ Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "92.80"
+      },
+      {
+        "text": "≈ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "102.60"
+      },
+      {
+        "text": "≈ Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "195.40"
+      }
+    ]
+  ],
+  "complete_tree": true
+}

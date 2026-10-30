@@ -31,6 +31,9 @@ jobs:
           python -m playwright install chromium
       - name: Backend und Browser testen
         run: python -m pytest backend/tests -q
+      - name: BIM2STEIGER-Fachlogik testen
+        working-directory: backend/bim2steiger
+        run: python -m unittest discover -s tests -q
       - name: Toolbox-EXE bauen
         run: |
           python packaging/make_icon.py
@@ -54,6 +57,8 @@ jobs:
             if ($page.Content -notmatch 'edeco Toolbox') { throw 'Toolbox-Oberfläche fehlt' }
             $nova = Invoke-RestMethod 'http://127.0.0.1:8799/api/status'
             if (-not $nova.version) { throw 'Nova-Modul nicht verfügbar' }
+            $bim = Invoke-RestMethod 'http://127.0.0.1:8799/tools/bim2steiger/api/meta'
+            if ($bim.catalogue_articles -lt 1) { throw 'BIM-Katalog fehlt' }
           } finally {
             Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue
           }

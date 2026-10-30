@@ -1,0 +1,946 @@
+<!doctype html>
+<html lang="de-CH">
+<head>
+  <meta charset="utf-8">
+  <script>if(location.protocol==='file:')document.documentElement.classList.add('local-file');</script>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#142238">
+  <meta name="description" content="BIM2STEIGER – vollständiger lokaler Steiger-Katalog mit Originalbildern, nachvollziehbaren Bestandteilen und Ausschreibung.">
+  <title>BIM2STEIGER</title>
+  <link rel="icon" href="favicon.png">
+  <link rel="stylesheet" href="toolbox.css">
+  <script>
+    // Darstellung vor dem ersten Rendern wiederherstellen, auch beim direkten Öffnen der Datei.
+    (() => {
+      let theme = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      try {
+        const preferences = JSON.parse(localStorage.getItem('bim2steiger:beta:preferences:v1') || '{}');
+        if (preferences?.theme === 'dark' || preferences?.theme === 'light') theme = preferences.theme;
+      } catch {}
+      if (location.pathname.startsWith('/tools/bim2steiger/')) {
+        document.documentElement.dataset.toolbox = 'true';
+        const shared = new URLSearchParams(location.search).get('theme');
+        if (shared === 'light' || shared === 'dark') theme = shared;
+      }
+      document.documentElement.dataset.theme = theme;
+    })();
+  </script>
+  <style>
+    /* 01 · Design-Tokens und Basis. */
+    :root{--brand:#315ce7;--brand-soft:#eef2ff;--navy:#142238;--ink:#25344b;--muted:#738198;--line:#e5eaf1;--surface:#fff;--canvas:#f5f7fa;--amber:#9a6514;--header:76px;--sidebar:234px;--help:278px}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font:13px/1.55 "Inter","Segoe UI",Arial,sans-serif;color:var(--ink);background:var(--canvas);-webkit-font-smoothing:antialiased}button,input,select{font:inherit}button{cursor:pointer;border:0}button:disabled{cursor:default;opacity:.45}button,a,summary,select{-webkit-tap-highlight-color:transparent}button:focus-visible,a:focus-visible,summary:focus-visible,select:focus-visible{outline:3px solid #9ab3ff;outline-offset:3px}input:focus-visible{outline:2px solid #9ab3ff;outline-offset:4px}a{color:inherit;text-decoration:none}h1,h2,h3,p{margin:0}svg{display:block;flex-shrink:0}[hidden]{display:none!important}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}.icon{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.65;stroke-linecap:round;stroke-linejoin:round}.mono{font-family:Consolas,"SFMono-Regular",monospace;font-variant-numeric:tabular-nums}.eyebrow{font-size:10px;font-weight:650;letter-spacing:1.4px;text-transform:uppercase}.muted{color:var(--muted)}.flex{display:flex}.items-center{align-items:center}.gap-2{gap:8px}.gap-3{gap:12px}.button{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:9px 13px;min-height:39px;border:1px solid var(--line);border-radius:7px;background:white;color:#52627b;font-size:12px;font-weight:550}.button:hover{border-color:#c5d1f4;background:#f7f9ff}.button.primary{background:var(--brand);border-color:var(--brand);color:white;box-shadow:0 3px 7px #315ce71a}.button[aria-pressed=true]{background:#eff8f2;color:#26734b;border-color:#d4e8dc}.icon-button{width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;background:white;border:1px solid var(--line);border-radius:6px;color:#71839c}.icon-button:hover{color:var(--brand);border-color:#c6d3fa}.badge{display:inline-flex;align-items:center;gap:6px;border-radius:5px;padding:4px 8px;font-size:10px;font-weight:650}.badge.blue{background:var(--brand-soft);color:var(--brand)}.badge.beta{background:#fff6e5;color:var(--amber);border:1px solid #eed8ad;font-size:10px;letter-spacing:.8px}.status-dot{width:5px;height:5px;display:inline-block;border-radius:50%;background:currentColor}
+    /* 02 · Rahmen. Katalog und Detailansicht; Wissen lässt sich zusätzlich anpinnen. */
+    .header{height:var(--header);position:sticky;top:0;z-index:25;display:flex;align-items:center;gap:26px;padding:0 26px;background:#fff;border-bottom:1px solid var(--line)}.brand{display:flex;align-items:center;gap:10px;white-space:nowrap;font-size:17px;font-weight:800;letter-spacing:-.7px}.brand-mark{width:31px;height:35px;color:var(--brand)}.brand-word span{color:var(--brand)}.brand-group{display:flex;align-items:center;gap:13px}.search-trigger{display:flex;align-items:center;gap:11px;flex:1;min-width:80px;max-width:610px;padding:0 13px;height:41px;margin-left:8px;color:#8794a7;background:#f5f7fa;border:1px solid #e7ebf2;border-radius:8px;text-align:left;font-size:12px}.search-trigger:hover{border-color:#bdcdfa}.search-trigger kbd{margin-left:auto;background:#fff;border:1px solid #dfe5ef;border-radius:4px;padding:1px 5px;font:10px "Segoe UI",sans-serif;white-space:nowrap}.header-actions{margin-left:auto;display:flex;align-items:center;gap:20px;white-space:nowrap}.header-action{display:flex;align-items:center;gap:7px;background:transparent;color:#596b84;font-size:11px;font-weight:550}.count{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;border-radius:4px;background:var(--brand-soft);color:var(--brand);font:10px Consolas,monospace}.avatar{width:29px;height:29px;border-radius:50%;display:grid;place-items:center;background:#f1f4f8;color:#7f8da2;font-size:9px;font-weight:650}.mobile-menu{display:none}
+    .layout{display:grid;grid-template-columns:var(--sidebar) minmax(0,1fr) var(--help);min-height:calc(100dvh - var(--header))}.catalogue{position:sticky;top:var(--header);height:calc(100dvh - var(--header));display:flex;flex-direction:column;background:var(--navy);color:#91a6c3;overflow:auto}.catalogue-top{padding:27px 23px 23px;border-bottom:1px solid #ffffff0e}.workspace{font-size:9px;letter-spacing:1.5px;color:#788fac}.catalogue-top strong{display:block;font-size:13px;color:#e1e9f5;margin-top:6px;font-weight:550}.catalogue-tabs{padding:18px 13px 0}.catalogue-overview{display:flex;align-items:center;gap:9px;padding:11px;width:100%;text-align:left;border:1px solid #536b9929;background:#ffffff09;color:#ebf1fb;border-radius:6px;font-size:12px}.catalogue-overview .icon{color:#98b4ff}.catalogue-tree{padding:25px 12px 20px;flex:1}.tree-label{margin:0 10px 12px;font-size:9px;color:#7289a8}.tree-section{margin-bottom:13px}.tree-section summary{list-style:none;display:flex;align-items:center;gap:8px;color:#dae5f5;font-size:11px;cursor:pointer;padding:9px}.tree-section summary::-webkit-details-marker{display:none}.tree-section summary .icon{width:13px;height:13px;color:#8299b9}.tree-section[open]>summary .chevron{transform:rotate(90deg)}.tree-section .section-count{margin-left:auto;color:#6f88ac;font-size:9px}.tree-subtitle{font-size:10px;color:#6e86a8;margin:7px 10px 9px 29px}.tree-button{display:flex;align-items:center;gap:9px;width:100%;min-height:51px;padding:10px;margin:3px 0;text-align:left;color:#9cb0cd;background:transparent;border:1px solid transparent;border-radius:6px;font-size:11px;line-height:1.45}.tree-button:hover{background:#ffffff08;color:#edf3ff}.tree-button.selected{background:#315ce728;border-color:#6c8cde3d;color:#e4edff}.tree-button .tree-icon{display:grid;place-items:center;width:28px;height:30px;border-radius:5px;background:#ffffff07;color:#8fa8d0;flex-shrink:0}.tree-button .icon{width:16px;height:16px}.tree-button small{display:block;margin-top:4px;color:#6d87ae;font:9px Consolas,monospace}.catalogue-footer{padding:20px 22px;border-top:1px solid #ffffff12;color:#7990af;font-size:9px}.catalogue-footer strong{font-size:10px;font-weight:500;color:#c0cfe3;display:flex;align-items:center;gap:7px;margin-bottom:6px}.catalogue-footer .status-dot{color:#8db5a3}.sidebar-shade{display:none}
+    /* 03 · Detailposition. Semantische Bereiche statt eines Frameworks. */
+    .content{padding:27px 30px 22px;min-width:0;max-width:1100px;width:100%;margin:0 auto}.breadcrumb{display:flex;align-items:center;flex-wrap:wrap;gap:8px;font-size:10px;color:#91a0b4;margin-bottom:22px}.breadcrumb .icon{width:11px;height:11px}.breadcrumb span:last-child{color:#526885}.intro{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:23px}.intro h1{font-size:25px;letter-spacing:-.8px;font-weight:650;line-height:1.3}.intro p{color:#8492a7;font-size:11px;margin-top:6px}.edition{display:flex;align-items:center;gap:8px;font-size:10px;background:white;border:1px solid var(--line);padding:7px 9px;border-radius:6px;color:#8191a7;white-space:nowrap}.edition .icon{width:14px;height:14px}.beta-strip{display:flex;align-items:center;gap:8px;padding:9px 13px;border:1px solid #eddfc5;background:#fffcf6;border-radius:7px;color:#947443;font-size:10px;margin-bottom:18px}.beta-strip .icon{width:14px;height:14px}.beta-strip span:last-child{margin-left:auto;font-size:9px;color:#ac9776;white-space:nowrap}.position-card{background:white;border:1px solid var(--line);border-radius:11px;overflow:hidden;box-shadow:0 3px 12px #14223803}.position-head{padding:25px 26px 20px}.position-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:15px}.position-index{font-size:10px;color:#9aa7b8}.article-code{font-size:11px;color:#8191a7;letter-spacing:.8px;margin-bottom:7px}.title-line{display:flex;justify-content:space-between;align-items:flex-start;gap:15px}.title-line h2{font-size:29px;line-height:1.25;letter-spacing:-.8px;font-weight:650}.title-line p{font-size:12px;color:#8492a6;margin-top:7px}.va-label{display:flex;align-items:center;gap:7px;font-size:10px;color:#91a0b3;margin-top:4px;white-space:nowrap}.va-select{border:1px solid #e0e6f0;background:#f7f9fc;color:#546a88;font:11px Consolas,monospace;border-radius:5px;padding:6px 25px 6px 8px}.identities{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:22px 0 0;padding:17px 0 0;border-top:1px solid #edf0f5}.identities dt{font-size:10px;color:#91a0b2;margin-bottom:6px}.identities dd{margin:0;font-size:13px;overflow-wrap:anywhere;color:#4d627e}.identity-note{font-size:9px;color:#9aa7ba;margin-top:10px;display:flex;align-items:flex-start;gap:6px}.identity-note .icon{width:12px;height:12px;margin-top:1px}.media-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:0 22px 20px}.media-card{border:1px solid #e5ebf2;border-radius:7px;overflow:hidden;min-width:0}.media-label{display:flex;align-items:center;justify-content:space-between;padding:10px 13px;border-bottom:1px solid #eaf0f5;color:#7a8da6;font-size:9px;letter-spacing:1px}.media-label span:last-child{color:#afbac9;font:9px Consolas,monospace;letter-spacing:0}.media-stage{height:203px;position:relative;display:flex;align-items:center;justify-content:center;background:#fff}.media-stage.schema{background-color:#f8fafe;background-image:radial-gradient(#d4dfee .8px,transparent .8px);background-size:15px 15px}.schema-image{width:auto;height:123px;mix-blend-mode:multiply;object-fit:contain}.product-image{width:88%;height:178px;object-fit:contain}.media-stage>.symbol{width:102px;height:102px;color:#7592ba}.media-controls{position:absolute;right:9px;bottom:9px;display:flex;gap:5px}.media-controls .icon-button{width:28px;height:28px;background:#ffffffed}.media-controls .icon{width:14px;height:14px}.photo-tag{position:absolute;left:10px;top:10px;background:#f4f7fc;color:#8a9ab0;font-size:8px;padding:3px 6px;border-radius:4px;letter-spacing:.3px}.media-caption{min-height:49px;padding:9px 12px;border-top:1px solid #eaf0f5;font-size:9px;line-height:1.7;color:#8595ab}.media-caption strong{font-weight:550;color:#647b9c}.source-link{color:#718db8;text-decoration:underline;text-underline-offset:2px}.no-photo{padding:20px;text-align:center;display:flex;align-items:center;flex-direction:column;gap:9px;color:#a1afc1;font-size:10px}.no-photo .icon{width:30px;height:30px;stroke-width:1.2}.detail-actions{display:flex;align-items:center;gap:9px;padding:0 24px 23px}.detail-actions .button{font-size:11px}.detail-actions .text-action{margin-left:auto;font-size:10px;color:#8b9bb1;background:transparent;display:flex;align-items:center;gap:6px}.detail-actions .text-action .icon{width:13px;height:13px}.back-link{display:inline-flex;align-items:center;gap:6px;background:transparent;color:#5c7bb0;padding:0;font-size:10px;margin-bottom:15px}.back-link .icon{width:13px;height:13px}.tabs{display:flex;align-items:center;gap:25px;padding:0 24px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}.tab{position:relative;display:flex;align-items:center;gap:6px;padding:15px 0;background:transparent;color:#8f9db1;font-size:11px;white-space:nowrap}.tab[aria-selected=true]{color:var(--brand)}.tab[aria-selected=true]:after{content:"";position:absolute;bottom:-1px;left:0;right:0;background:var(--brand);height:2px}.tab-count{font:9px Consolas,monospace;color:#6e8ac7;background:#eff3ff;padding:1px 5px;border-radius:3px}.tab-panel{padding:23px 23px 15px}.section-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:17px}.section-heading h3{font-size:13px;font-weight:600}.section-heading p{font-size:9px;color:#94a2b6;margin-top:5px}.section-heading>.icon{width:16px;height:16px;color:#a5b4c9}.composition-scroll{overflow-x:auto}.composition-table{border-collapse:collapse;width:100%;table-layout:fixed;text-align:left;font-size:11px}.composition-table th{font-weight:500;background:#f7f9fc;color:#94a2b6;font-size:9px;padding:7px 8px}.composition-table th:first-child{width:42px;border-radius:4px 0 0 4px}.composition-table th:nth-child(3){width:38px}.composition-table th:nth-child(4){width:52px}.composition-table th:last-child{width:29px;border-radius:0 4px 4px 0}.composition-table th:last-child,.composition-table td:last-child{padding-left:4px;padding-right:4px}.composition-table td{border-bottom:1px solid #edf1f6;padding:6px 8px;vertical-align:middle}.composition-table tr:last-child td{border:0}.composition-table th:nth-last-child(2),.composition-table td:nth-last-child(2){text-align:right;white-space:nowrap}.component-symbol{width:26px;height:28px;display:grid;place-items:center;background:#f1f5fb;border:1px solid #e9eff7;border-radius:5px;color:#8ca3c1}.component-symbol .icon{width:18px;height:18px;stroke-width:1.3}.part-link{display:block;max-width:100%;overflow-wrap:anywhere;padding:0;background:transparent;text-align:left;color:#536b8c;font-size:11px;font-weight:500}.part-link:hover{color:var(--brand);text-decoration:underline;text-underline-offset:3px}.part-code{display:block;font-size:9px;color:#93a4bc;margin-top:1px}.part-numbers{display:flex;gap:10px;flex-wrap:wrap;font-size:8px;color:#9ba9bc;margin-top:1px}.part-numbers b{font-weight:400;color:#7b90ac;overflow-wrap:anywhere}.va-pill{background:#f3f6fb;padding:2px 5px;border-radius:3px;color:#8b9db6;font-size:9px}.quantity{font-size:11px;color:#667f9f}.quantity.negative{color:#b26e42}.row-arrow{width:21px;height:25px;display:grid;place-items:center;border-radius:4px;background:transparent;color:#8fa3bf}.row-arrow:hover{background:#eef3ff;color:var(--brand)}.row-arrow .icon{width:13px;height:13px}.table-note{display:flex;align-items:flex-start;gap:6px;color:#9aa8bb;font-size:9px;line-height:1.8;padding:13px 0 1px}.table-note .icon{width:12px;height:12px;margin-top:2px}.empty-state{text-align:center;color:#94a4b9;padding:28px 12px;font-size:11px}.empty-state>.icon{width:29px;height:29px;margin:0 auto 12px;color:#b1bfd1}.properties{display:grid;grid-template-columns:1fr 1fr;gap:14px 25px;margin:0;padding-bottom:12px}.properties dt{font-size:10px;color:#95a3b7}.properties dd{margin:5px 0 0;color:#637b9e;font-size:11px;overflow-wrap:anywhere}.original-text{white-space:pre-line;font-size:12px;line-height:1.9;color:#667c9c;padding-bottom:12px}.context-panel{margin-top:17px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 15px;background:#f9fbfd;border:1px dashed #dde5f0;border-radius:7px;color:#8c9eb7;font-size:10px}.context-panel span{display:flex;align-items:center;gap:8px}.context-panel .icon{width:15px;height:15px}.context-panel button{background:transparent;color:#6480b4;font-size:10px}.footer{display:flex;justify-content:space-between;gap:12px;padding-top:22px;color:#a1aec0;font-size:9px}
+    /* 04 · Wissen: kompakte Referenz und Bedienhilfe. */
+    .help{position:sticky;top:var(--header);height:calc(100dvh - var(--header));overflow:auto;background:white;border-left:1px solid var(--line);padding:27px 23px;color:#7d8fa8}.help-title{display:flex;align-items:center;gap:8px;color:#526a8d;font-size:13px;font-weight:600}.help-title .icon{color:#7693c1;width:17px;height:17px}.help-subtitle{font-size:10px;color:#a0aec0;margin-top:6px}.help-section{padding:23px 0 20px;border-bottom:1px solid var(--line)}.help-section summary{display:flex;align-items:center;justify-content:space-between;list-style:none;cursor:pointer;color:#6a7f9d;font-size:11px;font-weight:550}.help-section summary::-webkit-details-marker{display:none}.help-section summary:after{content:'+';font-size:15px;color:#a4b3c8}.help-section[open]>summary:after{content:'−'}.glossary{display:grid;grid-template-columns:43px 1fr;gap:13px 9px;margin:18px 0 0;font-size:10px;line-height:1.65}.glossary dt{font-weight:550;color:#627b9e}.glossary dd{margin:0;color:#8d9eb5}.help-small{font-size:9px;line-height:1.8;color:#9aaac0;margin-top:15px}.quick-guide{counter-reset:guide;list-style:none;padding:0;margin:18px 0 0;display:grid;gap:16px}.quick-guide li{counter-increment:guide;display:flex;gap:10px;font-size:10px;color:#95a5bb;line-height:1.7}.quick-guide li:before{content:'0'counter(guide);font:9px Consolas,monospace;color:#7896c7;padding-top:3px}.quick-guide strong{display:block;color:#6f87a8;font-weight:550}.tip{margin-top:23px;border:1px solid #e0e9fb;border-radius:7px;background:#f4f7ff;padding:13px;font-size:10px;line-height:1.8;color:#839bc2}.tip-title{display:flex;align-items:center;gap:6px;color:#6988bc;font-weight:550;margin-bottom:5px}.tip-title .icon{width:14px;height:14px}.beta-note{font-size:9px;color:#a4b0c2;line-height:1.9;margin-top:23px}.beta-note strong{font-weight:550;color:#8f9fb6}
+    /* 05 · Dialoge mit Fokusbegrenzung, Tastatursuche und Leerzuständen. */
+    dialog{padding:0;border:1px solid #e3e9f2;border-radius:12px;background:white;color:var(--ink);box-shadow:0 22px 100px #10223e45}dialog::backdrop{background:#12233f66;backdrop-filter:blur(5px)}.dialog-head{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:20px 23px;border-bottom:1px solid var(--line)}.dialog-head h2{font-size:16px;font-weight:600}.dialog-head p{font-size:10px;color:#94a3b8;margin-top:5px}.search-dialog{width:min(680px,calc(100% - 28px));max-height:calc(100dvh - 110px);margin:90px auto auto}.search-field{display:flex;align-items:center;gap:13px;border-bottom:1px solid var(--line);padding:20px 22px}.search-field>.icon{width:23px;height:23px;color:#6b89bd}.search-field input{flex:1;min-width:0;border:0;background:transparent;color:var(--ink);font-size:16px;outline:none}.search-field input::placeholder{color:#acb8c9}.search-meta{display:flex;align-items:center;justify-content:space-between;padding:15px 23px 8px;color:#9aa9bd;font-size:9px;letter-spacing:.8px}.search-results{padding:0 10px 10px;max-height:49dvh;overflow:auto}.search-result{display:flex;align-items:center;gap:13px;width:100%;padding:13px;text-align:left;background:white;border:1px solid transparent;border-radius:7px}.search-result.active{background:#f3f6ff;border-color:#e9effd}.search-result .result-symbol{color:#8fa9d1;background:#ecf2fc;width:39px;height:42px;display:grid;place-items:center;border-radius:6px}.search-result strong{display:block;font-size:12px;font-weight:550;color:#536c90}.search-result small{display:block;color:#94a7c0;font-size:9px;margin-top:5px}.search-result>.icon{margin-left:auto;width:15px;height:15px;color:#9fb0ca}.search-foot{display:flex;justify-content:space-between;gap:10px;border-top:1px solid var(--line);padding:12px 22px;font-size:9px;color:#9babc0}.search-foot kbd{font:9px "Segoe UI",sans-serif;color:#7c93b4}.image-dialog{width:min(720px,calc(100% - 28px));max-height:calc(100dvh - 32px);margin:auto}.image-dialog-body{padding:30px;min-height:260px;display:flex;align-items:center;justify-content:center;background:#fafbfd}.image-dialog-body img{width:auto;height:auto;max-width:min(100%,480px);max-height:64dvh;object-fit:contain}.image-dialog-body .icon{width:180px;height:180px;color:#6f8eb9}.image-dialog-caption{font-size:10px;color:#8195b2;padding:15px 23px;line-height:1.9}.toast{position:fixed;bottom:23px;left:50%;transform:translate(-50%,15px);z-index:50;background:#1b2f4d;color:#e5edf8;border:1px solid #314767;padding:11px 17px;border-radius:7px;font-size:11px;opacity:0;pointer-events:none;transition:opacity .16s,transform .16s;max-width:calc(100% - 30px);text-align:center}.toast.visible{opacity:1;transform:translate(-50%,0)}
+    @media(min-width:1700px){:root{--sidebar:258px;--help:300px}.content{padding:33px 42px}.media-stage{height:240px}.product-image{height:213px}}
+    @media(max-width:1200px){:root{--sidebar:205px;--help:242px}.header{gap:18px;padding:0 20px}.header-actions{gap:13px}.header-action .label{display:none}.content{padding:24px 20px}.help{padding:25px 18px}.intro h1{font-size:23px}.title-line h2{font-size:26px}.position-head{padding:23px 21px 19px}.media-stage{height:185px}.product-image{height:160px}.media-caption{min-height:63px}.tab-panel{padding:21px 17px 12px}.media-grid{padding:0 18px 18px}.detail-actions{padding:0 20px 20px}.search-trigger{margin-left:0}}
+    @media(max-width:930px){:root{--sidebar:280px}.layout{grid-template-columns:var(--sidebar) minmax(0,1fr)}.help{grid-column:2;position:static;height:auto;border-top:1px solid var(--line);border-left:0;display:grid;grid-template-columns:1fr 1fr;gap:0 24px;padding:25px}.help-heading,.tip,.beta-note{grid-column:1/-1}.catalogue{grid-row:1/3}.header-actions .avatar{display:none}.search-trigger kbd{display:none}.beta-strip span:last-child{display:none}.footer{flex-wrap:wrap}.header{gap:15px}.brand{font-size:16px}.brand-group{gap:9px}}
+    @media(max-width:740px){:root{--header:67px}.header{gap:11px;padding:0 15px}.mobile-menu{display:inline-flex;border:0;width:25px;background:transparent;color:#6f85a4}.brand{font-size:14px;gap:7px}.brand-mark{width:24px;height:28px}.badge.beta{font-size:8px;padding:3px 5px}.search-trigger{flex:1;height:35px;min-width:36px;max-width:none;justify-content:center;padding:0 9px}.search-trigger .search-label{display:none}.header-actions{gap:12px}.header-action{gap:5px}.header-action .icon{width:17px;height:17px}.header-actions .knowledge-button{display:none}.layout{grid-template-columns:1fr}.catalogue{position:fixed;top:var(--header);left:0;bottom:0;width:250px;height:auto;z-index:22;transform:translateX(-100%);transition:transform .2s}.nav-open .catalogue{transform:translateX(0)}.nav-open .sidebar-shade{display:block;position:fixed;inset:var(--header) 0 0;z-index:21;background:#14223866}.content{padding:21px 17px}.help{grid-column:1}.intro h1{font-size:23px}.intro{margin-bottom:19px}.breadcrumb{font-size:9px;margin-bottom:18px}.position-head{padding:21px 19px 18px}.position-index{font-size:9px}.media-grid{padding:0 15px 16px;gap:9px}.media-stage{height:180px}.schema-image{height:115px}.product-image{height:155px}.title-line h2{font-size:25px}.detail-actions .text-action{font-size:9px}.help{padding:24px 20px}.search-dialog{margin-top:35px;max-height:calc(100dvh - 65px)}.section-heading p{line-height:1.8}.media-caption{font-size:8px;min-height:61px}.media-label{padding:9px;font-size:8px}.beta-strip{font-size:9px}.tabs{gap:20px;padding:0 19px}.tab{font-size:10px}.properties{gap:16px}.search-foot{font-size:8px}}
+    @media(max-width:420px){.brand-group{gap:6px}.header{gap:8px;padding:0 11px}.brand{font-size:12px}.brand-mark{width:22px}.header-action .count{min-width:16px;height:16px;font-size:9px}.header-actions{gap:7px}.media-stage{height:151px}.schema-image{height:103px}.product-image{height:135px}.media-caption{min-height:78px;line-height:1.75}.media-label{letter-spacing:.4px}.title-line{flex-wrap:wrap;gap:7px}.va-label{margin-top:0}.help{grid-template-columns:1fr}.help-heading,.tip,.beta-note{grid-column:auto}.detail-actions{flex-wrap:wrap;gap:8px;padding:0 17px 18px}.detail-actions .text-action{margin-left:0}.intro{align-items:flex-start}.intro h1{font-size:21px}.edition{font-size:9px;padding:5px 7px}.tab-panel{padding:19px 14px 11px}.properties{grid-template-columns:1fr}.search-field{padding:18px 14px;gap:8px}.search-field input{font-size:14px}.search-foot{flex-wrap:wrap}.beta-strip{padding:8px 10px}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{transition:none!important;animation:none!important}}
+    /* Originalzeichnungen in allen Vorschauen, Produktfoto ausschliesslich im Dialog. */
+    .tree-icon.has-original,.component-symbol.has-original,.result-symbol.has-original{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr);overflow:hidden;flex-shrink:0}.original-preview{display:block;min-width:0;min-height:0;max-width:100%;max-height:100%;width:100%;height:100%;object-fit:contain}.tree-button .tree-icon.has-original{width:33px;height:38px;background:#fff;border:1px solid #ffffff30;padding:3px;color:#526b8d}.component-symbol.has-original{height:30px;background:#fff;border-color:#e8edf5;padding:2px}.result-symbol.has-original{background:#fff;border:1px solid #e5ebf3;padding:3px}
+    /* 06 · Persönlicher Arbeitsbereich: Wissen auf Wunsch und eigene Favoritenseite. */
+    .layout{grid-template-columns:var(--sidebar) minmax(0,1fr)}
+    .layout>.catalogue{grid-column:1;grid-row:1}
+    .header-actions .knowledge-button{display:flex}
+    .header-action[aria-current=page]{color:var(--brand)}
+    .theme-toggle{justify-content:center;width:28px;min-height:32px}
+    .catalogue-favorites{margin-top:8px;background:transparent;border-color:transparent;color:#9cb0cd}
+    .catalogue-favorites[aria-current=page]{background:#315ce728;border-color:#6c8cde3d;color:#e4edff}
+    .catalogue-favorites .count{margin-left:auto;background:#ffffff0c;color:#a4b9e4}
+    .knowledge-dialog{width:min(420px,calc(100% - 28px));max-height:calc(100dvh - var(--header) - 28px);margin:calc(var(--header) + 12px) 16px auto auto}
+    .knowledge-dialog::backdrop{background:#12233f35;backdrop-filter:blur(2px)}
+    .knowledge-dialog .help{display:block;position:static;width:100%;height:auto;max-height:calc(100dvh - var(--header) - 30px);border:0;padding:22px;overflow:auto}
+    .help-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+    .help-tools{display:flex;gap:5px;flex-shrink:0}
+    .help-tools .icon-button{width:27px;height:27px}
+    .help-tools .icon{width:14px;height:14px}
+    .help-tools [aria-pressed=true]{background:var(--brand-soft);color:var(--brand);border-color:#a7bcff}
+    .layout>.help{display:block;grid-column:3;grid-row:1;position:sticky;top:var(--header);height:calc(100dvh - var(--header));padding:24px 20px}
+    .help-pinned .layout{grid-template-columns:var(--sidebar) minmax(0,1fr) var(--help)}
+    .help-title{font-size:12px}
+    .help-subtitle{line-height:1.7}
+    .favorites-intro{align-items:flex-start}
+    .favorites-intro p{max-width:540px;line-height:1.8}
+    .favorites-summary{font-size:11px;color:var(--muted);margin:0 0 16px}
+    .favorite-filters{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 23px}
+    .favorite-filter{padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:#7387a5;font-size:10px;text-align:left}
+    .favorite-filter[aria-pressed=true]{color:var(--brand);background:var(--brand-soft);border-color:#b9c8fa}
+    .favorite-filter span{margin-left:6px;opacity:.7;font-family:Consolas,monospace}
+    .favorite-group{margin-bottom:23px}
+    .favorite-group-head{margin:0 0 10px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .favorite-group-head p{font-size:9px;color:var(--muted);margin-bottom:3px}
+    .favorite-group-head h2{font-size:13px;font-weight:600}
+    .favorite-list{background:var(--surface);border:1px solid var(--line);border-radius:9px;overflow:hidden}
+    .favorite-card{display:flex;align-items:center;gap:8px;padding:4px 12px;border-bottom:1px solid var(--line)}
+    .favorite-card:last-child{border-bottom:0}
+    .favorite-open{display:flex;align-items:center;gap:13px;min-width:0;flex:1;padding:12px 0;text-align:left;color:inherit;background:transparent}
+    .favorite-open:hover .favorite-name{color:var(--brand)}
+    .favorite-symbol{display:grid;place-items:center;flex-shrink:0;width:34px;height:38px;padding:4px;border:1px solid var(--line);border-radius:5px;background:#f1f5fb;color:#8ca3c1}
+    .favorite-symbol.has-original{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr);overflow:hidden;background:white}
+    .favorite-symbol .icon{width:22px;height:22px}
+    .favorite-info{min-width:0}
+    .favorite-name{display:block;font-size:12px;font-weight:550;color:#536b8c;overflow-wrap:anywhere}
+    .favorite-code{display:block;margin-top:3px;color:#879ab6;font-size:10px}
+    .favorite-identities{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:4px;color:#8f9fb5;font-size:9px;overflow-wrap:anywhere}
+    .favorite-identities b{font-weight:400;color:#647d9e}
+    .favorites-empty{padding:55px 20px;border:1px dashed var(--line);border-radius:9px;background:var(--surface);text-align:center;color:var(--muted)}
+    .favorites-empty>.icon{width:32px;height:32px;margin:0 auto 15px;color:#829ac2}
+    .favorites-empty h2{font-size:17px;font-weight:550;color:var(--ink)}
+    .favorites-empty p{font-size:11px;max-width:360px;margin:9px auto 20px;line-height:1.8}
+    .favorites-footnote{font-size:10px;color:var(--muted);line-height:1.8;margin-top:20px}
+    @media(max-width:930px){
+      .help-pinned .layout{grid-template-columns:var(--sidebar) minmax(0,1fr)}
+      .help-pinned .layout>.catalogue{grid-row:1/3}
+      .layout>.help{grid-column:2;grid-row:2;position:static;height:auto;border-left:0;border-top:1px solid var(--line)}
+    }
+    @media(max-width:740px){
+      .layout,.help-pinned .layout{grid-template-columns:1fr}
+      .layout>.help{grid-column:1}
+      .header-actions{gap:9px}
+      .theme-toggle{width:22px}
+      .knowledge-dialog{margin:calc(var(--header) + 8px) 10px auto auto;width:min(420px,calc(100% - 20px))}
+      .favorites-intro{flex-wrap:wrap}
+      .favorites-intro h1{font-size:23px}
+      .favorite-card{padding:4px 9px}
+      .favorite-open{gap:10px}
+    }
+    @media(max-width:420px){.header-actions{gap:5px}.header{gap:6px}.favorite-filter{font-size:9px}.favorite-name{font-size:11px}}
+
+    /* 07 · Nachtmodus. Originalzeichnungen und Produktfotos behalten ihre Originalfarben. */
+    html[data-theme=light]{color-scheme:light}
+    html[data-theme=dark]{color-scheme:dark;--brand:#90adff;--brand-soft:#23385c;--navy:#101c2e;--ink:#e0e9f5;--muted:#9bafc9;--line:#2c3d54;--surface:#172436;--canvas:#0d1623;--night-soft:#1e2f47;--night-text:#bdcee3}
+    [data-theme=dark] :is(.header,.position-card,.help,dialog,.button,.icon-button,.edition,.search-result){background:var(--surface);border-color:var(--line)}
+    [data-theme=dark] :is(.search-trigger,.search-trigger kbd,.va-select,.avatar,.composition-table th,.va-pill,.context-panel,.favorite-symbol:not(.has-original),.component-symbol:not(.has-original)){background:var(--night-soft);border-color:var(--line)}
+    [data-theme=dark] :is(.header-action,.button,.icon-button,.va-select,.identities dd,.part-link,.quantity,.properties dd,.original-text,.favorite-name,.favorite-identities b,.part-numbers b,.help-section summary,.glossary dt,.quick-guide strong,.help-title,.symbol-context h3,.search-result strong){color:var(--night-text)}
+    [data-theme=dark] :is(.breadcrumb,.breadcrumb span:last-child,.intro p,.position-index,.title-line p,.identities dt,.identity-note,.media-label,.media-caption,.symbol-context,.symbol-context>.eyebrow,.symbol-context .photo-context,.tab,.section-heading p,.part-code,.part-numbers,.va-pill,.table-note,.properties dt,.footer,.help-subtitle,.glossary dd,.help-small,.quick-guide li,.beta-note,.beta-note strong,.search-trigger,.search-meta,.search-result small,.search-foot,.image-dialog-caption,.favorite-code,.favorite-identities,.favorite-filter){color:var(--muted)}
+    [data-theme=dark] :is(.identities,.tabs,.composition-table td,.media-card,.media-label,.media-caption,.search-field,.search-foot,.dialog-head,.help-section){border-color:var(--line)}
+    [data-theme=dark] .button.primary{background:#416de8;border-color:#416de8;color:#fff}
+    [data-theme=dark] .button[aria-pressed=true]{background:#183c33;border-color:#2e6854;color:#a5dbc0}
+    [data-theme=dark] :is(.button:hover,.icon-button:hover,.search-result.active,.favorite-filter[aria-pressed=true],.tip){background:var(--night-soft);border-color:#49659a}
+    [data-theme=dark] :is(.badge.blue,.count,.tab-count){background:var(--brand-soft);color:var(--brand)}
+    [data-theme=dark] .badge.beta{background:#382e1e;color:#e6c485;border-color:#655137}
+    [data-theme=dark] .beta-strip{background:#2b281f;color:#d9bf92;border-color:#4c4333}
+    [data-theme=dark] .beta-strip span:last-child{color:#c3af8f}
+    [data-theme=dark] .tip{color:#abc2e4}
+    [data-theme=dark] :is(.source-link,.tip-title,.back-link,.detail-actions .text-action,.context-panel button){color:#a0bbfa}
+    [data-theme=dark] .quantity.negative{color:#f2b58b}
+    [data-theme=dark] .tab[aria-selected=true],[data-theme=dark] .header-action[aria-current=page],[data-theme=dark] .favorite-filter[aria-pressed=true]{color:var(--brand)}
+    [data-theme=dark] .media-controls .icon-button{background:#fff;color:#526b8d;border-color:#dce4ef}
+    [data-theme=dark] .help-tools [aria-pressed=true]{color:var(--brand);background:var(--brand-soft);border-color:#5775ad}
+
+    /* 08 · Eigene Arbeitsbereiche für Dateieingang und geprüfte Ausgabe. */
+    .project-nav{margin-top:18px;padding-top:14px;border-top:1px solid #ffffff12;display:grid;gap:5px}
+    .project-nav .tree-label{margin-bottom:3px}
+    .workspace-nav{background:transparent;color:#a9bbd5;border-color:transparent}
+    .workspace-nav[aria-current=page]{color:#e4edff;background:#315ce728;border-color:#6c8cde3d}
+    .workflow-steps{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap}
+    .workflow-step{display:flex;align-items:center;gap:8px;flex:1;min-width:150px;padding:11px 13px;border:1px solid var(--line);border-radius:7px;color:var(--muted);background:var(--surface);font-size:11px}
+    .workflow-step b{font:10px Consolas,monospace;color:var(--brand)}
+    .workflow-step[aria-current=step]{border-color:var(--brand);background:var(--brand-soft);color:var(--brand)}
+    .workflow-card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:23px;margin-bottom:18px}
+    .workflow-card h2{font-size:15px;font-weight:600;margin-bottom:8px}
+    .workflow-card p{font-size:11px;color:var(--muted);line-height:1.8}
+    .format-list{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:19px 0}
+    .format-card{border:1px solid var(--line);border-radius:7px;padding:15px}
+    .format-card h3{display:flex;align-items:center;gap:9px;font-size:12px;font-weight:550;margin-bottom:6px}
+    .format-card .badge{font-size:8px;padding:2px 5px}
+    .format-card p{font-size:10px}
+    .planned{color:var(--muted);background:var(--canvas)}
+    .import-controls{display:flex;align-items:center;gap:11px;flex-wrap:wrap;padding-top:7px}
+    .file-choice{position:relative;cursor:pointer}
+    .file-choice:focus-within{outline:3px solid #9ab3ff;outline-offset:3px}
+    .file-choice input{position:absolute;inset:0;opacity:0;width:100%;cursor:pointer}
+    .file-choice:has(input:disabled){opacity:.5;cursor:default}
+    .file-choice input:disabled{cursor:default}
+    .import-status{font-size:10px;color:var(--muted);overflow-wrap:anywhere;flex:1;min-width:160px}
+    .server-hint{margin:13px 0 0;padding:12px 14px;border:1px solid var(--line);border-radius:6px;background:var(--canvas);font-size:10px;line-height:1.8;color:var(--muted)}
+    .server-hint code{font-family:Consolas,monospace;color:var(--ink)}
+    .import-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:17px 0}
+    .import-metric{border:1px solid var(--line);border-radius:7px;padding:12px;background:var(--canvas)}
+    .import-metric strong{display:block;font-size:23px;color:var(--ink);font-weight:550}
+    .import-metric span{font-size:10px;color:var(--muted)}
+    .object-list{margin-top:16px;display:grid;gap:0}
+    .object-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 0;border-top:1px solid var(--line);font-size:11px}
+    .object-row strong{display:block;font-size:11px;font-weight:500;overflow-wrap:anywhere}
+    .object-row small{display:block;color:var(--muted);font-size:9px;margin-top:3px}
+    .object-row>span:last-child{flex-shrink:0;font-size:10px;text-align:right;color:var(--muted)}
+    .export-checks{list-style:none;padding:0;margin:18px 0 23px}
+    .export-checks li{display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);padding:12px 0;font-size:11px}
+    .export-actions{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+    .workflow-note{font-size:10px;color:var(--muted);line-height:1.8}
+    @media(max-width:740px){.workflow-card{padding:18px}.format-list{grid-template-columns:1fr}.workflow-step{min-width:125px;font-size:10px}.import-metrics{gap:7px}.import-metric{padding:10px}.import-metric strong{font-size:20px}.import-metric span{font-size:9px}}
+
+    /* 09 · Zurückhaltende Artikelbilder statt einer beschrifteten Bildkarte. */
+    .symbol-layout{display:flex;align-items:center;gap:12px;padding:0 24px 16px}
+    .article-thumbnail{position:relative;display:flex;align-items:center;justify-content:center;flex-shrink:0;width:64px;height:78px;padding:3px;background:transparent;border-radius:5px;color:#8ca3c1}
+    .article-thumbnail .schema-image{display:block;width:auto;height:auto;max-width:58px;max-height:72px;mix-blend-mode:normal;border-radius:3px}
+    .article-thumbnail>.symbol{width:30px;height:30px}
+    .article-thumbnail .thumbnail-zoom{position:absolute;right:-2px;bottom:0;width:17px;height:17px;padding:2px;border:1px solid var(--line);border-radius:4px;background:var(--surface);color:var(--muted);opacity:0}
+    .article-thumbnail:hover .thumbnail-zoom,.article-thumbnail:focus-visible .thumbnail-zoom{opacity:1}
+    .article-media-actions{display:flex;align-items:center;gap:7px}
+    .article-media-actions .icon-button{width:28px;height:28px;color:var(--muted)}
+    .article-media-actions .icon{width:14px;height:14px}
+    @media(max-width:740px){.symbol-layout{padding:0 20px 16px}}
+
+/* Beta 0.3: fachliche Desktopansicht, ohne externe Schriften oder UI-Dienste. */
+:root {
+  --brand: #315ce7;
+  --brand-soft: #edf2ff;
+  --navy: #142238;
+  --ink: #25344b;
+  --muted: #596b82;
+  --line: #e5eaf1;
+  --surface: #fff;
+  --canvas: #f5f7fa;
+  --header: 68px;
+  --sidebar: 300px;
+  --help: 290px;
+}
+body { font-family: "Segoe UI", Inter, sans-serif; font-size: 13px; line-height: 1.5; }
+button, a, input, select, summary { touch-action: manipulation; }
+button, a, select, summary { scroll-margin: 85px; }
+:is(button, a, input, select, summary):focus-visible { outline: 3px solid #7b9bff; outline-offset: 3px; }
+.composition-scroll:focus-visible { outline: 3px solid #7b9bff; outline-offset: 3px; }
+.skip-link { position: fixed; z-index: 100; left: 16px; top: -80px; padding: 10px 16px; color: white; background: var(--brand); border-radius: 6px; }
+.skip-link:focus { top: 10px; }
+.header { padding: 0 24px; gap: 25px; }
+.brand { font-size: 17px; }
+.brand-mark { width: 28px; height: 32px; }
+.brand-group { gap: 11px; }
+.badge { font-size: 11px; font-weight: 600; }
+.badge.beta { font-size: 10px; }
+.search-trigger { height: 38px; max-width: 540px; color: var(--muted); font-size: 12px; }
+.search-trigger kbd { color: var(--muted); font-size: 10px; }
+.header-actions { gap: 19px; }
+.header-action { color: var(--muted); font-size: 12px; min-height: 34px; }
+.count { font-size: 11px; min-width: 20px; height: 20px; }
+.theme-toggle { width: 32px; }
+.catalogue-top { padding: 23px 20px 19px; }
+.workspace { font-size: 10px; color: #a4b4cc; letter-spacing: 1px; }
+.catalogue-top strong { font-size: 14px; color: #f0f4fa; }
+.catalogue-tabs { padding: 15px 12px 0; }
+.catalogue-overview { min-height: 40px; font-size: 12px; color: #c2cee0; border-color: transparent; background: transparent; white-space: nowrap; }
+.catalogue-overview:hover { background: #ffffff09; }
+.catalogue-overview[aria-current=page] { color: #fff; background: #294370; border-color: #48628b; }
+.catalogue-overview .icon { color: #b4c7ef; width: 17px; height: 17px; }
+.catalogue-overview .catalogue-year { margin-left: auto; color: #afc1dc; font-size: 11px; }
+@media (max-width: 1200px) { :root { --sidebar: 300px; } }
+.catalogue-favorites { margin-top: 3px; }
+.project-nav { margin: 4px 0 0; padding: 4px 12px 0; border-top: 0; gap: 2px; }
+.catalogue-overview .count { margin-left: auto; }
+.catalogue-overview .icon { flex: 0 0 17px; }
+.tree-label { font-size: 10px; letter-spacing: 1px; color: #a4b4cc; margin-left: 10px; }
+.catalogue-tree { padding: 24px 12px 16px; }
+.tree-section summary { font-size: 12px; color: #e1e8f3; padding: 8px 6px; }
+.section-count { color: #b5c6df; font-size: 10px; }
+.tree-subtitle { font-size: 10px; line-height: 1.6; color: #a4b4cc; margin: 7px 7px 10px 25px; }
+.tree-button { min-height: 53px; padding: 8px; gap: 9px; border-radius: 6px; }
+.tree-button>span:last-child { font-size: 12px; line-height: 1.35; color: #d8e2f0; }
+.tree-button small { margin-top: 5px; color: #afc1dc; font-size: 10px; }
+.tree-button.selected { background: #294370; border-color: #48628b; }
+.tree-button.selected>span:last-child { color: #fff; }
+.tree-button.selected small { color: #c6d7f5; }
+.tree-icon { background: #ffffff09; color: #afc1dc; }
+.tree-button .tree-icon.has-original { width: 29px; height: 33px; padding: 2px; }
+.catalogue-footer { margin-top: auto; padding: 18px 20px; font-size: 10px; line-height: 1.8; color: #a4b4cc; }
+.catalogue-footer strong { color: #c5d2e5; font-size: 10px; }
+.content { padding: 23px 30px 20px; max-width: 1100px; }
+.breadcrumb { margin-bottom: 16px; font-size: 11px; color: var(--muted); gap: 6px; }
+.breadcrumb span:last-child { color: var(--ink); }
+.intro { margin-bottom: 17px; }
+.intro h1 { font-size: 21px; letter-spacing: -.5px; line-height: 1.35; }
+.intro p { font-size: 12px; color: var(--muted); line-height: 1.6; }
+.edition { font-size: 11px; padding: 6px 9px; color: var(--muted); }
+.beta-strip { margin-bottom: 16px; padding: 8px 12px; font-size: 11px; color: #765523; background: #fcf8ef; border-color: #ecdfc6; }
+.beta-strip span:last-child { font-size: 10px; color: #765523; }
+.position-card { border-radius: 9px; box-shadow: none; }
+.position-head { padding: 22px 25px 17px; }
+.position-top { margin-bottom: 15px; }
+.position-index { font-size: 10px; letter-spacing: .8px; color: var(--muted); }
+.article-number-row { display: flex; gap: 8px; align-items: center; margin-bottom: 6px; }
+.article-code { font-size: 34px; line-height: 1.15; color: #000; font-weight: 650; letter-spacing: .4px; margin: 0; }
+.number-copy { width: 27px; height: 27px; border: 0; background: transparent; color: var(--muted); }
+.number-copy .icon { width: 14px; height: 14px; }
+.title-line h2 { font-size: 29px; line-height: 1.25; font-weight: 650; letter-spacing: -.6px; }
+.title-line p { margin-top: 6px; font-size: 13px; color: var(--muted); }
+.va-label { align-items: flex-start; flex-direction: column; gap: 6px; margin: -27px 0 0; font-size: 11px; color: var(--muted); }
+.va-select { min-width: 94px; min-height: 37px; padding: 7px 28px 7px 12px; border-radius: 6px; font-size: 14px; font-weight: 600; color: var(--ink); background: var(--canvas); border-color: var(--line); }
+.identities { gap: 24px; margin-top: 19px; padding-top: 14px; }
+.identities dt { color: var(--muted); font-size: 11px; margin-bottom: 4px; }
+.identities dt span { margin-left: 5px; font-size: 10px; }
+.identities dd { color: var(--ink); font-size: 14px; }
+.identity-value { display: flex; align-items: center; flex-wrap: wrap; gap: 5px; }
+.identity-value>span { overflow-wrap: anywhere; min-width: 0; }
+.identity-search { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; color: var(--muted); border-radius: 5px; flex-shrink: 0; }
+.identity-search .icon { width: 15px; height: 15px; }
+.identity-search:hover { color: var(--brand); background: var(--brand-soft); }
+.identity-note { font-size: 11px; line-height: 1.5; color: var(--muted); margin-top: 10px; }
+.identity-note .icon { width: 13px; height: 13px; }
+.symbol-layout { padding: 0 25px 19px; gap: 18px; }
+.article-thumbnail { width: 124px; height: 132px; padding: 10px 20px; border: 1px solid #e5eaf1; border-radius: 6px; background-color: #fff; background-image: radial-gradient(#dce3ec .7px, transparent .7px); background-size: 10px 10px; }
+.article-thumbnail .schema-image { width: auto; height: auto; max-width: 82px; max-height: 110px; border-radius: 0; }
+.article-thumbnail>.symbol { width: 32px; height: 32px; color: #6f83a0; }
+.article-thumbnail .thumbnail-zoom { opacity: 1; width: 24px; height: 24px; bottom: 5px; right: 5px; padding: 4px; color: #526784; background: white; border-color: #dbe3ee; }
+.article-media-actions { align-items: flex-start; flex-direction: column; gap: 8px; }
+.media-kind { color: var(--ink); font-size: 12px; font-weight: 600; }
+.media-missing { color: var(--muted); font-size: 11px; }
+.article-media-actions .photo-button { min-height: 33px; padding: 6px 10px; font-size: 11px; color: var(--ink); }
+.photo-context { color: var(--muted); font-size: 11px; max-width: 240px; }
+.detail-actions { padding: 0 25px 21px; }
+.detail-actions .button { font-size: 12px; }
+.detail-actions .button:not(:disabled):not(.primary) { border-color: #b7c8ee; color: var(--brand); }
+[data-theme=dark] .detail-actions .button:not(:disabled):not(.primary) { border-color: #6d86b8; color: #d5e4ff; }
+.button { color: var(--ink); font-size: 12px; box-shadow: none; }
+.button.primary { box-shadow: none; }
+.detail-actions .text-action { font-size: 12px; color: var(--brand); min-height: 34px; }
+.tabs { padding: 0 25px; gap: 26px; background: var(--surface); }
+.tab { padding: 14px 0; font-size: 12px; font-weight: 550; color: var(--muted); }
+.tab-count { font-size: 10px; }
+.tab-panel { padding: 18px 23px 20px; }
+.section-heading { margin-bottom: 13px; }
+.section-heading h3 { font-size: 13px; font-weight: 600; }
+.section-heading p { font-size: 11px; line-height: 1.6; color: var(--muted); }
+.composition-scroll { position: relative; border: 1px solid var(--line); border-radius: 6px; }
+.composition-table { width: 100%; min-width: 810px; font-size: 12px; table-layout: fixed; }
+.composition-table .part-link { overflow-wrap: anywhere; }
+.composition-table :is(th,td) { padding: 10px 9px; }
+.composition-table th { color: var(--muted); font-size: 10px; font-weight: 600; background: var(--canvas); white-space: nowrap; }
+.composition-table th:first-child { width: 40px; }
+.composition-table th:nth-child(2) { min-width: 185px; }
+.composition-table th:nth-child(3) { width: 87px; }
+.composition-table th:nth-child(4) { width: 105px; }
+.composition-table th:nth-child(5) { width: 120px; }
+.composition-table th:nth-child(6) { width: 47px; }
+.composition-table th:nth-child(7) { width: 58px; text-align: right; }
+.composition-table td { color: var(--ink); border-bottom-color: var(--line); }
+.composition-table tbody tr { cursor: pointer; }
+.composition-table tbody tr:is(:hover,:focus-within) { background: var(--brand-soft); }
+.part-link { font-size: 12px; color: var(--ink); font-weight: 500; line-height: 1.4; }
+.identity-cell { font-size: 11px; white-space: nowrap; }
+.component-symbol { width: 26px; height: 28px; }
+.va-pill { font-size: 11px; color: var(--ink); background: var(--canvas); }
+.quantity { font-size: 12px; color: var(--ink); font-weight: 600; }
+.quantity.negative { color: #a94325; }
+.table-help { margin-top: 13px; color: var(--muted); font-size: 11px; }
+.table-help summary { cursor: pointer; width: fit-content; }
+.table-help p { max-width: 690px; margin-top: 8px; line-height: 1.7; }
+.empty-state { padding: 24px 14px; font-size: 12px; color: var(--muted); }
+.back-link { font-size: 12px; color: var(--brand); line-height: 1.6; }
+.properties dt { font-size: 11px; color: var(--muted); }
+.properties dd { font-size: 13px; color: var(--ink); }
+.original-text { font-size: 13px; color: var(--ink); line-height: 1.8; }
+.catalogue-pdf { display: block; width: 100%; height: min(78vh, 920px); margin-bottom: 18px; border: 1px solid var(--line); border-radius: 8px; background: #3c4043; }
+.catalogue-note { white-space: pre-wrap; max-height: 70vh; overflow: auto; margin-bottom: 18px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+.catalogue-note .source-link { font: inherit; color: var(--brand); }
+[data-theme=dark] .catalogue-note { background: transparent; }
+.context-panel { padding: 12px 14px; margin-top: 14px; font-size: 11px; color: var(--muted); }
+.context-panel button { color: var(--brand); font-size: 11px; }
+.context-panel>a { color: var(--brand); font-size: 11px; white-space: nowrap; }
+.footer { font-size: 10px; color: var(--muted); padding-top: 23px; }
+.favorite-filters { margin-bottom: 22px; gap: 7px; }
+.favorite-filter { font-size: 11px; color: var(--muted); padding: 7px 10px; }
+.favorite-group-head p { font-size: 11px; color: var(--muted); }
+.favorite-group-head h2 { font-size: 13px; }
+.favorite-summary, .favorites-summary { font-size: 12px; }
+.favorite-list { border-radius: 7px; }
+.favorite-card { padding: 3px 15px; }
+.favorite-open { gap: 14px; padding: 13px 0; }
+.favorite-name { font-size: 13px; color: var(--ink); font-weight: 600; }
+.favorite-code { font-size: 12px; color: var(--ink); margin-top: 5px; }
+.favorite-identities { font-size: 11px; gap: 5px 20px; color: var(--muted); }
+.favorite-identities b { color: var(--ink); }
+.favorites-footnote { font-size: 11px; color: var(--muted); }
+.favorites-empty p { font-size: 12px; }
+#dateiimport, #uebergabe { scroll-margin-top: 84px; }
+.workflow-steps { margin-bottom: 20px; gap: 9px; }
+.workflow-step { min-height: 65px; padding: 12px; gap: 10px; font-size: 12px; }
+.workflow-step>b { font-size: 13px; }
+.workflow-step small { display: block; margin-top: 3px; font-size: 10px; color: var(--muted); }
+.workflow-step[aria-disabled=true] { border-style: dashed; background: transparent; }
+.workflow-step[aria-disabled=true][aria-current=step] { color: var(--ink); border-color: var(--muted); }
+.workflow-card { padding: 23px; border-radius: 8px; box-shadow: none; }
+.workflow-card h2 { font-size: 16px; font-weight: 600; }
+.workflow-card p { font-size: 12px; color: var(--muted); line-height: 1.7; }
+.workflow-card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
+.workflow-card-head h2 { margin: 0; }
+.format-list { gap: 12px; margin: 18px 0; }
+.format-card { padding: 15px; }
+.format-card h3 { font-size: 13px; }
+.format-card .badge { font-size: 10px; }
+.format-card p { font-size: 11px; }
+.planned { color: var(--muted); border: 1px solid var(--line); background: var(--canvas); }
+.import-status, .server-hint, .workflow-note { font-size: 11px; line-height: 1.7; color: var(--muted); }
+.import-metric span { font-size: 11px; color: var(--muted); }
+.import-metric strong { font-size: 25px; }
+.object-row { padding: 11px 0; font-size: 12px; }
+.object-row strong { font-size: 12px; color: var(--ink); }
+.object-row small, .object-row>span:last-child { font-size: 11px; color: var(--muted); }
+.object-row .negative { color: #a94325 !important; font-weight: 600; }
+.export-checks li { font-size: 12px; padding: 15px 0; }
+.help-title { font-size: 14px; color: var(--ink); }
+.help-subtitle, .help-small, .beta-note { font-size: 11px; color: var(--muted); }
+.help-section summary { font-size: 12px; color: var(--ink); }
+.glossary dt { font-size: 12px; color: var(--ink); }
+.glossary dd, .quick-guide li { font-size: 12px; color: var(--muted); line-height: 1.65; }
+.quick-guide strong { color: var(--ink); }
+.search-meta, .search-foot { font-size: 11px; color: var(--muted); }
+.search-result { padding: 13px 17px; }
+.search-result strong { font-size: 13px; color: var(--ink); }
+.search-result small { font-size: 11px; color: var(--muted); line-height: 1.7; }
+.image-dialog { width: min(1040px, calc(100% - 28px)); }
+.image-dialog-body { background: #fff; min-height: 0; padding: 8px 16px 16px; }
+.image-dialog-body img { width: 100%; max-width: 100%; height: auto; max-height: 74dvh; object-fit: contain; }
+.image-dialog-caption:empty { display: none; padding: 0; }
+.article-thumbnail.wide-thumb { width: auto; min-width: 168px; max-width: 280px; padding: 14px 16px; }
+.article-thumbnail.wide-thumb .schema-image { width: auto; height: 86px; max-width: 248px; max-height: 86px; object-fit: contain; }
+.catalogue-overview { white-space: nowrap; }
+html[data-theme=dark] { --brand: #a0b8ff; --brand-soft: #23385c; --navy: #101d31; --ink: #e5edf8; --muted: #afbed2; --line: #304259; --surface: #18273b; --canvas: #101b2c; --night-soft: #21334d; --night-text: #e5edf8; }
+[data-theme=dark] .title-line h2 { color: var(--ink); }
+#articleCode { color: #000; }
+html[data-theme=dark] #articleCode { color: #fff; }
+[data-theme=dark] .va-select { color: var(--ink); }
+[data-theme=dark] .number-copy { background: transparent; color: var(--muted); }
+[data-theme=dark] .composition-table tbody tr:is(:hover,:focus-within) { background: var(--brand-soft); }
+[data-theme=dark] .quantity.negative, [data-theme=dark] .object-row .negative { color: #ffb293 !important; }
+[data-theme=dark] .article-thumbnail { background-color: #fff; border-color: #455671; }
+[data-theme=dark] .article-thumbnail .thumbnail-zoom { background: #fff; color: #526784; border-color: #dbe3ee; }
+[data-theme=dark] .workflow-step[aria-disabled=true] { background: transparent; }
+[data-theme=dark] .beta-strip { background: #302c22; border-color: #5a4b31; color: #e6cca1; }
+[data-theme=dark] .beta-strip span:last-child { color: #e6cca1; }
+@media (max-width: 1150px) {
+  .header { gap: 15px; padding: 0 20px; }
+  .header-actions { gap: 13px; }
+  .header-action .label { display: none; }
+  .search-trigger { max-width: none; }
+  .help-pinned .content { padding: 23px 20px; }
+}
+@media (max-width: 740px) {
+  :root { --header: 60px; }
+  .catalogue { visibility: hidden; }
+  .nav-open .catalogue { visibility: visible; }
+  .header { padding: 0 13px; gap: 10px; }
+  .brand { font-size: 14px; gap: 6px; }
+  .brand-mark { width: 25px; height: 29px; }
+  .brand-group { gap: 8px; }
+  .header-actions { gap: 8px; }
+  .search-trigger { flex: 0 0 32px; min-width: 32px; width: 32px; height: 34px; margin-left: auto; padding: 6px; background: transparent; border-color: transparent; }
+  .search-trigger .search-label, .search-trigger kbd { display: none; }
+  .content, .help-pinned .content { padding: 20px 16px; }
+  .intro h1 { font-size: 20px; }
+  .breadcrumb { font-size: 10px; }
+  .position-head { padding: 20px 18px 17px; }
+  .title-line h2 { font-size: 26px; }
+  .va-label { font-size: 10px; margin-top: -26px; }
+  .va-select { min-width: 78px; }
+  .identities { gap: 14px; }
+  .symbol-layout { padding: 0 18px 18px; gap: 15px; }
+  .detail-actions { padding: 0 18px 20px; }
+  .tabs { padding: 0 18px; gap: 20px; }
+  .tab-panel { padding: 16px 14px; }
+  .workflow-steps { gap: 6px; }
+  .workflow-step { min-width: 100px; padding: 9px; font-size: 11px; align-items: flex-start; }
+  .workflow-step>b { font-size: 11px; }
+  .workflow-card { padding: 18px; }
+  .format-list { grid-template-columns: 1fr; }
+  .export-checks li { align-items: flex-start; }
+  .export-checks .badge { flex-shrink: 0; }
+  .footer { flex-wrap: wrap; gap: 7px; }
+  .context-panel { flex-wrap: wrap; gap: 9px; }
+}
+@media (max-width: 420px) {
+  .header { gap: 6px; padding: 0 9px; }
+  .brand { font-size: 12px; }
+  .brand-mark { width: 20px; }
+  .brand-group { gap: 5px; }
+  .badge.beta { font-size: 8px; padding: 3px 5px; }
+  .header-actions { gap: 4px; }
+  .header-action { gap: 3px; }
+  .theme-toggle { width: 25px; }
+  .content, .help-pinned .content { padding: 17px 11px; }
+  .beta-strip { font-size: 10px; }
+  .beta-strip .icon { display: none; }
+  .position-head { padding: 18px 15px 15px; }
+  .title-line { flex-wrap: wrap; }
+  .title-line>div { width: 100%; }
+  .va-label { flex-direction: row; align-items: center; margin-top: 7px; gap: 8px; }
+  .title-line h2 { font-size: 25px; }
+  .identities dt span { display: block; margin: 2px 0 0; }
+  .symbol-layout { padding: 0 15px 18px; gap: 12px; }
+  .article-thumbnail { width: 105px; height: 122px; }
+  .article-thumbnail .schema-image { max-width: 75px; max-height: 100px; }
+  .detail-actions .text-action { margin-left: 0; }
+  .workflow-step { min-width: 85px; gap: 7px; font-size: 10px; }
+  .workflow-step small { font-size: 10px; }
+  .import-metrics { grid-template-columns: 1fr; gap: 7px; }
+  .import-metric { display: flex; align-items: center; gap: 12px; }
+  .favorite-card { padding: 3px 10px; }
+}
+@media (max-width: 360px) {
+  .header { gap: 4px; padding: 0 7px; }
+  .brand { font-size: 11px; gap: 4px; }
+  .brand-mark { width: 18px; }
+  .brand-group { gap: 3px; }
+  .badge.beta { font-size: 7px; padding: 3px 4px; }
+  .search-trigger { flex-basis: 28px; min-width: 28px; width: 28px; }
+  .header-actions { gap: 2px; }
+}
+
+
+    .programme-status { padding: 12px 15px; border: 1px solid var(--line); background: var(--surface); border-radius: 7px; margin-bottom: 18px; color: var(--muted); overflow-wrap: anywhere; }
+    .programme-status:empty { display: none; }
+    .recipe-choices { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 16px; color: var(--muted); font-size: 11px; }
+    .recipe-choices select { max-width: 100%; padding: 6px; border: 1px solid var(--line); border-radius: 5px; color: var(--ink); background: var(--surface); }
+    .recipe-choices small { flex-basis: 100%; overflow-wrap: anywhere; }
+    .composition-tools, .favorites-tools { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+    .composition-tools .button[aria-pressed=true] { color: var(--brand); border-color: var(--brand); }
+    .composition-table .component-name { min-width: 210px; }
+    .component-name-inner { display: flex; align-items: center; gap: 6px; }
+    .recipe-toggle { display: inline-flex; flex-shrink: 0; align-items: center; justify-content: center; width: 25px; height: 28px; border-radius: 4px; color: var(--brand); background: var(--brand-soft); }
+    .recipe-toggle-spacer { background: transparent; }
+    .recipe-toggle .icon { width: 13px; height: 13px; }
+    .recipe-toggle[aria-expanded=true] .icon { transform: rotate(90deg); }
+    .composition-table tr.composition-nested td { background: color-mix(in srgb, var(--brand-soft) 78%, var(--surface)); }
+    .composition-table tr.composition-nested td:first-child { box-shadow: inset 3px 0 0 var(--brand); }
+    .composition-table .component-name-inner { padding-left: calc(var(--nest, 0) * 14px); }
+    .composition-table tr:not(.composition-nested) .recipe-toggle { margin-left: 0; }
+    .composition-table tr.nest-start td { border-top: 1px solid color-mix(in srgb, var(--brand) 42%, var(--line)); }
+    .composition-table tr.nest-end td { border-bottom: 1px solid color-mix(in srgb, var(--brand) 42%, var(--line)); }
+    .composition-table tr.composition-nested:is(:hover,:focus-within) td { background: var(--brand-soft); }
+    .component-context { font-size: 10px; color: var(--muted); margin-top: 3px; }
+    .component-context summary { cursor: pointer; }
+    .tree-branch { padding-left: 8px; }
+    .chapter-icon { width: 22px; height: 24px; object-fit: contain; background: white; border-radius: 3px; flex-shrink: 0; }
+    .tree-section summary { white-space: normal; }
+    .tree-section summary>span:not(.section-count) { flex: 1; min-width: 0; overflow-wrap: break-word; hyphens: auto; }
+    .catalogue { min-width: 0; overflow-x: hidden; }
+    .tree-section, .tree-branch { min-width: 0; }
+    .tree-section summary .icon, .tree-section summary .section-count { flex-shrink: 0; }
+    .tree-button>span:last-child { min-width: 0; flex: 1; overflow-wrap: break-word; hyphens: auto; }
+    .article-thumbnail { display: flex; flex-direction: column; align-items: flex-end; justify-content: flex-start; width: auto; height: auto; min-width: 112px; padding: 10px 10px 8px; gap: 6px; overflow: visible; background-color: #fff; background-image: radial-gradient(#dce3ec .7px, transparent .7px); background-size: 10px 10px; border: 1px solid #e5eaf1; }
+    .article-thumbnail .schema-image, .article-thumbnail>.symbol { align-self: center; max-width: 108px; max-height: 108px; }
+    .article-thumbnail .thumbnail-zoom { position: static; opacity: 1; width: 22px; height: 22px; margin: 0; }
+    .article-thumbnail.is-sketch { align-items: center; justify-content: center; cursor: zoom-in; }
+    .schema-sketch { display: block; width: 116px; height: 92px; }
+    .image-dialog-body .schema-sketch { width: min(100%, 460px); height: auto; }
+    .media-missing { display: block; max-width: 340px; line-height: 1.45; }
+    .article-thumbnail.wide-thumb { min-width: 168px; max-width: 280px; }
+    .article-thumbnail.wide-thumb .schema-image { width: auto; height: auto; max-width: 248px; max-height: 96px; }
+    .article-media-actions { display: flex; align-items: center; gap: 7px; }
+    .article-media-actions .icon-button { width: 28px; height: 28px; }
+    .local-start { display: none; max-width: 660px; margin: 8vh auto; padding: 28px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; }
+    .local-start p { margin: 16px 0; line-height: 1.7; }
+    .local-file .header,.local-file .layout,.local-file .sidebar-shade { display: none; }
+    .local-file .local-start { display: block; }
+    .settings-dialog { width: min(560px,calc(100vw - 28px)); max-height: calc(100dvh - 36px); overflow-y: auto; border: 0; border-radius: 18px; background: var(--canvas); box-shadow: 0 24px 80px #10223e38; }
+    .settings-dialog .dialog-head { background: transparent; border-bottom: 0; padding: 22px 22px 8px; }
+    .settings-dialog .dialog-head h2 { font-size: 22px; letter-spacing: -.4px; }
+    .settings-body { padding: 8px 18px 18px; display: grid; gap: 12px; }
+    .settings-card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px 16px 14px; }
+    .settings-card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+    .settings-card h3, .settings-kicker { margin: 0; font-size: 11px; font-weight: 650; letter-spacing: .8px; text-transform: uppercase; color: var(--muted); }
+    .settings-body p { line-height: 1.65; font-size: 13px; color: var(--muted); }
+    .settings-version-title { color: var(--ink); font-size: 22px; font-weight: 650; letter-spacing: -.4px; line-height: 1.25; }
+    .settings-meta, .settings-hint, .settings-note { font-size: 12px; }
+    .settings-meta:empty, .settings-hint:empty { display: none; }
+    .settings-note { margin-top: 12px; }
+    .settings-pill { display: inline-flex; align-items: center; min-height: 24px; padding: 0 10px; border-radius: 999px; background: var(--canvas); color: var(--muted); font-size: 11px; font-weight: 650; }
+    .settings-card[data-status=current] .settings-pill { background: #e7f6ee; color: #1f7a45; }
+    .settings-card[data-status=available] .settings-pill, .settings-card[data-status=checking] .settings-pill { background: var(--brand-soft); color: var(--brand); }
+    .settings-card[data-status=unavailable] .settings-pill { background: #fff4e5; color: #9a6514; }
+    .settings-card[data-status=installer_started] .settings-pill { background: var(--brand-soft); color: var(--brand); }
+    .settings-switch { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 14px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--canvas); font-size: 13px; color: var(--ink); }
+    .settings-switch input { appearance: none; width: 42px; height: 24px; margin: 0; border-radius: 999px; background: #c5ceda; position: relative; flex-shrink: 0; }
+    .settings-switch input::after { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px #14223833; transition: transform .16s ease; }
+    .settings-switch input:checked { background: var(--brand); }
+    .settings-switch input:checked::after { transform: translateX(18px); }
+    .settings-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+    .update-notice { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; justify-content: space-between; margin-bottom: 18px; padding: 14px 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 8px 24px #1422380a; }
+    .update-notice strong { display: block; color: var(--ink); font-size: 13px; font-weight: 650; }
+    .update-notice span { display: block; margin-top: 2px; color: var(--muted); font-size: 12px; line-height: 1.5; }
+    [data-theme=dark] .settings-dialog { background: var(--canvas); }
+    [data-theme=dark] .settings-card[data-status=current] .settings-pill { background: #183c33; color: #a5dbc0; }
+    [data-theme=dark] .settings-card[data-status=unavailable] .settings-pill { background: #382e1e; color: #e6c485; }
+    [data-theme=dark] .settings-switch input { background: #3d516c; }
+    .version-button { color: var(--muted); background: transparent; border: 0; text-align: left; padding: 4px 0; font-size: 10px; }
+    @media(max-width:740px) { .local-start { margin: 24px 14px; padding: 22px; } .settings-body { padding: 18px; } }
+    .tree-button { width: 100%; }
+    .tree-tools { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0 2px 8px; }
+    .tree-tools .tree-label { margin: 0; }
+    .tree-collapse { border: 1px solid #4d648c; background: #ffffff12; color: #d5e4f8; border-radius: 5px; font-size: 10px; line-height: 1.2; padding: 5px 7px; white-space: nowrap; }
+    .tree-collapse:hover { background: #ffffff1f; }
+    .tree-collapse:disabled { opacity: .4; }
+    .tree-section > summary { border-radius: 6px; }
+    .tree-toggle, .tree-chapter { border: 0; background: transparent; color: inherit; font: inherit; padding: 0; }
+    .tree-toggle { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 4px; flex-shrink: 0; }
+    .tree-toggle:hover, .tree-chapter:hover { background: #ffffff14; }
+    .tree-chapter { flex: 1; min-width: 0; text-align: left; border-radius: 4px; padding: 2px 4px; overflow-wrap: normal; hyphens: manual; line-height: 1.35; }
+    .tree-section.selected > summary { background: #294370; box-shadow: inset 3px 0 0 #a0b8ff; }
+    .tree-chapter.selected { color: #fff; }
+    .tree-branch { margin: 3px 0 8px 12px; padding: 3px 0 3px 12px; border-left: 2px solid #6d86ad; }
+    .tree-button.selected { box-shadow: inset 3px 0 0 #a0b8ff; }
+    .sidebar-resizer { position: absolute; top: 0; right: 0; z-index: 4; width: 10px; height: 100%; cursor: col-resize; touch-action: none; }
+    .sidebar-resizer::before { content: ""; position: absolute; top: 0; bottom: 0; left: 4px; width: 2px; background: #ffffff24; }
+    .sidebar-resizer:hover::before, .sidebar-resizer:focus-visible::before, body.sidebar-resizing .sidebar-resizer::before { background: #a0b8ff; width: 3px; }
+    body.sidebar-resizing { cursor: col-resize; user-select: none; }
+    .chapter-groups, .chapter-cards { display: grid; gap: 14px; }
+    .chapter-group { border: 1px solid var(--line); border-radius: 9px; background: var(--surface); overflow: hidden; }
+    .chapter-group-head, .chapter-card { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; }
+    .chapter-group-head { padding: 12px 16px; border: 0; background: var(--navy); color: #e8eef8; }
+    .chapter-group-head strong { font-size: 14px; font-weight: 600; }
+    .chapter-group-head .count, .chapter-card .count { margin-left: auto; }
+    .chapter-card { padding: 14px 16px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink); }
+    .chapter-card:hover, .chapter-article:hover { background: var(--brand-soft); }
+    .chapter-card small, .chapter-article small { display: block; color: var(--muted); font-size: 11px; }
+    .chapter-article { display: grid; grid-template-columns: 42px minmax(0,1fr) auto auto; gap: 12px; align-items: center; width: 100%; padding: 8px 14px; border: 0; border-top: 1px solid var(--line); background: transparent; color: var(--ink); text-align: left; }
+    .chapter-article .tree-icon { width: 36px; height: 36px; background: var(--canvas); color: var(--brand); border: 1px solid var(--line); }
+    .chapter-article .tree-icon.has-original { background: #fff; color: #526b8d; }
+    .chapter-article-name { min-width: 0; overflow-wrap: break-word; hyphens: auto; }
+    [data-theme=dark] .chapter-article:hover, [data-theme=dark] .chapter-card:hover { background: var(--night-soft); }
+    [data-theme=dark] .chapter-group-head { background: #243956; }
+    #homeTitle:focus, #chapterTitle:focus, #favoritesTitle:focus, #projectTitle:focus, #articleTitle:focus, #reserveTitle:focus { outline: none; }
+    .catalogue-switch { padding: 12px 12px 0; display: grid; gap: 6px; }
+    .catalogue-switch .tree-label { margin: 0 2px; }
+    .catalogue-switch select { width: 100%; min-height: 36px; padding: 0 10px; border: 1px solid #4d648c; border-radius: 8px; background: #ffffff12; color: #e8eef8; color-scheme: dark; font-size: 12px; }
+    .catalogue-switch select option { background: #172436; color: #e8eef8; }
+    .catalogue-switch select option:disabled { color: #8ea2bf; }
+    .home-search { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 54px; padding: 0 18px; margin-bottom: 18px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--muted); font-size: 14px; text-align: left; cursor: text; }
+    .home-search:hover { border-color: var(--brand); }
+    .home-search .icon { width: 18px; height: 18px; color: var(--brand); }
+    .home-search kbd { margin-left: auto; font-size: 10px; padding: 2px 6px; border: 1px solid var(--line); border-radius: 4px; }
+    .home-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 26px; }
+    .home-action { display: flex; align-items: center; gap: 12px; padding: 16px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink); text-decoration: none; }
+    .home-action:hover { background: var(--brand-soft); }
+    .home-action .icon { width: 20px; height: 20px; color: var(--brand); flex: 0 0 20px; }
+    .home-action strong { display: block; font-size: 13px; }
+    .home-action small { display: block; color: var(--muted); font-size: 11px; margin-top: 2px; }
+    .home-block { margin-bottom: 26px; }
+    .home-block-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+    .home-block-head h2 { margin: 0; font-size: 15px; }
+    .home-empty { margin: 0; padding: 16px; border: 1px dashed var(--line); border-radius: 8px; color: var(--muted); }
+    [data-theme=dark] .home-action:hover { background: var(--night-soft); }
+    .catalogue-choice { display: grid; gap: 6px; margin-top: 14px; font-size: 12px; color: var(--muted); }
+    .catalogue-choice select, #tenderLineCatalogue { min-height: 36px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--ink); padding: 0 8px; }
+    @media (max-width: 740px) { .sidebar-resizer { display: none; } .chapter-article { grid-template-columns: 36px minmax(0,1fr); } .chapter-article .mono, .chapter-article .va-pill { display: none; } }
+    .search-kind { display: flex; flex-wrap: wrap; gap: 5px; padding: 10px 20px 0; }
+    .search-kind button { padding: 4px 8px; font-size: 11px; border-radius: 5px; background: var(--canvas); color: var(--muted); border: 1px solid var(--line); }
+    .search-kind [aria-pressed=true] { color: var(--brand); border-color: var(--brand); }
+    .tender-dialog { width: min(1100px,calc(100% - 28px)); max-height: calc(100dvh - 30px); margin: auto; }
+    .tender-panel { padding: 20px; }
+    .tender-panel>p { margin-top: 12px; line-height: 1.7; }
+    .tender-form { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 22px; }
+    .tender-form label { display: flex; flex-direction: column; gap: 5px; font-size: 12px; color: var(--muted); }
+    .tender-form :is(input,select) { width: 100%; min-width: 0; padding: 8px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 5px; }
+    .tender-form p { grid-column: 1/-1; }
+    .components-table { border-collapse: collapse; width: 100%; min-width: 850px; font-size: 12px; }
+    .components-table :is(th,td) { text-align: left; padding: 10px; border-bottom: 1px solid var(--line); }
+    .component-link { color: var(--brand); background: transparent; text-align: left; }
+    .favorite-identities { overflow-wrap: anywhere; }
+    @media(max-width:740px) { .detail-actions { flex-wrap: wrap; } .recipe-choices { align-items: flex-start; flex-direction: column; } }
+    @media(max-width:420px) { .tender-form { grid-template-columns: 1fr; } }
+    /* Bedienung 0.4: feste Navigation, nur der Katalogbaum scrollt. */
+    .catalogue { overflow: hidden; }
+    .catalogue-top, .catalogue-tabs, .project-nav, .catalogue-tree-head, .catalogue-footer { flex: 0 0 auto; }
+    .catalogue-tree-head { padding: 18px 12px 10px; border-top: 1px solid #ffffff12; margin-top: 12px; }
+    .catalogue-tree-head .tree-tools { margin: 0 2px 8px; }
+    .catalogue-tree-head .catalogue-switch { padding: 0; }
+    .catalogue-tree-head .catalogue-switch select { min-height: 32px; }
+    .catalogue-tree { flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden; padding-top: 4px; }
+    .catalogue-tree[hidden] + .catalogue-footer, .catalogue-footer { margin-top: auto; }
+    .tree-keys { margin: 14px 10px 0; font-size: 10px; color: #7289a8; }
+    .tree-chapter:focus-visible, .tree-button:focus-visible { outline: 2px solid #90adff; outline-offset: 1px; }
+    .breadcrumb a { color: inherit; text-decoration: none; }
+    .breadcrumb a:hover, .breadcrumb .source-link:hover { text-decoration: underline; }
+    .breadcrumb .source-link { background: transparent; border: 0; padding: 0; font: inherit; color: inherit; cursor: pointer; }
+    .breadcrumb .source-link:last-of-type { color: inherit; }
+    /* Positionskopf: Bild links, Aktionen rechts daneben. */
+    .symbol-layout { align-items: flex-start; }
+    .media-side { display: flex; flex-direction: column; gap: 12px; min-width: 0; flex: 1; }
+    .media-side .detail-actions { padding: 0; flex-wrap: wrap; }
+    .media-side .article-media-actions:empty { display: none; }
+    .media-side .article-media-actions { align-items: flex-start; text-align: left; }
+    .media-side .detail-actions .text-action { margin-left: 0; }
+    /* Kapitel: zwei Spalten mit Kapitelbild. */
+    .chapter-cards { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+    .chapter-card { min-height: 72px; }
+    .chapter-card-image { flex: 0 0 48px; width: 48px; height: 48px; object-fit: contain; border-radius: 6px; background: #fff; border: 1px solid var(--line); padding: 3px; display: grid; place-items: center; color: var(--brand); }
+    .chapter-card-image .icon { width: 20px; height: 20px; }
+    [data-theme=dark] span.chapter-card-image { background: var(--canvas); }
+    /* Ausschreibung */
+    .format-summary { margin: 14px 0 16px; font-size: 12px; color: var(--muted); }
+    .format-summary summary { cursor: pointer; }
+    .format-summary b { color: var(--ink); font-weight: 600; }
+    .format-summary ul { margin: 8px 0 0; padding-left: 18px; display: grid; gap: 5px; }
+    a.workflow-step { color: inherit; text-decoration: none; }
+    a.workflow-step:hover { border-color: var(--brand); }
+    .project-bar { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; margin: 0 0 18px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+    .project-choice { display: grid; gap: 4px; font-size: 11px; color: var(--muted); flex: 1 1 220px; }
+    .project-choice select, .compare-choices select, .search-filters select { min-height: 34px; padding: 0 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--canvas); color: var(--ink); font-size: 12px; }
+    .project-tools { display: flex; flex-wrap: wrap; gap: 8px; }
+    .project-bar .workflow-note { flex-basis: 100%; margin: 0; }
+    .assign-groups { display: grid; gap: 10px; margin-top: 14px; }
+    .assign-group { border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; display: grid; gap: 10px; }
+    .assign-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 16px; }
+    .assign-head strong { display: block; font-size: 13px; overflow-wrap: anywhere; }
+    .assign-head small { color: var(--muted); font-size: 11px; }
+    .assign-status { display: flex; align-items: center; gap: 10px; font-size: 12px; flex-wrap: wrap; }
+    .assign-status .text-action { margin-left: 0; font-size: 11px; color: var(--brand); }
+    .assign-current small { color: var(--muted); }
+    .assign-current.invalid { color: #b54747; }
+    .assign-suggestions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 11px; }
+    .assign-chip { padding: 5px 9px; border: 1px solid var(--line); border-radius: 6px; background: var(--canvas); color: var(--ink); font-size: 11px; text-align: left; cursor: pointer; }
+    .assign-chip:hover { border-color: var(--brand); background: var(--brand-soft); }
+    .assign-manual { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px; font-size: 11px; color: var(--muted); }
+    .assign-manual label { display: grid; gap: 3px; }
+    .assign-manual input { min-height: 30px; width: 130px; padding: 0 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--canvas); color: var(--ink); }
+    .assign-manual input[name=va] { width: 64px; }
+    .assign-manual input[name=bkp] { width: 88px; }
+    .assign-manual input[name=unit] { width: 72px; }
+    .coverage-title { font-size: 13px; font-weight: 600; margin: 18px 0 6px; }
+    .outline-list { display: grid; gap: 10px; margin-top: 14px; }
+    .outline-chapter { border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; display: grid; gap: 8px; }
+    .outline-chapter label { display: grid; gap: 3px; font-size: 11px; color: var(--muted); }
+    .outline-chapter input, .outline-chapter textarea { width: 100%; min-height: 32px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--canvas); color: var(--ink); font: inherit; font-size: 13px; }
+    .outline-chapter textarea { min-height: 58px; resize: vertical; }
+    .outline-positions { display: grid; gap: 8px; }
+    .outline-position { display: grid; grid-template-columns: 96px 1fr; gap: 8px; align-items: start; }
+    .outline-meta { font-size: 11px; color: var(--muted); }
+    @media (max-width: 740px) { .outline-position { grid-template-columns: 1fr; } }
+    /* Favoritenlisten und Notizen */
+    .favorite-lists { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; margin: 0 0 12px; }
+    .favorite-lists-label { font-size: 11px; color: var(--muted); margin-right: 4px; }
+    .favorite-lists .text-action { display: inline-flex; flex-direction: row; align-items: center; gap: 4px; margin-left: 0; font-size: 11px; color: var(--brand); }
+    .favorite-lists .text-action .icon { width: 12px; height: 12px; }
+    .favorite-note { display: flex; gap: 5px; align-items: flex-start; margin-top: 5px; font-size: 11px; color: var(--ink); white-space: pre-line; }
+    .favorite-note .icon { width: 12px; height: 12px; flex: 0 0 12px; margin-top: 2px; color: var(--brand); }
+    .favorite-list-choice { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; margin: 12px 0; display: grid; gap: 8px; }
+    .favorite-list-choice legend { font-size: 11px; color: var(--muted); padding: 0 4px; }
+    .check-row { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--ink); }
+    .ask-dialog { width: min(460px, calc(100vw - 32px)); }
+    .ask-field { display: grid; gap: 5px; font-size: 12px; color: var(--muted); margin-bottom: 12px; }
+    .ask-field input, .ask-field textarea { width: 100%; min-height: 36px; padding: 7px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--canvas); color: var(--ink); font: inherit; font-size: 13px; }
+    .ask-dialog .export-actions { justify-content: flex-end; }
+    #askText { margin: 0 0 14px; font-size: 13px; }
+    /* Suche und VA-Vergleich */
+    .search-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 8px 20px 0; font-size: 11px; color: var(--muted); }
+    .search-filters label:first-child { display: flex; align-items: center; gap: 6px; }
+    .search-filters select { min-height: 28px; font-size: 11px; }
+    .compare-dialog { width: min(900px, calc(100vw - 32px)); }
+    .compare-choices { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; margin-bottom: 12px; font-size: 11px; color: var(--muted); }
+    .compare-choices label { display: grid; gap: 4px; }
+    .compare-choices .compare-only { display: flex; align-items: center; gap: 6px; }
+    .compare-table { width: 100%; table-layout: auto; border-collapse: collapse; }
+    .compare-table td, .compare-table th { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--line); white-space: nowrap; }
+    .compare-table td:first-child { white-space: normal; min-width: 220px; }
+    .compare-table .quantity { text-align: right; }
+    .compare-table .compare-summary td { background: var(--canvas); font-size: 11px; color: var(--muted); }
+    .compare-table .compare-diff td { background: #fff7e6; }
+    [data-theme=dark] .compare-table .compare-diff td { background: #33301f; }
+    .compare-missing { color: var(--muted); }
+    @media(max-width:740px){ .catalogue-tree-head { margin-top: 8px; } .chapter-cards { grid-template-columns: 1fr; } .symbol-layout { flex-wrap: wrap; } }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#mainContent">Zum Inhalt</a>
+  <!-- 06 · Kleine, lokale SVG-Bibliothek. Bauteil-Icons sind schematische UI-Symbole. -->
+  <svg aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden"><defs>
+    <symbol id="i-logo" viewBox="0 0 32 36"><path d="m16 1 14 8v18l-14 8L2 27V9Z" fill="currentColor"/><g fill="none" stroke="white" stroke-width="1.2"><path d="m9 11 7-4 7 4-7 4-7-4Zm0 0v13l7 4 7-4v-7l-7 4-7-4m7-2v13"/></g></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5 9-5Zm-9 9 9 5 9-5M3 16l9 5 9-5"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M12 5c-3-2-7-2-10-1v15c3-1 7-1 10 1 3-2 7-2 10-1V4c-3-1-7-1-10 1Zm0 0v15"/></symbol>
+    <symbol id="i-bookmark" viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4-6 4V3Z"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18M5 6h14M5 18h14"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h15m-5-5 5 5-5 5"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7v1"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 5 5L20 6"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="13" rx="2"/><path d="M16 8V3H3v13h5"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></symbol>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="M20 12H5m5-5-5 5 5 5"/></symbol>
+    <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8" cy="8" r="1.5"/><path d="m3 17 5-5 4 4 4-6 5 7"/></symbol>
+    <symbol id="i-switch" viewBox="0 0 24 24"><circle cx="12" cy="15" r="5"/><path d="M12 10V3m0 0-4 4M12 3l4 4M7 15H3m14 0h4"/></symbol>
+    <symbol id="i-box" viewBox="0 0 24 24"><path d="m3 7 9-4 9 4-9 4-9-4Zm0 0v10l9 4 9-4V7M12 11v10"/></symbol>
+    <symbol id="i-cable" viewBox="0 0 24 24"><path d="M4 7h10a5 5 0 0 1 0 10H9a3 3 0 0 1 0-6h5M4 4v6m-2-6h4M14 11h5m0-3v6"/></symbol>
+    <symbol id="i-lightbulb" viewBox="0 0 24 24"><path d="M9 18h6m-5 3h4M8 14a6 6 0 1 1 8 0l-1 4H9l-1-4Z"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20.8 14A9 9 0 0 1 10 3.2 9 9 0 1 0 20.8 14Z"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/></symbol>
+    <symbol id="i-import" viewBox="0 0 24 24"><path d="M12 3v12m-4-4 4 4 4-4M4 16v5h16v-5"/></symbol>
+    <symbol id="i-export" viewBox="0 0 24 24"><path d="M12 16V4m-4 4 4-4 4 4M4 16v5h16v-5"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path d="m15 3 6 6-3 1-4 4-1 4-7-7 4-1 4-4 1-3ZM9 15l-6 6"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/><circle cx="8" cy="6" r="2"/><circle cx="16" cy="12" r="2"/><circle cx="10" cy="18" r="2"/></symbol>
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="m3 11 9-7 9 7M5 9.5V20h5v-6h4v6h5V9.5"/></symbol>
+    <symbol id="i-compare" viewBox="0 0 24 24"><path d="M4 4h6v16H4zM14 4h6v16h-6zM10 9h4M10 15h4"/></symbol>
+    <symbol id="i-note" viewBox="0 0 24 24"><path d="M5 3h10l4 4v14H5zM15 3v4h4M8 12h8M8 16h6"/></symbol>
+    <symbol id="i-list" viewBox="0 0 24 24"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></symbol>
+  </defs></svg>
+
+  <section class="local-start" aria-labelledby="localStartTitle"><span class="badge beta">BIM2STEIGER</span><h1 id="localStartTitle">Den vollständigen Katalog starten</h1><p>Du hast die HTML-Datei direkt geöffnet. Für Katalog, Suche und Originalbilder bitte die lokale Anwendung starten.</p><p><strong>Im Projektordner auf <code>Start_BIM2STEIGER.cmd</code> doppelklicken.</strong> Der Starter öffnet die passende Adresse automatisch. Bei der installierten Version das BIM2STEIGER-Programmsymbol verwenden.</p><a class="button primary" href="http://127.0.0.1:8765/bim2steiger.html">Bereits laufende Anwendung öffnen</a><p>Der Standardaufruf ist <code>http://127.0.0.1:8765/bim2steiger.html</code>. Falls der Starter einen anderen Port verwendet, seinen geöffneten Aufruf benutzen.</p></section>
+  <header class="header">
+    <button class="mobile-menu" id="menuToggle" aria-label="Katalog öffnen" aria-expanded="false" aria-controls="catalogueSidebar"><svg class="icon"><use href="#i-menu"/></svg></button>
+    <div class="brand-group"><a class="brand" href="#start" aria-label="BIM2STEIGER – Startseite"><svg class="brand-mark"><use href="#i-logo"/></svg><span class="brand-word">BIM<span>2</span>STEIGER</span></a><span class="badge beta" title="Interner Entwurf – interaktiver Prototyp"><span class="status-dot"></span>BETA</span></div>
+    <button id="openSearch" class="search-trigger" aria-label="Katalog durchsuchen" aria-haspopup="dialog" aria-controls="searchDialog"><svg class="icon"><use href="#i-search"/></svg><span class="search-label">Position, E-Nr. oder B-Nr. suchen …</span><kbd>Ctrl K</kbd></button>
+    <div class="header-actions">
+      <button id="openKnowledge" class="header-action knowledge-button" aria-label="Wissen griffbereit" aria-expanded="false" aria-controls="knowledgePanel" title="Wissen griffbereit"><svg class="icon"><use href="#i-book"/></svg><span class="label">Wissen griffbereit</span></button>
+      <a id="openFavorites" class="header-action" href="#favoriten" aria-label="Favoriten öffnen" title="Favoriten öffnen"><svg class="icon"><use href="#i-bookmark"/></svg><span class="label">Favoriten</span><span class="count" id="favoriteCount">0</span></a>
+      <button id="themeToggle" class="header-action theme-toggle" aria-label="Nachtmodus aktivieren" aria-pressed="false" title="Nachtmodus aktivieren"><svg class="icon"><use href="#i-moon"/></svg></button>
+    </div>
+  </header>
+  <button class="sidebar-shade" id="sidebarShade" aria-label="Katalog schliessen"></button>
+  <div class="layout">
+    <aside class="catalogue" id="catalogueSidebar" aria-label="Katalognavigation">
+      <div class="catalogue-top"><div class="workspace eyebrow">Dein Arbeitsbereich</div><strong>Elektroplanung</strong></div>
+      <div class="catalogue-tabs"><a class="catalogue-overview" id="navHome" href="#start"><svg class="icon"><use href="#i-home"/></svg>Start</a><button class="catalogue-overview" id="navCatalogue" type="button"><svg class="icon"><use href="#i-layers"/></svg>Katalog entdecken<span class="mono catalogue-year">2026</span></button><a class="catalogue-overview catalogue-favorites" id="sidebarFavorites" href="#favoriten"><svg class="icon"><use href="#i-bookmark"/></svg>Favoriten<span class="count" id="sidebarFavoriteCount">0</span></a></div>
+
+      <nav class="project-nav" aria-label="Arbeitsbereich">
+        <button class="catalogue-overview" id="openTender" type="button"><svg class="icon"><use href="#i-list"/></svg>Ausschreibung<span class="count" id="tenderCount">0</span></button>
+        <button class="catalogue-overview" id="openSettings" type="button" data-open-settings><svg class="icon"><use href="#i-settings"/></svg>Einstellungen</button>
+      </nav>
+      <div class="catalogue-tree-head"><div class="tree-tools"><div class="tree-label eyebrow">Katalogstruktur</div><button type="button" class="tree-collapse" id="collapseTree" disabled>Alle schliessen</button></div><div class="catalogue-switch"><label class="sr-only" for="catalogueSwitch">Katalogjahr</label><select id="catalogueSwitch" aria-label="Katalogjahr wechseln"></select></div></div><nav class="catalogue-tree" aria-label="Katalogstruktur"><div id="catalogueTree"></div><p class="tree-keys">Pfeiltasten: ↑ ↓ wechseln, → aufklappen, ← zuklappen</p></nav>
+      <div class="sidebar-resizer" id="sidebarResizer" role="separator" aria-orientation="vertical" aria-label="Breite der Seitenleiste anpassen" aria-valuemin="240" aria-valuemax="560" aria-valuenow="300" tabindex="0"></div>
+      <div class="catalogue-footer"><strong><span class="status-dot"></span>Steiger-Katalog · Lokal</strong><span id="sampleCount"></span><br>BIM2STEIGER · Katalog 2026</div>
+    </aside>
+    <main class="content" id="mainContent" tabindex="-1">
+      <section class="update-notice" id="updateNotice" hidden aria-label="Programmupdate"><div><strong>Programmupdate</strong><span id="updateNoticeText"></span></div><button class="button primary" data-open-settings>Updates ansehen</button></section>
+      <p id="programmeStatus" class="programme-status" role="status">Katalog wird verbunden …</p>
+      <section id="catalogueReserve" aria-labelledby="reserveTitle" hidden>
+        <nav class="breadcrumb" aria-label="Katalogjahr"><span>Katalog</span><svg class="icon"><use href="#i-chevron"/></svg><span>Vorbehalt</span></nav>
+        <div class="intro"><div><h1 id="reserveTitle" tabindex="-1">Katalog 2027</h1><p id="reserveText">Vorgemerkt. Die Artikel dieses Jahrgangs sind noch nicht erfasst.</p></div><span class="badge beta">Vorbehalt</span></div>
+        <section class="workflow-card"><h2>Noch keine Artikel erfasst</h2><p>Dieser Jahrgang ist nur vorgemerkt. Es werden keine Positionen, Nummern oder Preise ergänzt. In der Ausschreibung kann dieser Katalog bereits gewählt werden. Der Wechsel zurück bleibt offen.</p><button class="button primary" id="reserveBack" type="button">Katalog 2026 öffnen</button></section>
+      </section>
+      <section id="homeView" aria-labelledby="homeTitle" hidden>
+        <nav class="breadcrumb" aria-label="Brotkrümelnavigation"><span>Dein Arbeitsbereich</span><svg class="icon"><use href="#i-chevron"/></svg><span>Start</span></nav>
+        <div class="intro"><div><h1 id="homeTitle" tabindex="-1">Start</h1><p id="homeSubtitle">Position suchen, Kapitel öffnen oder an der Ausschreibung weiterarbeiten.</p></div></div>
+        <button class="home-search" id="homeSearch" type="button" aria-haspopup="dialog" aria-controls="searchDialog"><svg class="icon"><use href="#i-search"/></svg><span>Position, E-Nr. oder B-Nr. suchen …</span><kbd>Ctrl K</kbd></button>
+        <div class="home-actions">
+          <a class="home-action" href="#katalog"><svg class="icon"><use href="#i-layers"/></svg><span><strong>Katalog entdecken</strong><small id="homeCatalogueInfo">Kapitel und Positionen</small></span></a>
+          <a class="home-action" href="#favoriten"><svg class="icon"><use href="#i-bookmark"/></svg><span><strong>Favoriten</strong><small id="homeFavoriteInfo">Noch keine Favoriten</small></span></a>
+          <a class="home-action" href="#ausschreibung"><svg class="icon"><use href="#i-list"/></svg><span><strong>Ausschreibung</strong><small id="homeTenderInfo">Noch keine Positionen</small></span></a>
+          <a class="home-action" href="#dateiimport"><svg class="icon"><use href="#i-import"/></svg><span><strong>Planungsdatei importieren</strong><small>CSV, JSON, IFC, Nova</small></span></a>
+        </div>
+        <section class="home-block" aria-labelledby="homeRecentTitle"><div class="home-block-head"><h2 id="homeRecentTitle">Zuletzt angesehen</h2><button type="button" class="source-link" id="clearRecent" style="background:transparent" hidden>Liste leeren</button></div><div id="homeRecent" class="chapter-group"></div></section>
+        <section class="home-block" aria-labelledby="homeChaptersTitle"><div class="home-block-head"><h2 id="homeChaptersTitle">Katalogkapitel</h2></div><div id="homeChapters" class="chapter-cards"></div></section>
+      </section>
+      <div id="articleView" hidden>
+      <nav class="breadcrumb" id="articleBreadcrumb" aria-label="Katalogpfad"></nav>
+      <button class="back-link" id="backToParent" hidden><svg class="icon"><use href="#i-back"/></svg><span></span></button>
+      <article class="position-card" aria-labelledby="articleTitle">
+        <div class="position-head">
+          <div class="position-top"><span class="badge blue" id="kindBadge">Komplettposition</span><span class="position-index">STEIGER / 2026</span></div>
+          <div class="article-number-row"><p class="article-code mono" id="articleCode"></p><button class="icon-button number-copy" id="copyNumber" aria-label="Artikelnummer kopieren" title="Artikelnummer kopieren"><svg class="icon"><use href="#i-copy"/></svg></button></div>
+          <div class="title-line"><div><h2 id="articleTitle"></h2><p id="articleSubtitle"></p></div><label class="va-label" for="vaSelect">Verlegungsart (VA)<select id="vaSelect" class="va-select" aria-label="Verlegungsart wählen"></select></label></div>
+          <div id="recipeChoices" class="recipe-choices" hidden><label for="recipeSelect">Zusammensetzung / Rezeptversion</label><select id="recipeSelect"></select></div>
+          <dl class="identities" id="identities"><div><dt>E-Nr. <span class="muted">ELDAS-Elektro-Nummer</span></dt><dd class="mono identity-value"><span id="eNumber">—</span><a id="eNumberSearch" class="identity-search" target="_blank" rel="noopener noreferrer" hidden><svg class="icon" aria-hidden="true"><use href="#i-globe"/></svg></a></dd></div><div><dt>B-Nr. <span class="muted">Bestellnummer</span></dt><dd class="mono identity-value"><span id="bNumber">—</span><a id="bNumberSearch" class="identity-search" target="_blank" rel="noopener noreferrer" hidden><svg class="icon" aria-hidden="true"><use href="#i-globe"/></svg></a></dd></div></dl>
+          <div id="identifierChoices" class="recipe-choices" hidden><label for="identifierSelect">Produktkennungen aus der Quelle</label><select id="identifierSelect"></select><small id="identifierSource"></small></div>
+          <p class="identity-note"><svg class="icon"><use href="#i-info"/></svg><span id="identityNote"></span></p>
+        </div>
+        <!-- Originalzeichnung auf Raster; Foto ausschliesslich auf Wunsch im Dialog. -->
+        <div class="symbol-layout">
+          <button id="schemaStage" class="article-thumbnail" type="button" data-zoom="schema" aria-label="Artikelbild öffnen" title="Artikelbild öffnen"></button>
+          <div class="media-side">
+            <div id="photoActions" class="article-media-actions"></div>
+            <div class="detail-actions"><button class="button primary" id="saveFavorite" aria-pressed="false"><svg class="icon"><use href="#i-plus"/></svg><span>Zu Favoriten hinzufügen</span></button><button class="button" id="addTender" disabled>In Ausschreibung</button><button class="text-action" id="showArticleText">Artikeltext ansehen<svg class="icon"><use href="#i-arrow"/></svg></button></div>
+          </div>
+        </div>
+        <div class="tabs" role="tablist" aria-label="Positionsdetails"><button id="tab-composition" class="tab" role="tab" aria-selected="true" aria-controls="panel-composition" data-tab="composition">Besteht aus<span class="tab-count" id="componentCount"></span></button><button id="tab-properties" class="tab" role="tab" aria-selected="false" aria-controls="panel-properties" tabindex="-1" data-tab="properties">Stammdaten</button><button id="tab-description" class="tab" role="tab" aria-selected="false" aria-controls="panel-description" tabindex="-1" data-tab="description">Artikeltext</button></div>
+        <section id="panel-composition" class="tab-panel" role="tabpanel" aria-labelledby="tab-composition"></section>
+        <section id="panel-properties" class="tab-panel" role="tabpanel" aria-labelledby="tab-properties" hidden></section>
+        <section id="panel-description" class="tab-panel" role="tabpanel" aria-labelledby="tab-description" hidden></section>
+      </article>
+      <div class="context-panel"><span><svg class="icon"><use href="#i-export"/></svg>Positionen mit BKP und Raum in die Ausschreibung übernehmen.</span><a href="#ausschreibung">Zur Ausschreibung →</a></div>
+      </div>
+      <section id="chapterView" aria-labelledby="chapterTitle" hidden>
+        <nav class="breadcrumb" id="chapterBreadcrumb" aria-label="Katalogpfad"></nav>
+        <div class="intro"><div><h1 id="chapterTitle" tabindex="-1">Katalog</h1><p id="chapterSubtitle"></p></div></div>
+        <div id="chapterBody"></div>
+      </section>
+      <section id="favoritesView" aria-labelledby="favoritesTitle" hidden>
+        <nav class="breadcrumb" aria-label="Brotkrümelnavigation"><a href="#start">Dein Arbeitsbereich</a><svg class="icon"><use href="#i-chevron"/></svg><span>Favoriten</span></nav>
+        <div class="intro favorites-intro"><div><h1 id="favoritesTitle" tabindex="-1">Favoriten</h1><p>Auf diesem Gerät gespeichert · Nach Original-Katalogpfad geordnet</p></div></div>
+        <div class="export-actions favorites-tools"><button class="button" id="exportFavorites">Favoriten als JSON sichern</button><label class="button file-choice">Favoriten laden<input id="favoritesFile" type="file" accept=".json" aria-label="Favoriten aus JSON laden"></label></div>
+        <p id="favoritesSummary" class="favorites-summary" role="status"></p>
+        <div id="favoriteLists" class="favorite-lists" role="group" aria-label="Favoritenlisten"></div><div id="favoriteFilters" class="favorite-filters" role="group" aria-label="Favoriten nach Kategorie filtern"></div>
+        <div id="favoriteGroups"></div>
+        <p class="favorites-footnote">Jede Artikel-/VA-Kombination bleibt ein eigener Eintrag.</p>
+      </section>
+      <section id="projectView" aria-labelledby="projectTitle" hidden>
+        <nav class="breadcrumb" aria-label="Brotkrümelnavigation"><a href="#start">Dein Arbeitsbereich</a><svg class="icon"><use href="#i-chevron"/></svg><span id="projectBreadcrumb">Ausschreibung</span></nav>
+        <div class="intro"><div><h1 id="projectTitle" tabindex="-1">Ausschreibung</h1><p id="projectSubtitle">Planungsdatei einlesen und die Übergabe vorbereiten.</p></div><span class="badge beta">BETA</span></div>
+        <nav class="workflow-steps" aria-label="Vom Modell zur Ausschreibung"><a class="workflow-step" href="#dateiimport" id="importStep"><b>01</b><span>Einlesen<small>CSV, JSON, IFC, Nova</small></span></a><a class="workflow-step" href="#zuordnung" id="assignStep"><b>02</b><span>Zuordnung & Prüfung<small id="assignStepState">Noch offen</small></span></a><a class="workflow-step" href="#uebergabe" id="exportStep"><b>03</b><span>Übergabe<small>Noch offen</small></span></a></nav>
+        <section class="project-bar" aria-label="Projekt"><label class="project-choice">Projekt<select id="projectSelect" aria-label="Projekt wählen"></select></label><div class="project-tools"><button class="button" id="newProject" type="button"><svg class="icon"><use href="#i-plus"/></svg>Neues Projekt</button><button class="button" id="renameProject" type="button">Umbenennen</button><button class="button" id="deleteProject" type="button">Löschen</button></div><p class="workflow-note" id="projectNote"></p></section>
+        <div id="importPanel">
+          <section class="workflow-card" id="dateiimport" aria-labelledby="importHeading"><h2 id="importHeading">Planungsdatei importieren</h2><p>Datei vom eigenen Rechner auswählen. Alle importierten Objekte bleiben zunächst ungeprüft. Steiger-Positionen ordnest du danach unter «Zuordnung» zu.</p>
+            <details class="format-summary"><summary>Formate: <b>CSV / JSON</b> · <b>IFC</b> mit Räumen · <b>Nova N4D / N4M</b> Apparate</summary><ul><li><b>CSV / JSON:</b> Neutraler Objektexport mit Raum, Geschoss, Menge, Einheit und optionaler Artikel-/VA-Zuordnung.</li><li><b>IFC:</b> Elektrische Bauteile. Raumnummer ist der IFC-Name des IfcSpace, Raumname dessen Langname, wenn die Datei das Bauteil genau einem Raum zuordnet.</li><li><b>Nova N4D / N4M:</b> Platzierte Apparate wie in NOVA-Legenden. Geschoss, Raum und Raumnummer werden aus den Bauteileigenschaften übernommen, wenn sie gefüllt sind. Leere Felder bleiben leer.</li></ul></details>
+            <div class="import-controls"><label class="button primary file-choice"><svg class="icon"><use href="#i-import"/></svg>Datei auswählen<input id="modelFile" type="file" accept=".csv,.json,.ifc,.n4d,.n4m" aria-label="CSV-, JSON-, IFC-, N4D- oder N4M-Datei auswählen"></label><span class="import-status" id="importStatus" role="status" aria-live="polite">Noch keine Datei importiert.</span></div>
+            <div class="server-hint" id="importServerHint" hidden>Für den Dateiimport die lokale Anwendung starten: <code>Start_Steiger2Bim.cmd</code>. Danach <a class="source-link" href="http://127.0.0.1:8765/bim2steiger-beta.html#import">Dateiimport in der lokalen Anwendung öffnen ↗</a>. Beim direkten Öffnen der HTML-Datei bleibt dieser Bereich eine Vorschau.</div>
+            <p class="workflow-note" style="margin-top:13px">Ein neuer Import ersetzt den bisherigen Modellimport. Die Quelldatei bleibt unverändert.</p>
+          </section>
+          <section class="workflow-card" aria-labelledby="modelHeading"><div class="workflow-card-head"><h2 id="modelHeading">Importierte Objekte</h2><span class="badge planned" id="importReviewState" hidden>Ungeprüft</span></div><p id="modelSource">Nach dem Import siehst du hier die übernommenen Objekte und offene Angaben.</p><div id="importMetrics" class="import-metrics" hidden></div><div id="importObjects" class="object-list"></div><div class="export-actions" style="margin-top:15px"><button class="button" id="saveModelReview" hidden><svg class="icon"><use href="#i-import"/></svg>Modellimport als JSON sichern</button><button class="button" id="discardModelImport" hidden>Import verwerfen</button><a class="button" href="#uebergabe">Übergabe ansehen<svg class="icon"><use href="#i-arrow"/></svg></a></div><p class="workflow-note" style="margin-top:12px">Die JSON-Datei sichert ungeprüfte Importobjekte. Sie ist keine Messerli-Datei.</p></section>
+          <section class="workflow-card" id="zuordnung" aria-labelledby="assignHeading"><div class="workflow-card-head"><h2 id="assignHeading">Zuordnung zu Steiger-Positionen</h2><span class="badge planned" id="assignState">Noch offen</span></div><p>Gleiche Objekte sind nach Bezeichnung gruppiert. Eine gespeicherte Regel trägt Artikel, VA und BKP ein, wenn die Nova-Kennung oder die IFC-Klasse passt. BKP und Einheit gelten je Gruppe. Übernommen wird erst mit dem Knopf unten.</p><div id="assignGroups" class="assign-groups"><p class="home-empty">Nach dem Import erscheinen hier die Objektgruppen.</p></div><div class="export-actions" style="margin-top:15px"><button class="button" id="applyRules" type="button" hidden>Gespeicherte Regeln anwenden</button><button class="button primary" id="assignToTender" hidden><svg class="icon"><use href="#i-export"/></svg>Zugeordnete Objekte in die Ausschreibung übernehmen</button></div></section>
+        </div>
+        <div id="exportPanel">
+          <section class="workflow-card" id="uebergabe" aria-labelledby="exportHeading"><h2 id="exportHeading">Übergabe nach Messerli vorbereiten</h2><p>Vor dem Export stehen hier die BKP-Kapitel. Titel und Titeltexte lassen sich ergänzen. Die Steiger-Positionen bleiben darunter, mit dem Text, der in die Datei kommt.</p>
+            <ul class="export-checks"><li><span>Quelldatei eingelesen</span><span class="badge planned" id="exportSourceState">Noch offen</span></li><li><span>Positionen zugeordnet</span><span class="badge planned" id="exportAssignState">Noch offen</span></li><li><span>Messerli-Datei</span><span class="badge planned" id="exportEldaState">Noch offen</span></li></ul>
+            <div id="messerliOutline" class="outline-list"></div>
+            <div class="export-actions" style="margin-top:14px"><button class="button" id="addMesserliChapter" type="button">BKP-Kapitel einfügen</button><button class="button primary" id="exportMesserli" type="button"><svg class="icon"><use href="#i-export"/></svg>Messerli-Datei exportieren</button></div><p class="workflow-note" style="margin-top:14px">Ein leerer Titel übernimmt den Namen aus dem Katalog. Titeltexte und der Positionstext werden als Textzeilen geschrieben. Preise bleiben leer, weil die Ausschreibung keine Vertragspreise enthält. Ob Messerli die Datei einliest, prüfst du dort.</p>
+          </section>
+          <section class="workflow-card" aria-labelledby="tenderHeading"><h2 id="tenderHeading">Übernommene Positionen</h2><p>BKP, Geschoss, Raum, Anlage und Verlegung. Importierte Objekte werden hier nicht automatisch eingetragen. Jede Zeile behält Datei, Objekt, Regel, Katalogjahr und Rezept.</p><div id="bkpCoverage"></div><label class="catalogue-choice">Katalog für neue Positionen<select id="tenderCatalogue" aria-label="Katalog der Ausschreibung"></select></label><p id="tenderCatalogueNote" class="workflow-note"></p><div class="export-actions" style="margin-top:16px"><button class="button" id="aggregateTender">Gleiche Positionen verdichten</button><button class="button" id="exportTenderElda" type="button">Messerli DAT</button><button class="button" id="exportTenderCsv">CSV exportieren</button><button class="button" id="exportTenderXlsx">Excel exportieren</button><button class="button" id="exportTender">JSON sichern</button></div><p id="tenderStatus" role="status" class="muted text-xs"></p><div id="tenderLines" class="composition-scroll"></div></section>
+        </div>
+        <p class="workflow-note">Offene Angaben bleiben sichtbar. Jedes IFC- oder Nova-Objekt zählt als ein Stück, ohne gemessene Leitungslänge. Eine Baulänge in Millimetern bleibt eine Bauteileigenschaft und wird keine Ausschreibungsmenge.</p>
+      </section>
+      <footer class="footer"><span>BIM2STEIGER · Lokaler Katalog · <span id="catalogueCoverage">Daten werden geladen …</span></span><button class="source-link" id="openSourceStatus" style="background:transparent">Datenstand ansehen · 2026</button></footer>
+    </main>
+  </div>
+  <dialog id="knowledgeDialog" class="knowledge-dialog" aria-labelledby="knowledgeTitle">
+    <aside class="help" id="knowledgePanel" aria-labelledby="knowledgeTitle" tabindex="-1">
+      <div class="help-heading"><div><h2 class="help-title" id="knowledgeTitle"><svg class="icon"><use href="#i-book"/></svg>Wissen griffbereit</h2><p class="help-subtitle">Begriffe, Kürzel und schnelle Antworten.</p></div><div class="help-tools"><button class="icon-button" id="pinKnowledge" aria-label="Wissen anpinnen" aria-pressed="false" title="Wissen anpinnen"><svg class="icon"><use href="#i-pin"/></svg></button><button class="icon-button" id="closeKnowledge" aria-label="Wissen schliessen" title="Wissen schliessen"><svg class="icon"><use href="#i-close"/></svg></button></div></div>
+      <details class="help-section" open><summary>Welche Nummer ist welche?</summary><dl class="glossary"><dt>Art.-Nr.</dt><dd>Steiger-Artikelnummer der Position.</dd><dt>E-Nr.</dt><dd>ELDAS-Artikelnummer des Produkts.</dd><dt>B-Nr.</dt><dd>Bestell- / Typnummer aus der Quelle.</dd><dt>VA</dt><dd>Verlegungsart. Führende Nullen gehören zur Kennung.</dd></dl><p class="help-small">«—» bedeutet: nicht angegeben. Eine Komplettposition übernimmt keine Produktnummern ihrer Bestandteile.</p></details>
+      <details class="help-section" open><summary>Symbole & Abkürzungen</summary><dl class="glossary"><dt>UP</dt><dd>Unterputz</dd><dt>AP</dt><dd>Aufputz</dd><dt>w</dt><dd>weiterer, z. B. weiterer Schalter</dd><dt>MP</dt><dd>Mehrpreis</dd><dt>M+A</dt><dd>Montage und Anschluss</dd><dt><svg class="icon" style="width:15px;height:15px" aria-label="Globus"><use href="#i-globe"/></svg></dt><dd>Externe Produktsuche im neuen Tab.</dd></dl></details>
+      <details class="help-section"><summary>BIM & offene Formate</summary><dl class="glossary"><dt>BIM</dt><dd>Building Information Modeling: modellbasiert mit Bauwerksinformationen arbeiten.</dd><dt>IFC</dt><dd>Offener Standard für den Austausch von Bauwerksmodellen.</dd><dt>BCF</dt><dd>Offener Standard zum Austausch modellbezogener Prüf- und Abstimmungsthemen.</dd></dl><p class="help-small"><a class="source-link" href="https://www.buildingsmart.org/standards/bsi-standards/" target="_blank" rel="noopener noreferrer">Referenz: buildingSMART ↗</a><br>IFC übernimmt Raumnummer und Raumname nur aus einem eindeutig zugeordneten IfcSpace. N4D/N4M übernehmen Geschoss, Raum und Raumnummer aus den Bauteileigenschaften, wenn die Felder gefüllt sind.</p></details>
+      <details class="help-section" open><summary>So funktioniert die Beta</summary><ol class="quick-guide"><li><span><strong>Position finden</strong>Ein Kapitelname öffnet die Übersicht auf der Seite. Der Pfeil klappt den Baum auf, «Alle schliessen» klappt ihn wieder zu. Mit Ctrl K suchen.</span></li><li><span><strong>Zusammenhänge öffnen</strong>Ein Bauteil unter «Besteht aus» anklicken.</span></li><li><span><strong>Bild genauer ansehen</strong>Ein Originalbild öffnet die Lupe. Ohne Originalbild zeigt die Fläche ein Schema aus der Bezeichnung, kein Katalogfoto.</span></li></ol></details>
+      <div class="tip"><div class="tip-title"><svg class="icon"><use href="#i-lightbulb"/></svg>Ein Bild, eine klare Herkunft.</div>Die Originalzeichnung gehört zum gewählten Artikel. Über «Produktfoto ansehen» öffnest du bei Bedarf die zweite Abbildung mit Quellenangabe.</div>
+      <p class="beta-note"><strong>Nachvollziehbar mit dem Katalog arbeiten.</strong><br>Suche und Verweise nutzen den vollständigen lokalen Katalog. Mengen gelten je direktem Elternteil; fehlende Einheiten bleiben offen.<br><br>Kürzel: Steiger 2026, S. 21.16–21.17.</p>
+    </aside>
+  </dialog>
+  <dialog id="searchDialog" class="search-dialog" aria-label="Katalog durchsuchen">
+    <div class="search-field"><svg class="icon"><use href="#i-search"/></svg><label class="sr-only" for="searchInput">Position, E-Nr. oder B-Nr. suchen</label><input id="searchInput" type="search" placeholder="Position, E-Nr. oder B-Nr. suchen …" autocomplete="off" role="combobox" aria-expanded="true" aria-controls="searchResults" aria-autocomplete="list"><button class="icon-button" data-close="searchDialog" aria-label="Suche schliessen"><svg class="icon"><use href="#i-close"/></svg></button></div>
+    <div class="search-kind" role="group" aria-label="Katalogsuche eingrenzen"><button data-search-kind="all" aria-pressed="true">Alle</button><button data-search-kind="complete" aria-pressed="false">Komplettpositionen</button><button data-search-kind="single" aria-pressed="false">Einzelartikel</button><button data-search-kind="assembly" aria-pressed="false">Kalkulationsbestandteile</button></div>
+    <div class="search-filters" role="group" aria-label="Weitere Filter"><label>Verlegungsart<select id="searchVa" aria-label="Nach Verlegungsart filtern"><option value="">Alle VA</option></select></label><label class="check-row"><input type="checkbox" id="searchImage">Nur mit Bild</label></div>
+    <div class="search-meta"><span id="searchLabel">Katalog entdecken</span><span id="searchCount" role="status"></span></div><div class="search-results" id="searchResults" role="listbox" aria-label="Suchergebnisse"></div><div class="search-foot"><span><kbd>↑ ↓</kbd> Navigieren &nbsp; <kbd>↵</kbd> Öffnen &nbsp; <kbd>Esc</kbd> Schliessen</span><span>Suche im lokalen Steiger-Katalog</span></div>
+  </dialog>
+  <dialog id="sourceStatusDialog" class="image-dialog" aria-labelledby="sourceStatusTitle"><div class="dialog-head"><h2 id="sourceStatusTitle">Datenstand des lokalen Katalogs</h2><button class="icon-button" data-close="sourceStatusDialog" aria-label="Datenstand schliessen">×</button></div><div id="sourceStatusBody" class="tender-panel"></div></dialog>
+  <dialog id="imageDialog" class="image-dialog" aria-labelledby="imageTitle"><div class="dialog-head"><div><h2 id="imageTitle">Bildansicht</h2><p id="imageSubtitle"></p></div><button class="icon-button" data-close="imageDialog" aria-label="Bildansicht schliessen"><svg class="icon"><use href="#i-close"/></svg></button></div><div id="imageBody" class="image-dialog-body"></div><p id="imageCaption" class="image-dialog-caption"></p></dialog>
+  <dialog id="addTenderDialog" class="image-dialog" aria-labelledby="addTenderTitle">
+    <div class="dialog-head"><div><h2 id="addTenderTitle">In Ausschreibung übernehmen</h2><p id="tenderArticleName"></p></div><button class="icon-button" data-close-dialog="addTenderDialog" aria-label="Übernahme schliessen">×</button></div>
+    <form id="tenderForm" class="tender-form">
+      <label>Menge<input name="quantity" type="number" min="0" step="any" value="1" required></label>
+      <label>Einheit<select name="unit" required><option value="">Explizit wählen …</option><option>Stk</option><option>m</option><option>m²</option><option>m³</option><option>h</option><option>pauschal</option></select></label>
+      <label>BKP<input name="bkp" required placeholder="z. B. A:232.5"></label>
+      <label>Geschoss<input name="storey"></label><label>Raum<input name="room" placeholder="Ohne Raum keine Verdichtung"></label>
+      <label>Anlage<input name="system"></label><label>Verlegung<input name="placement"></label>
+      <label>Katalog<select name="catalogue_year" id="tenderLineCatalogue" aria-label="Katalog dieser Position"></select></label>
+      <p class="muted text-xs">Die Quelle weist keine Mengeneinheit aus. Einheit und Zuordnung ausdrücklich festlegen.</p>
+      <button class="button primary" type="submit">Position übernehmen</button>
+    </form>
+  </dialog>
+  <dialog id="settingsDialog" class="settings-dialog" aria-labelledby="settingsTitle"><div class="dialog-head"><div><p class="settings-kicker">BIM2STEIGER</p><h2 id="settingsTitle">Einstellungen</h2></div><button class="icon-button" data-close="settingsDialog" aria-label="Einstellungen schliessen"><svg class="icon"><use href="#i-close"/></svg></button></div><div class="settings-body"><section class="settings-card"><p class="settings-kicker">Programm</p><p id="installedVersion" class="settings-version-title">Version wird geladen …</p><p id="runtimeVersion" class="settings-meta"></p></section><section class="settings-card" id="updateStatusCard" data-status="unchecked"><div class="settings-card-head"><h3>Updates</h3><span class="settings-pill" id="updatePill">Offen</span></div><p id="updateResult" role="status" aria-live="polite">Noch nicht geprüft.</p><p id="updateCheckedAt" class="settings-meta"></p><label class="settings-switch"><span>Beim Start nach Programmupdates suchen</span><input id="autoCheckUpdates" type="checkbox" checked></label><div class="settings-actions"><button class="button" id="checkUpdates">Jetzt prüfen</button><button class="button primary" id="installUpdate" hidden>Update installieren</button><a class="button" href="https://github.com/Dobolino/BIM2STEIGER/releases/latest" target="_blank" rel="noopener noreferrer">Setup auf GitHub</a></div><p id="updateInstallHint" class="settings-hint"></p><p class="settings-note">Das Repository ist privat. Für die Updateprüfung wird eine vorhandene lokale GitHub-Anmeldung genutzt. Ohne diese Anmeldung öffnest du das Setup auf GitHub im angemeldeten Browser.</p></section><section class="settings-card"><div class="settings-card-head"><h3>Katalog</h3></div><p id="settingsDataStatus">Datenstand wird geladen …</p><p class="settings-note">Der Katalogwechsel steht in der Seitenleiste. Der nächste Jahrgang ist vorgemerkt und enthält noch keine Artikel.</p><div class="settings-actions"><button class="button" id="settingsOpenSources">Genauen Datenstand ansehen</button></div></section></div></dialog>
+  <dialog id="favoriteNoteDialog" class="image-dialog ask-dialog" aria-labelledby="favoriteNoteTitle"><form method="dialog" id="favoriteNoteForm"><div class="dialog-head"><div><h2 id="favoriteNoteTitle">Notiz und Listen</h2><p id="favoriteNoteSubtitle"></p></div><button class="icon-button" type="button" data-close="favoriteNoteDialog" aria-label="Schliessen"><svg class="icon"><use href="#i-close"/></svg></button></div><div class="tender-panel"><label class="ask-field"><span>Notiz</span><textarea id="favoriteNote" rows="4" maxlength="1000" placeholder="z. B. Standard im EFH, mit Kunde abgestimmt"></textarea></label><fieldset class="favorite-list-choice"><legend>In Listen</legend><div id="favoriteListChoices"></div><label class="ask-field"><span>Neue Liste</span><input id="favoriteNewList" maxlength="60" placeholder="z. B. Standard EFH"></label></fieldset><div class="export-actions"><button class="button" type="button" data-close="favoriteNoteDialog">Abbrechen</button><button class="button primary" type="submit" value="ok">Speichern</button></div></div></form></dialog>
+  <dialog id="askDialog" class="image-dialog ask-dialog" aria-labelledby="askTitle"><form method="dialog" id="askForm"><div class="dialog-head"><h2 id="askTitle">Eingabe</h2><button class="icon-button" type="button" data-close="askDialog" aria-label="Schliessen"><svg class="icon"><use href="#i-close"/></svg></button></div><div class="tender-panel"><p id="askText" hidden></p><label id="askLabelWrap" class="ask-field"><span id="askLabel">Name</span><input id="askInput" maxlength="80" autocomplete="off"></label><div class="export-actions"><button class="button" type="button" data-close="askDialog">Abbrechen</button><button class="button primary" id="askSubmit" type="submit" value="ok">Speichern</button></div></div></form></dialog>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <!-- Vollständiger Katalog über die vorhandene lokale API. -->
+
+  <script src="bim2steiger-program.js" defer></script>
+  <script src="bim2steiger-tender.js" defer></script>
+  <script src="bim2steiger-updates.js" defer></script>
+  <script src="toolbox-bridge.js" defer></script>
+</body>
+</html>

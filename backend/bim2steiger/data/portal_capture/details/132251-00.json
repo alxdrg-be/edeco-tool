@@ -1,0 +1,610 @@
+{
+  "number": "132251",
+  "va": "00",
+  "year": 2026,
+  "source": "https://digital.asteigerag.ch/dashboard",
+  "portal_page": "0_0_15_1",
+  "captured_at": "2026-10-23T06:04:05.400Z",
+  "capture_kind": "article_dialog",
+  "basic_data": [
+    {
+      "checkbox": null,
+      "label": "Typ",
+      "value": "Komplett-Artikel/-Installation"
+    },
+    {
+      "checkbox": null,
+      "label": "Artikelnummer",
+      "value": "132251"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z1",
+      "value": "Lautsprecher-Ltg"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z2",
+      "value": "EB-Lautsprecher (o Lief)"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z3",
+      "value": "Anteil Erschliessung"
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 1",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 2",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 3",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Lieferant",
+      "value": "1 Strukturen"
+    },
+    {
+      "checkbox": null,
+      "label": "Sortiment",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Bestellnummer",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "E-Nr",
+      "value": ""
+    },
+    {
+      "checkbox": true,
+      "label": "Anschluss",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Nummer",
+      "value": "1"
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Rabatt (in %)",
+      "value": "0"
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Text",
+      "value": "Komplett-Installationen"
+    },
+    {
+      "checkbox": null,
+      "label": "Bruttomaterialpreis",
+      "value": "66.9985"
+    },
+    {
+      "checkbox": null,
+      "label": "Nettomaterialpreis",
+      "value": "40.580425"
+    },
+    {
+      "checkbox": null,
+      "label": "Recyclinggebühr",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Fremdleistung",
+      "value": ""
+    }
+  ],
+  "article_text": "\t\n\n\nLautsprecher-Ltg\n\n\nEB-Lautsprecher (o Lief)\n\n\nAnteil Erschliessung\n\n\nAudiodose zentralenseitig",
+  "images": [
+    {
+      "number": "132251",
+      "va": "00",
+      "vas": [
+        "00"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 132251 / VA 00, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_0_15_1",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T06:04:04.191Z",
+      "width": 150,
+      "height": 108,
+      "file": "images/portal-2026/9b5cd39800cbe0894c566f5734f51251eadfa36d35d15c0233905c6e9f5fea0f.png",
+      "sha256": "9b5cd39800cbe0894c566f5734f51251eadfa36d35d15c0233905c6e9f5fea0f",
+      "ordinal": 0
+    }
+  ],
+  "rows": [
+    {
+      "cells": [
+        "Lautsprecher-Ltg",
+        "132251",
+        "00",
+        "1",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "expanded": "true",
+      "index": 0,
+      "level": 0
+    },
+    {
+      "cells": [
+        "Durchbruch Ø -30 -100",
+        "11001",
+        "35",
+        "1",
+        "0",
+        "0",
+        "0.335",
+        "0.335",
+        "",
+        ""
+      ],
+      "expanded": null,
+      "index": 1,
+      "level": 1
+    },
+    {
+      "cells": [
+        "KRFWG-Rohr hf fw 25",
+        "125252",
+        "30",
+        "1.7",
+        "0.63",
+        "1.071",
+        "0.323",
+        "0.5491",
+        "125252402",
+        ""
+      ],
+      "expanded": null,
+      "index": 2,
+      "level": 1
+    },
+    {
+      "cells": [
+        "KRFWG-Rohr hf fw 25",
+        "125252",
+        "40",
+        "5",
+        "0.63",
+        "3.15",
+        "0.082",
+        "0.41",
+        "125252402",
+        ""
+      ],
+      "expanded": null,
+      "index": 3,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Einlasskasten NIS T=59 Gr 1",
+        "2670",
+        "30",
+        "0.25",
+        "1.2402",
+        "0.31005",
+        "0.234",
+        "0.0585",
+        "372501629",
+        "9921"
+      ],
+      "expanded": null,
+      "index": 4,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Rohrstütze 130x210x132",
+        "2744",
+        "40",
+        "0.25",
+        "4.017",
+        "1.00425",
+        "0.144",
+        "0.036",
+        "126596150",
+        "4560"
+      ],
+      "expanded": null,
+      "index": 5,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Lautsprecher-Flachkabel 2x2.5",
+        "101019",
+        "60",
+        "10.7",
+        "1.115",
+        "11.9305",
+        "0.062",
+        "0.6634",
+        "113197701",
+        ""
+      ],
+      "expanded": null,
+      "index": 6,
+      "level": 1
+    },
+    {
+      "cells": [
+        "UP-Audiodose 4fach",
+        "989290",
+        "48",
+        "0.25",
+        "92.088",
+        "23.022",
+        "0.125",
+        "0.03125",
+        "935225000",
+        "1106-44.FMI.61"
+      ],
+      "expanded": null,
+      "index": 7,
+      "level": 1
+    },
+    {
+      "cells": [
+        "M Einlasskasten Lautsprecher -250x250",
+        "7986",
+        "40",
+        "1",
+        "0",
+        "0",
+        "0.499",
+        "0.499",
+        "",
+        ""
+      ],
+      "expanded": "true",
+      "index": 8,
+      "level": 1
+    },
+    {
+      "cells": [
+        "UP-Schlaufdose 400x300x120",
+        "991132",
+        "040",
+        "1",
+        "44.421",
+        "44.421",
+        "0.499",
+        "0.499",
+        "155004908",
+        "9917"
+      ],
+      "expanded": null,
+      "index": 9,
+      "level": 2
+    },
+    {
+      "cells": [
+        "M+A EB-Lautsprecher -250x250",
+        "76526",
+        "24",
+        "1",
+        "0",
+        "0",
+        "0.586",
+        "0.586",
+        "",
+        ""
+      ],
+      "expanded": "true",
+      "index": 10,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Lautsprecher-Flachkabel 2x2.5",
+        "101019",
+        "81",
+        "2",
+        "1.115",
+        "2.23",
+        "0.161",
+        "0.322",
+        "113197701",
+        ""
+      ],
+      "expanded": null,
+      "index": 11,
+      "level": 2
+    },
+    {
+      "cells": [
+        "EB-Lautsprecher (o Lief) -250x250",
+        "990281",
+        "24",
+        "1",
+        "0",
+        "0",
+        "0.264",
+        "0.264",
+        "",
+        ""
+      ],
+      "expanded": null,
+      "index": 12,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Beschriftungsband -20 Z",
+        "8911",
+        "24",
+        "0.25",
+        "0.3705",
+        "0.092625",
+        "0.102",
+        "0.0255",
+        "173704540",
+        ""
+      ],
+      "expanded": "true",
+      "index": 13,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Schriftbandkassette B=12 8m",
+        "999014",
+        "100",
+        "0.02",
+        "18.525",
+        "0.3705",
+        "0",
+        "0",
+        "173704540",
+        ""
+      ],
+      "expanded": null,
+      "index": 14,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Beschriftung -20 Zeichen",
+        "999013",
+        "24",
+        "1",
+        "0",
+        "0",
+        "0.102",
+        "0.102",
+        "",
+        ""
+      ],
+      "expanded": null,
+      "index": 15,
+      "level": 2
+    }
+  ],
+  "tree_attributes": [
+    [
+      "role",
+      "treegrid"
+    ],
+    [
+      "class",
+      "k-grid-aria-root"
+    ],
+    [
+      "aria-rowcount",
+      "17"
+    ],
+    [
+      "aria-colcount",
+      "11"
+    ]
+  ],
+  "calculation": [
+    [
+      {
+        "text": "Arbeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Material",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Akkord",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "Installationszeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "3.19375"
+      },
+      {
+        "text": "Bruttomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "66.9985"
+      },
+      {
+        "text": "Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "368.55875"
+      }
+    ],
+    [
+      {
+        "text": "* Stundenansatz",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "115.40"
+      },
+      {
+        "text": "Nettomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "40.580425"
+      },
+      {
+        "text": "+ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "49.10231"
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "* Materialfaktor",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.21"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "+ Recyclinggebühr",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.00"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "= Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "368.55875"
+      },
+      {
+        "text": "= Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "49.10231"
+      },
+      {
+        "text": "= Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "417.66106"
+      }
+    ],
+    [
+      {
+        "text": "≈ Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "368.55"
+      },
+      {
+        "text": "≈ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "49.10"
+      },
+      {
+        "text": "≈ Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "417.65"
+      }
+    ]
+  ],
+  "complete_tree": true
+}
