@@ -1,0 +1,593 @@
+{
+  "number": "120650",
+  "va": "00",
+  "year": 2026,
+  "source": "https://digital.asteigerag.ch/dashboard",
+  "portal_page": "0_0_8_1",
+  "captured_at": "2026-10-23T05:48:08.080Z",
+  "capture_kind": "article_dialog",
+  "basic_data": [
+    {
+      "checkbox": null,
+      "label": "Typ",
+      "value": "Komplett-Artikel/-Installation"
+    },
+    {
+      "checkbox": null,
+      "label": "Artikelnummer",
+      "value": "120650"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z1",
+      "value": "Heizung steckerfertig"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z2",
+      "value": "Installation enthält:"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z3",
+      "value": "1 Aussenfühler"
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 1",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 2",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 3",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Lieferant",
+      "value": "1 Strukturen"
+    },
+    {
+      "checkbox": null,
+      "label": "Sortiment",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Bestellnummer",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "E-Nr",
+      "value": ""
+    },
+    {
+      "checkbox": true,
+      "label": "Anschluss",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Nummer",
+      "value": "1"
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Rabatt (in %)",
+      "value": "0"
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Text",
+      "value": "Komplett-Installationen"
+    },
+    {
+      "checkbox": null,
+      "label": "Bruttomaterialpreis",
+      "value": "79.225"
+    },
+    {
+      "checkbox": null,
+      "label": "Nettomaterialpreis",
+      "value": "52.3567"
+    },
+    {
+      "checkbox": null,
+      "label": "Recyclinggebühr",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Fremdleistung",
+      "value": ""
+    }
+  ],
+  "article_text": "\t\n\n\nHeizung steckerfertig\n\n\nInstallation enthält:\n\n\n1 Aussenfühler\n\n\nMithilfe IBS\n\n\no Zuleitung",
+  "images": [
+    {
+      "number": "120650",
+      "va": "00",
+      "vas": [
+        "00"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 120650 / VA 00, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_0_8_1",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T05:48:05.765Z",
+      "width": 100,
+      "height": 150,
+      "file": "images/portal-2026/2c61666b7091b7b9b4757912b08bc8eccce3fa501e7ec1af583069ceb889f0fe.png",
+      "sha256": "2c61666b7091b7b9b4757912b08bc8eccce3fa501e7ec1af583069ceb889f0fe",
+      "ordinal": 0
+    }
+  ],
+  "rows": [
+    {
+      "cells": [
+        "Heizung steckerfertig",
+        "120650",
+        "00",
+        "1",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "expanded": "true",
+      "index": 0,
+      "level": 0
+    },
+    {
+      "cells": [
+        "KIR-Rohr hf lichtgr -20",
+        "125140",
+        "20",
+        "1.5",
+        "1.764",
+        "2.646",
+        "0.222",
+        "0.333",
+        "125076209",
+        ""
+      ],
+      "expanded": null,
+      "index": 1,
+      "level": 1
+    },
+    {
+      "cells": [
+        "KRFWG-Rohr hf fw 25",
+        "125252",
+        "30",
+        "2.5",
+        "0.63",
+        "1.575",
+        "0.323",
+        "0.8075",
+        "125252402",
+        ""
+      ],
+      "expanded": null,
+      "index": 2,
+      "level": 1
+    },
+    {
+      "cells": [
+        "KRFWG-Rohr hf fw 25",
+        "125252",
+        "40",
+        "7.5",
+        "0.63",
+        "4.725",
+        "0.082",
+        "0.615",
+        "125252402",
+        ""
+      ],
+      "expanded": null,
+      "index": 3,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Geräteträger m Einlasskasten universal",
+        "372910",
+        "20",
+        "1",
+        "28.197",
+        "28.197",
+        "0.248",
+        "0.248",
+        "372900909",
+        "9966.11"
+      ],
+      "expanded": null,
+      "index": 4,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Rohrstütze 130x210x132",
+        "2744",
+        "40",
+        "1",
+        "4.017",
+        "4.017",
+        "0.144",
+        "0.144",
+        "126596150",
+        "4560"
+      ],
+      "expanded": null,
+      "index": 5,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Übergangsdübel KRFG-Rohre 20/25",
+        "126580",
+        "40",
+        "1",
+        "4.0092",
+        "4.0092",
+        "0.152",
+        "0.152",
+        "126589052",
+        "4530"
+      ],
+      "expanded": null,
+      "index": 6,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Kabel U72 Cca hf 1x4x0.8",
+        "102261",
+        "60",
+        "11.5",
+        "0.575",
+        "6.6125",
+        "0.062",
+        "0.713",
+        "102068304",
+        ""
+      ],
+      "expanded": null,
+      "index": 7,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Kabel U72 Cca hf 1x4x0.8",
+        "102261",
+        "64",
+        "1",
+        "0.575",
+        "0.575",
+        "0.115",
+        "0.115",
+        "102068304",
+        ""
+      ],
+      "expanded": null,
+      "index": 8,
+      "level": 1
+    },
+    {
+      "cells": [
+        "M+A+FK Aussenfühler",
+        "12093",
+        "20",
+        "1",
+        "0",
+        "0",
+        "0.851",
+        "0.851",
+        "",
+        ""
+      ],
+      "expanded": "true",
+      "index": 9,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Funktionskontrolle 1.0h",
+        "12574",
+        "09",
+        "0.2",
+        "0",
+        "0",
+        "1",
+        "0.2",
+        "",
+        ""
+      ],
+      "expanded": null,
+      "index": 10,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Apparatemontage 2 Bef -6kg",
+        "12002",
+        "20",
+        "1",
+        "0",
+        "0",
+        "0.403",
+        "0.403",
+        "",
+        ""
+      ],
+      "expanded": null,
+      "index": 11,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Kabel U72 Dca hf 1x4x0.5",
+        "102201",
+        "81",
+        "2",
+        "0.365",
+        "0.73",
+        "0.124",
+        "0.248",
+        "102991004",
+        ""
+      ],
+      "expanded": null,
+      "index": 12,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Mithilfe bei Inbetriebsetzung 1.0h",
+        "12584",
+        "09",
+        "0.5",
+        "0",
+        "0",
+        "1",
+        "0.5",
+        "",
+        ""
+      ],
+      "expanded": null,
+      "index": 13,
+      "level": 1
+    },
+    {
+      "cells": [
+        "D+M Abdeckung -3 Bef Ø -10",
+        "2721",
+        "09",
+        "0.5",
+        "0",
+        "0",
+        "0.437",
+        "0.2185",
+        "",
+        ""
+      ],
+      "expanded": null,
+      "index": 14,
+      "level": 1
+    }
+  ],
+  "tree_attributes": [
+    [
+      "role",
+      "treegrid"
+    ],
+    [
+      "class",
+      "k-grid-aria-root"
+    ],
+    [
+      "aria-rowcount",
+      "16"
+    ],
+    [
+      "aria-colcount",
+      "11"
+    ]
+  ],
+  "calculation": [
+    [
+      {
+        "text": "Arbeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Material",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Akkord",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "Installationszeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "4.697"
+      },
+      {
+        "text": "Bruttomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "79.225"
+      },
+      {
+        "text": "Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "542.0338"
+      }
+    ],
+    [
+      {
+        "text": "* Stundenansatz",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "115.40"
+      },
+      {
+        "text": "Nettomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "52.3567"
+      },
+      {
+        "text": "+ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "63.35161"
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "* Materialfaktor",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.21"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "+ Recyclinggebühr",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.00"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "= Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "542.0338"
+      },
+      {
+        "text": "= Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "63.35161"
+      },
+      {
+        "text": "= Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "605.38541"
+      }
+    ],
+    [
+      {
+        "text": "≈ Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "542.05"
+      },
+      {
+        "text": "≈ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "63.35"
+      },
+      {
+        "text": "≈ Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "605.40"
+      }
+    ]
+  ],
+  "complete_tree": true
+}

@@ -1,0 +1,644 @@
+{
+  "number": "124710",
+  "va": "00",
+  "year": 2026,
+  "source": "https://digital.asteigerag.ch/dashboard",
+  "portal_page": "0_0_1_2",
+  "captured_at": "2026-10-22T07:40:07.134Z",
+  "capture_kind": "article_dialog",
+  "basic_data": [
+    {
+      "checkbox": null,
+      "label": "Typ",
+      "value": "Komplett-Artikel/-Installation"
+    },
+    {
+      "checkbox": null,
+      "label": "Artikelnummer",
+      "value": "124710"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z1",
+      "value": "Privatmessung PV-Anlage -63A"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z2",
+      "value": "Ausbau Schaltgerätekombination"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z3",
+      "value": "Installation enthält:"
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 1",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 2",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 3",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Lieferant",
+      "value": "1 Strukturen"
+    },
+    {
+      "checkbox": null,
+      "label": "Sortiment",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Bestellnummer",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "E-Nr",
+      "value": ""
+    },
+    {
+      "checkbox": true,
+      "label": "Anschluss",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Nummer",
+      "value": "1"
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Rabatt (in %)",
+      "value": "0"
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Text",
+      "value": "Komplett-Installationen"
+    },
+    {
+      "checkbox": null,
+      "label": "Bruttomaterialpreis",
+      "value": "0.39"
+    },
+    {
+      "checkbox": null,
+      "label": "Nettomaterialpreis",
+      "value": "0.3705"
+    },
+    {
+      "checkbox": null,
+      "label": "Recyclinggebühr",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Fremdleistung",
+      "value": ""
+    }
+  ],
+  "article_text": "\t\n\n\nPrivatmessung PV-Anlage\n-63A\n\nAusbau Schaltgerätekombination\n\n\nInstallation enthält:\n\n\nMultimeter (o Lief)",
+  "images": [
+    {
+      "number": "124710",
+      "va": "00",
+      "vas": [
+        "00"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 124710 / VA 00, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_0_1_2",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-22T07:40:06.820Z",
+      "width": 126,
+      "height": 150,
+      "file": "images/portal-2026/495011278257a0c1f423a24daffd18e2ce434820f1f920fb3be7a120be4a7c0a.png",
+      "sha256": "495011278257a0c1f423a24daffd18e2ce434820f1f920fb3be7a120be4a7c0a",
+      "ordinal": 0
+    }
+  ],
+  "rows": [
+    {
+      "cells": [
+        "Privatmessung PV-Anlage -63A",
+        "124710",
+        "00",
+        "1",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "expanded": "true",
+      "index": 0,
+      "level": 0
+    },
+    {
+      "cells": [
+        "Litze T Dca hf 16",
+        "113108",
+        "060",
+        "4",
+        "3.08",
+        "12.32",
+        "0.077",
+        "0.308",
+        "113164300",
+        "220560"
+      ],
+      "expanded": null,
+      "index": 1,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Litze T Dca hf 16",
+        "113108",
+        "070",
+        "8",
+        "3.08",
+        "24.64",
+        "0.097",
+        "0.776",
+        "113164300",
+        "220560"
+      ],
+      "expanded": null,
+      "index": 2,
+      "level": 1
+    },
+    {
+      "cells": [
+        "REG-Energiezähler 3L DT D13 15-M 65",
+        "981872",
+        "024",
+        "1",
+        "155.422",
+        "155.422",
+        "1.95",
+        "1.95",
+        "981873833",
+        "2CMA241765R1000"
+      ],
+      "expanded": "true",
+      "index": 3,
+      "level": 1
+    },
+    {
+      "cells": [
+        "REG-Energiezähler 3L DT D13 15-M 65",
+        "985881",
+        "24",
+        "1",
+        "144.117",
+        "144.117",
+        "0.063",
+        "0.063",
+        "981873833",
+        "2CMA241765R1000"
+      ],
+      "expanded": null,
+      "index": 4,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Litze T Dca hf 1.5",
+        "113103",
+        "60",
+        "2",
+        "0.35",
+        "0.7",
+        "0.048",
+        "0.096",
+        "113163800",
+        "216245"
+      ],
+      "expanded": null,
+      "index": 5,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Litze T Dca hf 1.5",
+        "113103",
+        "70",
+        "4",
+        "0.35",
+        "1.4",
+        "0.041",
+        "0.164",
+        "113163800",
+        "216245"
+      ],
+      "expanded": null,
+      "index": 6,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Litze T Dca hf 2.5",
+        "113104",
+        "60",
+        "1",
+        "0.56",
+        "0.56",
+        "0.048",
+        "0.048",
+        "113163900",
+        "220542"
+      ],
+      "expanded": null,
+      "index": 7,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Litze T Dca hf 2.5",
+        "113104",
+        "70",
+        "2",
+        "0.56",
+        "1.12",
+        "0.041",
+        "0.082",
+        "113163900",
+        "220542"
+      ],
+      "expanded": null,
+      "index": 8,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Litze T Dca hf 16",
+        "113108",
+        "60",
+        "3",
+        "3.08",
+        "9.24",
+        "0.077",
+        "0.231",
+        "113164300",
+        "220560"
+      ],
+      "expanded": null,
+      "index": 9,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Litze T Dca hf 16",
+        "113108",
+        "70",
+        "6",
+        "3.08",
+        "18.48",
+        "0.097",
+        "0.582",
+        "113164300",
+        "220560"
+      ],
+      "expanded": null,
+      "index": 10,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Kabel G51 Dca hf abgesch 2x2x0.8",
+        "101511",
+        "60",
+        "1",
+        "0.805",
+        "0.805",
+        "0.062",
+        "0.062",
+        "102028604",
+        "777718004"
+      ],
+      "expanded": null,
+      "index": 11,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Kabel G51 Dca hf abgesch 2x2x0.8",
+        "101511",
+        "81",
+        "2",
+        "0.805",
+        "1.61",
+        "0.146",
+        "0.292",
+        "102028604",
+        "777718004"
+      ],
+      "expanded": null,
+      "index": 12,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Einregulierung IBS 1.0h",
+        "999000",
+        "09",
+        "0.33",
+        "0",
+        "0",
+        "1",
+        "0.33",
+        "",
+        ""
+      ],
+      "expanded": null,
+      "index": 13,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Installationsstunde",
+        "995102",
+        "09",
+        "1.1",
+        "0",
+        "0",
+        "1",
+        "1.1",
+        "",
+        ""
+      ],
+      "expanded": null,
+      "index": 14,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Beschriftungsband -20 Z",
+        "8911",
+        "24",
+        "1",
+        "0.3705",
+        "0.3705",
+        "0.102",
+        "0.102",
+        "173704540",
+        ""
+      ],
+      "expanded": "true",
+      "index": 15,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Schriftbandkassette B=12 8m",
+        "999014",
+        "100",
+        "0.02",
+        "18.525",
+        "0.3705",
+        "0",
+        "0",
+        "173704540",
+        ""
+      ],
+      "expanded": null,
+      "index": 16,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Beschriftung -20 Zeichen",
+        "999013",
+        "24",
+        "1",
+        "0",
+        "0",
+        "0.102",
+        "0.102",
+        "",
+        ""
+      ],
+      "expanded": null,
+      "index": 17,
+      "level": 2
+    }
+  ],
+  "tree_attributes": [
+    [
+      "role",
+      "treegrid"
+    ],
+    [
+      "class",
+      "k-grid-aria-root"
+    ],
+    [
+      "aria-rowcount",
+      "19"
+    ],
+    [
+      "aria-colcount",
+      "11"
+    ]
+  ],
+  "calculation": [
+    [
+      {
+        "text": "Arbeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Material",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Akkord",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "Installationszeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "4.236"
+      },
+      {
+        "text": "Bruttomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.39"
+      },
+      {
+        "text": "Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "488.8344"
+      }
+    ],
+    [
+      {
+        "text": "* Stundenansatz",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "115.40"
+      },
+      {
+        "text": "Nettomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.3705"
+      },
+      {
+        "text": "+ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.44831"
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "* Materialfaktor",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.21"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "+ Recyclinggebühr",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.00"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "= Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "488.8344"
+      },
+      {
+        "text": "= Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.44831"
+      },
+      {
+        "text": "= Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "489.28271"
+      }
+    ],
+    [
+      {
+        "text": "≈ Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "488.85"
+      },
+      {
+        "text": "≈ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.45"
+      },
+      {
+        "text": "≈ Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "489.30"
+      }
+    ]
+  ],
+  "complete_tree": true
+}

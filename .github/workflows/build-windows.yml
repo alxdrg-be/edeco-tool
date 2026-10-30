@@ -1,0 +1,80 @@
+name: Windows-Setup bauen
+
+on:
+  push:
+    branches: ["main", "cursor/steiger2bim-exe-4944", "cursor/bim2steiger-fenster-4944"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Versionsangaben einsetzen
+        shell: pwsh
+        run: |
+          $version = Get-Content version.json -Raw | ConvertFrom-Json
+          $version.build = [int]$env:GITHUB_RUN_NUMBER
+          $version.commit = $env:GITHUB_SHA
+          $version.built_at = [DateTime]::UtcNow.ToString("o")
+          $version | ConvertTo-Json | Set-Content version.json -Encoding utf8NoBOM
+          "APP_VERSION=$($version.version)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
+      - name: Tests
+        run: |
+          pip install "olefile>=0.47"
+          python -m unittest discover -s tests
+
+      - name: exe bauen
+        run: |
+          pip install -r packaging/requirements-windows.txt
+          pyinstaller packaging/steiger2bim.spec --noconfirm
+
+      - name: exe kurz starten
+        shell: pwsh
+        run: |
+          $p = Start-Process -FilePath "dist\BIM2STEIGER\BIM2STEIGER.exe" -ArgumentList "--port","8799" -PassThru -WindowStyle Hidden
+          $ok = $false
+          for ($i = 0; $i -lt 90; $i++) {
+            try { Invoke-RestMethod "http://127.0.0.1:8799/api/meta" | Out-Null; $ok = $true; break } catch { Start-Sleep 1 }
+          }
+          $page = Invoke-WebRequest "http://127.0.0.1:8799/bim2steiger.html" -UseBasicParsing
+          $updates = Invoke-RestMethod "http://127.0.0.1:8799/api/updates"
+          Stop-Process -Id $p.Id -Force
+          if (-not $ok) { throw "Server startet nicht" }
+          if ($page.Content -notmatch "BIM2STEIGER") { throw "Oberfläche fehlt in der exe" }
+          if ($updates.current.version -ne $env:APP_VERSION -or $updates.current.build -ne [int]$env:GITHUB_RUN_NUMBER) { throw "Buildversion fehlt in der exe" }
+
+      - name: Setup bauen
+        shell: pwsh
+        run: |
+          $iscc = Get-ChildItem "C:\Program Files (x86)\Inno Setup*\ISCC.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $iscc) {
+            choco install innosetup -y --no-progress
+            $iscc = Get-ChildItem "C:\Program Files (x86)\Inno Setup*\ISCC.exe" | Select-Object -First 1
+          }
+          & $iscc.FullName "/DAppVersion=$env:APP_VERSION" packaging\setup.iss
+          if ($LASTEXITCODE -ne 0) { throw "Inno Setup fehlgeschlagen" }
+
+      - name: Setup als Release veröffentlichen
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.APP_VERSION }}-build.${{ github.run_number }}
+          name: BIM2STEIGER ${{ env.APP_VERSION }} (Build ${{ github.run_number }})
+          body: |
+            Windows-Setup aus Commit ${{ github.sha }}.
+            Das Windows-Setup öffnet BIM2STEIGER in einem eigenen Fenster mit Programmicon.
+            Der Browser wird dabei nicht geöffnet. Installation ohne Administratorrechte, mit lokalem Katalog, Einstellungen und Updateprüfung.
+            Dateiimport liest CSV, JSON, IFC (Bauteile mit Raumnummer und Raumname) und Nova N4D/N4M (Apparate, Raum bleibt offen).
+            Beim Update schliesst sich BIM2STEIGER, bevor die Programmdateien ersetzt werden.
+          target_commitish: ${{ github.sha }}
+          make_latest: true
+          files: dist-installer/*.exe

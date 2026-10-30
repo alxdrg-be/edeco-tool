@@ -1,0 +1,763 @@
+{
+  "number": "124751",
+  "va": "00",
+  "year": 2026,
+  "source": "https://digital.asteigerag.ch/dashboard",
+  "portal_page": "0_0_1_3",
+  "captured_at": "2026-10-22T07:40:02.018Z",
+  "capture_kind": "article_dialog",
+  "basic_data": [
+    {
+      "checkbox": null,
+      "label": "Typ",
+      "value": "Komplett-Artikel/-Installation"
+    },
+    {
+      "checkbox": null,
+      "label": "Artikelnummer",
+      "value": "124751"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z1",
+      "value": "AC-Batteriespeicher indirekte Messung"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z2",
+      "value": "Ausbau Schaltgerätekombination"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z3",
+      "value": "Installation enthält:"
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 1",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 2",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 3",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Lieferant",
+      "value": "1 Strukturen"
+    },
+    {
+      "checkbox": null,
+      "label": "Sortiment",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Bestellnummer",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "E-Nr",
+      "value": ""
+    },
+    {
+      "checkbox": true,
+      "label": "Anschluss",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Nummer",
+      "value": "1"
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Rabatt (in %)",
+      "value": "0"
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Text",
+      "value": "Komplett-Installationen"
+    },
+    {
+      "checkbox": null,
+      "label": "Bruttomaterialpreis",
+      "value": "377.826"
+    },
+    {
+      "checkbox": null,
+      "label": "Nettomaterialpreis",
+      "value": "202.444"
+    },
+    {
+      "checkbox": null,
+      "label": "Recyclinggebühr",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Fremdleistung",
+      "value": ""
+    }
+  ],
+  "article_text": "\t\n\n\nAC-Batteriespeicher indirekte Messung\n\n\nAusbau Schaltgerätekombination\n\n\nInstallation enthält:\n\n\n1 Abgangsicherung FI-LS 3LN -25A\n\n\n1 Steuersicherung 3LN 13A\n\n\n1 Messgerät m Stromwandler (o Lief)\n\n\nAbgangs-/Steuerkl verdrahtet",
+  "images": [
+    {
+      "number": "124751",
+      "va": "00",
+      "vas": [
+        "00"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 124751 / VA 00, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_0_1_3",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-22T07:40:01.703Z",
+      "width": 116,
+      "height": 150,
+      "file": "images/portal-2026/7a79ea7fe653259e56c88fa85738789e06a8a8ddca7a2039ce71fed2933b56e0.png",
+      "sha256": "7a79ea7fe653259e56c88fa85738789e06a8a8ddca7a2039ce71fed2933b56e0",
+      "ordinal": 0
+    }
+  ],
+  "rows": [
+    {
+      "cells": [
+        "AC-Batteriespeicher indirekte Messung",
+        "124751",
+        "00",
+        "1",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "expanded": "true",
+      "index": 0,
+      "level": 0
+    },
+    {
+      "cells": [
+        "FI-LS-Schalter C 6kA 3LN 20/25A 30mA",
+        "805711",
+        "24",
+        "1",
+        "131.44",
+        "131.44",
+        "0.703",
+        "0.703",
+        "805181304",
+        "ADM475C"
+      ],
+      "expanded": "true",
+      "index": 1,
+      "level": 1
+    },
+    {
+      "cells": [
+        "FI-LS-Schalter C 6kA 3LN 20/25A 30mA",
+        "990316",
+        "24",
+        "1",
+        "126.5",
+        "126.5",
+        "0.063",
+        "0.063",
+        "805181304",
+        "ADM475C"
+      ],
+      "expanded": null,
+      "index": 2,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Litze T Dca hf 6",
+        "113106",
+        "60",
+        "4",
+        "1.235",
+        "4.94",
+        "0.056",
+        "0.224",
+        "113164100",
+        "220552"
+      ],
+      "expanded": null,
+      "index": 3,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Litze T Dca hf 6",
+        "113106",
+        "70",
+        "8",
+        "1.235",
+        "9.88",
+        "0.052",
+        "0.416",
+        "113164100",
+        "220552"
+      ],
+      "expanded": null,
+      "index": 4,
+      "level": 2
+    },
+    {
+      "cells": [
+        "LS-Schalter C 6kA 3P 13/16A",
+        "805623",
+        "24",
+        "1",
+        "35.61",
+        "35.61",
+        "0.453",
+        "0.453",
+        "805679004",
+        "MCN316"
+      ],
+      "expanded": "true",
+      "index": 5,
+      "level": 1
+    },
+    {
+      "cells": [
+        "LS-Schalter C 6kA 3P 13/16A",
+        "997478",
+        "24",
+        "1",
+        "33.93",
+        "33.93",
+        "0.063",
+        "0.063",
+        "805679004",
+        "MCN316"
+      ],
+      "expanded": null,
+      "index": 6,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Litze T Dca hf 2.5",
+        "113104",
+        "60",
+        "3",
+        "0.56",
+        "1.68",
+        "0.048",
+        "0.144",
+        "113163900",
+        "220542"
+      ],
+      "expanded": null,
+      "index": 7,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Litze T Dca hf 2.5",
+        "113104",
+        "70",
+        "6",
+        "0.56",
+        "3.36",
+        "0.041",
+        "0.246",
+        "113163900",
+        "220542"
+      ],
+      "expanded": null,
+      "index": 8,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Neutralleitertrenner 63A",
+        "805630",
+        "24",
+        "1",
+        "6.165",
+        "6.165",
+        "0.156",
+        "0.156",
+        "804990044",
+        "MZN173"
+      ],
+      "expanded": null,
+      "index": 9,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Stromwandler 100/5A",
+        "5644",
+        "024",
+        "6",
+        "26.013",
+        "156.078",
+        "0.152",
+        "0.912",
+        "981901164",
+        "SRA01005"
+      ],
+      "expanded": null,
+      "index": 10,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Verdrahtung Apparat (o Lief) -5Kl",
+        "62883",
+        "60",
+        "1",
+        "1.75",
+        "1.75",
+        "0.475",
+        "0.475",
+        "",
+        ""
+      ],
+      "expanded": "true",
+      "index": 11,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Litze T Dca hf 1.5",
+        "990611",
+        "60",
+        "5",
+        "0.35",
+        "1.75",
+        "0.013",
+        "0.065",
+        "113163850",
+        "220437"
+      ],
+      "expanded": null,
+      "index": 12,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Litze T Dca hf 1.5",
+        "990611",
+        "70",
+        "10",
+        "0.35",
+        "3.5",
+        "0.041",
+        "0.41",
+        "113163850",
+        "220437"
+      ],
+      "expanded": null,
+      "index": 13,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Klemmensatz kompl -4x1",
+        "546104",
+        "24",
+        "1",
+        "5.792",
+        "5.792",
+        "0.4104",
+        "0.4104",
+        "",
+        ""
+      ],
+      "expanded": "true",
+      "index": 14,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Durchgangsklemme 4L 2.5",
+        "158450",
+        "24",
+        "4",
+        "1.148",
+        "4.592",
+        "0.019",
+        "0.076",
+        "158490154",
+        "2002-1404"
+      ],
+      "expanded": null,
+      "index": 15,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Litze T Dca hf 1.0",
+        "990610",
+        "60",
+        "4.8",
+        "0.25",
+        "1.2",
+        "0.013",
+        "0.0624",
+        "113163650",
+        "220532"
+      ],
+      "expanded": null,
+      "index": 16,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Litze T Dca hf 1.0",
+        "990610",
+        "70",
+        "8",
+        "0.25",
+        "2",
+        "0.034",
+        "0.272",
+        "113163650",
+        "220532"
+      ],
+      "expanded": null,
+      "index": 17,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Klemmensatz kompl 5x6",
+        "546124",
+        "24",
+        "1",
+        "18.115",
+        "18.115",
+        "0.5878",
+        "0.5878",
+        "",
+        ""
+      ],
+      "expanded": "true",
+      "index": 18,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Durchgangsklemme 3L gn/ge 6",
+        "158462",
+        "24",
+        "1",
+        "4.347",
+        "4.347",
+        "0.019",
+        "0.019",
+        "158460364",
+        "2006-1307"
+      ],
+      "expanded": null,
+      "index": 19,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Durchgangsklemme 3L 6",
+        "158452",
+        "24",
+        "4",
+        "1.96",
+        "7.84",
+        "0.019",
+        "0.076",
+        "158460354",
+        "2006-1304"
+      ],
+      "expanded": null,
+      "index": 20,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Litze T Dca hf 6",
+        "990614",
+        "60",
+        "4.8",
+        "1.235",
+        "5.928",
+        "0.016",
+        "0.0768",
+        "113164150",
+        "220551"
+      ],
+      "expanded": null,
+      "index": 21,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Litze T Dca hf 6",
+        "990614",
+        "70",
+        "8",
+        "1.235",
+        "9.88",
+        "0.052",
+        "0.416",
+        "113164150",
+        "220551"
+      ],
+      "expanded": null,
+      "index": 22,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Installationsstunde",
+        "995102",
+        "09",
+        "1.75",
+        "0",
+        "0",
+        "1",
+        "1.75",
+        "",
+        ""
+      ],
+      "expanded": null,
+      "index": 23,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Warnkleber Pfeil",
+        "174015",
+        "24",
+        "2",
+        "1.786",
+        "3.572",
+        "0.035",
+        "0.07",
+        "175504905",
+        ""
+      ],
+      "expanded": null,
+      "index": 24,
+      "level": 1
+    }
+  ],
+  "tree_attributes": [
+    [
+      "role",
+      "treegrid"
+    ],
+    [
+      "class",
+      "k-grid-aria-root"
+    ],
+    [
+      "aria-rowcount",
+      "26"
+    ],
+    [
+      "aria-colcount",
+      "11"
+    ]
+  ],
+  "calculation": [
+    [
+      {
+        "text": "Arbeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Material",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Akkord",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "Installationszeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "5.5172"
+      },
+      {
+        "text": "Bruttomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "377.826"
+      },
+      {
+        "text": "Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "636.68488"
+      }
+    ],
+    [
+      {
+        "text": "* Stundenansatz",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "115.40"
+      },
+      {
+        "text": "Nettomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "202.444"
+      },
+      {
+        "text": "+ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "244.95724"
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "* Materialfaktor",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.21"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "+ Recyclinggebühr",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.00"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "= Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "636.68488"
+      },
+      {
+        "text": "= Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "244.95724"
+      },
+      {
+        "text": "= Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "881.64212"
+      }
+    ],
+    [
+      {
+        "text": "≈ Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "636.70"
+      },
+      {
+        "text": "≈ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "244.95"
+      },
+      {
+        "text": "≈ Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "881.65"
+      }
+    ]
+  ],
+  "complete_tree": true
+}

@@ -1,0 +1,661 @@
+{
+  "number": "109919",
+  "va": "00",
+  "year": 2026,
+  "source": "https://digital.asteigerag.ch/dashboard",
+  "portal_page": "0_0_5_3",
+  "captured_at": "2026-10-22T07:37:08.492Z",
+  "capture_kind": "article_dialog",
+  "basic_data": [
+    {
+      "checkbox": null,
+      "label": "Typ",
+      "value": "Komplett-Artikel/-Installation"
+    },
+    {
+      "checkbox": null,
+      "label": "Artikelnummer",
+      "value": "109919"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z1",
+      "value": "Zentrale Wasser-/Wärmemessung"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z2",
+      "value": "Installation enthält:"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z3",
+      "value": "1 Datenzentrale"
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 1",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 2",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 3",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Lieferant",
+      "value": "1 Strukturen"
+    },
+    {
+      "checkbox": null,
+      "label": "Sortiment",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Bestellnummer",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "E-Nr",
+      "value": ""
+    },
+    {
+      "checkbox": true,
+      "label": "Anschluss",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Nummer",
+      "value": "1"
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Rabatt (in %)",
+      "value": "0"
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Text",
+      "value": "Komplett-Installationen"
+    },
+    {
+      "checkbox": null,
+      "label": "Bruttomaterialpreis",
+      "value": "56.67525"
+    },
+    {
+      "checkbox": null,
+      "label": "Nettomaterialpreis",
+      "value": "33.7971"
+    },
+    {
+      "checkbox": null,
+      "label": "Recyclinggebühr",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Fremdleistung",
+      "value": ""
+    }
+  ],
+  "article_text": "\t\n\n\nZentrale Wasser-/Wärmemessung\n\n\nInstallation enthält:\n\n\n1 Datenzentrale\n\n\nMithilfe IBS\n\n\no Zuleitung",
+  "images": [
+    {
+      "number": "109919",
+      "va": "00",
+      "vas": [
+        "00"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 109919 / VA 00, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_0_5_3",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-22T07:37:08.192Z",
+      "width": 90,
+      "height": 150,
+      "file": "images/portal-2026/1b92f5eef439da2901fc423cc3fc40179a1b03af49ea752edcfc5d4816c376cc.png",
+      "sha256": "1b92f5eef439da2901fc423cc3fc40179a1b03af49ea752edcfc5d4816c376cc",
+      "ordinal": 0
+    }
+  ],
+  "rows": [
+    {
+      "cells": [
+        "Zentrale Wasser-/Wärmemessung",
+        "109919",
+        "00",
+        "1",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "expanded": "true",
+      "index": 0,
+      "level": 0
+    },
+    {
+      "cells": [
+        "Ausschnitt Is -10 Ø -60",
+        "12060",
+        "09",
+        "3",
+        "0",
+        "0",
+        "0.076",
+        "0.228",
+        "",
+        ""
+      ],
+      "expanded": null,
+      "index": 1,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Ausschnitt Is -10 50x60",
+        "12063",
+        "09",
+        "1",
+        "0",
+        "0",
+        "0.166",
+        "0.166",
+        "",
+        ""
+      ],
+      "expanded": null,
+      "index": 2,
+      "level": 1
+    },
+    {
+      "cells": [
+        "AP-Schlaufdose 78x78x44",
+        "2506",
+        "20",
+        "1",
+        "6.027",
+        "6.027",
+        "0.243",
+        "0.243",
+        "150070137",
+        "2069K"
+      ],
+      "expanded": null,
+      "index": 3,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Kabel FE05 Cca hf 3x2.5",
+        "106014",
+        "70",
+        "2",
+        "1.55",
+        "3.1",
+        "0.101",
+        "0.202",
+        "",
+        "312550"
+      ],
+      "expanded": null,
+      "index": 4,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Kabel U72 Cca hf abgesch 1x4x0.8",
+        "102271",
+        "60",
+        "2.1",
+        "0.62",
+        "1.302",
+        "0.062",
+        "0.1302",
+        "102078304",
+        ""
+      ],
+      "expanded": null,
+      "index": 5,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Kabel U72 Cca hf abgesch 1x4x0.8",
+        "102271",
+        "81",
+        "2",
+        "0.62",
+        "1.24",
+        "0.146",
+        "0.292",
+        "102078304",
+        ""
+      ],
+      "expanded": null,
+      "index": 6,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Kanal Is hf LFH 57x40",
+        "2294",
+        "00",
+        "1.5",
+        "17.1514",
+        "25.7271",
+        "0.3129",
+        "0.46935",
+        "",
+        ""
+      ],
+      "expanded": "true",
+      "index": 7,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Richtungsänderung Kanal Is 35-70",
+        "12050",
+        "09",
+        "0.1",
+        "0",
+        "0",
+        "0.326",
+        "0.0326",
+        "",
+        ""
+      ],
+      "expanded": null,
+      "index": 8,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Ausschnitt Is -10 50x60",
+        "12063",
+        "09",
+        "0.25",
+        "0",
+        "0",
+        "0.166",
+        "0.0415",
+        "",
+        ""
+      ],
+      "expanded": null,
+      "index": 9,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Kanal Is hf LFH 57x40",
+        "148757",
+        "20",
+        "1",
+        "11.956",
+        "11.956",
+        "0.216",
+        "0.216",
+        "127325672",
+        "LFH4006009016"
+      ],
+      "expanded": null,
+      "index": 10,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Ausseneck Is hf LF/LFH 57x40",
+        "148773",
+        "24",
+        "0.25",
+        "17.556",
+        "4.389",
+        "0.044",
+        "0.011",
+        "127354462",
+        "LFF4006039016"
+      ],
+      "expanded": null,
+      "index": 11,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Endplatte Is hf LF/LFH 57x40",
+        "2384",
+        "24",
+        "0.2",
+        "4.032",
+        "0.8064",
+        "0.059",
+        "0.0118",
+        "127358072",
+        "LF4006069016"
+      ],
+      "expanded": null,
+      "index": 12,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Apparatemontage 3-4 Bef -6kg",
+        "12003",
+        "20",
+        "1",
+        "0",
+        "0",
+        "0.46",
+        "0.46",
+        "",
+        ""
+      ],
+      "expanded": null,
+      "index": 13,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Mithilfe bei Inbetriebsetzung 1.0h",
+        "12584",
+        "09",
+        "1",
+        "0",
+        "0",
+        "1",
+        "1",
+        "",
+        ""
+      ],
+      "expanded": null,
+      "index": 14,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Beschriftungsband -20 Z",
+        "8911",
+        "24",
+        "2",
+        "0.3705",
+        "0.741",
+        "0.102",
+        "0.204",
+        "173704540",
+        ""
+      ],
+      "expanded": "true",
+      "index": 15,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Schriftbandkassette B=12 8m",
+        "999014",
+        "100",
+        "0.02",
+        "18.525",
+        "0.3705",
+        "0",
+        "0",
+        "173704540",
+        ""
+      ],
+      "expanded": null,
+      "index": 16,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Beschriftung -20 Zeichen",
+        "999013",
+        "24",
+        "1",
+        "0",
+        "0",
+        "0.102",
+        "0.102",
+        "",
+        ""
+      ],
+      "expanded": null,
+      "index": 17,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Extrafahrt auf Baustelle für Arbeiten",
+        "12405",
+        "09",
+        "0.5",
+        "0",
+        "0",
+        "0.616",
+        "0.308",
+        "",
+        ""
+      ],
+      "expanded": null,
+      "index": 18,
+      "level": 1
+    }
+  ],
+  "tree_attributes": [
+    [
+      "role",
+      "treegrid"
+    ],
+    [
+      "class",
+      "k-grid-aria-root"
+    ],
+    [
+      "aria-rowcount",
+      "20"
+    ],
+    [
+      "aria-colcount",
+      "11"
+    ]
+  ],
+  "calculation": [
+    [
+      {
+        "text": "Arbeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Material",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Akkord",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "Installationszeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "3.70255"
+      },
+      {
+        "text": "Bruttomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "56.67525"
+      },
+      {
+        "text": "Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "427.27427"
+      }
+    ],
+    [
+      {
+        "text": "* Stundenansatz",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "115.40"
+      },
+      {
+        "text": "Nettomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "33.7971"
+      },
+      {
+        "text": "+ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "40.89449"
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "* Materialfaktor",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.21"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "+ Recyclinggebühr",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.00"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "= Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "427.27427"
+      },
+      {
+        "text": "= Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "40.89449"
+      },
+      {
+        "text": "= Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "468.16876"
+      }
+    ],
+    [
+      {
+        "text": "≈ Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "427.25"
+      },
+      {
+        "text": "≈ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "40.90"
+      },
+      {
+        "text": "≈ Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "468.15"
+      }
+    ]
+  ],
+  "complete_tree": true
+}

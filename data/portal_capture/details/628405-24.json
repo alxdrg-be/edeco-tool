@@ -1,0 +1,510 @@
+{
+  "number": "628405",
+  "va": "24",
+  "year": 2026,
+  "source": "https://digital.asteigerag.ch/dashboard",
+  "portal_page": "0_1_15_33",
+  "captured_at": "2026-10-23T18:18:00.496Z",
+  "capture_kind": "article_dialog",
+  "basic_data": [
+    {
+      "label": "Typ",
+      "value": "Komplett-Artikel/-Installation",
+      "checkbox": null
+    },
+    {
+      "label": "Artikelnummer",
+      "value": "628405",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z1",
+      "value": "Wandlermessung Prüfklemmen (m Lief)",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z2",
+      "value": "M+A 3 Stromwandler",
+      "checkbox": null
+    },
+    {
+      "label": "Bezeichnung Z3",
+      "value": "Verdrahtung Kombizähler",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 1",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 2",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Kürzel 3",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Lieferant",
+      "value": "1 Strukturen",
+      "checkbox": null
+    },
+    {
+      "label": "Sortiment",
+      "value": "4201 WAGO",
+      "checkbox": null
+    },
+    {
+      "label": "Bestellnummer",
+      "value": "8001-001/K030-7476/000-1100",
+      "checkbox": null
+    },
+    {
+      "label": "E-Nr",
+      "value": "981 900 114",
+      "checkbox": null
+    },
+    {
+      "label": "Anschluss",
+      "value": "",
+      "checkbox": true
+    },
+    {
+      "label": "Warengruppe-Nummer",
+      "value": "3399",
+      "checkbox": null
+    },
+    {
+      "label": "Warengruppe-Rabatt (in %)",
+      "value": "0",
+      "checkbox": null
+    },
+    {
+      "label": "Warengruppe-Text",
+      "value": "WAGO netto",
+      "checkbox": null
+    },
+    {
+      "label": "Bruttomaterialpreis",
+      "value": "158.3",
+      "checkbox": null
+    },
+    {
+      "label": "Nettomaterialpreis",
+      "value": "134.45",
+      "checkbox": null
+    },
+    {
+      "label": "Recyclinggebühr",
+      "value": "",
+      "checkbox": null
+    },
+    {
+      "label": "Fremdleistung",
+      "value": "",
+      "checkbox": null
+    }
+  ],
+  "article_text": "\t\n\n\nWandlermessung Prüfklemmen (m Lief)\n\n\nM+A 3 Stromwandler\n\n\nVerdrahtung Kombizähler",
+  "images": [
+    {
+      "number": "628405",
+      "va": "24",
+      "vas": [
+        "24"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 628405 / VA 24, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_1_15_33",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T18:18:00.457Z",
+      "width": 71,
+      "height": 150,
+      "file": "images/portal-2026/f1ee17ceb12a6651bc497c5af8fcf88a4bbfe6374017340aaa098daa969ae763.png",
+      "sha256": "f1ee17ceb12a6651bc497c5af8fcf88a4bbfe6374017340aaa098daa969ae763",
+      "ordinal": 0
+    },
+    {
+      "number": "628405",
+      "va": "24",
+      "vas": [
+        "24"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 628405 / VA 24, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_1_15_33",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T18:18:00.458Z",
+      "width": 300,
+      "height": 300,
+      "file": "images/portal-2026/b3c90a0132d6c55a8e19e171fc63d0cb56a7af0a74b304baa9c904ebede314a7.jpg",
+      "sha256": "b3c90a0132d6c55a8e19e171fc63d0cb56a7af0a74b304baa9c904ebede314a7",
+      "ordinal": 1
+    }
+  ],
+  "rows": [
+    {
+      "index": 0,
+      "level": 0,
+      "expanded": "true",
+      "cells": [
+        "Wandlermessung Prüfklemmen (m Lief)",
+        "628405",
+        "24",
+        "1",
+        "",
+        "",
+        "",
+        "",
+        "981900114",
+        "8001-001/K030-7476/000-1100"
+      ]
+    },
+    {
+      "index": 1,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Klemmenblock Spannung + Stromwandler 3P",
+        "992174",
+        "24",
+        "1",
+        "110.6",
+        "110.6",
+        "0.019",
+        "0.019",
+        "981900114",
+        "8001-001/K030-7476/000-1100"
+      ]
+    },
+    {
+      "index": 2,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Apparatemontage 2 Bef -6kg",
+        "12002",
+        "24",
+        "3",
+        "0",
+        "0",
+        "0.21",
+        "0.63",
+        "",
+        ""
+      ]
+    },
+    {
+      "index": 3,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Litze T Dca hf 1.5",
+        "113103",
+        "60",
+        "6",
+        "0.35",
+        "2.1",
+        "0.048",
+        "0.288",
+        "113163800",
+        "216245"
+      ]
+    },
+    {
+      "index": 4,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Litze T Dca hf 1.5",
+        "113103",
+        "70",
+        "4",
+        "0.35",
+        "1.4",
+        "0.041",
+        "0.164",
+        "113163800",
+        "216245"
+      ]
+    },
+    {
+      "index": 5,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Litze T Dca hf 2.5",
+        "113104",
+        "60",
+        "12",
+        "0.56",
+        "6.72",
+        "0.048",
+        "0.576",
+        "113163900",
+        "220542"
+      ]
+    },
+    {
+      "index": 6,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Litze T Dca hf 2.5",
+        "113104",
+        "70",
+        "12",
+        "0.56",
+        "6.72",
+        "0.041",
+        "0.492",
+        "113163900",
+        "220542"
+      ]
+    },
+    {
+      "index": 7,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Litze T Dca hf 4",
+        "113105",
+        "60",
+        "18",
+        "0.835",
+        "15.03",
+        "0.056",
+        "1.008",
+        "113164000",
+        "220547"
+      ]
+    },
+    {
+      "index": 8,
+      "level": 1,
+      "expanded": null,
+      "cells": [
+        "Litze T Dca hf 4",
+        "113105",
+        "70",
+        "18",
+        "0.835",
+        "15.03",
+        "0.052",
+        "0.936",
+        "113164000",
+        "220547"
+      ]
+    }
+  ],
+  "tree_attributes": [
+    [
+      "role",
+      "treegrid"
+    ],
+    [
+      "class",
+      "k-grid-aria-root"
+    ],
+    [
+      "aria-rowcount",
+      "10"
+    ],
+    [
+      "aria-colcount",
+      "11"
+    ]
+  ],
+  "calculation": [
+    [
+      {
+        "text": "Arbeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Material",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Akkord",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "Installationszeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "4.113"
+      },
+      {
+        "text": "Bruttomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "158.30"
+      },
+      {
+        "text": "Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "474.6402"
+      }
+    ],
+    [
+      {
+        "text": "* Stundenansatz",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "115.40"
+      },
+      {
+        "text": "Nettomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "134.45"
+      },
+      {
+        "text": "+ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "162.6845"
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "* Materialfaktor",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.21"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "+ Recyclinggebühr",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.00"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "= Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "474.6402"
+      },
+      {
+        "text": "= Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "162.6845"
+      },
+      {
+        "text": "= Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "637.3247"
+      }
+    ],
+    [
+      {
+        "text": "≈ Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "474.65"
+      },
+      {
+        "text": "≈ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "162.70"
+      },
+      {
+        "text": "≈ Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "637.30"
+      }
+    ]
+  ],
+  "complete_tree": true
+}

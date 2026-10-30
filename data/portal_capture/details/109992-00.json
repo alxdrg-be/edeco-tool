@@ -1,0 +1,780 @@
+{
+  "number": "109992",
+  "va": "00",
+  "year": 2026,
+  "source": "https://digital.asteigerag.ch/dashboard",
+  "portal_page": "0_0_0_4",
+  "captured_at": "2026-10-22T07:39:45.534Z",
+  "capture_kind": "article_dialog",
+  "basic_data": [
+    {
+      "checkbox": null,
+      "label": "Typ",
+      "value": "Komplett-Artikel/-Installation"
+    },
+    {
+      "checkbox": null,
+      "label": "Artikelnummer",
+      "value": "109992"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z1",
+      "value": "Zählerverdrahtung ab Bezügersicherung"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z2",
+      "value": "1 Verdrahtung Zähler (o M+A)"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z3",
+      "value": "Abgangskl verdrahtet"
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 1",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 2",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 3",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Lieferant",
+      "value": "1 Strukturen"
+    },
+    {
+      "checkbox": null,
+      "label": "Sortiment",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Bestellnummer",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "E-Nr",
+      "value": ""
+    },
+    {
+      "checkbox": true,
+      "label": "Anschluss",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Nummer",
+      "value": "1"
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Rabatt (in %)",
+      "value": "0"
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Text",
+      "value": "Komplett-Installationen"
+    },
+    {
+      "checkbox": null,
+      "label": "Bruttomaterialpreis",
+      "value": "264.794"
+    },
+    {
+      "checkbox": null,
+      "label": "Nettomaterialpreis",
+      "value": "164.5385"
+    },
+    {
+      "checkbox": null,
+      "label": "Recyclinggebühr",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Fremdleistung",
+      "value": ""
+    }
+  ],
+  "article_text": "\t\n\n\nZählerverdrahtung ab Bezügersicherung\n\n\n1 Verdrahtung Zähler (o M+A)\n\n\nAbgangskl verdrahtet",
+  "images": [
+    {
+      "number": "109992",
+      "va": "00",
+      "vas": [
+        "00"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 109992 / VA 00, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_0_0_4",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-22T07:39:45.216Z",
+      "width": 51,
+      "height": 150,
+      "file": "images/portal-2026/c1c9a8b99612f5394099e1f292825e14c3337a1bea32be42268a12df93ca2dfe.png",
+      "sha256": "c1c9a8b99612f5394099e1f292825e14c3337a1bea32be42268a12df93ca2dfe",
+      "ordinal": 0
+    }
+  ],
+  "rows": [
+    {
+      "cells": [
+        "Zählerverdrahtung ab Bezügersicherung",
+        "109992",
+        "00",
+        "1",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "expanded": "true",
+      "index": 0,
+      "level": 0
+    },
+    {
+      "cells": [
+        "Zählerplatte 250x400",
+        "829421",
+        "24",
+        "1",
+        "24.5",
+        "24.5",
+        "0.109",
+        "0.109",
+        "830500119",
+        ""
+      ],
+      "expanded": null,
+      "index": 1,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Garnitur PPK gG Gr II 6-25A",
+        "63019",
+        "53",
+        "3",
+        "4.2",
+        "12.6",
+        "0.036",
+        "0.108",
+        "",
+        ""
+      ],
+      "expanded": "true",
+      "index": 2,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Sicherungskopf plomb K II",
+        "6371",
+        "53",
+        "1",
+        "2.43",
+        "2.43",
+        "0.015",
+        "0.015",
+        "801020209",
+        "LE27SKP"
+      ],
+      "expanded": null,
+      "index": 3,
+      "level": 2
+    },
+    {
+      "cells": [
+        "D-Sicherung gG DT II 4-25A",
+        "800002",
+        "53",
+        "1",
+        "0.93",
+        "0.93",
+        "0.009",
+        "0.009",
+        "800250609",
+        "LE2706"
+      ],
+      "expanded": null,
+      "index": 4,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Passschraube S II 2-25A",
+        "6361",
+        "53",
+        "1",
+        "0.84",
+        "0.84",
+        "0.012",
+        "0.012",
+        "801222599",
+        "LE27P25"
+      ],
+      "expanded": null,
+      "index": 5,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Zählerverdrahtung m ZSK 4-Leiter 10",
+        "169051",
+        "24",
+        "1",
+        "59.565",
+        "59.565",
+        "1.06",
+        "1.06",
+        "169000013",
+        "KJD080C1"
+      ],
+      "expanded": "true",
+      "index": 6,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Zählersteckklemme o Abdeckhaube 80A",
+        "985326",
+        "24",
+        "1",
+        "52.2",
+        "52.2",
+        "0.067",
+        "0.067",
+        "169000013",
+        "KJD080C1"
+      ],
+      "expanded": null,
+      "index": 7,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Litze T Dca hf 1.5",
+        "113103",
+        "60",
+        "2",
+        "0.35",
+        "0.7",
+        "0.048",
+        "0.096",
+        "113163800",
+        "216245"
+      ],
+      "expanded": null,
+      "index": 8,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Litze T Dca hf 1.5",
+        "113103",
+        "70",
+        "4",
+        "0.35",
+        "1.4",
+        "0.041",
+        "0.164",
+        "113163800",
+        "216245"
+      ],
+      "expanded": null,
+      "index": 9,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Litze T Dca hf 2.5",
+        "113104",
+        "60",
+        "1",
+        "0.56",
+        "0.56",
+        "0.048",
+        "0.048",
+        "113163900",
+        "220542"
+      ],
+      "expanded": null,
+      "index": 10,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Litze T Dca hf 2.5",
+        "113104",
+        "70",
+        "2",
+        "0.56",
+        "1.12",
+        "0.041",
+        "0.082",
+        "113163900",
+        "220542"
+      ],
+      "expanded": null,
+      "index": 11,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Litze T Dca hf 10",
+        "113107",
+        "60",
+        "3",
+        "2.035",
+        "6.105",
+        "0.077",
+        "0.231",
+        "113164200",
+        "220559"
+      ],
+      "expanded": null,
+      "index": 12,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Litze T Dca hf 10",
+        "113107",
+        "70",
+        "6",
+        "2.035",
+        "12.21",
+        "0.062",
+        "0.372",
+        "113164200",
+        "220559"
+      ],
+      "expanded": null,
+      "index": 13,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Abdeckhaube transp plomb",
+        "169055",
+        "24",
+        "1",
+        "24.563",
+        "24.563",
+        "0.085",
+        "0.085",
+        "169000133",
+        "KJZ000N2"
+      ],
+      "expanded": null,
+      "index": 14,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Stiftsatz z Zählersteckklemme 80A",
+        "169061",
+        "100",
+        "1",
+        "16.762",
+        "16.762",
+        "0",
+        "0",
+        "169000053",
+        "KJZ080B4"
+      ],
+      "expanded": null,
+      "index": 15,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Klemmensatz kompl -5x10",
+        "801405",
+        "24",
+        "1",
+        "26.178",
+        "26.178",
+        "1.0562",
+        "1.0562",
+        "",
+        ""
+      ],
+      "expanded": "true",
+      "index": 16,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Klemmensatz kompl 5x10",
+        "546125",
+        "24",
+        "1",
+        "26.178",
+        "26.178",
+        "0.7062",
+        "0.7062",
+        "",
+        ""
+      ],
+      "expanded": "true",
+      "index": 17,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Durchgangsklemme 3L gn/ge 10",
+        "158481",
+        "24",
+        "1",
+        "4.83",
+        "4.83",
+        "0.019",
+        "0.019",
+        "158460464",
+        "2010-1307"
+      ],
+      "expanded": null,
+      "index": 18,
+      "level": 3
+    },
+    {
+      "cells": [
+        "Durchgangsklemme 3L 10",
+        "158480",
+        "24",
+        "4",
+        "2.919",
+        "11.676",
+        "0.019",
+        "0.076",
+        "158460454",
+        "2010-1304"
+      ],
+      "expanded": null,
+      "index": 19,
+      "level": 3
+    },
+    {
+      "cells": [
+        "Litze T Dca hf 10",
+        "990615",
+        "60",
+        "4.8",
+        "2.015",
+        "9.672",
+        "0.024",
+        "0.1152",
+        "113164250",
+        "220554"
+      ],
+      "expanded": null,
+      "index": 20,
+      "level": 3
+    },
+    {
+      "cells": [
+        "Litze T Dca hf 10",
+        "990615",
+        "70",
+        "8",
+        "2.015",
+        "16.12",
+        "0.062",
+        "0.496",
+        "113164250",
+        "220554"
+      ],
+      "expanded": null,
+      "index": 21,
+      "level": 3
+    },
+    {
+      "cells": [
+        "Installationsstunde",
+        "995102",
+        "09",
+        "0.35",
+        "0",
+        "0",
+        "1",
+        "0.35",
+        "",
+        ""
+      ],
+      "expanded": null,
+      "index": 22,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Beschriftungsband -20 Z",
+        "8911",
+        "24",
+        "1",
+        "0.3705",
+        "0.3705",
+        "0.102",
+        "0.102",
+        "173704540",
+        ""
+      ],
+      "expanded": "true",
+      "index": 23,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Schriftbandkassette B=12 8m",
+        "999014",
+        "100",
+        "0.02",
+        "18.525",
+        "0.3705",
+        "0",
+        "0",
+        "173704540",
+        ""
+      ],
+      "expanded": null,
+      "index": 24,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Beschriftung -20 Zeichen",
+        "999013",
+        "24",
+        "1",
+        "0",
+        "0",
+        "0.102",
+        "0.102",
+        "",
+        ""
+      ],
+      "expanded": null,
+      "index": 25,
+      "level": 2
+    }
+  ],
+  "tree_attributes": [
+    [
+      "role",
+      "treegrid"
+    ],
+    [
+      "class",
+      "k-grid-aria-root"
+    ],
+    [
+      "aria-rowcount",
+      "27"
+    ],
+    [
+      "aria-colcount",
+      "11"
+    ]
+  ],
+  "calculation": [
+    [
+      {
+        "text": "Arbeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Material",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Akkord",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "Installationszeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "2.5202"
+      },
+      {
+        "text": "Bruttomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "264.794"
+      },
+      {
+        "text": "Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "290.83108"
+      }
+    ],
+    [
+      {
+        "text": "* Stundenansatz",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "115.40"
+      },
+      {
+        "text": "Nettomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "164.5385"
+      },
+      {
+        "text": "+ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "199.09159"
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "* Materialfaktor",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.21"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "+ Recyclinggebühr",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.00"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "= Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "290.83108"
+      },
+      {
+        "text": "= Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "199.09159"
+      },
+      {
+        "text": "= Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "489.92267"
+      }
+    ],
+    [
+      {
+        "text": "≈ Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "290.85"
+      },
+      {
+        "text": "≈ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "199.10"
+      },
+      {
+        "text": "≈ Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "489.90"
+      }
+    ]
+  ],
+  "complete_tree": true
+}

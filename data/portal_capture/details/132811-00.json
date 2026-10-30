@@ -1,0 +1,695 @@
+{
+  "number": "132811",
+  "va": "00",
+  "year": 2026,
+  "source": "https://digital.asteigerag.ch/dashboard",
+  "portal_page": "0_0_11_1",
+  "captured_at": "2026-10-23T05:58:23.514Z",
+  "capture_kind": "article_dialog",
+  "basic_data": [
+    {
+      "checkbox": null,
+      "label": "Typ",
+      "value": "Komplett-Artikel/-Installation"
+    },
+    {
+      "checkbox": null,
+      "label": "Artikelnummer",
+      "value": "132811"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z1",
+      "value": "Hausverteilanlage HVA -8 NE"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z2",
+      "value": "Installation enthält:"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z3",
+      "value": "Verteiler/Abzweiger -8 Abgänge"
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 1",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 2",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 3",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Lieferant",
+      "value": "1 Strukturen"
+    },
+    {
+      "checkbox": null,
+      "label": "Sortiment",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Bestellnummer",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "E-Nr",
+      "value": ""
+    },
+    {
+      "checkbox": true,
+      "label": "Anschluss",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Nummer",
+      "value": "1"
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Rabatt (in %)",
+      "value": "0"
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Text",
+      "value": "Komplett-Installationen"
+    },
+    {
+      "checkbox": null,
+      "label": "Bruttomaterialpreis",
+      "value": "359.68"
+    },
+    {
+      "checkbox": null,
+      "label": "Nettomaterialpreis",
+      "value": "253.101"
+    },
+    {
+      "checkbox": null,
+      "label": "Recyclinggebühr",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Fremdleistung",
+      "value": ""
+    }
+  ],
+  "article_text": "\t\n\n\nHausverteilanlage HVA\n-8 NE\n\nInstallation enthält:\n\n\nVerteiler/Abzweiger -8 Abgänge\n\n\nLochblech\n\n\no Erschliessung",
+  "images": [
+    {
+      "number": "132811",
+      "va": "00",
+      "vas": [
+        "00"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 132811 / VA 00, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_0_11_1",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T05:58:22.254Z",
+      "width": 145,
+      "height": 150,
+      "file": "images/portal-2026/d62523f712ac5198a76b2580df36d96e9e588a979e64a6ea5a1c937adcefcebf.png",
+      "sha256": "d62523f712ac5198a76b2580df36d96e9e588a979e64a6ea5a1c937adcefcebf",
+      "ordinal": 0
+    }
+  ],
+  "rows": [
+    {
+      "cells": [
+        "Hausverteilanlage HVA -8 NE",
+        "132811",
+        "00",
+        "1",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "expanded": "true",
+      "index": 0,
+      "level": 0
+    },
+    {
+      "cells": [
+        "Ausschnitt Is -10 Ø -60",
+        "12060",
+        "09",
+        "1",
+        "0",
+        "0",
+        "0.076",
+        "0.076",
+        "",
+        ""
+      ],
+      "expanded": null,
+      "index": 1,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Ausschnitt Is -10 50x60",
+        "12063",
+        "09",
+        "3",
+        "0",
+        "0",
+        "0.166",
+        "0.498",
+        "",
+        ""
+      ],
+      "expanded": null,
+      "index": 2,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Kanal Is hf LFH 110x60",
+        "148759",
+        "20",
+        "2",
+        "32.984",
+        "65.968",
+        "0.228",
+        "0.456",
+        "127325872",
+        "LFH6011009016"
+      ],
+      "expanded": null,
+      "index": 3,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Endplatte Is hf LF/LFH 110x60",
+        "148763",
+        "24",
+        "2",
+        "5.264",
+        "10.528",
+        "0.059",
+        "0.118",
+        "127358772",
+        "LF6011069016"
+      ],
+      "expanded": null,
+      "index": 4,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Flachwinkel Is hf LF/LFH 110x60",
+        "148767",
+        "24",
+        "1",
+        "17.64",
+        "17.64",
+        "0.044",
+        "0.044",
+        "127370372",
+        "LFF6011059016"
+      ],
+      "expanded": null,
+      "index": 5,
+      "level": 1
+    },
+    {
+      "cells": [
+        "T-Stück Is hf LF/LFH/FB 110x60",
+        "148771",
+        "24",
+        "1",
+        "16.492",
+        "16.492",
+        "0.044",
+        "0.044",
+        "127374772",
+        "LF6011089016"
+      ],
+      "expanded": null,
+      "index": 6,
+      "level": 1
+    },
+    {
+      "cells": [
+        "UP-Schlaufdose 250x180x120",
+        "155090",
+        "40",
+        "1",
+        "24.999",
+        "24.999",
+        "0.479",
+        "0.479",
+        "155002908",
+        "9916"
+      ],
+      "expanded": "true",
+      "index": 7,
+      "level": 1
+    },
+    {
+      "cells": [
+        "UP-Schlaufdose 250x180x120",
+        "991130",
+        "40",
+        "1",
+        "22.6122",
+        "22.6122",
+        "0.479",
+        "0.479",
+        "155002908",
+        "9916"
+      ],
+      "expanded": null,
+      "index": 8,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Putzdeckel z 9916",
+        "991078",
+        "100",
+        "1",
+        "2.3868",
+        "2.3868",
+        "0",
+        "0",
+        "155914908",
+        "9916.06"
+      ],
+      "expanded": null,
+      "index": 9,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Schraubdeckel 270x200",
+        "155053",
+        "48",
+        "1",
+        "13.767",
+        "13.767",
+        "0.065",
+        "0.065",
+        "155911908",
+        "9916.02"
+      ],
+      "expanded": null,
+      "index": 10,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Draht T Dca hf einzel 1.5",
+        "3512",
+        "60",
+        "3",
+        "0.265",
+        "0.795",
+        "0.042",
+        "0.126",
+        "105122150",
+        ""
+      ],
+      "expanded": null,
+      "index": 11,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Draht T Dca hf einzel 1.5",
+        "3512",
+        "70",
+        "6",
+        "0.265",
+        "1.59",
+        "0.021",
+        "0.126",
+        "105122150",
+        ""
+      ],
+      "expanded": null,
+      "index": 12,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Koaxialkabel 75 Ohm Cca hf MK96C",
+        "101030",
+        "64",
+        "3",
+        "0.864",
+        "2.592",
+        "0.114",
+        "0.342",
+        "101660711",
+        "MK96C 0100"
+      ],
+      "expanded": null,
+      "index": 13,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Koaxialkabel 75 Ohm Cca hf MK96C",
+        "101030",
+        "81",
+        "6",
+        "0.864",
+        "5.184",
+        "0.137",
+        "0.822",
+        "101660711",
+        "MK96C 0100"
+      ],
+      "expanded": null,
+      "index": 14,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Verstärkerplatte Lochblech 215x280x15",
+        "155900",
+        "20",
+        "2",
+        "27.84",
+        "55.68",
+        "0.402",
+        "0.804",
+        "155901039",
+        "SE32"
+      ],
+      "expanded": null,
+      "index": 15,
+      "level": 1
+    },
+    {
+      "cells": [
+        "TV-Verteiler 2fach DM02D",
+        "992092",
+        "24",
+        "1",
+        "6.57",
+        "6.57",
+        "0.179",
+        "0.179",
+        "966822052",
+        "DM02D"
+      ],
+      "expanded": null,
+      "index": 16,
+      "level": 1
+    },
+    {
+      "cells": [
+        "TV-Verteiler 6fach DM06D",
+        "992095",
+        "24",
+        "1",
+        "22.68",
+        "22.68",
+        "0.179",
+        "0.179",
+        "966826052",
+        "DM06D"
+      ],
+      "expanded": null,
+      "index": 17,
+      "level": 1
+    },
+    {
+      "cells": [
+        "TV-Abzweiger 1fach DM61A",
+        "992101",
+        "24",
+        "1",
+        "7.83",
+        "7.83",
+        "0.179",
+        "0.179",
+        "966801942",
+        "DM61A 0020"
+      ],
+      "expanded": null,
+      "index": 18,
+      "level": 1
+    },
+    {
+      "cells": [
+        "F-Abschlusswiderstand 75 Ohm DV24",
+        "9307",
+        "24",
+        "3",
+        "1.44",
+        "4.32",
+        "0.043",
+        "0.129",
+        "966761142",
+        "DV24"
+      ],
+      "expanded": null,
+      "index": 19,
+      "level": 1
+    },
+    {
+      "cells": [
+        "F-Crimpstecker MK96 DV65",
+        "966760",
+        "24",
+        "6",
+        "0.54",
+        "3.24",
+        "0.043",
+        "0.258",
+        "966760442",
+        "DV65"
+      ],
+      "expanded": null,
+      "index": 20,
+      "level": 1
+    }
+  ],
+  "tree_attributes": [
+    [
+      "role",
+      "treegrid"
+    ],
+    [
+      "class",
+      "k-grid-aria-root"
+    ],
+    [
+      "aria-rowcount",
+      "22"
+    ],
+    [
+      "aria-colcount",
+      "11"
+    ]
+  ],
+  "calculation": [
+    [
+      {
+        "text": "Arbeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Material",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Akkord",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "Installationszeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "4.924"
+      },
+      {
+        "text": "Bruttomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "359.68"
+      },
+      {
+        "text": "Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "568.2296"
+      }
+    ],
+    [
+      {
+        "text": "* Stundenansatz",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "115.40"
+      },
+      {
+        "text": "Nettomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "253.101"
+      },
+      {
+        "text": "+ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "306.25221"
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "* Materialfaktor",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.21"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "+ Recyclinggebühr",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.00"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "= Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "568.2296"
+      },
+      {
+        "text": "= Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "306.25221"
+      },
+      {
+        "text": "= Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "874.48181"
+      }
+    ],
+    [
+      {
+        "text": "≈ Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "568.25"
+      },
+      {
+        "text": "≈ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "306.25"
+      },
+      {
+        "text": "≈ Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "874.50"
+      }
+    ]
+  ],
+  "complete_tree": true
+}

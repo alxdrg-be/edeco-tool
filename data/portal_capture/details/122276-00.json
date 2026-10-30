@@ -1,0 +1,542 @@
+{
+  "number": "122276",
+  "va": "00",
+  "year": 2026,
+  "source": "https://digital.asteigerag.ch/dashboard",
+  "portal_page": "0_0_1_2",
+  "captured_at": "2026-10-22T07:39:36.414Z",
+  "capture_kind": "article_dialog",
+  "basic_data": [
+    {
+      "checkbox": null,
+      "label": "Typ",
+      "value": "Komplett-Artikel/-Installation"
+    },
+    {
+      "checkbox": null,
+      "label": "Artikelnummer",
+      "value": "122276"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z1",
+      "value": "PV-Anlage <30kVA -32A"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z2",
+      "value": "Ausbau Schaltgerätekombination"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z3",
+      "value": "Installation enthält:"
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 1",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 2",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 3",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Lieferant",
+      "value": "1 Strukturen"
+    },
+    {
+      "checkbox": null,
+      "label": "Sortiment",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Bestellnummer",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "E-Nr",
+      "value": ""
+    },
+    {
+      "checkbox": true,
+      "label": "Anschluss",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Nummer",
+      "value": "1"
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Rabatt (in %)",
+      "value": "0"
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Text",
+      "value": "Komplett-Installationen"
+    },
+    {
+      "checkbox": null,
+      "label": "Bruttomaterialpreis",
+      "value": "178.744"
+    },
+    {
+      "checkbox": null,
+      "label": "Nettomaterialpreis",
+      "value": "92.421"
+    },
+    {
+      "checkbox": null,
+      "label": "Recyclinggebühr",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Fremdleistung",
+      "value": ""
+    }
+  ],
+  "article_text": "\t\n\n\nPV-Anlage <30kVA\n-32A\n\nAusbau Schaltgerätekombination\n\n\nInstallation enthält:\n\n\n1 Abgangsicherung 3LN -32A\n\n\nAbgangskl verdrahtet",
+  "images": [
+    {
+      "number": "122276",
+      "va": "00",
+      "vas": [
+        "00"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 122276 / VA 00, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_0_1_2",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-22T07:39:36.095Z",
+      "width": 98,
+      "height": 150,
+      "file": "images/portal-2026/e33f4b8330253b9da7f1ca94a15ee083d645382e6bd3c78c1a68c3cc44f2ff2a.png",
+      "sha256": "e33f4b8330253b9da7f1ca94a15ee083d645382e6bd3c78c1a68c3cc44f2ff2a",
+      "ordinal": 0
+    }
+  ],
+  "rows": [
+    {
+      "cells": [
+        "PV-Anlage <30kVA -32A",
+        "122276",
+        "00",
+        "1",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "expanded": "true",
+      "index": 0,
+      "level": 0
+    },
+    {
+      "cells": [
+        "LS-Schalter C 6kA 3P+N 32A",
+        "805642",
+        "24",
+        "1",
+        "64.78",
+        "64.78",
+        "0.867",
+        "0.867",
+        "805182104",
+        "MCN632"
+      ],
+      "expanded": "true",
+      "index": 1,
+      "level": 1
+    },
+    {
+      "cells": [
+        "LS-Schalter C 6kA 3P+N 32A",
+        "992490",
+        "24",
+        "1",
+        "56.64",
+        "56.64",
+        "0.063",
+        "0.063",
+        "805182104",
+        "MCN632"
+      ],
+      "expanded": null,
+      "index": 2,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Litze T Dca hf 10",
+        "113107",
+        "60",
+        "4",
+        "2.035",
+        "8.14",
+        "0.077",
+        "0.308",
+        "113164200",
+        "220559"
+      ],
+      "expanded": null,
+      "index": 3,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Litze T Dca hf 10",
+        "113107",
+        "70",
+        "8",
+        "2.035",
+        "16.28",
+        "0.062",
+        "0.496",
+        "113164200",
+        "220559"
+      ],
+      "expanded": null,
+      "index": 4,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Klemmensatz kompl 5x10",
+        "546125",
+        "24",
+        "1",
+        "26.178",
+        "26.178",
+        "0.7062",
+        "0.7062",
+        "",
+        ""
+      ],
+      "expanded": "true",
+      "index": 5,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Durchgangsklemme 3L gn/ge 10",
+        "158481",
+        "24",
+        "1",
+        "4.83",
+        "4.83",
+        "0.019",
+        "0.019",
+        "158460464",
+        "2010-1307"
+      ],
+      "expanded": null,
+      "index": 6,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Durchgangsklemme 3L 10",
+        "158480",
+        "24",
+        "4",
+        "2.919",
+        "11.676",
+        "0.019",
+        "0.076",
+        "158460454",
+        "2010-1304"
+      ],
+      "expanded": null,
+      "index": 7,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Litze T Dca hf 10",
+        "990615",
+        "60",
+        "4.8",
+        "2.015",
+        "9.672",
+        "0.024",
+        "0.1152",
+        "113164250",
+        "220554"
+      ],
+      "expanded": null,
+      "index": 8,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Litze T Dca hf 10",
+        "990615",
+        "70",
+        "8",
+        "2.015",
+        "16.12",
+        "0.062",
+        "0.496",
+        "113164250",
+        "220554"
+      ],
+      "expanded": null,
+      "index": 9,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Installationsstunde",
+        "995102",
+        "09",
+        "1.45",
+        "0",
+        "0",
+        "1",
+        "1.45",
+        "",
+        ""
+      ],
+      "expanded": null,
+      "index": 10,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Kleber PV-Anlage",
+        "174016",
+        "24",
+        "1",
+        "1.463",
+        "1.463",
+        "0.035",
+        "0.035",
+        "173337419",
+        ""
+      ],
+      "expanded": null,
+      "index": 11,
+      "level": 1
+    }
+  ],
+  "tree_attributes": [
+    [
+      "role",
+      "treegrid"
+    ],
+    [
+      "class",
+      "k-grid-aria-root"
+    ],
+    [
+      "aria-rowcount",
+      "13"
+    ],
+    [
+      "aria-colcount",
+      "11"
+    ]
+  ],
+  "calculation": [
+    [
+      {
+        "text": "Arbeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Material",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Akkord",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "Installationszeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "3.0582"
+      },
+      {
+        "text": "Bruttomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "178.744"
+      },
+      {
+        "text": "Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "352.91628"
+      }
+    ],
+    [
+      {
+        "text": "* Stundenansatz",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "115.40"
+      },
+      {
+        "text": "Nettomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "92.421"
+      },
+      {
+        "text": "+ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "111.82941"
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "* Materialfaktor",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.21"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "+ Recyclinggebühr",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.00"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "= Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "352.91628"
+      },
+      {
+        "text": "= Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "111.82941"
+      },
+      {
+        "text": "= Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "464.74569"
+      }
+    ],
+    [
+      {
+        "text": "≈ Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "352.90"
+      },
+      {
+        "text": "≈ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "111.85"
+      },
+      {
+        "text": "≈ Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "464.75"
+      }
+    ]
+  ],
+  "complete_tree": true
+}

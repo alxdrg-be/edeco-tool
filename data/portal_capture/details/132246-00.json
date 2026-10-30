@@ -1,0 +1,746 @@
+{
+  "number": "132246",
+  "va": "00",
+  "year": 2026,
+  "source": "https://digital.asteigerag.ch/dashboard",
+  "portal_page": "0_0_14_3",
+  "captured_at": "2026-10-23T06:07:28.463Z",
+  "capture_kind": "article_dialog",
+  "basic_data": [
+    {
+      "checkbox": null,
+      "label": "Typ",
+      "value": "Komplett-Artikel/-Installation"
+    },
+    {
+      "checkbox": null,
+      "label": "Artikelnummer",
+      "value": "132246"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z1",
+      "value": "Best Sonnerie-Innenstelle MFH"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z2",
+      "value": "Auswechslung Drähte Apparate"
+    },
+    {
+      "checkbox": null,
+      "label": "Bezeichnung Z3",
+      "value": "AP-Sprechstelle"
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 1",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 2",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Kürzel 3",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Lieferant",
+      "value": "1 Strukturen"
+    },
+    {
+      "checkbox": null,
+      "label": "Sortiment",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Bestellnummer",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "E-Nr",
+      "value": ""
+    },
+    {
+      "checkbox": true,
+      "label": "Anschluss",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Nummer",
+      "value": "1"
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Rabatt (in %)",
+      "value": "0"
+    },
+    {
+      "checkbox": null,
+      "label": "Warengruppe-Text",
+      "value": "Komplett-Installationen"
+    },
+    {
+      "checkbox": null,
+      "label": "Bruttomaterialpreis",
+      "value": "217.255"
+    },
+    {
+      "checkbox": null,
+      "label": "Nettomaterialpreis",
+      "value": "147.6648"
+    },
+    {
+      "checkbox": null,
+      "label": "Recyclinggebühr",
+      "value": ""
+    },
+    {
+      "checkbox": null,
+      "label": "Fremdleistung",
+      "value": ""
+    }
+  ],
+  "article_text": "\t\n\n\nBest Sonnerie-Innenstelle\nMFH\n\nAuswechslung Drähte Apparate\n\n\nAP-Sprechstelle\n\n\nAnteil Ruftaster\n\n\nEtagentaster",
+  "images": [
+    {
+      "number": "132246",
+      "va": "00",
+      "vas": [
+        "00"
+      ],
+      "kind": "basic",
+      "role": "Originalbild aus den Grunddaten",
+      "source": "Steiger-Portal, Grunddaten 132246 / VA 00, Katalog 2026",
+      "source_url": "https://digital.asteigerag.ch/dashboard",
+      "portal_page": "0_0_14_3",
+      "catalogue_year": 2026,
+      "captured_at": "2026-10-23T06:07:26.896Z",
+      "width": 88,
+      "height": 150,
+      "file": "images/portal-2026/90a895a6c16057899c224015813400c888d85fbd52aeff4435544f3f20efda40.png",
+      "sha256": "90a895a6c16057899c224015813400c888d85fbd52aeff4435544f3f20efda40",
+      "ordinal": 0
+    }
+  ],
+  "rows": [
+    {
+      "cells": [
+        "Best Sonnerie-Innenstelle MFH",
+        "132246",
+        "00",
+        "1",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "expanded": "true",
+      "index": 0,
+      "level": 0
+    },
+    {
+      "cells": [
+        "Durchbruch Ø -30 -100",
+        "11001",
+        "30",
+        "1",
+        "0",
+        "0",
+        "0.121",
+        "0.121",
+        "",
+        ""
+      ],
+      "expanded": null,
+      "index": 1,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Richtungsänderung Kanal Is -35",
+        "12049",
+        "09",
+        "0.5",
+        "0",
+        "0",
+        "0.241",
+        "0.1205",
+        "",
+        ""
+      ],
+      "expanded": null,
+      "index": 2,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Ausschnitt Is -10 Ø -60",
+        "12060",
+        "09",
+        "1",
+        "0",
+        "0",
+        "0.076",
+        "0.076",
+        "",
+        ""
+      ],
+      "expanded": null,
+      "index": 3,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Kanal Is hf LFH 19x20",
+        "148755",
+        "20",
+        "1.5",
+        "3.668",
+        "5.502",
+        "0.209",
+        "0.3135",
+        "127325472",
+        "LFH2002009016"
+      ],
+      "expanded": null,
+      "index": 4,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Endplatte Is LF/LFH 19x20",
+        "127253",
+        "24",
+        "1",
+        "1.064",
+        "1.064",
+        "0.059",
+        "0.059",
+        "127357372",
+        "LF2002069016"
+      ],
+      "expanded": null,
+      "index": 5,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Steckdeckel 9909.22 130x130",
+        "155913",
+        "48",
+        "0.5",
+        "6.3726",
+        "3.1863",
+        "0.023",
+        "0.0115",
+        "155911028",
+        "9909.22.37"
+      ],
+      "expanded": null,
+      "index": 6,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Kabel U72 Cca hf 1x4x0.8",
+        "102261",
+        "60",
+        "15.7",
+        "0.575",
+        "9.0275",
+        "0.062",
+        "0.9734",
+        "102068304",
+        ""
+      ],
+      "expanded": null,
+      "index": 7,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Kabel U72 Cca hf 1x4x0.8",
+        "102261",
+        "64",
+        "0.4",
+        "0.575",
+        "0.23",
+        "0.115",
+        "0.046",
+        "102068304",
+        ""
+      ],
+      "expanded": null,
+      "index": 8,
+      "level": 1
+    },
+    {
+      "cells": [
+        "UP-Blindabdeckung Gr 1",
+        "989173",
+        "48",
+        "2",
+        "12.24",
+        "24.48",
+        "0.125",
+        "0.25",
+        "388030000",
+        "752.GMI.A.61"
+      ],
+      "expanded": null,
+      "index": 9,
+      "level": 1
+    },
+    {
+      "cells": [
+        "UP-Sonnerietaster Gr 1",
+        "75536",
+        "48",
+        "1",
+        "21.1842",
+        "21.1842",
+        "0.251",
+        "0.251",
+        "863020000",
+        "1262.GMI.A.61"
+      ],
+      "expanded": "true",
+      "index": 10,
+      "level": 1
+    },
+    {
+      "cells": [
+        "UP-Sonnerietaster Gr 1",
+        "995727",
+        "48",
+        "1",
+        "19.944",
+        "19.944",
+        "0.125",
+        "0.125",
+        "863020000",
+        "1262.GMI.A.61"
+      ],
+      "expanded": null,
+      "index": 11,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Draht T Dca hf 3x1.5",
+        "985991",
+        "70",
+        "2",
+        "",
+        "",
+        "0.063",
+        "0.126",
+        "",
+        ""
+      ],
+      "expanded": null,
+      "index": 12,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Wohnungs-Nummer Sonnerietaster graviert",
+        "7725",
+        "24",
+        "1",
+        "8.45",
+        "8.45",
+        "0.123",
+        "0.123",
+        "",
+        "951-1"
+      ],
+      "expanded": "true",
+      "index": 13,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Freie Text Beschriftung",
+        "994115",
+        "24",
+        "1",
+        "8.45",
+        "8.45",
+        "0.123",
+        "0.123",
+        "",
+        "951-1"
+      ],
+      "expanded": null,
+      "index": 14,
+      "level": 2
+    },
+    {
+      "cells": [
+        "AP-Freisprechstelle TC70",
+        "965719",
+        "20",
+        "1",
+        "54.94",
+        "54.94",
+        "0.793",
+        "0.793",
+        "",
+        "DH70.0000"
+      ],
+      "expanded": "true",
+      "index": 15,
+      "level": 1
+    },
+    {
+      "cells": [
+        "AP-Freisprechstelle TC70",
+        "985769",
+        "20",
+        "1",
+        "54.94",
+        "54.94",
+        "0.345",
+        "0.345",
+        "",
+        "DH70.0000"
+      ],
+      "expanded": null,
+      "index": 16,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Kabel U72 Cca hf 1x4x0.8",
+        "102261",
+        "81",
+        "2",
+        "0.575",
+        "1.15",
+        "0.124",
+        "0.248",
+        "102068304",
+        ""
+      ],
+      "expanded": null,
+      "index": 17,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Einregulierung IBS 1.0h",
+        "999000",
+        "09",
+        "0.2",
+        "0",
+        "0",
+        "1",
+        "0.2",
+        "",
+        ""
+      ],
+      "expanded": null,
+      "index": 18,
+      "level": 2
+    },
+    {
+      "cells": [
+        "MP /w Ruftaster z Aussensprechstelle",
+        "966015",
+        "100",
+        "1",
+        "20.1",
+        "20.1",
+        "0",
+        "0",
+        "",
+        "ZC06.0001"
+      ],
+      "expanded": null,
+      "index": 19,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Installationsstunde",
+        "995102",
+        "09",
+        "1",
+        "0",
+        "0",
+        "1",
+        "1",
+        "",
+        ""
+      ],
+      "expanded": null,
+      "index": 20,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Beschriftungsband -20 Z",
+        "8911",
+        "24",
+        "2",
+        "0.3705",
+        "0.741",
+        "0.102",
+        "0.204",
+        "173704540",
+        ""
+      ],
+      "expanded": "true",
+      "index": 21,
+      "level": 1
+    },
+    {
+      "cells": [
+        "Schriftbandkassette B=12 8m",
+        "999014",
+        "100",
+        "0.02",
+        "18.525",
+        "0.3705",
+        "0",
+        "0",
+        "173704540",
+        ""
+      ],
+      "expanded": null,
+      "index": 22,
+      "level": 2
+    },
+    {
+      "cells": [
+        "Beschriftung -20 Zeichen",
+        "999013",
+        "24",
+        "1",
+        "0",
+        "0",
+        "0.102",
+        "0.102",
+        "",
+        ""
+      ],
+      "expanded": null,
+      "index": 23,
+      "level": 2
+    }
+  ],
+  "tree_attributes": [
+    [
+      "role",
+      "treegrid"
+    ],
+    [
+      "class",
+      "k-grid-aria-root"
+    ],
+    [
+      "aria-rowcount",
+      "25"
+    ],
+    [
+      "aria-colcount",
+      "11"
+    ]
+  ],
+  "calculation": [
+    [
+      {
+        "text": "Arbeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Material",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "Akkord",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "Installationszeit",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "4.3419"
+      },
+      {
+        "text": "Bruttomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "217.255"
+      },
+      {
+        "text": "Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "501.05526"
+      }
+    ],
+    [
+      {
+        "text": "* Stundenansatz",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "115.40"
+      },
+      {
+        "text": "Nettomaterialpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "147.6648"
+      },
+      {
+        "text": "+ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "179.13441"
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "* Materialfaktor",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "1.21"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "+ Recyclinggebühr",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "0.46"
+      },
+      {
+        "text": "",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": null
+      }
+    ],
+    [
+      {
+        "text": "= Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "501.05526"
+      },
+      {
+        "text": "= Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "179.13441"
+      },
+      {
+        "text": "= Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "680.18967"
+      }
+    ],
+    [
+      {
+        "text": "≈ Arbeitsleistung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "501.05"
+      },
+      {
+        "text": "≈ Materiallieferung",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "179.15"
+      },
+      {
+        "text": "≈ Akkordpreis",
+        "value": null
+      },
+      {
+        "text": "",
+        "value": "680.20"
+      }
+    ]
+  ],
+  "complete_tree": true
+}
