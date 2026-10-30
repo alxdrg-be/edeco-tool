@@ -18,8 +18,9 @@ Originalbildern, Favoriten, Modellimport und Ausschreibungen. Es läuft unter
 `/tools/bim2steiger/` im selben lokalen Server und Desktopfenster wie Nova.
 Die weiteren Fachwerkzeuge sind noch nicht implementiert.
 
-Die Branches `Nova-Legenden` und `BIM2STEIGER` enthalten die ursprünglichen
-Programme. Der Branch `toolbox` enthält die gemeinsame Anwendung; `main` bleibt vorerst unverändert.
+Die gemeinsame Anwendung liegt auf `main`. Die Branches `Nova-Legenden` und
+`BIM2STEIGER` enthalten die ursprünglichen Programme; `toolbox` hält den bisherigen
+Integrationsstand fest.
 Branches sind Entwicklungsstände, keine zur Laufzeit geladenen Plugins.
 
 ## Aus dem Quellcode starten
@@ -66,7 +67,16 @@ Nova-Funktionen: [ursprüngliche Dokumentation](docs/NOVA_LEGENDEN.md).
 
 ## Windows-Installer
 
-Der Workflow **Toolbox: Windows-Setup bauen** baut ein gemeinsames Windows-Paket
-und stellt es als GitHub-Actions-Artefakt bereit. Er veröffentlicht kein Release.
+Der Workflow **Toolbox: Windows-Setup bauen** läuft bei Änderungen auf `main`
+und lässt sich dort auch manuell starten. Er baut das gemeinsame Windows-Paket,
+prüft den Start der EXE und beide Module und stellt zwei GitHub-Actions-Artefakte
+bereit:
+
+- **edeco-Toolbox-Setup-Build-…**: Setup-EXE mit SHA-256-Prüfsumme.
+- **edeco-Toolbox-portabel-Build-…**: Vollständiger Programmordner. ZIP komplett
+  entpacken und `edeco-Toolbox.exe` starten; die Unterordner müssen dabei bleiben.
+
+Download: Auf GitHub **Actions → Toolbox: Windows-Setup bauen → erfolgreicher
+Lauf → Artifacts** öffnen. Der Workflow veröffentlicht kein Release.
 Die Windows-EXE und das Setup werden erst in diesem Windows-Workflow erzeugt;
 sie sind kein Bestandteil des Quellcode-Imports.

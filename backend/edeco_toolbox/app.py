@@ -8,7 +8,7 @@ from fastapi.staticfiles import StaticFiles
 from nova_legend import config
 from nova_legend.api.app import AppState, create_app as create_nova_app
 
-from . import APP_NAME, APP_VERSION
+from . import APP_NAME, APP_VERSION, BUILD, COMMIT
 from .bim import create_app as create_bim_app
 
 
@@ -20,7 +20,7 @@ def create_app(state: AppState | None = None, ui_dir: Path | None = None):
 
     @app.get("/api/toolbox/status")
     def status():
-        return {"name": APP_NAME, "version": APP_VERSION}
+        return {"name": APP_NAME, "version": APP_VERSION, "build": BUILD, "commit": COMMIT}
 
     # Future tool routers belong here, under /api/tools/<tool-id>.
     app.mount("/tools/bim2steiger", create_bim_app(), name="bim2steiger")

@@ -2,11 +2,15 @@ name: 'Toolbox: Windows-Setup bauen'
 
 on:
   push:
-    branches: [toolbox]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: read
+
+concurrency:
+  group: toolbox-windows-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -19,6 +23,21 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Buildnummer und Quellstand hinterlegen
+        id: version
+        shell: python
+        run: |
+          import os, sys
+          from pathlib import Path
+          number = int(os.environ['GITHUB_RUN_NUMBER'])
+          commit = os.environ['GITHUB_SHA']
+          Path('backend/edeco_toolbox/_build.py').write_text(
+              f'BUILD = {number}\nCOMMIT = {commit!r}\n', encoding='utf-8')
+          Path('backend/nova_legend/_build.py').write_text(f'BUILD = {number}\n', encoding='utf-8')
+          sys.path.insert(0, 'backend')
+          from edeco_toolbox import APP_VERSION
+          with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as output:
+              output.write(f'version={APP_VERSION}\n')
       - name: Oberfläche testen und bauen
         working-directory: ui
         run: |
@@ -53,6 +72,7 @@ jobs:
               } catch { Start-Sleep 1 }
             }
             if (-not $ok) { throw 'Toolbox startet nicht' }
+            if ($status.build -ne [int]$env:GITHUB_RUN_NUMBER -or $status.commit -ne $env:GITHUB_SHA) { throw 'Falsche Buildkennung in der EXE' }
             $page = Invoke-WebRequest 'http://127.0.0.1:8799/' -UseBasicParsing
             if ($page.Content -notmatch 'edeco Toolbox') { throw 'Toolbox-Oberfläche fehlt' }
             $nova = Invoke-RestMethod 'http://127.0.0.1:8799/api/status'
@@ -70,11 +90,24 @@ jobs:
             choco install innosetup -y --no-progress
             $iscc = Get-ChildItem 'C:\Program Files (x86)\Inno Setup*\ISCC.exe' | Select-Object -First 1
           }
-          & $iscc.FullName packaging\toolbox-setup.iss
+          & $iscc.FullName "/DAppVersion=${{ steps.version.outputs.version }}" packaging\toolbox-setup.iss
           if ($LASTEXITCODE -ne 0) { throw 'Inno Setup fehlgeschlagen' }
+      - name: Installer-Prüfsumme erstellen
+        shell: pwsh
+        run: |
+          Get-ChildItem 'dist-installer/edeco-Toolbox-Setup-*.exe' | ForEach-Object {
+            $hash = (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+            Set-Content -Path ($_.FullName + '.sha256') -Value ($hash + '  ' + $_.Name) -Encoding ascii
+          }
       - uses: actions/upload-artifact@v4
         with:
-          name: edeco-Toolbox-Windows
-          path: dist-installer/edeco-Toolbox-Setup-*.exe
+          name: edeco-Toolbox-Setup-Build-${{ github.run_number }}
+          path: dist-installer/edeco-Toolbox-Setup-*
+          if-no-files-found: error
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        with:
+          name: edeco-Toolbox-portabel-Build-${{ github.run_number }}
+          path: dist/edeco-Toolbox/
           if-no-files-found: error
           retention-days: 30

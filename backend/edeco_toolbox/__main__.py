@@ -2,13 +2,13 @@
 
 from nova_legend.__main__ import main as run_desktop
 
-from . import APP_NAME, APP_VERSION
+from . import APP_NAME, version_label
 from .app import create_app
 
 
 def main(argv=None):
     return run_desktop(argv, app_factory=create_app,
-                       window_title=f"{APP_NAME} {APP_VERSION}", launch_updates=False)
+                       window_title=f"{APP_NAME} {version_label()}", launch_updates=False)
 
 
 if __name__ == "__main__":
