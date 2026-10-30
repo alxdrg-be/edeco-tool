@@ -1,4 +1,7 @@
 # Only for the Windows build (own window + exe)
-pywebview>=5.3
-pyinstaller>=6.10
+pywebview==6.2.1
+pyinstaller==6.22.3
+pyinstaller-hooks-contrib==2026.9
+pythonnet==3.2.1; sys_platform == "win32"
+clr-loader==0.3.1; sys_platform == "win32"
 pillow>=10.0

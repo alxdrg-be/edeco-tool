@@ -1,3 +1,10 @@
+## edeco Toolbox 0.2.1
+
+- Windows-Startkorrektur für .NET-DLLs, die beim Entpacken einer heruntergeladenen ZIP eine Download-Markierung erhalten.
+- Die .NET-Ladekonfiguration liegt neben der EXE und gilt ausschliesslich für dieses Programm.
+- Der Windows-Build prüft jetzt das tatsächliche Programmfenster samt gerenderter Toolbox, auch mit Download-markierten DLLs und nach Installation und Aktualisierung.
+- Bei Fehlern des nativen Fensters wird ein verständlicher Hinweis mit Protokollpfad angezeigt.
+
 ## edeco Toolbox 0.2.0
 
 - NOVA-Legenden und BIM2STEIGER bleiben nutzbar und sind als «Work in progress» markiert.

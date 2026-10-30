@@ -109,3 +109,12 @@ diesen Datenordner. Bestehende Nova-Projekte bleiben an ihren bisherigen Pfaden.
 Bei einem Wechsel von einer älteren Version mit flüchtigem WebView-Profil
 BIM-Arbeitslisten vor dem Schliessen als JSON sichern und im neuen Profil laden.
 Versionen ohne gemeinsamen Updater müssen einmal manuell aktualisiert werden.
+
+## Windows-Fensterstart
+
+Ab Version 0.2.1 enthält die portable Ausgabe zusätzlich
+`edeco-Toolbox.exe.config` direkt neben der EXE. Diese Datei gehört zum Programm
+und wird auch vom Setup installiert. Sie ermöglicht das Laden der mitgelieferten
+.NET-Assemblies nach dem Entpacken eines Internetdownloads. Die Windows-Prüfung
+öffnet vor jeder Veröffentlichung jetzt das echte Programmfenster, auch mit
+Download-markierten DLLs. Details: [Windows-Startprüfung](docs/WINDOWS_START.md).

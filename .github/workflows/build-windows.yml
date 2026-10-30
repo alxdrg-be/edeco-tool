@@ -82,6 +82,32 @@ jobs:
           } finally {
             Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue
           }
+      - name: Nativen Fensterstart mit Download-Markierung prüfen
+        shell: pwsh
+        run: |
+          $exe = (Resolve-Path 'dist/edeco-Toolbox/edeco-Toolbox.exe').Path
+          $config = $exe + '.config'
+          if (-not (Test-Path $config)) { throw '.NET-Konfiguration fehlt neben der EXE' }
+          Get-ChildItem 'dist/edeco-Toolbox' -Recurse -Filter '*.dll' | ForEach-Object {
+            Set-Content -LiteralPath $_.FullName -Stream Zone.Identifier -Value "[ZoneTransfer]`r`nZoneId=3"
+          }
+          $env:NOVA_LEGENDEN_HOME = Join-Path $env:RUNNER_TEMP 'native-nova-smoke'
+          $env:EDECO_TOOLBOX_HOME = Join-Path $env:RUNNER_TEMP 'native-baseline-smoke'
+          Move-Item $config ($config + '.disabled')
+          try {
+            $p = Start-Process -FilePath $exe -ArgumentList '--desktop-smoke-test','--port','8797' -PassThru
+            if (-not $p.WaitForExit(90000)) { Stop-Process -Id $p.Id -Force; throw 'Baseline-Fensterstart hängt' }
+            Write-Host "Download-Markierung ohne Anwendungskonfiguration: Exitcode $($p.ExitCode)"
+          } finally { Move-Item ($config + '.disabled') $config }
+          $env:EDECO_TOOLBOX_HOME = Join-Path $env:RUNNER_TEMP 'native-fixed-smoke'
+          $p = Start-Process -FilePath $exe -ArgumentList '--desktop-smoke-test','--port','8797' -PassThru
+          if (-not $p.WaitForExit(90000)) { Stop-Process -Id $p.Id -Force; throw 'Nativer Fensterstart hängt' }
+          if ($p.ExitCode -ne 0) {
+            Get-Content "$env:EDECO_TOOLBOX_HOME\toolbox.log" -Tail 60
+            throw 'Nativer Fensterstart fehlgeschlagen'
+          }
+          $report = Get-Content "$env:EDECO_TOOLBOX_HOME\desktop-smoke.json" -Raw | ConvertFrom-Json
+          if (-not $report.ok -or $report.tool_count -ne 5) { throw 'Toolbox wurde im Programmfenster nicht gerendert' }
       - name: Installer bauen
         shell: pwsh
         run: |
@@ -118,6 +144,12 @@ jobs:
               }
               if (-not $ok) { throw 'Installierte Toolbox startet nicht' }
             } finally { Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue }
+            $gui = Start-Process -FilePath "$installDir\edeco-Toolbox.exe" -ArgumentList '--desktop-smoke-test','--port','8796' -PassThru
+            if (-not $gui.WaitForExit(90000)) { Stop-Process -Id $gui.Id -Force; throw 'Installiertes Programmfenster hängt' }
+            if ($gui.ExitCode -ne 0) {
+              Get-Content "$env:EDECO_TOOLBOX_HOME\toolbox.log" -Tail 60
+              throw 'Installiertes Programmfenster startet nicht'
+            }
           }
       - name: Portable Ausgabe und Release-Text erstellen
         shell: pwsh

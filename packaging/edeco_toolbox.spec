@@ -1,6 +1,7 @@
 # PyInstaller build description. Run from the project root:
 #   pyinstaller packaging/edeco_toolbox.spec --noconfirm
 from pathlib import Path
+from shutil import copyfile
 
 from PyInstaller.utils.hooks import collect_data_files, collect_submodules
 
@@ -34,3 +35,7 @@ exe = EXE(
     version=None,
 )
 coll = COLLECT(exe, a.binaries, a.datas, name="edeco-Toolbox")
+
+# CLR reads the process configuration next to the EXE, not inside _internal.
+copyfile(root / "packaging" / "edeco-Toolbox.exe.config",
+         Path(DISTPATH) / "edeco-Toolbox" / "edeco-Toolbox.exe.config")

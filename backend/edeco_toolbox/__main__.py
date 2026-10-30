@@ -41,11 +41,32 @@ def save_port(home: Path, port: int):
     temporary.replace(target)
 
 
+def probe_desktop(window, home: Path):
+    """Exercise the real native renderer and React page, then close it for CI."""
+    report = {"ok": False}
+    try:
+        deadline = time.monotonic() + 60
+        while time.monotonic() < deadline:
+            if window.evaluate_js("Boolean(document.querySelector('.toolbox-header') && document.querySelectorAll('.toolbox-card').length === 5)"):
+                report = {"ok": True, "tool_count": 5}
+                break
+            time.sleep(.25)
+        if not report["ok"]:
+            report["error"] = "Das native Fenster hat die Toolbox nicht gerendert."
+    except Exception:
+        logging.exception("Native desktop smoke test failed")
+        report["error"] = "Fehler beim Rendern im nativen Fenster."
+    finally:
+        (home / "desktop-smoke.json").write_text(json.dumps(report), encoding="utf-8")
+        window.destroy()
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(prog="edeco_toolbox")
     parser.add_argument("--browser", action="store_true")
     parser.add_argument("--server", action="store_true")
     parser.add_argument("--port", type=int)
+    parser.add_argument("--desktop-smoke-test", action="store_true", help=argparse.SUPPRESS)
     args = parser.parse_args(argv)
     home = local_home()
     home.mkdir(parents=True, exist_ok=True)
@@ -70,6 +91,11 @@ def main(argv=None):
         try:
             import webview
         except ImportError:
+            if args.desktop_smoke_test:
+                logging.exception("Native renderer import failed")
+                server.should_exit = True
+                thread.join(timeout=10)
+                return 1
             logging.warning("pywebview fehlt; öffne Browser")
         else:
             webview.settings["ALLOW_DOWNLOADS"] = True
@@ -81,11 +107,28 @@ def main(argv=None):
             app.state.shutdown = window.destroy
             app.state.updates.desktop = True
             try:
-                webview.start(private_mode=False, storage_path=str(desktop_profile(home)),
-                              icon=str(icon) if icon.is_file() else None)
+                options = dict(private_mode=False, storage_path=str(desktop_profile(home)),
+                               icon=str(icon) if icon.is_file() else None)
+                if sys.platform == "win32":
+                    options["gui"] = "edgechromium"
+                if args.desktop_smoke_test:
+                    (home / "desktop-smoke.json").unlink(missing_ok=True)
+                    options["func"] = lambda: probe_desktop(window, home)
+                webview.start(**options)
+            except Exception:
+                logging.exception("Toolbox window could not start")
+                if not args.desktop_smoke_test and sys.platform == "win32":
+                    import ctypes
+                    ctypes.windll.user32.MessageBoxW(None,
+                        "Das Toolbox-Fenster konnte nicht gestartet werden. Bitte das vollständige Setup verwenden.\n\n"
+                        f"Fehlerprotokoll: {home / 'toolbox.log'}", APP_NAME, 0x10)
+                return 1
             finally:
                 server.should_exit = True
                 thread.join(timeout=10)
+            if args.desktop_smoke_test:
+                report = home / "desktop-smoke.json"
+                return 0 if report.is_file() and json.loads(report.read_text(encoding="utf-8")).get("ok") else 1
             app.state.updates.launch_pending()
             return 0
     webbrowser.open(url)
