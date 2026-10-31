@@ -1,3 +1,12 @@
+## edeco Toolbox 0.4.0
+
+- PDF-Werkstatt: die vorhandene Stirling-PDF-Core-Oberfläche öffnet sich direkt im Toolbox-Fenster mit edeco-Logo und Firmenfarben.
+- PDF-Funktionen bleiben bei Stirling: Seiten bearbeiten, zusammenführen, teilen, konvertieren, signieren und schwärzen, abhängig von den installierten Werkzeugen.
+- Reproduzierbarer Dienst auf Basis von Stirling Core 3.2.2 mit festgelegtem Image-Digest; OCR Deutsch/Englisch, OCRmyPDF, Ghostscript und QPDF ergänzt. Lokal oder auf einem internen Firmenserver betreibbar.
+- Firmenvorgaben für Dienstadresse, Namen, Akzentfarbe und freigegebene Abläufe. Beispiel: PDF als ENTWURF stempeln und unter neuem Namen im Netzordner ablegen.
+- Hinweis vor dem Verlassen eines Arbeitsbereichs mit geöffneten/verarbeiteten Dateien; bestehende Ergebnisse zuerst speichern.
+- Build prüft die echte Stirling-Verarbeitung und die eingebettete Oberfläche. Python-Modulpfad im PDF-Prüfschritt des Windows-Builds korrigiert.
+
 ## edeco Toolbox 0.3.0
 
 - Neuer Dokumenten-Assistent: eigene PDFs und UTF-8-Textdateien hinzufügen, Dokumentstände angeben und gezielt durchsuchen.

@@ -11,7 +11,7 @@ farbige Werkzeugkacheln, Suche, Kategorien und Hell-/Dunkelmodus.
 | BIM2STEIGER | Nutzbar, Work in progress; lokaler Katalog integriert | Blau |
 | Dokumenten-Assistent | Nutzbar, Work in progress; lokale Suche, KI über gemeinsamen Server | Violett |
 | Dateien umbenennen | Geplant | Grün |
-| PDF-Werkzeuge | Geplant | Rosé |
+| PDF-Werkstatt | Stirling Core direkt eingebettet; lokaler Dienst/Firmenserver erforderlich | Rosé |
 | Projektzentrale | Geplant | Petrol |
 | Änderungsbericht | Geplant | Orange |
 | Leistungsbilanz | Geplant | Violett |
@@ -21,7 +21,7 @@ farbige Werkzeugkacheln, Suche, Kategorien und Hell-/Dunkelmodus.
 BIM2STEIGER verwendet seinen vorhandenen Katalog mit 11’777 Katalogartikeln,
 Originalbildern, Favoriten, Modellimport und Ausschreibungen. Es läuft unter
 `/tools/bim2steiger/` im selben lokalen Server und Desktopfenster wie Nova.
-Die sieben geplanten Erweiterungen sind als ausgegraute, deaktivierte Kacheln
+Die sechs geplanten Erweiterungen sind als ausgegraute, deaktivierte Kacheln
 vorbereitet. Alle zehn Werkzeuge sind im normalen Desktopfenster (1400 × 900)
 ohne Scrollen sichtbar; kleinere Fenster können scrollen. Umfang und Reihenfolge
 der Erweiterungen stehen im [Ausbauplan](docs/TOOLBOX_AUSBAUPLAN.md).
@@ -35,6 +35,13 @@ Modellinstallation auf den einzelnen Toolbox-PCs. Die Dokumentbibliothek bleibt
 zunächst pro PC; sie wird nicht automatisch zwischen Rechnern geteilt.
 Eine kostenpflichtige OpenAI-kompatible API ist optional. Details und Grenzen:
 [Dokumenten-Assistent](docs/DOKUMENTEN_ASSISTENT.md).
+
+Die **PDF-Werkstatt** bettet die originale Stirling-PDF-Core-Oberfläche in die
+Toolbox ein. Vorhandene PDF-Funktionen werden wiederverwendet; edeco-Logo,
+Firmenfarben und freigegebene Abläufe ergänzen die Oberfläche. Der Dienst läuft
+auf demselben PC oder einmal im Firmennetz; die Toolbox-PCs brauchen bei der
+Servervariante weder Docker noch Java. [Dienst ausrollen](deployment/pdf-workshop/README.md),
+[Architektur und modularer Controller](docs/PDF_WERKSTATT_ARCHITEKTUR.md).
 
 Die gemeinsame Anwendung liegt auf `main`. Die Branches `Nova-Legenden` und
 `BIM2STEIGER` enthalten die ursprünglichen Programme; `toolbox` hält den bisherigen
@@ -98,10 +105,12 @@ Download: Auf GitHub **Actions → Toolbox: Windows-Setup bauen → erfolgreiche
 Lauf → Artifacts** öffnen. Nach allen erfolgreichen Prüfungen veröffentlicht
 `main` außerdem automatisch ein Release `v<Version>-build.<Nummer>` unter
 [Releases](https://github.com/alxdrg-be/edeco-tool/releases). Dort liegen Setup,
-portable ZIP und beide SHA-256-Dateien dauerhaft.
+portable ZIP, Einrichtungspakete und zugehörige SHA-256-Dateien dauerhaft.
 Ab 0.3.0 enthält das Release zusätzlich `edeco-KI-Server-Einrichtung-….zip` mit
 Anleitung und Starthelfer für den einen gemeinsamen KI-Server. Diese ZIP wird
 auf den normalen Toolbox-PCs nicht benötigt.
+Ab 0.4.0 liegt zusätzlich `edeco-PDF-Dienst-….zip` mit Compose-Datei und Anleitung
+für den Stirling-Dienst bei.
 Die Windows-EXE und das Setup werden erst in diesem Windows-Workflow erzeugt;
 sie sind kein Bestandteil des Quellcode-Imports.
 

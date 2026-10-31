@@ -18,7 +18,10 @@ sie werden zur Laufzeit weder gewechselt noch heruntergeladen.
   als ASGI-Unteranwendung bereit. Die Oberfläche wird unter
   `/tools/bim2steiger/` im gemeinsamen Fenster eingebettet; ein zweiter Prozess
   oder Server ist nicht erforderlich.
-- Dateien umbenennen, PDF-Werkzeuge, Projektzentrale, Änderungsbericht,
+- Die PDF-Werkstatt bettet Stirling Core ein. Unter `pdf_workshop/` liegen
+  Verbindung, Sitzungsproxy und Firmenabläufe; die Originaloberfläche bleibt im
+  Stirling-Dienst. [Architektur](PDF_WERKSTATT_ARCHITEKTUR.md).
+- Dateien umbenennen, Projektzentrale, Änderungsbericht,
   Leistungsbilanz, Kabelberechnung und Anlagetool sind geplante Werkzeuge;
   die Kacheln sind deaktiviert und enthalten noch keine Fachfunktionen.
   Umfang und Prioritäten stehen im [Ausbauplan](TOOLBOX_AUSBAUPLAN.md).

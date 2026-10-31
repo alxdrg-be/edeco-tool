@@ -1,0 +1,48 @@
+services:
+  pdf-workshop:
+    build: .
+    image: edeco/pdf-workshop:3.2.2-core
+    restart: unless-stopped
+    ports:
+      - "${PDF_BIND_ADDRESS:-127.0.0.1}:${PDF_PORT:-8088}:8080"
+    environment:
+      SYSTEM_ROOTURIPATH: /tools/pdf-werkstatt
+      SYSTEM_DEFAULTLOCALE: de-DE
+      UI_APPNAMENAVBAR: edeco PDF-Werkstatt
+      UI_DEFAULTSTARTUPVIEW: tools
+      UI_DEFAULTHIDEUNAVAILABLETOOLS: "true"
+      UI_DEFAULTHIDEUNAVAILABLECONVERSIONS: "true"
+      SECURITY_ENABLELOGIN: "false"
+      SYSTEM_ENABLEANALYTICS: "false"
+      SYSTEM_ENABLEPOSTHOG: "false"
+      SYSTEM_ENABLESCARF: "false"
+      SYSTEM_SHOWUPDATE: "false"
+      SYSTEM_GOOGLEVISIBILITY: "false"
+      SYSTEM_ENABLEDESKTOPINSTALLSLIDE: "false"
+      SYSTEM_ENABLEEASTEREGGS: "false"
+      SYSTEM_MAXFILESIZE: "100"
+      TOOLRECOMMENDATIONS_ENABLED: "false"
+      ENDPOINTS_TOREMOVE: "${PDF_DISABLED_ENDPOINTS:-}"
+    volumes:
+      - pdf-config:/configs
+      - pdf-logs:/logs
+    tmpfs:
+      - /tmp/stirling-pdf:rw,nosuid,nodev,size=1073741824,mode=1777
+    mem_limit: "${PDF_MEMORY_LIMIT:-3g}"
+    cpus: "${PDF_CPUS:-2}"
+    networks:
+      - pdf-private
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/tools/pdf-werkstatt/api/v1/info/status"]
+      interval: 15s
+      timeout: 5s
+      start_period: 60s
+      retries: 6
+
+networks:
+  pdf-private:
+    driver: bridge
+
+volumes:
+  pdf-config:
+  pdf-logs:

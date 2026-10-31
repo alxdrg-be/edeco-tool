@@ -12,6 +12,7 @@ from . import APP_NAME, APP_VERSION, BUILD, COMMIT
 from .bim import create_app as create_bim_app
 from .update_api import register as register_updates
 from .documents.api import register as register_documents
+from .pdf_workshop.api import register as register_pdf_workshop
 
 
 def create_app(state: AppState | None = None, ui_dir: Path | None = None):
@@ -21,6 +22,7 @@ def create_app(state: AppState | None = None, ui_dir: Path | None = None):
     app.version = APP_VERSION
     register_updates(app)
     register_documents(app)
+    register_pdf_workshop(app)
 
     @app.get("/api/toolbox/status")
     def status():

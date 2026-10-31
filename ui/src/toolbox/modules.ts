@@ -7,4 +7,5 @@ export const MODULES: Readonly<Record<string, LazyExoticComponent<ComponentType<
   "nova-legenden": lazy(() => import("../App")),
   "bim2steiger": lazy(() => import("./BimTool")),
   "dokumenten-assistent": lazy(() => import("../tools/dokumenten-assistent/DocumentAssistant")),
+  "pdf-werkzeuge": lazy(() => import("../tools/pdf-workshop/PdfWorkshop")),
 };

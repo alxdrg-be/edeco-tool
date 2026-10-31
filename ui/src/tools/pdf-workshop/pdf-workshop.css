@@ -1,0 +1,17 @@
+.pdf-workshop { height: 100%; display: flex; flex-direction: column; background: var(--bg); }
+.pdf-workshop-title { font-size: 14px; font-weight: 650; color: var(--accent); margin-right: auto; }
+.pdf-service-badge { font-size: 10px; color: var(--muted); }
+.pdf-stirling-frame { width: 100%; flex: 1; min-height: 0; border: 0; background: var(--panel); }
+.pdf-connection, .pdf-workflows { padding: 28px clamp(20px, 4vw, 58px); border-bottom: 1px solid var(--line); background: var(--panel); overflow: auto; }
+.pdf-connection h1 { font-size: 30px; letter-spacing: -.9px; margin: 0 0 12px; }
+.pdf-connection p, .pdf-workflows p { font-size: 13px; line-height: 1.7; }
+.pdf-connection form { display: flex; flex-direction: column; gap: 14px; max-width: 650px; margin-top: 22px; }
+.pdf-connection label, .pdf-workflows label { display: flex; flex-direction: column; gap: 8px; font-size: 12px; font-weight: 600; }
+.pdf-connection input, .pdf-workflows input, .pdf-workflows select { padding: 11px; border: 1px solid var(--line-strong); border-radius: 9px; color: var(--fg); background: var(--panel); }
+.pdf-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+.pdf-muted { color: var(--muted); font-size: 11px; }
+.pdf-connected { color: var(--ok); }
+.pdf-error { color: var(--danger); }
+.pdf-workflows h2 { font-size: 19px; }
+.pdf-workflows form { display: flex; align-items: flex-end; flex-wrap: wrap; gap: 16px; }
+@media (max-width: 740px) { .pdf-service-badge { width: 100%; } .pdf-connection h1 { font-size: 25px; } }

@@ -16,6 +16,7 @@ a = Analysis(
            (str(root / "backend" / "bim2steiger" / "data"), "bim2steiger/data"),
            (str(root / "backend" / "bim2steiger" / "web"), "bim2steiger/web"),
            (str(root / "backend" / "bim2steiger" / "version.json"), "bim2steiger"),
+           (str(root / "backend" / "edeco_toolbox" / "pdf_workshop" / "assets"), "edeco_toolbox/pdf_workshop/assets"),
            (str(root / "packaging" / "toolbox.ico"), "packaging")]
           + collect_data_files("ezdxf") + collect_data_files("pypdfium2")
           + collect_data_files("pypdfium2_raw") + copy_metadata("pypdfium2"),

@@ -1,0 +1,13 @@
+{
+  "service_url": "http://PDF-SERVER:8088",
+  "title": "edeco PDF-Werkstatt",
+  "accent": "#c26279",
+  "workflows": [
+    {
+      "id": "draft",
+      "title": "Als Entwurf auf X: ablegen",
+      "target_folder": "X:\\_Projekte\\_Entwurf",
+      "stamp": "ENTWURF"
+    }
+  ]
+}

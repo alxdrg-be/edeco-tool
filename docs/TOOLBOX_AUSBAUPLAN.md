@@ -1,18 +1,19 @@
 # Vorbereitete Erweiterungen
 
-Die folgenden sieben Werkzeuge sind im gemeinsamen Katalog registriert. Ihre
+Die folgenden sechs Werkzeuge sind im gemeinsamen Katalog registriert. Ihre
 Kacheln zeigen **Geplant**, sind ausgegraut und deaktiviert. Es gibt dafür noch
 keine Dateizugriffe, Berechnungen oder Exporte. NOVA-Legenden und BIM2STEIGER
 bleiben als **Work in progress** nutzbar.
 Der zusätzliche Dokumenten-Assistent ist inzwischen ebenfalls als **Work in
 progress** nutzbar; Details unter [Dokumenten-Assistent](DOKUMENTEN_ASSISTENT.md).
+Die PDF-Werkstatt verwendet inzwischen die eingebettete Stirling-Oberfläche;
+Details unter [PDF-Werkstatt](PDF_WERKSTATT_ARCHITEKTUR.md).
 
 ## Reihenfolge und vorgesehener Umfang
 
 | Priorität | Werkzeug / stabile ID | Vorgesehener erster Umfang |
 | --- | --- | --- |
 | Zuerst | Dateien umbenennen / `dateien-umbenennen` | Regeln für Projektnummer, Planart, Geschoss, Revision und Datum; Vorschau alter/neuer Namen; Konfliktprüfung; protokolliertes Rückgängigmachen. |
-| Zuerst | PDF-Werkzeuge / `pdf-werkzeuge` | PDFs zusammenführen, Seiten trennen, drehen und neu anordnen; Vorschau; Export als neue Datei. |
 | Zuerst | Projektzentrale / `projektzentrale` | Projektnummer, Bezeichnung, Kontakte und Projektordner; letzte Dokumente; gemeinsame Projektauswahl für weitere Werkzeuge. |
 | Später | Änderungsbericht / `aenderungsbericht` | Zwei gespeicherte Projektstände vergleichen; hinzugefügte, entfernte und geänderte Einträge mit Quelle darstellen; PDF-/Excel-Bericht. |
 | Später | Leistungsbilanz / `leistungsbilanz` | Verbraucher nach Verteilung gruppieren; Anschlussleistung und Gleichzeitigkeitsfaktoren nachvollziehbar erfassen; Ergebnisse mit Annahmen exportieren. |

@@ -1,0 +1,60 @@
+/* Company theme for Stirling Core; functional controls and licence notices stay. */
+:root {
+  --mantine-font-family: "Segoe UI", system-ui, Arial, sans-serif;
+  --mantine-radius-default: 12px;
+  --mantine-primary-color-filled: __EDECO_ACCENT__ !important;
+  --mantine-primary-color-filled-hover: #a3445d !important;
+  --mantine-color-blue-6: __EDECO_ACCENT__ !important;
+  --mantine-color-blue-7: #a3445d !important;
+  --mantine-color-blue-8: #87364e !important;
+  --mantine-primary-color-6: __EDECO_ACCENT__ !important;
+  --mantine-primary-color-light-color: __EDECO_ACCENT__ !important;
+  --mantine-primary-color-light: #c2627914 !important;
+}
+body, button, input, select, textarea { font-family: "Segoe UI", system-ui, Arial, sans-serif !important; }
+img[src*="StirlingPDFLogo"], img[src*="logo-tooltip.svg"] { object-fit: contain; }
+[data-mantine-color-scheme="light"] { --mantine-color-body: #f4f7f8; }
+[data-mantine-color-scheme="dark"] { --mantine-color-body: #10191f; }
+button { border-radius: 9px; }
+
+/* Stirling 3.2.2 Core's semantic tokens, kept separate from document colours. */
+:root, html[data-app-theme] {
+  --c-bg: #f4f7f8 !important;
+  --c-bg-raised: #ffffff !important;
+  --c-surface: #f8fafb !important;
+  --c-surface-raised: #ffffff !important;
+  --c-surface-sunken: #edf2f4 !important;
+  --c-input-bg: #ffffff !important;
+  --c-border: #e1e8ec !important;
+  --c-border-strong: #c6d3da !important;
+  --c-primary: __EDECO_ACCENT__ !important;
+  --c-primary-hover: #a3445d !important;
+  --c-accent-text: #a3445d !important;
+  --c-btn-solid: #a3445d !important;
+  --c-text: #203039 !important;
+  --c-text-muted: #64757f !important;
+  --c-brand-mark: __EDECO_ACCENT__ !important;
+  --c-brand-mark-soft: #d7a2af !important;
+}
+html[data-edeco-theme="dark"] {
+  --c-bg: #10191f !important;
+  --c-bg-raised: #17232b !important;
+  --c-surface: #1c2b34 !important;
+  --c-surface-raised: #24353f !important;
+  --c-surface-sunken: #111d25 !important;
+  --c-input-bg: #17232b !important;
+  --c-border: #2d414d !important;
+  --c-border-strong: #48616f !important;
+  --c-text: #e8f0f3 !important;
+  --c-text-muted: #a3b5bf !important;
+  --c-primary: #efa8bd !important;
+  --c-accent-text: #efa8bd !important;
+}
+.sui-logo {
+  min-width: 135px;
+  min-height: 48px;
+  background: url("/tools/pdf-werkstatt/edeco/logo.svg") center / contain no-repeat;
+}
+.sui-logo--vertical { min-width: 230px; min-height: 115px; }
+.sui-logo > * { visibility: hidden; }
+html[data-edeco-theme="dark"] .sui-logo { background-image: url("/tools/pdf-werkstatt/edeco/logo.svg?theme=dark"); }

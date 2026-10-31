@@ -123,7 +123,7 @@ def test_returning_to_toolbox_saves_the_open_legend_and_filters_tools(editor):
     search = page.get_by_role("searchbox", name="Werkzeug suchen")
     search.fill("PDF Seiten")
     playwright.expect(page.locator(".toolbox-card")).to_have_count(1)
-    playwright.expect(page.get_by_role("heading", name="PDF-Werkzeuge", exact=True)).to_be_visible()
+    playwright.expect(page.get_by_role("heading", name="PDF-Werkstatt", exact=True)).to_be_visible()
     search.fill("unbekanntes-tool")
     page.get_by_role("button", name="Filter zurücksetzen").click()
     page.get_by_role("button", name="BIM", exact=True).click()
@@ -214,7 +214,7 @@ def test_toolbox_shows_all_tiles_without_scroll_and_greys_only_planned_tools(edi
     # A 900px native window also needs space for its Windows title bar.
     page.set_viewport_size({"width": 1400, "height": 860})
     assert page.locator(".toolbox").evaluate("el => el.scrollHeight <= el.clientHeight")
-    planned = ["Dateien umbenennen", "PDF-Werkzeuge", "Projektzentrale", "Änderungsbericht",
+    planned = ["Dateien umbenennen", "Projektzentrale", "Änderungsbericht",
                "Leistungsbilanz", "Kabelberechnung", "Anlagetool"]
     for name in planned:
         tile = page.locator(".toolbox-card").filter(has=page.get_by_role("heading", name=name, exact=True))
@@ -227,11 +227,52 @@ def test_toolbox_shows_all_tiles_without_scroll_and_greys_only_planned_tools(edi
     playwright.expect(page.get_by_role("button", name="NOVA-Legenden öffnen", exact=True)).to_be_enabled()
     playwright.expect(page.get_by_role("button", name="BIM2STEIGER öffnen", exact=True)).to_be_enabled()
     playwright.expect(page.get_by_role("button", name="Dokumenten-Assistent öffnen", exact=True)).to_be_enabled()
+    playwright.expect(page.get_by_role("button", name="PDF-Werkstatt öffnen", exact=True)).to_be_enabled()
     page.set_viewport_size({"width": 390, "height": 844})
     assert page.locator(".toolbox").evaluate("el => el.scrollWidth <= el.clientWidth")
     assert page.locator(".toolbox").evaluate("el => el.scrollHeight > el.clientHeight")
     page.get_by_role("heading", name="Anlagetool", exact=True).scroll_into_view_if_needed()
     playwright.expect(page.get_by_role("heading", name="Anlagetool", exact=True)).to_be_in_viewport()
+
+
+@pytest.mark.skipif(not os.environ.get("EDECO_TEST_STIRLING_URL"), reason="Live Stirling service required")
+def test_stirling_embedded_keeps_original_ui_and_merges_two_real_pdfs(editor):
+    import pypdfium2 as pdfium
+    from urllib.parse import urlsplit
+    from test_documents import sample_pdf
+    page, _, _, _ = editor
+    external_requests = []
+    page.on("request", lambda request: external_requests.append(request.url)
+            if urlsplit(request.url).scheme in {"http", "https"} and urlsplit(request.url).hostname not in {"127.0.0.1", "localhost"} else None)
+    page.set_viewport_size({"width": 1400, "height": 900})
+    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="PDF-Werkstatt öffnen", exact=True).click()
+    frame = page.frame_locator("iframe[title='Stirling-PDF · edeco PDF-Werkstatt']")
+    picker = frame.locator("input[type=file]").first
+    picker.wait_for(state="attached", timeout=60000)
+    playwright.expect(frame.locator(".sui-logo").first).to_have_css("background-image", re.compile("edeco/logo.svg"))
+    picker.set_input_files([
+        {"name": "Plan-A.pdf", "mimeType": "application/pdf", "buffer": sample_pdf([["FIRST PLAN"]])},
+        {"name": "Plan-B.pdf", "mimeType": "application/pdf", "buffer": sample_pdf([["SECOND PLAN"]])},
+    ])
+    frame.get_by_text("Plan-B.pdf", exact=True).first.wait_for(timeout=30000)
+    frame.get_by_text("Zusammenführen", exact=True).first.click()
+    with page.expect_response(lambda response: response.url.endswith("/api/v1/general/merge-pdfs"), timeout=60000) as processing:
+        frame.get_by_role("button", name="Zusammenführen (2 Dateien)", exact=True).click()
+    response = processing.value
+    assert response.status == 200
+    with pdfium.PdfDocument(response.body()) as result:
+        assert len(result) == 2
+    frame.get_by_text("merged_Plan-A.pdf", exact=True).first.wait_for(timeout=30000)
+    assert not external_requests, "PDF processing must not make browser requests to public services"
+    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    dialog = page.get_by_role("alertdialog", name="Ergebnisse gespeichert?")
+    playwright.expect(dialog).to_be_visible()
+    dialog.get_by_role("button", name="Hier bleiben", exact=True).click()
+    playwright.expect(page.locator("iframe")).to_be_visible()
+    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Zur Toolbox wechseln", exact=True).click()
+    playwright.expect(page.get_by_role("heading", name="Ein Ort. Deine Werkzeuge.")).to_be_visible()
 
 
 def test_document_assistant_imports_pdf_finds_exact_source_and_preserves_library(editor):
