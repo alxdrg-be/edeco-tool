@@ -209,7 +209,7 @@ def test_toolbox_shows_all_tiles_without_scroll_and_greys_only_planned_tools(edi
     page, _, _, _ = editor
     page.set_viewport_size({"width": 1400, "height": 900})
     page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
-    playwright.expect(page.locator(".toolbox-card")).to_have_count(9)
+    playwright.expect(page.locator(".toolbox-card")).to_have_count(10)
     assert page.locator(".toolbox").evaluate("el => el.scrollHeight <= el.clientHeight")
     # A 900px native window also needs space for its Windows title bar.
     page.set_viewport_size({"width": 1400, "height": 860})
@@ -226,11 +226,81 @@ def test_toolbox_shows_all_tiles_without_scroll_and_greys_only_planned_tools(edi
         assert tile.locator(".toolbox-symbol").evaluate("el => getComputedStyle(el).filter") == "grayscale(1)"
     playwright.expect(page.get_by_role("button", name="NOVA-Legenden öffnen", exact=True)).to_be_enabled()
     playwright.expect(page.get_by_role("button", name="BIM2STEIGER öffnen", exact=True)).to_be_enabled()
+    playwright.expect(page.get_by_role("button", name="Dokumenten-Assistent öffnen", exact=True)).to_be_enabled()
     page.set_viewport_size({"width": 390, "height": 844})
     assert page.locator(".toolbox").evaluate("el => el.scrollWidth <= el.clientWidth")
     assert page.locator(".toolbox").evaluate("el => el.scrollHeight > el.clientHeight")
     page.get_by_role("heading", name="Anlagetool", exact=True).scroll_into_view_if_needed()
     playwright.expect(page.get_by_role("heading", name="Anlagetool", exact=True)).to_be_in_viewport()
+
+
+def test_document_assistant_imports_pdf_finds_exact_source_and_preserves_library(editor):
+    from test_documents import sample_pdf
+    page, _, _, _ = editor
+    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Dokumenten-Assistent öffnen", exact=True).click()
+    page.get_by_label("Dokumentstand für neue Dateien").fill("Testausgabe 2026")
+    page.get_by_label("Dokumente hinzufügen", exact=True).set_input_files({
+        "name": "Test-Richtlinie.pdf", "mimeType": "application/pdf", "buffer": sample_pdf()})
+    playwright.expect(page.locator(".doc-document")).to_have_count(1)
+    page.get_by_label("Deine Frage", exact=True).fill("Was ist am Schutzleiter zu prüfen?")
+    playwright.expect(page.get_by_role("button", name="KI-Antwort", exact=True)).to_be_disabled()
+    page.get_by_role("button", name="Fundstellen suchen", exact=True).click()
+    playwright.expect(page.locator(".doc-source")).to_have_count(1)
+    playwright.expect(page.locator(".doc-source-link")).to_contain_text("Seite 2")
+    playwright.expect(page.locator(".doc-source-link")).to_contain_text("Testausgabe 2026")
+    playwright.expect(page.get_by_alt_text("Test-Richtlinie, Originalseite 2")).to_be_visible()
+    playwright.expect(page.locator(".doc-source-highlight").first).to_be_visible()
+    assert page.get_by_alt_text("Test-Richtlinie, Originalseite 2").evaluate("el => el.naturalWidth > 0")
+    page.get_by_label("PDF-Vergrösserung", exact=True).select_option("1.5")
+    assert page.locator(".doc-pdf-page").evaluate("el => el.clientWidth > el.parentElement.clientWidth")
+    playwright.expect(page.locator(".doc-source-highlight").first).to_be_visible()
+    page.get_by_label("Deine Frage", exact=True).fill("Photovoltaik")
+    page.get_by_role("button", name="Fundstellen suchen", exact=True).click()
+    playwright.expect(page.locator(".doc-answer")).to_contain_text("Keine passende Fundstelle")
+    playwright.expect(page.locator(".doc-source-highlight")).to_have_count(0)
+    playwright.expect(page.get_by_alt_text("Test-Richtlinie, Originalseite 2")).to_have_count(0)
+    page.reload()
+    playwright.expect(page.locator(".doc-document")).to_have_count(1)
+    page.set_viewport_size({"width": 390, "height": 844})
+    assert page.locator(".document-assistant").evaluate("el => el.scrollWidth <= el.clientWidth")
+    page.get_by_role("button", name="Entfernen", exact=True).click()
+    page.get_by_role("button", name="Jetzt entfernen", exact=True).click()
+    playwright.expect(page.locator(".doc-document")).to_have_count(0)
+
+
+def test_document_assistant_defaults_to_free_server_and_opens_cited_pdf_page(editor):
+    import json
+    from test_documents import sample_pdf
+    page, _, _, _ = editor
+    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Dokumenten-Assistent öffnen", exact=True).click()
+    page.get_by_label("Dokumente hinzufügen", exact=True).set_input_files({
+        "name": "Test.pdf", "mimeType": "application/pdf", "buffer": sample_pdf()})
+    playwright.expect(page.locator(".doc-document")).to_have_count(1)
+    page.route("**/api/tools/dokumenten-assistent/connection", lambda route: route.fulfill(json={"ok": True, "message": "Testserver erreichbar. Keine Dokumente übertragen."}))
+    page.get_by_role("button", name="KI-Verbindung", exact=True).click()
+    dialog = page.get_by_role("dialog", name="KI-Verbindung einrichten")
+    playwright.expect(dialog.get_by_label("Betriebsart")).to_have_value("ollama")
+    dialog.get_by_label("KI-Serveradresse", exact=True).fill("http://ki-server:11434/api/chat")
+    dialog.get_by_role("button", name="Speichern und Server prüfen").click()
+    playwright.expect(dialog).to_contain_text("Testserver erreichbar")
+    dialog.get_by_role("button", name="Schliessen", exact=True).click()
+    def answer(route):
+        body = json.loads(route.request.post_data)
+        assert body["use_ai"] is True
+        body["use_ai"] = False
+        response = route.fetch(post_data=json.dumps(body))
+        result = response.json()
+        result.update(mode="ai", blocks=[{"text": "Der Schutzleiter ist vor Inbetriebnahme zu prüfen.", "source_ids": [result["sources"][0]["id"]]}])
+        route.fulfill(json=result)
+    page.route("**/api/tools/dokumenten-assistent/ask", answer)
+    page.get_by_label("Deine Frage", exact=True).fill("Schutzleiter")
+    page.get_by_role("button", name="KI-Antwort", exact=True).click()
+    playwright.expect(page.locator(".doc-answer-block")).to_contain_text("Schutzleiter")
+    page.locator(".doc-citations button").click()
+    playwright.expect(page.get_by_alt_text("Test, Originalseite 2")).to_be_visible()
+    playwright.expect(page.locator(".doc-source-highlight").first).to_be_visible()
 
 
 def test_common_updater_checks_and_requires_confirmation_before_install(editor):

@@ -4,6 +4,8 @@ Die folgenden sieben Werkzeuge sind im gemeinsamen Katalog registriert. Ihre
 Kacheln zeigen **Geplant**, sind ausgegraut und deaktiviert. Es gibt dafür noch
 keine Dateizugriffe, Berechnungen oder Exporte. NOVA-Legenden und BIM2STEIGER
 bleiben als **Work in progress** nutzbar.
+Der zusätzliche Dokumenten-Assistent ist inzwischen ebenfalls als **Work in
+progress** nutzbar; Details unter [Dokumenten-Assistent](DOKUMENTEN_ASSISTENT.md).
 
 ## Reihenfolge und vorgesehener Umfang
 

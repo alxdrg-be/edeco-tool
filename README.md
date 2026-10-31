@@ -9,6 +9,7 @@ farbige Werkzeugkacheln, Suche, Kategorien und Hell-/Dunkelmodus.
 | --- | --- | --- |
 | NOVA-Legenden | Nutzbar, Work in progress | Petrol |
 | BIM2STEIGER | Nutzbar, Work in progress; lokaler Katalog integriert | Blau |
+| Dokumenten-Assistent | Nutzbar, Work in progress; lokale Suche, KI über gemeinsamen Server | Violett |
 | Dateien umbenennen | Geplant | Grün |
 | PDF-Werkzeuge | Geplant | Rosé |
 | Projektzentrale | Geplant | Petrol |
@@ -21,9 +22,19 @@ BIM2STEIGER verwendet seinen vorhandenen Katalog mit 11’777 Katalogartikeln,
 Originalbildern, Favoriten, Modellimport und Ausschreibungen. Es läuft unter
 `/tools/bim2steiger/` im selben lokalen Server und Desktopfenster wie Nova.
 Die sieben geplanten Erweiterungen sind als ausgegraute, deaktivierte Kacheln
-vorbereitet. Alle neun Werkzeuge sind im normalen Desktopfenster (1400 × 900)
+vorbereitet. Alle zehn Werkzeuge sind im normalen Desktopfenster (1400 × 900)
 ohne Scrollen sichtbar; kleinere Fenster können scrollen. Umfang und Reihenfolge
 der Erweiterungen stehen im [Ausbauplan](docs/TOOLBOX_AUSBAUPLAN.md).
+
+Der **Dokumenten-Assistent** liest eigene PDF-, TXT- und Markdown-Dateien ein.
+Fundstellen enthalten Dokumentstand, PDF-Seite beziehungsweise Blattlabel und
+Textzeilen. Ein Klick zeigt die Stelle im Original markiert. Die Fundstellensuche
+funktioniert ohne KI-Server. Formulierte Antworten können über einen gemeinsamen
+Ollama-Server mit freiem Modell erzeugt werden: keine API-Gebühren und keine
+Modellinstallation auf den einzelnen Toolbox-PCs. Die Dokumentbibliothek bleibt
+zunächst pro PC; sie wird nicht automatisch zwischen Rechnern geteilt.
+Eine kostenpflichtige OpenAI-kompatible API ist optional. Details und Grenzen:
+[Dokumenten-Assistent](docs/DOKUMENTEN_ASSISTENT.md).
 
 Die gemeinsame Anwendung liegt auf `main`. Die Branches `Nova-Legenden` und
 `BIM2STEIGER` enthalten die ursprünglichen Programme; `toolbox` hält den bisherigen
@@ -76,7 +87,7 @@ Nova-Funktionen: [ursprüngliche Dokumentation](docs/NOVA_LEGENDEN.md).
 
 Der Workflow **Toolbox: Windows-Setup bauen** läuft bei Änderungen auf `main`
 und lässt sich dort auch manuell starten. Er baut das gemeinsame Windows-Paket,
-prüft den Start der EXE und beide Module und stellt zwei GitHub-Actions-Artefakte
+prüft den Start der EXE und die drei Module und stellt zwei GitHub-Actions-Artefakte
 bereit:
 
 - **edeco-Toolbox-Setup-Build-…**: Setup-EXE mit SHA-256-Prüfsumme.
@@ -88,6 +99,9 @@ Lauf → Artifacts** öffnen. Nach allen erfolgreichen Prüfungen veröffentlich
 `main` außerdem automatisch ein Release `v<Version>-build.<Nummer>` unter
 [Releases](https://github.com/alxdrg-be/edeco-tool/releases). Dort liegen Setup,
 portable ZIP und beide SHA-256-Dateien dauerhaft.
+Ab 0.3.0 enthält das Release zusätzlich `edeco-KI-Server-Einrichtung-….zip` mit
+Anleitung und Starthelfer für den einen gemeinsamen KI-Server. Diese ZIP wird
+auf den normalen Toolbox-PCs nicht benötigt.
 Die Windows-EXE und das Setup werden erst in diesem Windows-Workflow erzeugt;
 sie sind kein Bestandteil des Quellcode-Imports.
 

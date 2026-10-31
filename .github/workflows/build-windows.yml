@@ -48,6 +48,13 @@ jobs:
         run: |
           python -m pip install -r backend/requirements.txt -r packaging/requirements-windows.txt -r backend/requirements-browser-tests.txt
           python -m playwright install chromium
+      - name: KI-Serverhilfe auf Syntax prüfen
+        shell: pwsh
+        run: |
+          $kiParseTokens = $null
+          $kiParseErrors = $null
+          [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path 'packaging/ki-server/Start-KI-Server.ps1').Path, [ref]$kiParseTokens, [ref]$kiParseErrors) | Out-Null
+          if ($kiParseErrors.Count) { throw ($kiParseErrors | Out-String) }
       - name: Backend und Browser testen
         run: python -m pytest backend/tests -q
       - name: BIM2STEIGER-Fachlogik testen
@@ -79,6 +86,24 @@ jobs:
             if (-not $nova.version) { throw 'Nova-Modul nicht verfügbar' }
             $bim = Invoke-RestMethod 'http://127.0.0.1:8799/tools/bim2steiger/api/meta'
             if ($bim.catalogue_articles -lt 1) { throw 'BIM-Katalog fehlt' }
+            $env:DOC_SMOKE_FILE = Join-Path $env:RUNNER_TEMP 'document-source-smoke.pdf'
+            @'
+          import os, sys
+          from pathlib import Path
+          sys.path.insert(0, 'backend/tests')
+          from test_documents import sample_pdf
+          Path(os.environ['DOC_SMOKE_FILE']).write_bytes(sample_pdf())
+          '@ | python -
+            if ($LASTEXITCODE -ne 0) { throw 'PDF-Testdatei konnte nicht erstellt werden' }
+            $docRoot = 'http://127.0.0.1:8799/api/tools/dokumenten-assistent'
+            $docState = Invoke-RestMethod ($docRoot + '/state')
+            $docHeaders = @{ 'X-Edeco-Documents' = $docState.session_key }
+            $uploaded = Invoke-RestMethod ($docRoot + '/documents') -Method Post -Headers $docHeaders -Form @{ file = Get-Item $env:DOC_SMOKE_FILE; edition = 'Synthetischer Buildtest' }
+            $question = @{ question = 'Schutzleiter'; document_ids = @($uploaded.document.id); use_ai = $false } | ConvertTo-Json -Compress
+            $answer = Invoke-RestMethod ($docRoot + '/ask') -Method Post -Headers $docHeaders -ContentType 'application/json' -Body $question
+            if ($answer.sources.Count -ne 1 -or $answer.sources[0].page -ne 2) { throw 'PDF-Fundstelle in der EXE fehlt' }
+            $original = Invoke-RestMethod ($docRoot + '/documents/' + $uploaded.document.id + '/pages/2') -Headers $docHeaders
+            if ($original.image -notmatch '^data:image/png;base64,' -or -not $original.lines[0].box) { throw 'PDF-Vorschau oder Markierungskoordinaten fehlen in der EXE' }
           } finally {
             Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue
           }
@@ -107,7 +132,7 @@ jobs:
             throw 'Nativer Fensterstart fehlgeschlagen'
           }
           $report = Get-Content "$env:EDECO_TOOLBOX_HOME\desktop-smoke.json" -Raw | ConvertFrom-Json
-          if (-not $report.ok -or $report.tool_count -ne 9) { throw 'Toolbox wurde im Programmfenster nicht gerendert' }
+          if (-not $report.ok -or $report.tool_count -ne 10) { throw 'Toolbox wurde im Programmfenster nicht gerendert' }
       - name: Installer bauen
         shell: pwsh
         run: |
@@ -155,6 +180,7 @@ jobs:
         shell: pwsh
         run: |
           Compress-Archive -Path 'dist/edeco-Toolbox' -DestinationPath 'dist-installer/edeco-Toolbox-Portable-${{ steps.version.outputs.version }}.zip' -CompressionLevel Optimal
+          Compress-Archive -Path 'packaging/ki-server/*' -DestinationPath 'dist-installer/edeco-KI-Server-Einrichtung-${{ steps.version.outputs.version }}.zip' -CompressionLevel Optimal
           Copy-Item TOOLBOX_NEUIGKEITEN.md release-body.md
           Add-Content release-body.md "`n`nBuild $env:GITHUB_RUN_NUMBER · Commit $env:GITHUB_SHA"
       - name: Prüfsummen erstellen

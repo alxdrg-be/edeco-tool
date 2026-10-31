@@ -8,6 +8,11 @@ sie werden zur Laufzeit weder gewechselt noch heruntergeladen.
 
 - NOVA-Legenden ist integriert. Seine vorhandenen Einstellungen, Firmenordner und
   Projektdateien bleiben unter den bisherigen Pfaden verwendbar.
+- Der Dokumenten-Assistent verwendet `ui/src/tools/dokumenten-assistent/` und
+  `backend/edeco_toolbox/documents/`. Bibliothek, Quellenpositionen und Suchindex
+  bleiben ausserhalb der Installation erhalten. Die kostenlose Servervariante
+  verwendet einen gemeinsamen Ollama-Server; Details unter
+  [Dokumenten-Assistent](DOKUMENTEN_ASSISTENT.md).
 - BIM2STEIGER ist unter `backend/bim2steiger/` inklusive Originalkatalog integriert.
   Der Adapter `backend/edeco_toolbox/bim.py` stellt seine vorhandene Fachlogik
   als ASGI-Unteranwendung bereit. Die Oberfläche wird unter
@@ -33,7 +38,7 @@ sie werden zur Laufzeit weder gewechselt noch heruntergeladen.
    Oberfläche, niemals CAD-Symbolfarben oder Exportdaten.
 
 Petrol steht für Nova und die Projektzentrale, Blau für BIM und Kabelberechnung,
-Violett für die Leistungsbilanz, Orange für Änderungsberichte, Rosé für PDF und
+Violett für Dokumenten-Assistent und Leistungsbilanz, Orange für Änderungsberichte, Rosé für PDF und
 Grün für Dateien und Anlagen. Die Startseite setzt `data-tool-color` am
 Dokument für das aktive Werkzeug; weitere Module können darüber ihre Akzente
 mit denselben gemeinsamen Designvariablen festlegen.

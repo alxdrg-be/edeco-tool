@@ -2,6 +2,7 @@ export default function ToolIcon({ id }: { id: string }) {
   const paths: Record<string, React.ReactNode> = {
     "nova-legenden": <><rect x="10" y="7" width="28" height="34" rx="3" /><path d="M17 17h14M23 25h8M23 33h8" /><circle cx="17" cy="25" r="1" /><circle cx="17" cy="33" r="1" /></>,
     bim2steiger: <><path d="m24 5 17 10v18L24 43 7 33V15Z M7 15l17 10 17-10M24 25v18M16 10l17 10v9" /></>,
+    "dokumenten-assistent": <><path d="M27 6H12a3 3 0 0 0-3 3v30a3 3 0 0 0 3 3h13M27 6v12h12M27 6l12 12M16 25h10M16 32h6" /><circle cx="33" cy="32" r="8" /><path d="m39 38 6 6M30 32h6M33 29v6" /></>,
     "dateien-umbenennen": <><path d="M29 6H12a3 3 0 0 0-3 3v30a3 3 0 0 0 3 3h24a3 3 0 0 0 3-3V16ZM29 6v10h10M16 25h10M16 32h7" /><path d="m29 28 7 7m0-7-7 7" /></>,
     "pdf-werkzeuge": <><path d="M29 5H14a3 3 0 0 0-3 3v29a3 3 0 0 0 3 3h23a3 3 0 0 0 3-3V16ZM29 5v11h11M18 24h15M18 31h10M6 13v28a3 3 0 0 0 3 3h22" /></>,
     projektzentrale: <><path d="M5 17v-6a3 3 0 0 1 3-3h11l5 6h16a3 3 0 0 1 3 3v21a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3Z" /><path d="M5 20h38M24 26v9M19.5 30.5h9" /></>,

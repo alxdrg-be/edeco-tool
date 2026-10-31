@@ -1,7 +1,7 @@
 """Shared application host for the edeco tools."""
 
 APP_NAME = "edeco Toolbox"
-APP_VERSION = "0.2.2"
+APP_VERSION = "0.3.0"
 
 from ._build import BUILD, COMMIT
 

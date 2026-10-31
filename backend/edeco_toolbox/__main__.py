@@ -47,8 +47,8 @@ def probe_desktop(window, home: Path):
     try:
         deadline = time.monotonic() + 60
         while time.monotonic() < deadline:
-            if window.evaluate_js("Boolean(document.querySelector('.toolbox-header') && document.querySelectorAll('.toolbox-card').length === 9)"):
-                report = {"ok": True, "tool_count": 9}
+            if window.evaluate_js("Boolean(document.querySelector('.toolbox-header') && document.querySelectorAll('.toolbox-card').length === 10)"):
+                report = {"ok": True, "tool_count": 10}
                 break
             time.sleep(.25)
         if not report["ok"]:

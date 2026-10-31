@@ -1,3 +1,15 @@
+## edeco Toolbox 0.3.0
+
+- Neuer Dokumenten-Assistent: eigene PDFs und UTF-8-Textdateien hinzufügen, Dokumentstände angeben und gezielt durchsuchen.
+- Fundstellen mit Dokumentname, Stand, PDF-Seite, vorhandenem Blattlabel und Textzeilen; Originalseite mit direkt markiertem Text öffnen.
+- Kostenlose Fundstellensuche ohne KI-Zugang. Formulierte Antworten über einen gemeinsamen Ollama-Server mit freiem Modell: keine API-Gebühren und keine lokale Modellinstallation auf den Toolbox-PCs.
+- Verbindungsprüfung für den KI-Server. Separates Einrichtungspaket für den Server unter den Release-Dateien.
+- Nur auf ausdrückliche Frage werden passende Textauszüge an den eingestellten Server gesendet. Originale und Suchindizes bleiben im persönlichen Toolbox-Datenordner erhalten.
+- KI-Quellenangaben werden gegen die tatsächlich gefundenen Stellen geprüft; Antworten ohne gültige Quellenangaben werden nicht angezeigt. Fehlende Belege werden benannt. Die fachliche Prüfung erfolgt anhand der Originale.
+- PDFs ohne Textschicht werden erkannt; Texterkennung (OCR) ist noch nicht integriert. Bibliotheken sind derzeit pro PC, nicht automatisch firmenweit synchronisiert.
+- Optional weiterhin OpenAI-kompatible API statt Firmenserver. Zugangsschlüssel werden unter Windows mit dem Benutzerprofil verschlüsselt gespeichert.
+- Zehn Kacheln auf der gemeinsamen Startseite. Windows-Paketprüfung ergänzt: PDF einlesen, Fundstelle finden und Originalseite rendern.
+
 ## edeco Toolbox 0.2.2
 
 - Sieben Erweiterungen als geplante Kacheln vorbereitet: Dateien umbenennen, PDF-Werkzeuge, Projektzentrale, Änderungsbericht, Leistungsbilanz, Kabelberechnung und Anlagetool.

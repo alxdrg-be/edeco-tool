@@ -1,6 +1,6 @@
-﻿; Inno Setup script for edeco-Toolbox. Build: iscc /DAppVersion=0.2.2 packaging\toolbox-setup.iss
+﻿; Inno Setup script for edeco-Toolbox. Build: iscc /DAppVersion=0.3.0 packaging\toolbox-setup.iss
 #ifndef AppVersion
-  #define AppVersion "0.2.2"
+  #define AppVersion "0.3.0"
 #endif
 
 [Setup]

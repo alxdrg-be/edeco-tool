@@ -15,6 +15,8 @@ export const TOOLS: readonly ToolInfo[] = [
     description: "Pläne importieren, Symbole zuordnen und elektrische Legenden erstellen.", status: "available", developmentStatus: "in-progress" },
   { id: "bim2steiger", title: "BIM2STEIGER", category: "BIM", symbol: "B2S", color: "blue",
     description: "Steiger-Katalog durchsuchen, BIM-Objekte zuordnen und Ausschreibungen erstellen.", status: "available", developmentStatus: "in-progress" },
+  { id: "dokumenten-assistent", title: "Dokumenten-Assistent", category: "Dokumente", symbol: "KI", color: "violet",
+    description: "Dokumente durchsuchen, Fragen über eine KI-API beantworten und Quellen im Original markieren.", status: "available", developmentStatus: "in-progress" },
   { id: "dateien-umbenennen", title: "Dateien umbenennen", category: "Dateien", symbol: "Aa", color: "green",
     description: "Geplant: Dateien nach Regeln umbenennen, Änderungen vorher prüfen und rückgängig machen.", status: "planned" },
   { id: "pdf-werkzeuge", title: "PDF-Werkzeuge", category: "Dateien", symbol: "PDF", color: "rose",
