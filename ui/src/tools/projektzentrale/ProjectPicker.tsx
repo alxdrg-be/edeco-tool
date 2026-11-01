@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { projectAction, useProjectHub } from "./projectHub";
+import { projectAction, useProjectHub } from "./projectHubState";
 import "./project-hub.css";
 
 export default function ProjectPicker() {

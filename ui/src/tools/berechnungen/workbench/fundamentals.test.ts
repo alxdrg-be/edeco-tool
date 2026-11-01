@@ -73,7 +73,11 @@ test("compensation preserves active power and applies the explicitly assumed I-s
   close(row(r, "Leitungsverlust-Ersparnis"), 1440);
   close(metric(r, "Verlustkosten-Ersparnis · Annahme"), 360);
   close(metric(calculate("blindleistung", { before: "0.95", after: "0.95" }), "Erforderliche Kompensation"), 0);
-  assert.throws(() => calculate("blindleistung", { before: "0.95", after: "0.8" }));
+  const reached = calculate("blindleistung", { before: "0.95", after: "0.8" });
+  close(metric(reached, "Erforderliche Kompensation"), 0);
+  close(metric(reached, "Stromreduktion"), 0);
+  close(row(reached, "Angesetzter Leistungsfaktor nachher"), 0.95);
+  assert.match(reached.status.text, /Ziel bereits erreicht/);
   assert.throws(() => calculate("blindleistung", { hours: "8761" }));
 });
 

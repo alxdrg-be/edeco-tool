@@ -31,11 +31,11 @@ const pkw: CalculatorDefinition = {
     f("house", "Hausanschluss", "160", "A", "Einspeisung", "Dreiphasiger Anschluss bei 400 V und cos φ = 1."),
     f("reserve", "Gebäudereserve", "30", "kW", "Einspeisung", "Für andere Gebäudeverbraucher reservierte Leistung.", { min: 0 }),
     { key: "mode", label: "Lastmanagement", default: "dynamic", kind: "select", group: "Steuerung", help: "Dynamisch: proportionale Budgetzuteilung mit separater Grid-Begrenzung. Ohne LM bleibt der volle Ladebedarf sichtbar.", options: [{ value: "dynamic", label: "Dynamisches Budgetmodell" }, { value: "static", label: "Statischer manueller Faktor" }, { value: "none", label: "Ohne Lastmanagement" }] },
-    f("factor", "Manueller Planungsfaktor", "1", "", "Steuerung", "Nur statisch wirksam. Keine automatische SIA-2060-Tabelle.", { min: 0, max: 1, step: .01 }),
+    f("factor", "Leistungsanteil (statisch)", "1", "", "Steuerung", "Skaliert das Gesamtleistungsbudget und verteilt es auf alle Punkte. Keine Aufrundung auf aktive Stationen und keine automatische SIA-2060-Tabelle.", { min: 0, max: 1, step: .01 }),
     ...[1, 2].flatMap(g => [f(`grid${g}`, `Grid ${g} · Vorsicherung`, "63", "A", `Grid ${g}`, "Grid darf den Hausanschluss nicht überschreiten."), f(`count${g}`, `Grid ${g} · Ladepunkte`, g === 1 ? "6" : "4", "Stk.", `Grid ${g}`, "Null deaktiviert dieses Grid.", { min: 0 }), f(`power${g}`, `Grid ${g} · Leistung je Punkt`, "11", "kW", `Grid ${g}`, "Konfigurierte dreiphasige AC-Nennleistung je Ladepunkt.")]),
   ],
   calculate(i) {
-    const house = n(i, "house", "Hausanschluss", 2000), reserve = n(i, "reserve", "Gebäudereserve", 2000, true), mode = choice(i, "mode", ["dynamic", "static", "none"]), factor = n(i, "factor", "Planungsfaktor", 1, true);
+    const house = n(i, "house", "Hausanschluss", 2000), reserve = n(i, "reserve", "Gebäudereserve", 2000, true), mode = choice(i, "mode", ["dynamic", "static", "none"]), factor = mode === "static" ? n(i, "factor", "Leistungsanteil", 1, true) : 1;
     const grids = [1, 2].map(g => ({ a: n(i, `grid${g}`, `Vorsicherung Grid ${g}`, 2000), count: count(i, `count${g}`, `Ladepunkte Grid ${g}`, true), power: n(i, `power${g}`, `Ladeleistung Grid ${g}`, 100) }));
     if (grids.some(g => g.a > house)) throw new Error("Eine Grid-Vorsicherung überschreitet den Hausanschluss.");
     const totalCount = grids.reduce((s, g) => s + g.count, 0); if (!totalCount) throw new Error("Mindestens einen Ladepunkt erfassen.");
@@ -49,7 +49,7 @@ const pkw: CalculatorDefinition = {
       charging: { houseAmps: house, houseKW, reserveKW: reserve, totalAssignedKW: total, mode: mode as "none" | "dynamic" | "static", grids: grids.map((g, j) => ({ label: `Grid ${j + 1}`, amps: g.a, assigned: assigned[j], count: g.count, power: g.power })) },
       diagram: { kind: "chain", nodes: [{ label: "Hausanschluss", value: `${house} A`, detail: `${fmt(houseKW)} kW · 400 V 3~` }, { label: "Ladebudget", value: `${fmt(budget)} kW`, detail: `nach ${fmt(reserve)} kW Reserve`, tone: empty ? "error" : "neutral" }, { label: "Zwei parallele Grids", value: `${fmt(total)} kW`, detail: `Grid 1: ${fmt(assigned[0])} · Grid 2: ${fmt(assigned[1])} kW`, tone: overload ? "error" : "neutral" }] },
       formula: "P₃~ = √3 · 400 V · I / 1000; Budget = max(0, P_Haus − Reserve). Je Grid zuerst min(Bedarf, Grid-Grenze), danach proportionale Verteilung des gemeinsamen Budgets. Ohne LM keine Begrenzung.",
-      limitations: ["Symmetrische 3~-AC-Vorplanung bei cos φ = 1. Dynamische Gleichverteilung ist ein Budgetmodell, keine reale Regelungssimulation.", "SIA-2060-Faktoren, Phasenunsymmetrie, Mindestladestrom, Schutzgeräte, Kabel und Netzbetreiberfreigabe werden nicht nachgewiesen."],
+      limitations: ["Symmetrische 3~-AC-Vorplanung bei cos φ = 1. Dynamische Gleichverteilung ist ein Budgetmodell, keine reale Regelungssimulation.", "Statisch ist der Faktor ein Leistungsanteil auf alle Punkte. Es werden keine aktiven/wartenden Stationen wie im Referenzrechner ermittelt. SIA-2060-Faktoren, Phasenunsymmetrie, Mindestladestrom, Schutzgeräte, Kabel und Netzbetreiberfreigabe werden nicht nachgewiesen."],
     };
   },
 };

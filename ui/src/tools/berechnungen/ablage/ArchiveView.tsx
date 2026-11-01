@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { FolderOpen, RefreshCw, Settings, Upload } from "lucide-react";
 import type { ToolProps } from "../../../toolbox/modules";
-import { useProjectHub } from "../../projektzentrale/projectHub";
+import { useProjectHub } from "../../projektzentrale/projectHubState";
 import { downloadBlob } from "../../planlieferung/DeliveryHistory";
 import { InfoDrawer, LabShell, type Help } from "../LabUI";
 import { WORKBENCH_CATALOG } from "../workbench/catalog";

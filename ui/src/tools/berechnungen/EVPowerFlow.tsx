@@ -1,5 +1,5 @@
 import { Building2, Cable, House, PlugZap } from "lucide-react";
-import type { calculateEV } from "./ev";
+import type { calculateEV } from "./ev-model";
 import "./ev.css";
 
 type Result = ReturnType<typeof calculateEV>;

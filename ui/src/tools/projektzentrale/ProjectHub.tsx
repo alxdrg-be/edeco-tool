@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import type { ToolProps } from "../../toolbox/modules";
 import { useDialogFocus } from "../../useDialogFocus";
-import { dataOf, EMPTY_PROJECT, projectAction, useProjectHub, type Project, type ProjectData } from "./projectHub";
+import { dataOf, EMPTY_PROJECT, projectAction, useProjectHub, type Project, type ProjectData } from "./projectHubState";
 import "./project-hub.css";
 import DeliveryHistory from "../planlieferung/DeliveryHistory";
 import "../dateien-umbenennen/file-rename.css";

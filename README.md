@@ -70,7 +70,9 @@ Referenz und zusätzlich Blitzschutz. Die Werkzeuge sind eigene Modellrechnungen
 und Vorprüfungen. Normtabellenwerte, Herstellergrenzen und Korrekturfaktoren sind
 teilweise ausdrücklich manuell einzutragen; eine vollständige Gleichwertigkeit
 mit den Fachkatalogen der Referenz wird nicht behauptet. Umfang je Rechner:
-[Rechner und Grenzen](docs/RECHNER_UMFANG.md). Leistungsbilanz bleibt zusätzlich
+[Rechner und Grenzen](docs/RECHNER_UMFANG.md). Formeln und ausgewählte
+Zahlenfälle sind zusätzlich gegen sichtbare Clientlogik geprüft:
+[Quellenabgleich](docs/RECHNER_QUELLENABGLEICH.md). Leistungsbilanz bleibt zusätzlich
 geplant. Die gemeinsame Ablage
 speichert Rechenstände und Notizen nach Berechnungstyp und Projekt in einem
 einstellbaren Serverordner, einschliesslich importierter PDF-/JSON-Exporte.

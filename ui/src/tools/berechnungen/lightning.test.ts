@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { calculateLightning, type LightningInput } from "./lightning.ts";
+import { calculateLightning, type LightningInput } from "./lightning-model.ts";
 const base: LightningInput = { protection: "III", perimeter: "60", length: "10", conductors: "4", clearance: "" };
 test("published Swiss reference cases and separate minimum conductor count", () => {
   for (const [protection, perimeter, length, conductors, s, minimum] of [

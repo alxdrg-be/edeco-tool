@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { notifyProjectsChanged, useProjectHub, type DeliveryRecord } from "../projektzentrale/projectHub";
+import { notifyProjectsChanged, useProjectHub, type DeliveryRecord } from "../projektzentrale/projectHubState";
 
 export function downloadBlob(blob: Blob, name: string) {
   const url = URL.createObjectURL(blob), link = document.createElement("a");

@@ -1,5 +1,5 @@
 import { useId, useRef, type PointerEvent } from "react";
-import type { calculateLightning } from "./lightning";
+import type { calculateLightning } from "./lightning-model";
 
 export default function BuildingCanvas({ length, clearance, result, onDistance }: { length: string; clearance: string; result: ReturnType<typeof calculateLightning> | null; onDistance: (value: string) => void }) {
   const svg = useRef<SVGSVGElement>(null), id = useId().replace(/:/g, "");

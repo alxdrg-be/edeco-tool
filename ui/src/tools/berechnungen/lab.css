@@ -20,3 +20,5 @@
 .lab-detail-values{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:0;padding:0 18px 18px}.lab-detail-values>div{padding:12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);min-width:0}.lab-detail-values dt{font-size:10px;color:var(--muted);line-height:1.5}.lab-detail-values dd{font:13px ui-monospace,monospace;margin:8px 0 0;overflow-wrap:anywhere}@media(max-width:1000px){.lab-detail-values{grid-template-columns:1fr}.lab-detail-values>div{display:flex;justify-content:space-between;gap:12px;align-items:center}.lab-detail-values dd{margin:0;text-align:right}}@media(max-width:760px){.lab-detail-values{padding:0 10px 12px}}
 
 .calc-group{margin:28px 0}.calc-group>h2{font-size:16px;color:var(--fg);margin:0 0 16px}.calc-group .lab-tile h2{font-size:17px}.calc-group .lab-tile{padding:20px}
+
+.lab-reading-guide{padding:15px 20px;margin:0;background:var(--panel);color:var(--muted);font-size:12px;line-height:1.7;border-bottom:1px solid var(--line)}

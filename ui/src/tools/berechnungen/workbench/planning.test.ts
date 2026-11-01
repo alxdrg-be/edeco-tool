@@ -133,3 +133,9 @@ test("brandload keeps MJ/m cable separate from MJ/m escape route and calculates 
   const inactive = run("premium-brandlast", { countBefore1: "0", countAfter1: "0", length1: "0", specificBefore1: "0", specificAfter1: "0" });
   close(inactive.metrics[0].value, 20);
 });
+
+test("hidden static power fraction cannot invalidate other multi-grid modes", () => {
+  close(run("premium-pkw", { mode:"dynamic", factor:"" }).metrics[2].value, Number(run("premium-pkw").metrics[2].value));
+  close(run("premium-pkw", { mode:"none", factor:"" }).metrics[2].value, 110);
+  assert.throws(() => run("premium-pkw", { mode:"static", factor:"" }));
+});
