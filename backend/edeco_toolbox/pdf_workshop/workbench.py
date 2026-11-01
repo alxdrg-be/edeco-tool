@@ -37,7 +37,7 @@ def register_workbench(app, authorize, config):
             pages = []
             with PDF_LOCK, pdfium.PdfDocument(data) as document:
                 if not 1 <= len(document) <= 100:
-                    raise ValueError('Der Prototyp unterstützt bis zu 100 Seiten pro PDF.')
+                    raise ValueError('Bitte höchstens 100 Seiten pro PDF verwenden.')
                 for index in range(len(document)):
                     with closing(document[index]) as page:
                         width, height = page.get_size()

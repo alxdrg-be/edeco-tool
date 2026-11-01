@@ -15,7 +15,7 @@ import pypdfium2 as pdfium
 from fastapi import File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import Response
 from PIL import Image, UnidentifiedImageError
-from pydantic import BaseModel, ConfigDict, Field, ValidationError
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 
 from ..documents.extract import PDF_LOCK
 from ..paths import local_home
@@ -45,6 +45,12 @@ class Options(BaseModel):
     languages: list[Literal['deu', 'eng']] = Field(default=['deu', 'eng'], min_length=1, max_length=2)
     force_ocr: bool = False
 
+    @model_validator(mode='after')
+    def keep_orientation(self):
+        if self.page_size == 'KEEP':
+            self.orientation = 'PORTRAIT'
+        return self
+
 
 def selected_pages(value, count):
     if value.strip().lower() == 'all':
@@ -63,6 +69,25 @@ def selected_pages(value, count):
 
 def capabilities(config):
     root = config.runtime.root if config.runtime else runtime_root()
+    if not config.runtime:
+        client = StirlingClient(config.url, config.api_key)
+        enabled = dict(client.endpoint_availability())
+        enabled['ocr-pdf'] = bool(enabled.get('ocr-pdf') and {'deu', 'eng'}.issubset(client.ocr_languages()))
+        endpoints = {
+            'organize': ('merge-pdfs', 'rearrange-pages', 'rotate-pdf'),
+            'split': ('split-pages',), 'rotate': ('rotate-pdf',),
+            'crop': ('crop', 'rearrange-pages', 'merge-pdfs'),
+            'resize': ('scale-pages', 'rearrange-pages', 'merge-pdfs'),
+            'compress': ('compress-pdf',), 'images-to-pdf': ('img-to-pdf',),
+            'pdf-to-images': ('pdf-to-img', 'rearrange-pages'),
+            'pdf-to-text': ('pdf-to-text',), 'ocr': ('ocr-pdf',),
+        }
+        return [{'id': tool, 'available': all(enabled.get(endpoint, False) for endpoint in endpoints[tool])
+                 and (tool not in ('crop', 'resize') or (root / 'qpdf/bin/qpdf.exe').is_file()),
+                 'reason': ('Benötigt lokales qpdf für gedrehte Seiten.' if tool in ('crop', 'resize')
+                            and not (root / 'qpdf/bin/qpdf.exe').is_file()
+                            else 'Auf dem eingetragenen PDF-Dienst nicht verfügbar oder nicht erreichbar.')}
+                for tool in TOOLS]
     base = bool(config.runtime and config.runtime.health()['ready'] and
                 all((root / name).is_file() for name in ('java/bin/java.exe', 'stirling.jar')))
     return [{'id': tool, 'available': base and all((root / name).is_file() for name in (
@@ -223,7 +248,7 @@ def register_operations(app, authorize, config):
                 content.decode('utf-8')
             mime = {'pdf': 'application/pdf', 'zip': 'application/zip', 'png': 'image/png', 'txt': 'text/plain; charset=utf-8'}[extension]
             return Response(content, media_type=mime, headers={'Content-Disposition': f'attachment; filename="edeco-{tool}.{extension}"', 'Cache-Control': 'no-store'})
-        except (ValueError, ValidationError, pdfium.PdfiumError, UnidentifiedImageError, Image.DecompressionBombError, OSError) as exc:
+        except (ValueError, ValidationError, pdfium.PdfiumError, UnidentifiedImageError, Image.DecompressionBombError, OSError, SyntaxError) as exc:
             raise HTTPException(400, str(exc) if isinstance(exc, ValueError) and not isinstance(exc, ValidationError) else 'Datei oder Optionen konnten nicht verarbeitet werden.') from None
         finally:
             for file in files:

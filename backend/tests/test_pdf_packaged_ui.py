@@ -167,3 +167,75 @@ def test_packaged_workshop_preview_merge_branding_and_licenses():
         expect(page.get_by_role('heading', name='Ein Ort. Deine Werkzeuge.')).to_be_visible()
         assert not external, external
         browser.close()
+
+@pytest.mark.skipif(not os.environ.get('EDECO_TEST_TOOLBOX_URL'), reason='Running local Toolbox required')
+def test_cross_row_selection_deletion_undo_and_only_used_uploads():
+    from playwright.sync_api import sync_playwright, expect
+    from test_editor_navigation import launch_chromium
+    with sync_playwright() as playwright:
+        browser = launch_chromium(playwright)
+        page = browser.new_page(viewport={'width': 1400, 'height': 1100})
+        page.add_init_script('''window.pdfUploads = []; const originalFetch = window.fetch.bind(window);
+            window.fetch = (url, options) => {
+                if (String(url).endsWith('/compose') && options?.body instanceof FormData)
+                    window.pdfUploads.push(options.body.getAll('files').map(file => file.name));
+                return originalFetch(url, options);
+            };''')
+        page.goto(os.environ['EDECO_TEST_TOOLBOX_URL'])
+        page.get_by_role('button', name='PDF-Werkstatt öffnen', exact=True).click()
+        page.get_by_role('button', name='PDFs organisieren', exact=True).click(timeout=90000)
+        picker = page.get_by_label('PDF-Dateien hinzufügen', exact=True)
+        picker.set_input_files([
+            {'name': 'Alpha.pdf', 'mimeType': 'application/pdf', 'buffer': sample_pdf([['ALPHA ONE'], ['ALPHA TWO']])},
+            {'name': 'Beta.pdf', 'mimeType': 'application/pdf', 'buffer': sample_pdf([['BETA ONE'], ['BETA TWO']])},
+        ])
+        a = page.get_by_role('region', name='Alpha.pdf', exact=True)
+        b = page.get_by_role('region', name='Beta.pdf', exact=True)
+        expect(b.locator('.pdf-page-card')).to_have_count(2)
+        a.locator('.pdf-page-card').first.click()
+        b.locator('.pdf-page-card').last.click(modifiers=['Control'])
+        page.get_by_role('button', name='Seite nach vorne', exact=True).click()
+        expect(a.locator('.pdf-page-card')).to_have_count(2)
+        expect(b.locator('.pdf-page-card').first).to_have_attribute('aria-label', 'Beta.pdf, Position 1: Beta.pdf, Seite 2')
+        page.get_by_role('button', name='Seite nach hinten', exact=True).click()
+        expect(b.locator('.pdf-page-card').first).to_have_attribute('aria-label', 'Beta.pdf, Position 1: Beta.pdf, Seite 1')
+        b.locator('.pdf-page-card').last.drag_to(a.locator('.pdf-row-drop'))
+        expect(a.locator('.pdf-page-card')).to_have_count(3)
+        expect(a.locator('.pdf-page-card').first).to_have_attribute('aria-label', 'Alpha.pdf, Position 1: Alpha.pdf, Seite 1')
+        expect(a.locator('.pdf-page-card').nth(1)).to_have_attribute('aria-label', 'Alpha.pdf, Position 2: Alpha.pdf, Seite 2')
+        expect(b.locator('.pdf-page-card')).to_have_count(1)
+        b.locator('.pdf-page-card').first.click()
+        target = page.get_by_label('Zielreihe', exact=True)
+        target.focus(); target.press('Home'); target.press('ArrowDown'); target.press('Enter')
+        page.get_by_role('button', name='Auswahl verschieben', exact=True).focus()
+        page.keyboard.press('Enter')
+        expect(a.locator('.pdf-page-card')).to_have_count(4)
+        expect(b.locator('.pdf-page-card')).to_have_count(0)
+        page.get_by_role('button', name='Beta.pdf: Dokument entfernen', exact=True).click()
+        expect(page.locator('.pdf-document-row')).to_have_count(1)
+        page.get_by_role('button', name='Alpha.pdf: Dokument entfernen', exact=True).click()
+        expect(page.locator('.pdf-source')).to_have_count(0)
+        page.get_by_role('button', name='↶ Rückgängig', exact=True).click()
+        expect(a.locator('.pdf-page-card')).to_have_count(4)
+        # Undo restores both original files, even though Beta's former row was removed.
+        expect(page.locator('.pdf-source')).to_have_count(2)
+        with page.expect_response(lambda response: response.url.endswith('/compose')) as result:
+            a.get_by_role('button', name='PDF erstellen', exact=True).click()
+        assert result.value.status == 200
+        assert page.evaluate('window.pdfUploads.at(-1)') == ['Alpha.pdf', 'Beta.pdf']
+        page.get_by_role('button', name='Alpha.pdf: Dokument entfernen', exact=True).click()
+        picker.set_input_files({'name': 'Gamma.pdf', 'mimeType': 'application/pdf', 'buffer': sample_pdf([['GAMMA ONLY']])})
+        expect(page.locator('.pdf-page-card')).to_have_count(1)
+        expect(page.locator('.pdf-source')).to_have_count(1)
+        expect(page.locator('.pdf-document-row')).to_have_count(1)
+        page.locator('.pdf-page-card').click()
+        page.get_by_role('button', name='Entfernen', exact=True).click()
+        expect(page.locator('.pdf-source')).to_have_count(0)
+        page.get_by_role('button', name='↶ Rückgängig', exact=True).click()
+        expect(page.locator('.pdf-source')).to_have_count(1)
+        with page.expect_response(lambda response: response.url.endswith('/compose')) as result:
+            page.get_by_role('region', name='Gamma.pdf', exact=True).get_by_role('button', name='PDF erstellen', exact=True).click()
+        assert result.value.status == 200
+        assert page.evaluate('window.pdfUploads.at(-1)') == ['Gamma.pdf']
+        page.screenshot(path='output/ui-preview/pdf-review-fixed.png')
+        browser.close()

@@ -42,7 +42,7 @@ export default function PdfTask({ tool, sessionKey, onDirty, onWorking }: { tool
     onDirty();
     try {
       if (imageTool) {
-        if (incoming.some(file => !['image/png', 'image/jpeg'].includes(file.type))) throw new Error("Bitte PNG- oder JPEG-Bilder wählen.");
+        if (incoming.some(file => !['image/png', 'image/jpeg'].includes(file.type) && !((!file.type || file.type === 'application/octet-stream') && /\.(png|jpe?g)$/i.test(file.name)))) throw new Error("Bitte PNG- oder JPEG-Bilder wählen.");
         const url = URL.createObjectURL(incoming[0]); urls.current.push(url); setImagePreview(url);
       } else setPreview(await inspect(incoming[0]));
       setFiles(incoming);
@@ -55,7 +55,7 @@ export default function PdfTask({ tool, sessionKey, onDirty, onWorking }: { tool
     const url = URL.createObjectURL(next[0]); urls.current.push(url); setImagePreview(url);
   }
 
-  function set<K extends keyof Options>(key: K, value: Options[K]) { setOptions(previous => ({ ...previous, [key]: value })); setResult(null); }
+  function set<K extends keyof Options>(key: K, value: Options[K]) { setOptions(previous => ({ ...previous, [key]: value, ...(key === "page_size" && value === "KEEP" ? { orientation: "PORTRAIT" } : {}) })); setResult(null); }
 
   async function run(event: React.FormEvent) {
     event.preventDefault(); if (busy || !files.length) return;

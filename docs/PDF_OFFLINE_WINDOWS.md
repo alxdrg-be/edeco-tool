@@ -17,6 +17,15 @@ Inhaltsskalierung, Kompression, PNG/JPEG nach PDF, PDF nach PNG, PDF nach TXT un
 OCR Deutsch/Englisch. Dieser Stand ist noch nicht als neues Windows-Paket
 veröffentlicht; die zuvor erstellte Portable-Testausgabe wird nicht verändert.
 
+Verschiebepfeile und das Ziehen einer markierten Seite berücksichtigen nur die
+Auswahl derselben Reihe. „Zielreihe“ und „Auswahl verschieben“ verschieben die
+gesamte Auswahl ausdrücklich zwischen Reihen und sind per Tastatur bedienbar.
+Leere Dokumentreihen lassen sich über „Dokument entfernen“ löschen. Beim Entfernen
+der letzten Seite einer Reihe verschwindet diese ebenfalls. Rückgängig stellt
+Reihen und benötigte Originaldateien wieder her; ein Export überträgt nur die
+Originaldateien der tatsächlich ausgegebenen Seiten. Herkunftsnummern und Farben
+der übrigen Originale bleiben nach dem Löschen stabil.
+
 Die kostenlose Core-Ausgabe von Stirling PDF 3.2.2 enthält die Originaloberfläche
 und PDFBox. Das offizielle JAR enthält Linux-PDFium; beim Windows-Build wird diese
 Komponente durch JPDFium Windows x64 1.1.6 ersetzt. Hinzu kommen Temurin Java 25,
@@ -46,6 +55,17 @@ normalisiert bei Layoutoperationen vorhandene Seitendrehungen ohne Rasterung,
 damit Querformat-Inhalte erhalten bleiben. Die Prozentangabe zur Inhaltsskalierung
 wird gegen Stirlings zusätzliche automatische Formatanpassung kompensiert: 50 %
 bedeutet auch beim Wechsel des Papierformats halbe Inhaltsgrösse.
+
+Im optionalen Firmenserver-Modus der Quellcode-Ausgabe stammt die Freigabe aus
+Stirlings `/api/v1/config/endpoints-availability` (3.2.2 bzw. kompatible API),
+statt von einer lokalen Java-Installation. Zusammenfügen/Organisieren, Trennen,
+Drehen, Kompression und Konvertierungen nutzen die gemeldeten Serverfunktionen.
+OCR setzt zusätzlich die auf dem Server gemeldeten Sprachen Deutsch und Englisch
+voraus. Zuschnitt und Skalierung benötigen für die lokale Normalisierung gedrehter
+Seiten weiterhin das gebündelte Windows-qpdf; ohne dieses bleiben diese beiden
+Ansichten gesperrt. Nach einem Dienstwechsel oder erneuter Verbindungsprüfung
+wird die Werkzeugliste neu abgefragt. Die paketierte Windows-Ausgabe bleibt
+ausschliesslich bei ihrer automatisch gestarteten lokalen Laufzeit.
 
 Die Werkzeuge bearbeiten PDFs bis 100 Seiten und 100 MB. Der Organisieren-Bereich
 und die Bildkonvertierung akzeptieren bis 20 Dateien mit insgesamt 250 MB.

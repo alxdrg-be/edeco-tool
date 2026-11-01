@@ -52,6 +52,31 @@ class StirlingClient:
         except (httpx.HTTPError, ValueError, TypeError):
             return {"ready": False, "version": "", "message": "Stirling-PDF ist nicht erreichbar. Bitte den lokalen Dienst oder Firmenserver starten und die Adresse prüfen."}
 
+    def endpoint_availability(self):
+        """Use the configured server's prerequisites, never local Java, in server mode."""
+        try:
+            with httpx.Client(timeout=5, headers=self.headers, transport=self.transport,
+                              follow_redirects=False, trust_env=False) as client:
+                response = client.get(self.url + '/api/v1/config/endpoints-availability')
+                response.raise_for_status()
+                data = response.json()
+            return {key: value.get('enabled') is True for key, value in data.items()
+                    if isinstance(value, dict)} if isinstance(data, dict) else {}
+        except (httpx.HTTPError, ValueError, TypeError):
+            return {}
+
+    def ocr_languages(self):
+        try:
+            with httpx.Client(timeout=5, headers=self.headers, transport=self.transport,
+                              follow_redirects=False, trust_env=False) as client:
+                response = client.get(self.url + '/api/v1/ui-data/ocr-pdf')
+                response.raise_for_status()
+                data = response.json()
+            languages = data.get('languages', []) if isinstance(data, dict) else []
+            return languages if isinstance(languages, list) else []
+        except (httpx.HTTPError, ValueError, TypeError):
+            return []
+
     def request_result(self, endpoint: str, files: Sequence[PdfFile], fields: dict) -> bytes:
         if not files or len(files) > 100 or sum(len(file.data) for file in files) > 250 * 1024 * 1024:
             raise ValueError("Bitte 1 bis 100 Dateien mit insgesamt höchstens 250 MB verwenden.")

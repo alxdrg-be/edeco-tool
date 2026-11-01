@@ -86,6 +86,52 @@ def test_own_workspace_previews_pdf_and_requires_session_for_uploads(pdf_api):
     assert client.post(API + '/inspect', headers=headers, files={'file': ('bad.pdf', b'not pdf')}).status_code == 400
 
 
+def test_company_tools_and_processing_work_without_windows_runtime(pdf_api, monkeypatch):
+    client, _ = pdf_api
+    calls = []
+    original_init = StirlingClient.__init__
+    def handler(request):
+        calls.append(request.url.path)
+        assert request.url.host == 'company-pdf'
+        if request.url.path.endswith('/info/status'):
+            return httpx.Response(200, json={'status': 'UP'})
+        if request.url.path.endswith('/endpoints-availability'):
+            return httpx.Response(200, json={name: {'enabled': True} for name in ('merge-pdfs', 'rearrange-pages', 'rotate-pdf', 'split-pages', 'pdf-to-text', 'img-to-pdf')})
+        if request.url.path.endswith('/convert/pdf/text'):
+            return httpx.Response(200, content=b'COMPANY PDF TEXT')
+        return httpx.Response(200, content=sample_pdf())
+    def connect(self, *args, **kwargs):
+        kwargs['transport'] = httpx.MockTransport(handler)
+        original_init(self, *args, **kwargs)
+    monkeypatch.setattr(StirlingClient, '__init__', connect)
+    _, headers = state(client)
+    response = client.post(API + '/connection', headers=headers, json={'service_url': 'http://company-pdf:8088'})
+    assert response.status_code == 200 and response.json()['ready'] and not response.json()['local']
+    tools = {tool['id']: tool['available'] for tool in client.get(API + '/tools').json()['tools']}
+    assert all(tools[name] for name in ('organize', 'split', 'rotate', 'pdf-to-text', 'images-to-pdf'))
+    files = {'files': ('Company.pdf', sample_pdf())}
+    assert client.post(API + '/process/rotate', headers=headers, files=files).content.startswith(b'%PDF-')
+    assert client.post(API + '/process/pdf-to-text', headers=headers, files=files).text == 'COMPANY PDF TEXT'
+    composed = client.post(API + '/compose', headers=headers, files=files, data={'pages': json.dumps([{'file': 0, 'page': 1}])})
+    assert composed.status_code == 200 and composed.content.startswith(b'%PDF-')
+    assert any(path.endswith('/general/rearrange-pages') for path in calls)
+
+
+def test_corrupt_image_syntax_errors_are_input_errors(pdf_api, monkeypatch):
+    import io
+    from PIL import Image, PngImagePlugin
+    monkeypatch.setattr(StirlingClient, 'endpoint_availability', lambda self: {'img-to-pdf': True})
+    def broken(self):
+        raise SyntaxError('broken PNG chunk')
+    monkeypatch.setattr(PngImagePlugin.PngImageFile, 'verify', broken)
+    image = io.BytesIO(); Image.new('RGB', (8, 8)).save(image, 'PNG')
+    client, _ = pdf_api
+    _, headers = state(client)
+    response = client.post(API + '/process/images-to-pdf', headers=headers, files={'files': ('Broken.png', image.getvalue(), 'image/png')})
+    assert response.status_code == 400
+    assert 'broken PNG chunk' not in response.text
+
+
 def test_tool_actions_require_session_and_bundled_dependencies(pdf_api):
     client, _ = pdf_api
     files = {'files': ('plan.pdf', sample_pdf())}

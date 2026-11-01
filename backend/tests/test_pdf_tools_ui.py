@@ -72,10 +72,13 @@ def test_all_pdf_tool_views_create_valid_local_downloads():
         for title, tool, data in cases:
             page.get_by_role('button', name=title, exact=True).click()
             if tool == 'images-to-pdf':
-                page.get_by_label('Bilder hinzufügen', exact=True).set_input_files([
-                    {'name': 'Rot.png', 'mimeType': 'image/png', 'buffer': data},
-                    {'name': 'Blau.png', 'mimeType': 'image/png', 'buffer': png_two.getvalue()},
-                ])
+                import base64
+                page.get_by_label('Bilder hinzufügen', exact=True).evaluate('''(input, images) => {
+                    const transfer = new DataTransfer();
+                    images.forEach(([name, data]) => transfer.items.add(new File([Uint8Array.from(atob(data), c => c.charCodeAt(0))], name, {type: ''})));
+                    if ([...transfer.files].some(file => file.type !== '')) throw new Error('Expected empty Explorer MIME types');
+                    input.files = transfer.files; input.dispatchEvent(new Event('change', {bubbles: true}));
+                }''', [['Rot.png', base64.b64encode(data).decode()], ['Blau.png', base64.b64encode(png_two.getvalue()).decode()]])
                 page.get_by_role('button', name='Blau.png: Nach oben', exact=True).click()
             else:
                 page.get_by_label('PDF hinzufügen', exact=True).set_input_files({'name': 'Projektplan.pdf', 'mimeType': 'application/pdf', 'buffer': data})
@@ -88,6 +91,10 @@ def test_all_pdf_tool_views_create_valid_local_downloads():
                     page.get_by_label(label, exact=True).fill(value)
                 page.screenshot(path='output/ui-preview/pdf-tool-crop.png')
             if tool == 'resize':
+                page.get_by_label('Ausrichtung', exact=True).select_option('LANDSCAPE')
+                page.get_by_label('Papierformat', exact=True).select_option('KEEP')
+                expect(page.get_by_label('Ausrichtung', exact=True)).to_have_value('PORTRAIT')
+                expect(page.get_by_label('Ausrichtung', exact=True)).to_be_disabled()
                 page.get_by_label('Papierformat', exact=True).select_option('A3')
                 page.get_by_label('Inhalt skalieren (%)', exact=True).fill('50')
             if tool == 'compress': page.get_by_label('Kompressionsstufe', exact=True).select_option('8')

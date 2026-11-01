@@ -271,6 +271,7 @@ def test_document_assistant_imports_pdf_finds_exact_source_and_preserves_library
     page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
     page.get_by_role("button", name="Dokumenten-Assistent öffnen", exact=True).click()
     page.get_by_label("Dokumentstand für neue Dateien").fill("Testausgabe 2026")
+    playwright.expect(page.get_by_label("Dokumente hinzufügen", exact=True)).to_be_enabled()
     page.get_by_label("Dokumente hinzufügen", exact=True).set_input_files({
         "name": "Test-Richtlinie.pdf", "mimeType": "application/pdf", "buffer": sample_pdf()})
     playwright.expect(page.locator(".doc-document")).to_have_count(1)
@@ -306,6 +307,7 @@ def test_document_assistant_defaults_to_free_server_and_opens_cited_pdf_page(edi
     page, _, _, _ = editor
     page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
     page.get_by_role("button", name="Dokumenten-Assistent öffnen", exact=True).click()
+    playwright.expect(page.get_by_label("Dokumente hinzufügen", exact=True)).to_be_enabled()
     page.get_by_label("Dokumente hinzufügen", exact=True).set_input_files({
         "name": "Test.pdf", "mimeType": "application/pdf", "buffer": sample_pdf()})
     playwright.expect(page.locator(".doc-document")).to_have_count(1)

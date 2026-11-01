@@ -81,12 +81,12 @@ export default function PdfWorkshop({ onHome }: ToolProps) {
   }, [state, health?.ready]);
 
   useEffect(() => {
-    if (!health?.ready) return;
+    if (!health?.ready) { setCapabilities([]); return; }
     let alive = true;
     fetch(API + "/tools").then(response => { if (!response.ok) throw new Error("Die Werkzeuge konnten nicht geladen werden."); return response.json(); })
       .then(value => { if (alive) setCapabilities(value.tools); }).catch(e => { if (alive) setError((e as Error).message); });
     return () => { alive = false; };
-  }, [health?.ready]);
+  }, [health, state?.service_url]);
 
   function toolsHome() {
     if (working) return;

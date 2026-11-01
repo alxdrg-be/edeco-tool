@@ -7,6 +7,27 @@ from pydantic import ValidationError
 from edeco_toolbox.pdf_workshop.operations import Options, capabilities, selected_pages
 
 
+def test_keep_page_format_always_resets_stale_orientation():
+    assert Options(page_size='KEEP', orientation='LANDSCAPE').orientation == 'PORTRAIT'
+    assert Options(page_size='A4', orientation='LANDSCAPE').orientation == 'LANDSCAPE'
+
+
+def test_company_capabilities_follow_server_endpoints_without_local_java(tmp_path, monkeypatch):
+    from edeco_toolbox.pdf_workshop.client import StirlingClient
+    monkeypatch.setattr('edeco_toolbox.pdf_workshop.operations.runtime_root', lambda: tmp_path)
+    enabled = dict.fromkeys(('merge-pdfs', 'rearrange-pages', 'rotate-pdf', 'split-pages', 'pdf-to-text', 'ocr-pdf', 'crop'), True)
+    monkeypatch.setattr(StirlingClient, 'endpoint_availability', lambda self: enabled)
+    monkeypatch.setattr(StirlingClient, 'ocr_languages', lambda self: ['eng'])
+    config = SimpleNamespace(runtime=None, url='http://company-pdf:8088', api_key='')
+    state = {item['id']: item['available'] for item in capabilities(config)}
+    assert all(state[name] for name in ('organize', 'split', 'rotate', 'pdf-to-text'))
+    assert not state['ocr'] and not state['crop'] and not state['compress']
+    monkeypatch.setattr(StirlingClient, 'ocr_languages', lambda self: ['eng', 'deu'])
+    assert next(item for item in capabilities(config) if item['id'] == 'ocr')['available']
+    enabled['rotate-pdf'] = False
+    assert not next(item for item in capabilities(config) if item['id'] == 'rotate')['available']
+
+
 def test_page_ranges_are_bounded_and_keep_the_requested_order():
     assert selected_pages('3,1-2,2', 3) == [3, 1, 2]
     assert selected_pages('all', 3) == [1, 2, 3]
