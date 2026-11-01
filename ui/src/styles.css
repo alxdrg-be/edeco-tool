@@ -236,9 +236,9 @@ a { color: var(--accent); text-underline-offset: 3px; }
 .desc, .card .desc { color: var(--muted); font-size: 13px; margin: 0 0 16px; line-height: 1.65; }
 .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .btn {
-  min-height: 38px; border: 1px solid var(--line); background: var(--panel); padding: 8px 14px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 550;
+  min-height: 38px; border: 1px solid var(--line); background: var(--panel); color: var(--fg); padding: 8px 14px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 550;
   cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap;
-  transition: background var(--duration), border-color var(--duration), box-shadow var(--duration);
+  transition: border-color var(--duration), box-shadow var(--duration);
 }
 .btn:focus-visible, .tab:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .btn:hover:not(:disabled) { background: var(--panel-2); border-color: var(--line-strong); }
@@ -248,7 +248,7 @@ a { color: var(--accent); text-underline-offset: 3px; }
 .btn.danger { color: var(--danger); }
 .btn.danger:hover:not(:disabled) { background: color-mix(in srgb, var(--danger) 8%, var(--panel)); border-color: color-mix(in srgb, var(--danger) 35%, var(--line)); }
 .btn.small { min-height: 32px; padding: 5px 10px; font-size: 12px; }
-.btn:disabled { opacity: 0.5; cursor: default; }
+.btn:disabled { opacity: 1; cursor: default; color: var(--muted); background: var(--panel-2); border-color: var(--line); }
 .path-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
 .path-item {
   display: grid; grid-template-columns: minmax(0, 1fr) minmax(160px, 280px) 40px; align-items: center; gap: 12px;

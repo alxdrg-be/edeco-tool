@@ -36,7 +36,10 @@ zunächst pro PC; sie wird nicht automatisch zwischen Rechnern geteilt.
 Eine kostenpflichtige OpenAI-kompatible API ist optional. Details und Grenzen:
 [Dokumenten-Assistent](docs/DOKUMENTEN_ASSISTENT.md).
 
-Die **edeco PDF-Werkstatt** verwendet die originale kostenlose Stirling-Core-Oberfläche.
+Die **edeco PDF-Werkstatt** verwendet die kostenlose Stirling-Core-Verarbeitung.
+Der aktuelle Entwicklungsstand ergänzt eine eigene edeco-Oberfläche mit elf
+Werkzeug-Kacheln, Dokumentreihen, Vorschauen und Ansichten für die PDF-Bearbeitung,
+Konvertierung und OCR. Dieser Stand ist noch nicht als neues Windows-Paket veröffentlicht.
 Ab 0.5.0 enthalten Windows-Setup und Portable-Paket Java, Windows-PDFium, qpdf,
 Tesseract und OCR-Sprachdaten für Deutsch/Englisch. Der Dienst startet automatisch
 auf 127.0.0.1 und benötigt weder Internet noch Firmenserver, VPN, Docker oder

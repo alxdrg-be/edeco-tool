@@ -2,6 +2,10 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import ToolHeader from "../../toolbox/ToolHeader";
 import type { ToolProps } from "../../toolbox/modules";
 import { useDialogFocus } from "../../useDialogFocus";
+import PageWorkbench from "./PageWorkbench";
+import PdfToolHome, { type Capability } from "./PdfToolHome";
+import PdfTask from "./PdfTask";
+import { PDF_TOOLS } from "./tools";
 import "./pdf-workshop.css";
 
 interface State {
@@ -9,7 +13,6 @@ interface State {
   workflows: { id: string; title: string }[];
 }
 interface Health { ready: boolean; version: string; message: string }
-interface PdfWindow extends Window { edecoPDF?: { hasWork: () => boolean } }
 const API = "/api/tools/pdf-werkstatt";
 
 async function action<T>(path: string, sessionKey: string, body: object | FormData = {}): Promise<T> {
@@ -22,14 +25,14 @@ async function action<T>(path: string, sessionKey: string, body: object | FormDa
   return data as T;
 }
 
-function LeaveDialog({ onClose, onLeave }: { onClose: () => void; onLeave: () => void }) {
+function LeaveDialog({ onClose, onLeave, target }: { onClose: () => void; onLeave: () => void; target: string }) {
   const ref = useRef<HTMLDivElement>(null);
   useDialogFocus(ref, onClose);
   return <div className="modal-back"><div ref={ref} className="modal" role="alertdialog" aria-modal="true" aria-labelledby="pdf-leave-title" tabIndex={-1}>
     <h2 id="pdf-leave-title">Ergebnisse gespeichert?</h2>
-    <p>In der PDF-Werkstatt wurden Dateien geöffnet oder verarbeitet. Bitte benötigte Ergebnisse herunterladen, bevor du zur Toolbox wechselst.</p>
+    <p>In der PDF-Werkstatt wurden Dateien geöffnet oder verarbeitet. Bitte benötigte Ergebnisse herunterladen, bevor du den Arbeitsbereich verlässt.</p>
     <div className="pdf-actions"><button className="btn primary" onClick={onClose}>Hier bleiben</button>
-      <button className="btn" onClick={onLeave}>Zur Toolbox wechseln</button></div>
+      <button className="btn" onClick={onLeave}>{target}</button></div>
   </div></div>;
 }
 
@@ -44,8 +47,12 @@ export default function PdfWorkshop({ onHome }: ToolProps) {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [leave, setLeave] = useState(false);
-  const [revision, setRevision] = useState(0);
-  const frame = useRef<HTMLIFrameElement>(null);
+  const [dirty, setDirty] = useState(false);
+  const [working, setWorking] = useState(false);
+  const [activeTool, setActiveTool] = useState("");
+  const [capabilities, setCapabilities] = useState<Capability[]>([]);
+  const [leaveTarget, setLeaveTarget] = useState<"home" | "tools">("home");
+  const tool = PDF_TOOLS.find(item => item.id === activeTool);
 
   useEffect(() => {
     let alive = true;
@@ -73,11 +80,24 @@ export default function PdfWorkshop({ onHome }: ToolProps) {
     return () => window.clearInterval(timer);
   }, [state, health?.ready]);
 
+  useEffect(() => {
+    if (!health?.ready) return;
+    let alive = true;
+    fetch(API + "/tools").then(response => { if (!response.ok) throw new Error("Die Werkzeuge konnten nicht geladen werden."); return response.json(); })
+      .then(value => { if (alive) setCapabilities(value.tools); }).catch(e => { if (alive) setError((e as Error).message); });
+    return () => { alive = false; };
+  }, [health?.ready]);
+
+  function toolsHome() {
+    if (working) return;
+    if (dirty) { setLeaveTarget("tools"); setLeave(true); }
+    else setActiveTool("");
+  }
+
   async function check(save: boolean) {
     if (!state || busy) return;
     const changed = save && url.replace(/\/$/, "") !== state.service_url;
-    const child = frame.current?.contentWindow as PdfWindow | null;
-    if (changed && child?.edecoPDF?.hasWork()) {
+    if (changed && dirty) {
       setError("Bitte die PDF-Ergebnisse speichern und die Werkstatt neu öffnen, bevor du den Dienst wechselst."); return;
     }
     setBusy("check"); setError("");
@@ -86,14 +106,12 @@ export default function PdfWorkshop({ onHome }: ToolProps) {
         const result = await action<State & Health>("/connection", state.session_key, { service_url: url });
         setState({ ...state, ...result }); setHealth(result);
       } else setHealth(await action<Health>("/check", state.session_key));
-      if (changed || !health?.ready) setRevision(value => value + 1);
     } catch (e) { setError((e as Error).message); }
     finally { setBusy(""); }
   }
 
   function goHome() {
-    const child = frame.current?.contentWindow as PdfWindow | null;
-    if (child?.edecoPDF?.hasWork()) setLeave(true);
+    if (dirty) { setLeaveTarget("home"); setLeave(true); }
     else onHome();
   }
 
@@ -111,16 +129,14 @@ export default function PdfWorkshop({ onHome }: ToolProps) {
   }
 
   return <div className="pdf-workshop">
-    <ToolHeader title="edeco PDF-Werkstatt" onHome={goHome} disabled={busy === "workflow"}>
-      {health?.ready && <span className="pdf-service-badge">{state?.local ? "Offline bereit · auf diesem Computer" : `Stirling-PDF ${health.version} · interner Dienst`}</span>}
+    <ToolHeader title="edeco PDF-Werkstatt" onHome={goHome} disabled={busy === "workflow" || working}>
       {Boolean(state?.workflows.length) && <button className="btn" onClick={() => setWorkflows(!workflows)}>Firmenabläufe</button>}
       {!state?.local && <button className="btn" onClick={() => setSettings(!settings)}>Verbindung</button>}
-      <button className="btn" onClick={() => setInfo(!info)}>Info / Lizenzen</button>
     </ToolHeader>
     {state?.local && !health?.ready && <section className="pdf-connection" aria-label="Lokaler PDF-Dienst"><h1>edeco PDF-Werkstatt</h1><p role="status">{health?.message || "Der lokale PDF-Dienst wird gestartet. Beim ersten Start kann dies etwas dauern."}</p><button className="btn" disabled={Boolean(busy)} onClick={() => void check(false)}>Status prüfen</button>{error && <p role="alert">{error}</p>}</section>}
-    {info && <section className="pdf-connection"><button className="btn" onClick={() => setInfo(false)}>Info schliessen</button><iframe className="pdf-stirling-frame" title="Info / Lizenzen" src={API + "/licenses"} /></section>}
+    {info && <section className="pdf-connection pdf-info"><button className="btn" onClick={() => setInfo(false)}>Info schliessen</button><iframe className="pdf-stirling-frame" title="Info / Lizenzen" src={API + "/licenses"} /></section>}
     {!state?.local && (settings || !health?.ready) && <section className="pdf-connection" aria-label="PDF-Verbindung">
-      <div><h1>Deine PDF-Werkstatt.</h1><p>Die vollständige Stirling-Oberfläche – direkt in der edeco Toolbox.</p>
+      <div><h1>Deine PDF-Werkstatt.</h1><p>PDF-Seiten in der gemeinsamen edeco-Oberfläche zusammenstellen.</p>
         <p className="pdf-muted">PDFs werden ausschliesslich an den von euch eingestellten Stirling-Dienst übertragen. Bitte nur euren lokalen Dienst oder den firmeneigenen Server eintragen.</p></div>
       <form onSubmit={event => { event.preventDefault(); void check(!state?.managed); }}>
         <label>Adresse des Firmen-PDF-Dienstes<input type="url" required value={url} disabled={!state || state.managed || Boolean(busy)}
@@ -139,7 +155,12 @@ export default function PdfWorkshop({ onHome }: ToolProps) {
         <button className="btn primary" disabled={Boolean(busy)}>{busy === "workflow" ? "Wird abgelegt …" : "Firmenablauf ausführen"}</button></form>
       {notice && <p role="status">{notice}</p>}{error && <p role="alert" className="pdf-error">{error}</p>}
     </section>}
-    {health?.ready && <iframe ref={frame} key={revision} className="pdf-stirling-frame" title="Stirling-PDF · edeco PDF-Werkstatt" src="/tools/pdf-werkstatt/" />}
-    {leave && <LeaveDialog onClose={() => setLeave(false)} onLeave={onHome} />}
+    {health?.ready && state && <>
+      {tool && <nav className="pdf-workshop-nav" aria-label="PDF-Werkzeuge"><button className="btn small" disabled={working} onClick={toolsHome}>← Alle PDF-Werkzeuge</button><span>{tool.title}</span></nav>}
+      {!tool ? <><PdfToolHome capabilities={capabilities} onInfo={() => setInfo(true)} onOpen={id => { setActiveTool(id); setDirty(false); }} />{error && <p role="alert" className="pdf-desk-alert">{error}</p>}</>
+        : tool.id === "organize" || tool.id === "merge" ? <PageWorkbench sessionKey={state.session_key} onDirty={() => setDirty(true)} onWorking={setWorking} />
+          : <PdfTask key={tool.id} tool={tool} sessionKey={state.session_key} onDirty={() => setDirty(true)} onWorking={setWorking} />}
+    </>}
+    {leave && <LeaveDialog target={leaveTarget === "home" ? "Zur Toolbox wechseln" : "Zur Werkzeugübersicht"} onClose={() => setLeave(false)} onLeave={() => { setLeave(false); setDirty(false); if (leaveTarget === "home") onHome(); else setActiveTool(""); }} />}
   </div>;
 }

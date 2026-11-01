@@ -9,6 +9,14 @@ Zugriff auf den ausdrücklich konfigurierten Zielordner.
 
 ## Laufzeit und Schutz
 
+Der aktuelle Entwicklungsstand verwendet eine eigene edeco-Oberfläche mit elf
+Werkzeug-Kacheln. „PDFs organisieren“ und „PDF zusammenfügen“ öffnen die
+Dokumentreihen mit Mehrfachauswahl, Herkunftsangaben und separater Ausgabe je
+Reihe. Weitere Ansichten bieten Trennen, Drehen, Zuschneiden, Seitengrösse und
+Inhaltsskalierung, Kompression, PNG/JPEG nach PDF, PDF nach PNG, PDF nach TXT und
+OCR Deutsch/Englisch. Dieser Stand ist noch nicht als neues Windows-Paket
+veröffentlicht; die zuvor erstellte Portable-Testausgabe wird nicht verändert.
+
 Die kostenlose Core-Ausgabe von Stirling PDF 3.2.2 enthält die Originaloberfläche
 und PDFBox. Das offizielle JAR enthält Linux-PDFium; beim Windows-Build wird diese
 Komponente durch JPDFium Windows x64 1.1.6 ersetzt. Hinzu kommen Temurin Java 25,
@@ -31,6 +39,21 @@ können temporäre Dateien im Benutzerprofil verbleiben; die Prozesse laufen nic
 
 ## Verfügbare Funktionen
 
+Die eigene Oberfläche bezieht die Verfügbarkeit aus der lokalen Laufzeitprüfung.
+Fehlende Voraussetzungen deaktivieren das betreffende Werkzeug. Vorschauen und
+Eingabeprüfung erfolgen lokal; die Bearbeitung verwendet Stirling Core. qpdf
+normalisiert bei Layoutoperationen vorhandene Seitendrehungen ohne Rasterung,
+damit Querformat-Inhalte erhalten bleiben. Die Prozentangabe zur Inhaltsskalierung
+wird gegen Stirlings zusätzliche automatische Formatanpassung kompensiert: 50 %
+bedeutet auch beim Wechsel des Papierformats halbe Inhaltsgrösse.
+
+Die Werkzeuge bearbeiten PDFs bis 100 Seiten und 100 MB. Der Organisieren-Bereich
+und die Bildkonvertierung akzeptieren bis 20 Dateien mit insgesamt 250 MB.
+Bildkonvertierung unterstützt PNG und JPEG; der PNG-Export bietet 72/144/300 DPI
+und begrenzt die Gesamtausgabe auf 100 Megapixel. Trennen liefert ein ZIP.
+PDF nach Text extrahiert eine vorhandene Textschicht; Scans benötigen zuerst OCR.
+Zuschneiden begrenzt den sichtbaren Bereich und ist keine sichere Schwärzung.
+
 Zusammenfügen, Trennen, Vorschaubilder, Drehen, Zuschneiden, Seitenskalierung,
 Kompression, Bild/PDF- und PDF/Text-Konvertierung sowie OCR Deutsch/Englisch
 verwenden ausschliesslich mitgelieferte Komponenten. OCR arbeitet über die
@@ -42,7 +65,8 @@ Abbruch bei vorhandener Textebene) werden nicht angeboten.
 Nicht enthalten sind LibreOffice, Unoconvert, Weasyprint, Calibre, ImageMagick,
 OpenCV, externe Zeitstempeldienste, Web-/URL-Konvertierung, KI und Videoverarbeitung.
 Stirlings Verfügbarkeitsprüfung und explizite Gruppensperren blenden die zugehörigen
-Werkzeuge aus. Kompression kann je nach Originaldatei wenig oder nichts einsparen.
+Werkzeuge in der weiterhin vorhandenen Originaloberfläche aus; die edeco-Ansichten
+verwenden eine eigene, begrenzte Werkzeugliste. Kompression kann je nach Originaldatei wenig oder nichts einsparen.
 OCR-Genauigkeit hängt von Vorlage, Schrift und Auflösung ab. Auch die native
 Oberfläche verwendet eine mitgelieferte feste Microsoft-Edge-WebView2-Laufzeit.
 Ein vorhandenes System-WebView2 ist deshalb keine Voraussetzung. Aktualisierungen

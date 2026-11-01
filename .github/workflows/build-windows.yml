@@ -110,7 +110,7 @@ jobs:
             $bim = Invoke-RestMethod 'http://127.0.0.1:8799/tools/bim2steiger/api/meta'
             if ($bim.catalogue_articles -lt 1) { throw 'BIM-Katalog fehlt' }
             $env:EDECO_TEST_TOOLBOX_URL = 'http://127.0.0.1:8799'
-            python -m pytest backend/tests/test_pdf_stirling_live.py backend/tests/test_pdf_packaged_ui.py -q --junitxml=output/pdf-exe-tests.xml
+            python -m pytest backend/tests/test_pdf_stirling_live.py backend/tests/test_pdf_packaged_ui.py backend/tests/test_pdf_tools_ui.py -q --junitxml=output/pdf-exe-tests.xml
             if ($LASTEXITCODE) { throw 'PDF-Verarbeitung oder Oberfläche in der EXE fehlgeschlagen' }
             $env:DOC_SMOKE_FILE = Join-Path $env:RUNNER_TEMP 'document-source-smoke.pdf'
             @'

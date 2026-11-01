@@ -1,3 +1,11 @@
+## Unveröffentlichter Arbeitsstand: eigene PDF-Oberfläche
+
+- Elf Kacheln mit einheitlichen Symbolen und Prüfung der lokal mitgelieferten Voraussetzungen.
+- Dokumentreihen mit Mehrfachauswahl, Verschieben zwischen PDFs, Rückgängig und separatem Speichern. Auswahlfarben stimmen mit der aktuellen Dokumentreihe überein; Originaldatei und Originalseite bleiben gekennzeichnet.
+- Eigene Ansichten für Trennen, Drehen, Zuschneiden, Papierformat/Inhaltsskalierung, Kompression, PNG/JPEG nach PDF, PDF nach PNG/TXT und OCR Deutsch/Englisch.
+- Verlässliche Layoutbearbeitung bei gedrehten Seiten und gemischten Papierformaten. Inhaltsskalierung ist unabhängig von der Papierformatanpassung.
+- Dieser Stand ist noch nicht in der zuvor bereitgestellten Portable-Testausgabe enthalten.
+
 ## edeco Toolbox 0.5.0
 
 - Gemeinsame Werkzeugleiste mit genau einem edeco-Logo, Rückweg und Hell-/Dunkelmodus in allen Tools. Akzentfarben: NOVA Petrol, BIM Blau, Dokumenten-Assistent Violett und PDF-Werkstatt Rosé; eingebettete Arbeitsbereiche folgen dem gewählten Modus.

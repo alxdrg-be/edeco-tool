@@ -69,6 +69,72 @@ def test_proxy_blocks_cross_origin_and_external_redirects(pdf_api):
     app.state.pdf_proxy_transport = httpx.MockTransport(lambda request: httpx.Response(302, headers={"Location": "https://outside.example/"}))
     assert client.get(ROOT + "/", headers={"Origin": "https://outside.example"}).status_code == 403
     assert client.get(ROOT + "/").status_code == 502
+    assert client.get(ROOT + "/assets/style.css").status_code == 502
+
+
+def test_own_workspace_previews_pdf_and_requires_session_for_uploads(pdf_api):
+    client, _ = pdf_api
+    upload = {'file': ('Plan.pdf', sample_pdf())}
+    assert client.post(API + '/inspect', files=upload).status_code == 403
+    _, headers = state(client)
+    response = client.post(API + '/inspect', headers=headers, files=upload)
+    assert response.status_code == 200
+    pages = response.json()['pages']
+    assert len(pages) == 2 and pages[0]['number'] == 1
+    assert pages[0]['width'] == 595 and pages[0]['height'] == 842
+    assert pages[0]['thumbnail'].startswith('data:image/png;base64,')
+    assert client.post(API + '/inspect', headers=headers, files={'file': ('bad.pdf', b'not pdf')}).status_code == 400
+
+
+def test_tool_actions_require_session_and_bundled_dependencies(pdf_api):
+    client, _ = pdf_api
+    files = {'files': ('plan.pdf', sample_pdf())}
+    assert client.post(API + '/process/ocr', files=files).status_code == 403
+    _, headers = state(client)
+    assert not any(tool['available'] for tool in client.get(API + '/tools').json()['tools'])
+    assert client.post(API + '/process/ocr', headers=headers, files=files).status_code == 409
+    assert client.post(API + '/process/arbitrary', headers=headers, files=files).status_code == 404
+
+
+@pytest.mark.parametrize('selection', [[], [{'file': 9, 'page': 1}], [{'file': 0, 'page': 3}], [{'file': 0, 'page': 1, 'rotation': 17}]])
+def test_own_workspace_rejects_invalid_page_plan_before_processing(pdf_api, selection):
+    client, _ = pdf_api
+    _, headers = state(client)
+    response = client.post(API + '/compose', headers=headers, files={'files': ('Plan.pdf', sample_pdf())}, data={'pages': json.dumps(selection)})
+    assert response.status_code == 400
+
+
+@pytest.mark.parametrize('recover', [True, False])
+def test_ui_asset_connection_reset_never_reaches_browser_as_partial_stylesheet(pdf_api, recover):
+    client, app = pdf_api
+    state(client)
+    calls, closed = [], []
+
+    class ResetStream(httpx.AsyncByteStream):
+        async def __aiter__(self):
+            yield b'button { color:'
+            raise httpx.ReadError('Local connection reset midway through stylesheet')
+
+        async def aclose(self):
+            closed.append(True)
+
+    def handler(request):
+        calls.append(request)
+        assert 'transfer-encoding' not in request.headers
+        if len(calls) == 1 or not recover:
+            return httpx.Response(200, headers={'Content-Type': 'text/css'}, stream=ResetStream())
+        return httpx.Response(200, headers={'Content-Type': 'text/css'}, content=b'button { color: red; }')
+
+    app.state.pdf_proxy_transport = httpx.MockTransport(handler)
+    result = client.get(ROOT + '/assets/style.css')
+    if recover:
+        assert result.status_code == 200
+        assert result.content == b'button { color: red; }'
+        assert len(calls) == 2 and len(closed) == 1
+    else:
+        assert result.status_code == 502
+        assert len(calls) == 3 and len(closed) == 3
+        assert b'button { color:' not in result.content
 
 
 def test_company_workflow_only_writes_approved_folder_and_never_overwrites(pdf_api, tmp_path, monkeypatch):

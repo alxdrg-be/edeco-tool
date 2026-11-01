@@ -195,8 +195,30 @@ def register(app):
                         raise ValueError("Die Verarbeitung überschreitet 250 MB.")
                     yield chunk
             upstream_request = client.build_request(request.method, target, params=request.query_params,
-                                                    headers=headers, content=body())
+                                                    headers=headers, content=None if request.method in {'GET', 'HEAD'} else body())
             upstream = await client.send(upstream_request, stream=True)
+            static_asset = request.method == 'GET' and path.startswith(('assets/', 'locales/', 'modern-logo/'))
+            if static_asset:
+                # Do not commit a successful browser response until a complete UI
+                # asset has arrived. A reset of a reused local connection must not
+                # leave the application with half a stylesheet or worker script.
+                for attempt in range(3):
+                    try:
+                        chunks, size = [], 0
+                        async for chunk in upstream.aiter_bytes():
+                            size += len(chunk)
+                            if size > 64 * 1024 * 1024:
+                                raise ValueError('Oberflächendatei überschreitet 64 MB.')
+                            chunks.append(chunk)
+                        asset_content = b''.join(chunks)
+                        break
+                    except httpx.HTTPError:
+                        if attempt == 2:
+                            raise
+                        upstream_request = client.build_request('GET', target, params=request.query_params, headers=headers)
+                    finally:
+                        await upstream.aclose()
+                    upstream = await client.send(upstream_request, stream=True)
         except (httpx.HTTPError, ValueError):
             return HTMLResponse("<h2>Stirling-PDF ist nicht erreichbar.</h2><p>Bitte über die Toolbox die Verbindung prüfen.</p>", status_code=502)
         response_headers = {key: value for key, value in upstream.headers.items()
@@ -208,6 +230,9 @@ def register(app):
             elif location.startswith(("http://", "https://", "//")):
                 await upstream.aclose()
                 raise HTTPException(502, "Eine Weiterleitung zu einem anderen Dienst wurde nicht geöffnet.")
+        if static_asset:
+            response_headers.pop('content-encoding', None)
+            return Response(asset_content, status_code=upstream.status_code, headers=response_headers)
         if "text/html" in upstream.headers.get("content-type", ""):
             raw = await upstream.aread()
             await upstream.aclose()
@@ -230,5 +255,9 @@ def register(app):
                 await upstream.aclose()
         return StreamingResponse(stream(), status_code=upstream.status_code, headers=response_headers)
 
+    from .workbench import register_workbench
+    register_workbench(app, authorize, config)
+    from .operations import register_operations
+    register_operations(app, authorize, config)
     app.add_api_route(ROOT + "/", proxy, methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"])
     app.add_api_route(ROOT + "/{path:path}", proxy, methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"])

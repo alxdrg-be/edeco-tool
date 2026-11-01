@@ -1,4 +1,4 @@
-"""Embedded production UI with public browser traffic blocked, against the real EXE."""
+"""Own PDF workspace against a running local host, with public browser traffic blocked."""
 import os
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -6,6 +6,20 @@ from urllib.parse import urlsplit
 import pytest
 
 from test_documents import sample_pdf
+
+
+def assert_button_contrast(page):
+    import re
+    def luminance(color):
+        channels = [float(value) / 255 for value in re.findall(r'[\d.]+', color)[:3]]
+        return sum(weight * (value / 12.92 if value <= .04045 else ((value + .055) / 1.055) ** 2.4)
+                   for weight, value in zip((.2126, .7152, .0722), channels))
+    for button in page.locator('.pdf-workshop .btn').all():
+        if button.is_visible():
+            colors = button.evaluate('(el) => {const s=getComputedStyle(el); return [s.color,s.backgroundColor];}')
+            values = sorted(luminance(color) for color in colors)
+            ratio = (values[1] + .05) / (values[0] + .05)
+            assert ratio >= 4.5, (button.inner_text(), colors, ratio)
 
 
 @pytest.mark.skipif(not os.environ.get('EDECO_TEST_TOOLBOX_URL'), reason='Running packaged Toolbox required')
@@ -50,45 +64,106 @@ def test_packaged_workshop_preview_merge_branding_and_licenses():
             page.get_by_role('button', name='← Zur Toolbox', exact=True).click()
             expect(page.get_by_role('button', name=title + ' öffnen', exact=True)).to_be_visible()
         page.get_by_role('button', name='PDF-Werkstatt öffnen', exact=True).click()
-        expect(page.get_by_text('Offline bereit · auf diesem Computer')).to_be_visible(timeout=180000)
-        frame = page.frame_locator("iframe[title='Stirling-PDF · edeco PDF-Werkstatt']")
-        picker = frame.locator('input[type=file]').first
-        picker.wait_for(state='attached', timeout=60000)
-        expect(page.get_by_role('img', name='edeco ag', exact=True)).to_have_count(1)
-        expect(frame.locator('.sui-logo').first).to_be_hidden()
-        expect(frame.locator('.sui-brandmark').first).to_be_hidden()
-        for mode in ('dark', 'light'):
-            page.get_by_role('button', name='Dunkler Modus' if mode == 'dark' else 'Heller Modus', exact=True).click()
-            expect(frame.locator('html')).to_have_attribute('data-edeco-theme', mode)
-            colors[mode].append(page.locator('.tool-header-title').evaluate('(el) => getComputedStyle(el).color'))
-            assert len(set(colors[mode])) == 4, colors
-        expect(frame.get_by_text('PDF mit Zeitstempel', exact=True)).to_have_count(0)
-        picker.set_input_files([
-            {'name': 'Plan-A.pdf', 'mimeType': 'application/pdf', 'buffer': sample_pdf([['FIRST PLAN']])},
-            {'name': 'Plan-B.pdf', 'mimeType': 'application/pdf', 'buffer': sample_pdf([['SECOND PLAN']])},
-        ])
-        frame.get_by_text('Plan-B.pdf', exact=True).first.wait_for(timeout=30000)
-        # Rendered page thumbnails exercise the actual bundled PDF.js/worker/WASM assets.
-        preview = frame.get_by_alt_text('Vorschau von Plan-A.pdf', exact=True).first
-        expect(preview).to_be_visible(timeout=30000)
-        assert preview.evaluate('(img) => img.naturalWidth > 0')
-        frame.get_by_text('Zusammenführen', exact=True).first.click()
-        with page.expect_response(lambda response: response.url.endswith('/api/v1/general/merge-pdfs'), timeout=60000) as processing:
-            frame.get_by_role('button', name='Zusammenführen (2 Dateien)', exact=True).click()
-        assert processing.value.status == 200
-        import pypdfium2 as pdfium
-        with pdfium.PdfDocument(processing.value.body()) as doc:
-            assert len(doc) == 2
-        frame.get_by_text('merged_Plan-A.pdf', exact=True).first.wait_for(timeout=30000)
-        frame.locator('label[for$="-viewer"]').click()
-        rendered_page = frame.locator('img[src^="blob:"]').first
-        expect(rendered_page).to_be_visible(timeout=30000)
-        assert rendered_page.evaluate('(img) => img.naturalWidth > 200')
-        Path('output').mkdir(exist_ok=True)
-        page.screenshot(path='output/pdf-packaged-workshop.png', full_page=True)
+        expect(page.get_by_role('button', name='PDFs organisieren', exact=True)).to_be_enabled(timeout=180000)
         page.get_by_role('button', name='Info / Lizenzen', exact=True).click()
         info = page.frame_locator("iframe[title='Info / Lizenzen']")
         expect(info.get_by_role('heading', name='edeco PDF-Werkstatt · Info / Lizenzen')).to_be_visible()
         expect(info.get_by_role('link', name='java-source.tar.gz', exact=True)).to_be_visible()
+        page.get_by_role('button', name='Info schliessen', exact=True).click()
+        page.get_by_role('button', name='PDFs organisieren', exact=True).click()
+        expect(page.get_by_role('heading', name='Jedes PDF hat seinen Platz.')).to_be_visible()
+        expect(page.get_by_role('img', name='edeco ag', exact=True)).to_have_count(1)
+        Path('output/ui-preview').mkdir(parents=True, exist_ok=True)
+        page.screenshot(path='output/ui-preview/edeco-pdf-rows-empty.png')
+        for mode in ('dark', 'light'):
+            page.get_by_role('button', name='Dunkler Modus' if mode == 'dark' else 'Heller Modus', exact=True).click()
+            assert_button_contrast(page)
+            colors[mode].append(page.locator('.tool-header-title').evaluate('(el) => getComputedStyle(el).color'))
+            assert len(set(colors[mode])) == 4, colors
+        picker = page.get_by_label('PDF-Dateien hinzufügen', exact=True)
+        picker.set_input_files([
+            {'name': 'Elektroplanung.pdf', 'mimeType': 'application/pdf', 'buffer': sample_pdf([['FIRST PLAN', 'Projekt Sonnenhof - Elektroplanung'], ['REMOVE THIS PAGE']])},
+            {'name': 'Pruefprotokoll.pdf', 'mimeType': 'application/pdf', 'buffer': sample_pdf([['SECOND PLAN', 'Projekt Sonnenhof - Pruefprotokoll']])},
+        ])
+        cards = page.locator('.pdf-page-card')
+        expect(cards).to_have_count(3)
+        expect(page.locator('.pdf-document-row')).to_have_count(2)
+        expect(page.get_by_role('heading', name='Elektroplanung.pdf', exact=True)).to_be_visible()
+        expect(page.get_by_role('heading', name='Pruefprotokoll.pdf', exact=True)).to_be_visible()
+        for thumbnail in page.locator('.pdf-page-card img').all():
+            assert thumbnail.evaluate('(img) => img.complete && img.naturalWidth > 100')
+        expect(page.locator('.pdf-page-card[aria-pressed="true"]')).to_have_count(0)
+        page.screenshot(path='output/ui-preview/edeco-pdf-rows-neutral.png')
+        page.get_by_role('button', name='Pruefprotokoll.pdf, Position 1: Pruefprotokoll.pdf, Seite 1', exact=True).click()
+        row = page.get_by_role('region', name='Pruefprotokoll.pdf', exact=True)
+        selected_card = row.locator('.pdf-page-card[aria-pressed="true"]')
+        expect(selected_card).to_have_css('border-top-color', row.evaluate('(el) => getComputedStyle(el).borderLeftColor'))
+        expect(selected_card).to_have_css('background-color', page.locator('.pdf-source.is-current').evaluate('(el) => getComputedStyle(el).backgroundColor'))
+        page.get_by_role('button', name='Dunkler Modus', exact=True).click()
+        page.wait_for_timeout(200)
+        page.locator('.pdf-page-workspace').evaluate('(el) => { el.scrollTop = 0; }')
+        page.screenshot(path='output/ui-preview/edeco-pdf-rows-dark.png')
+        page.get_by_role('button', name='Heller Modus', exact=True).click()
+        page.get_by_role('button', name='Pruefprotokoll.pdf: Reihe nach oben', exact=True).click()
+        expect(page.locator('.pdf-document-row').first.get_by_role('heading')).to_have_text('Pruefprotokoll.pdf')
+        page.get_by_role('button', name='↶ Rückgängig', exact=True).click()
+        second_row = page.get_by_role('region', name='Pruefprotokoll.pdf', exact=True)
+        second_row.get_by_role('button', name='PDF erstellen', exact=True).click()
+        expect(page.locator('.pdf-result strong')).to_contain_text('1 Seite')
+        with page.expect_download() as single_download:
+            page.get_by_role('link', name='PDF herunterladen', exact=True).click()
+        import pypdfium2 as pdfium
+        from contextlib import closing
+        with pdfium.PdfDocument(single_download.value.path()) as single:
+            assert len(single) == 1
+            with closing(single[0]) as single_page, closing(single_page.get_textpage()) as text:
+                assert 'SECOND PLAN' in text.get_text_range()
+        page.get_by_role('button', name='Pruefprotokoll.pdf, Position 1: Pruefprotokoll.pdf, Seite 1', exact=True).drag_to(cards.first)
+        expect(cards.first).to_have_attribute('aria-label', 'Elektroplanung.pdf, Position 1: Pruefprotokoll.pdf, Seite 1')
+        expect(cards.first.locator('.pdf-page-origin')).to_have_text('PDF 2 · S. 1')
+        first_row = page.get_by_role('region', name='Elektroplanung.pdf', exact=True)
+        expect(cards.first).to_have_css('border-top-color', first_row.evaluate('(el) => getComputedStyle(el).borderLeftColor'))
+        page.get_by_role('button', name='↻ Drehen', exact=True).click()
+        expect(cards.first).to_contain_text('90° gedreht')
+        page.get_by_role('button', name='Elektroplanung.pdf, Position 3: Elektroplanung.pdf, Seite 2', exact=True).click()
+        page.get_by_role('button', name='Entfernen', exact=True).click()
+        expect(cards).to_have_count(2)
+        page.get_by_role('button', name='↶ Rückgängig', exact=True).click()
+        expect(cards).to_have_count(3)
+        page.get_by_role('button', name='Elektroplanung.pdf, Position 3: Elektroplanung.pdf, Seite 2', exact=True).click()
+        page.get_by_role('button', name='Entfernen', exact=True).click()
+        page.get_by_role('button', name='Elektroplanung.pdf, Position 1: Pruefprotokoll.pdf, Seite 1', exact=True).click()
+        page.get_by_role('button', name='Elektroplanung.pdf, Position 2: Elektroplanung.pdf, Seite 1', exact=True).click(modifiers=['Control'])
+        expect(page.locator('.pdf-page-card[aria-pressed="true"]')).to_have_count(2)
+        page.get_by_role('button', name='＋ Neue Zusammenstellung', exact=True).click()
+        expect(page.get_by_role('region', name='Neue Zusammenstellung 1.pdf', exact=True).locator('.pdf-page-card')).to_have_count(2)
+        page.get_by_role('button', name='↶ Rückgängig', exact=True).click()
+        expect(page.locator('.pdf-document-row')).to_have_count(2)
+        page.get_by_label('Miniaturen', exact=True).fill('210')
+        expect(cards.first).to_have_css('width', '210px')
+        page.get_by_label('Dateiname', exact=True).fill('Projekt Sonnenhof - Freigabe')
+        with page.expect_response(lambda response: response.url.endswith('/api/tools/pdf-werkstatt/compose'), timeout=90000) as processing:
+            page.get_by_role('button', name='↓ PDF erstellen', exact=True).click()
+        assert processing.value.status == 200, processing.value.text()
+        expect(page.get_by_role('link', name='PDF herunterladen', exact=True)).to_be_visible()
+        with page.expect_download() as download:
+            page.get_by_role('link', name='PDF herunterladen', exact=True).click()
+        assert download.value.suggested_filename == 'Projekt Sonnenhof - Freigabe.pdf'
+        import pypdfium2 as pdfium
+        from contextlib import closing
+        with pdfium.PdfDocument(download.value.path()) as doc:
+            assert len(doc) == 2
+            with closing(doc[0]) as first, closing(first.get_textpage()) as text:
+                assert 'SECOND PLAN' in text.get_text_range()
+                assert first.get_size() == (842, 595)
+            with closing(doc[1]) as second, closing(second.get_textpage()) as text:
+                assert 'FIRST PLAN' in text.get_text_range()
+                assert 'REMOVE' not in text.get_text_range()
+        page.locator('.pdf-page-workspace').evaluate('(el) => { el.scrollTop = 0; }')
+        page.screenshot(path='output/ui-preview/edeco-pdf-rows-result-light.png')
+        page.get_by_role('button', name='← Zur Toolbox', exact=True).click()
+        expect(page.get_by_role('alertdialog', name='Ergebnisse gespeichert?')).to_be_visible()
+        page.get_by_role('button', name='Zur Toolbox wechseln', exact=True).click()
+        expect(page.get_by_role('heading', name='Ein Ort. Deine Werkzeuge.')).to_be_visible()
         assert not external, external
         browser.close()

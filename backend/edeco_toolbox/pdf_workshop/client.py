@@ -15,6 +15,7 @@ from .config import service_url
 class PdfFile:
     name: str
     data: bytes
+    mime: str = 'application/pdf'
 
     @classmethod
     def read(cls, path: Path):
@@ -51,10 +52,10 @@ class StirlingClient:
         except (httpx.HTTPError, ValueError, TypeError):
             return {"ready": False, "version": "", "message": "Stirling-PDF ist nicht erreichbar. Bitte den lokalen Dienst oder Firmenserver starten und die Adresse prüfen."}
 
-    def operation(self, endpoint: str, files: Sequence[PdfFile], fields: dict, *, pdf=True) -> bytes:
+    def request_result(self, endpoint: str, files: Sequence[PdfFile], fields: dict) -> bytes:
         if not files or len(files) > 100 or sum(len(file.data) for file in files) > 250 * 1024 * 1024:
             raise ValueError("Bitte 1 bis 100 Dateien mit insgesamt höchstens 250 MB verwenden.")
-        uploads = [("fileInput", (Path(file.name.replace("\\", "/")).name, file.data, "application/pdf")) for file in files]
+        uploads = [("fileInput", (Path(file.name.replace("\\", "/")).name, file.data, file.mime)) for file in files]
         try:
             with httpx.Client(timeout=httpx.Timeout(300, connect=10), headers=self.headers,
                               transport=self.transport, follow_redirects=False, trust_env=False) as client:
@@ -62,11 +63,15 @@ class StirlingClient:
             response.raise_for_status()
         except httpx.HTTPError:
             raise ValueError("Stirling-PDF konnte die Verarbeitung nicht abschliessen. Bitte Verbindung, Eingaben und verfügbare Werkzeuge prüfen.") from None
-        if pdf and not response.content.lstrip().startswith(b"%PDF-"):
-            raise ValueError("Stirling-PDF hat keine fertige PDF-Datei geliefert.")
-        if not pdf and not response.content.startswith((b"PK\x03\x04", b"\x89PNG\r\n")):
-            raise ValueError("Stirling-PDF hat keine PNG-/ZIP-Bildausgabe geliefert.")
         return response.content
+
+    def operation(self, endpoint: str, files: Sequence[PdfFile], fields: dict, *, pdf=True) -> bytes:
+        content = self.request_result(endpoint, files, fields)
+        if pdf and not content.lstrip().startswith(b"%PDF-"):
+            raise ValueError("Stirling-PDF hat keine fertige PDF-Datei geliefert.")
+        if not pdf and not content.startswith((b"PK\x03\x04", b"\x89PNG\r\n")):
+            raise ValueError("Stirling-PDF hat keine PNG-/ZIP-Bildausgabe geliefert.")
+        return content
 
     def merge(self, files: Sequence[PdfFile]) -> bytes:
         if len(files) < 2:
@@ -95,7 +100,7 @@ class StirlingClient:
             raise ValueError("Bitte gültige OCR-Sprachkürzel verwenden.")
         return self.operation("misc/ocr-pdf", [file], {"languages": ",".join(languages),
                               "ocrType": "force-ocr" if force else "skip-text", "ocrRenderType": "sandwich",
-                              "sidecar": "false", "deskew": "true", "rotatePages": "false",
+                              "sidecar": "false", "deskew": "false", "rotatePages": "false",
                               "clean": "false", "cleanFinal": "false", "removeImagesAfter": "false"})
 
     def raster_images(self, file: PdfFile, dpi=300, pages="all") -> bytes:

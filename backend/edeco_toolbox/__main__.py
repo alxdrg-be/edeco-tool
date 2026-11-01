@@ -73,7 +73,7 @@ def probe_desktop(window, home: Path):
             window.evaluate_js("document.querySelector('button[aria-label=\"PDF-Werkstatt öffnen\"]').click()")
             deadline = time.monotonic() + 160
             while time.monotonic() < deadline:
-                if window.evaluate_js("Boolean(document.querySelector('.pdf-stirling-frame')?.contentDocument?.querySelector('input[type=file]'))"):
+                if window.evaluate_js("Boolean(document.querySelector('.pdf-tool-grid button:not(:disabled)'))"):
                     report.update(ok=True, pdf_ready=True)
                     break
                 time.sleep(.5)
