@@ -8,10 +8,11 @@ interface Props {
   onHome: () => void;
   disabled?: boolean;
   onLogoClick?: () => void;
+  homeLabel?: string;
   children?: ReactNode;
 }
 
-export default function ToolHeader({ title, onHome, disabled, onLogoClick, children }: Props) {
+export default function ToolHeader({ title, onHome, disabled, onLogoClick, homeLabel = "← Zur Toolbox", children }: Props) {
   const [theme, setTheme] = useState(loadTheme);
   useEffect(() => {
     const sync = () => setTheme(loadTheme());
@@ -27,7 +28,7 @@ export default function ToolHeader({ title, onHome, disabled, onLogoClick, child
     <span className="tool-header-logo" role="img" aria-label="edeco ag" onClick={onLogoClick}
       dangerouslySetInnerHTML={{ __html: edecoLogo.replace(/<\?xml[^?]*\?>/, "") }} />
     <span className="tool-header-divider" aria-hidden="true" />
-    <button type="button" className="btn tool-header-back" disabled={disabled} onClick={onHome}>← Zur Toolbox</button>
+    <button type="button" className="btn tool-header-back" disabled={disabled} onClick={onHome}>{homeLabel}</button>
     <span className="tool-header-title"><span aria-hidden="true" className="tool-header-mark" />{title}</span>
     <div className="tool-header-actions">{children}
       <button type="button" className="btn" aria-label={dark ? "Heller Modus" : "Dunkler Modus"} onClick={() => {

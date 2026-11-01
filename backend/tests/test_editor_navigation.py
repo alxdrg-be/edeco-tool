@@ -209,13 +209,12 @@ def test_toolbox_shows_all_tiles_without_scroll_and_greys_only_planned_tools(edi
     page, _, _, _ = editor
     page.set_viewport_size({"width": 1400, "height": 900})
     page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
-    playwright.expect(page.locator(".toolbox-card")).to_have_count(11)
+    playwright.expect(page.locator(".toolbox-card")).to_have_count(10)
     assert page.locator(".toolbox").evaluate("el => el.scrollHeight <= el.clientHeight")
     # A 900px native window also needs space for its Windows title bar.
     page.set_viewport_size({"width": 1400, "height": 860})
     assert page.locator(".toolbox").evaluate("el => el.scrollHeight <= el.clientHeight")
-    planned = ["Dateien umbenennen", "Projektzentrale", "Änderungsbericht",
-               "Leistungsbilanz", "Kabelberechnung", "Anlagetool"]
+    planned = ["Änderungsbericht", "Anlagetool"]
     for name in planned:
         tile = page.locator(".toolbox-card").filter(has=page.get_by_role("heading", name=name, exact=True))
         playwright.expect(tile).to_be_visible()
@@ -228,12 +227,486 @@ def test_toolbox_shows_all_tiles_without_scroll_and_greys_only_planned_tools(edi
     playwright.expect(page.get_by_role("button", name="BIM2STEIGER öffnen", exact=True)).to_be_enabled()
     playwright.expect(page.get_by_role("button", name="Dokumenten-Assistent öffnen", exact=True)).to_be_enabled()
     playwright.expect(page.get_by_role("button", name="PDF-Werkstatt öffnen", exact=True)).to_be_enabled()
-    playwright.expect(page.get_by_role("button", name="Berechnungen öffnen", exact=True)).to_be_enabled()
+    playwright.expect(page.get_by_role("button", name="Dateien umbenennen öffnen", exact=True)).to_be_enabled()
+    playwright.expect(page.get_by_role("button", name="Projektzentrale öffnen", exact=True)).to_be_enabled()
     page.set_viewport_size({"width": 390, "height": 844})
     assert page.locator(".toolbox").evaluate("el => el.scrollWidth <= el.clientWidth")
     assert page.locator(".toolbox").evaluate("el => el.scrollHeight > el.clientHeight")
     page.get_by_role("heading", name="Anlagetool", exact=True).scroll_into_view_if_needed()
     playwright.expect(page.get_by_role("heading", name="Anlagetool", exact=True)).to_be_in_viewport()
+
+
+def test_plan_delivery_downloads_manifest_and_records_only_explicitly_confirmed_sends(editor, tmp_path):
+    import io
+    import zipfile
+    from test_documents import sample_pdf
+    page, _, _, _ = editor
+    prefix = page.url.rstrip("/") + "/api/tools/projektzentrale"
+    state = page.request.get(prefix + "/state").json()
+    project = page.request.post(prefix + "/projects", headers={"X-Edeco-Projects": state["session_key"]}, data={"number": "1498", "name": "Planlieferung Test"}).json()
+    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Planlieferungs-Assistent öffnen", exact=True).click()
+    playwright.expect(page.get_by_label("Lieferprojekt", exact=True)).to_have_value(project["id"])
+    page.get_by_label("Lieferempfänger", exact=True).fill("Bauleitung Test")
+    page.get_by_label("Lieferdatum", exact=True).fill("2026-11-01")
+    playwright.expect(page.get_by_role("button", name="PDFs hinzufügen", exact=True)).to_be_enabled()
+    pdf = sample_pdf([["2. OG"]])
+    page.get_by_label("PDFs hinzufügen", exact=True).set_input_files({"name": "Grundriss 2og.pdf", "mimeType": "application/pdf", "buffer": pdf})
+    page.get_by_label("Index für Grundriss 2og.pdf", exact=True).fill("D")
+    playwright.expect(page.get_by_label("Neuer Name für Grundriss 2og.pdf", exact=True)).to_have_value("1498_E-G-APP-OG02-D-50.pdf")
+    with page.expect_download() as pending:
+        page.get_by_role("button", name="Lieferpaket mit Planliste erstellen", exact=True).click()
+    with zipfile.ZipFile(io.BytesIO(pending.value.path().read_bytes())) as archive:
+        assert archive.read("1498_E-G-APP-OG02-D-50.pdf") == pdf
+        assert "Planliste.html" in archive.namelist()
+    playwright.expect(page.get_by_text("Vorbereitet · noch kein Versand bestätigt", exact=True)).to_be_visible()
+    page.set_viewport_size({"width": 1400, "height": 900})
+    page.screenshot(path=str(tmp_path / "delivery.png"), full_page=True)
+    page.once("dialog", lambda dialog: dialog.accept())
+    page.get_by_role("button", name="Als versendet bestätigen", exact=True).click()
+    playwright.expect(page.get_by_text("Versand bestätigt", exact=True)).to_be_visible()
+    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Projektzentrale öffnen", exact=True).click()
+    playwright.expect(page.get_by_text("Versand bestätigt", exact=True)).to_be_visible()
+    page.set_viewport_size({"width": 390, "height": 844})
+    assert page.locator(".project-hub").evaluate("el => el.scrollWidth <= el.clientWidth")
+
+
+def test_calculations_hub_and_lightning_visualisation_validate_and_restore_inputs(editor, tmp_path):
+    page, _, _, _ = editor
+    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Berechnungen öffnen", exact=True).click()
+    playwright.expect(page.locator(".calc-tile")).to_have_count(26)
+    playwright.expect(page.get_by_role("button", name="Demnächst")).to_have_count(1)
+    page.get_by_role("button", name="Blitzschutz öffnen", exact=True).click()
+    playwright.expect(page.get_by_label("Blitzschutzklasse", exact=True)).to_be_enabled()
+    page.get_by_label("Blitzschutzklasse", exact=True).select_option("I")
+    page.get_by_label("Gebäudeumfang U (m)", exact=True).fill("20")
+    page.get_by_label("Leitungsweg A (m)", exact=True).fill("3")
+    page.get_by_label("Vorhandene Ableiter n", exact=True).fill("2")
+    playwright.expect(page.get_by_test_id("separation-result")).to_have_text("0.24 m")
+    page.get_by_label("Vorhandener Abstand (m, optional)", exact=True).fill("0,20")
+    playwright.expect(page.get_by_text("Vorhandener Abstand unterschreitet das erforderliche s.", exact=True)).to_be_visible()
+    page.get_by_label("Vorhandener Abstand (m, optional)", exact=True).fill("0,24")
+    playwright.expect(page.get_by_test_id("clearance-aura")).to_have_attribute("data-state", "pass")
+    page.get_by_role("button", name="Info: Leitungsweg A (m)", exact=True).click()
+    drawer = page.get_by_role("dialog", name="Leitungsweg A")
+    playwright.expect(drawer).to_contain_text("SN 414022:2024")
+    page.screenshot(path=str(tmp_path / "swiss-info.png"), full_page=True)
+    page.keyboard.press("Escape")
+    playwright.expect(drawer).not_to_be_visible()
+    playwright.expect(page.get_by_role("button", name="Info: Leitungsweg A (m)", exact=True)).to_be_focused()
+    # The SVG object is keyboard operable, not a decorative result image.
+    page.get_by_role("slider", name="Abstand Dachobjekt", exact=True).focus()
+    page.keyboard.press("Home")
+    playwright.expect(page.get_by_test_id("clearance-aura")).to_have_attribute("data-state", "fail")
+    page.get_by_label("Vorhandener Abstand (m, optional)", exact=True).fill("0.24")
+    object_control = page.get_by_role("slider", name="Abstand Dachobjekt", exact=True)
+    before = object_control.bounding_box()
+    page.mouse.move(before["x"] + before["width"] / 2, before["y"] + before["height"] * .65)
+    page.mouse.down()
+    page.mouse.move(before["x"] + before["width"] / 2 + 40, before["y"] + before["height"] * .65, steps=5)
+    page.mouse.up()
+    assert float(page.get_by_label("Vorhandener Abstand (m, optional)", exact=True).input_value()) > .24
+    old_y = object_control.bounding_box()["y"]
+    page.get_by_role("slider", name="Leitungsweg A (m) Slider", exact=True).focus()
+    page.keyboard.press("End")
+    assert object_control.bounding_box()["y"] < old_y
+    page.get_by_label("Leitungsweg A (m)", exact=True).fill("3")
+    page.get_by_label("Vorhandener Abstand (m, optional)", exact=True).fill("0.24")
+    page.get_by_label("Berechnungsbemerkung", exact=True).fill("Dachaufbau prüfen")
+    page.set_viewport_size({"width": 1400, "height": 1000})
+    page.locator(".calc-workspace").evaluate("el => el.scrollTop = 0")
+    page.get_by_role("button", name="Heller Rechnermodus", exact=True).click()
+    page.screenshot(path=str(tmp_path / "lightning.png"), full_page=True)
+    page.get_by_role("button", name="Dunkler Rechnermodus", exact=True).click()
+    page.screenshot(path=str(tmp_path / "lightning-dark.png"), full_page=True)
+    page.emulate_media(media="print")
+    assert page.locator(".calc-panel").first.evaluate("el => getComputedStyle(el).backgroundColor") == "rgb(255, 255, 255)"
+    report = page.pdf(path=str(tmp_path / "Trennungsabstand.pdf"), format="A4", print_background=True)
+    import pypdfium2 as pdfium
+    from contextlib import closing
+    with pdfium.PdfDocument(report) as document:
+        text = ""
+        for index in range(len(document)):
+            with closing(document[index]) as pdf_page, closing(pdf_page.get_textpage()) as text_page:
+                text += text_page.get_text_range()
+        text = re.sub(r"\s+", " ", text)
+        assert "0.24 m" in text and "Arthur Flury" in text and "SN 414022" in text
+    page.emulate_media(media="screen")
+    page.get_by_label("Vorhandene Ableiter n", exact=True).fill("2.5")
+    playwright.expect(page.get_by_test_id("separation-result")).to_have_count(0)
+    playwright.expect(page.get_by_role("button", name="Ergebnis als JSON sichern", exact=True)).to_be_disabled()
+    page.get_by_label("Vorhandene Ableiter n", exact=True).fill("2")
+    page.get_by_role("button", name="Berechnungen", exact=True).click()
+    page.get_by_role("button", name="Blitzschutz öffnen", exact=True).click()
+    playwright.expect(page.get_by_test_id("separation-result")).to_have_text("0.24 m")
+    playwright.expect(page.get_by_label("Berechnungsbemerkung", exact=True)).to_have_value("Dachaufbau prüfen")
+    page.set_viewport_size({"width": 390, "height": 844})
+    assert page.locator(".calc-workspace").evaluate("el => el.scrollWidth <= el.clientWidth")
+
+
+def test_swiss_cable_live_controls_recommendation_drawer_and_export(editor, tmp_path):
+    import json
+    page, _, _, _ = editor
+    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Berechnungen öffnen", exact=True).click()
+    page.get_by_role("button", name="Kabelberechnung öffnen", exact=True).click()
+    playwright.expect(page.get_by_label("Leitungslänge L (m)", exact=True)).to_be_enabled()
+    playwright.expect(page.get_by_test_id("voltage-drop-result")).to_have_text("6.74 V")
+    playwright.expect(page.get_by_test_id("cable-max-length")).to_have_text("34.1 m")
+    playwright.expect(page.get_by_test_id("cable-budget-detail")).to_have_text("2.93 % / 4 %")
+    page.get_by_label("Leitungslänge L (m)", exact=True).fill("60")
+    page.get_by_label("Leistungsfaktor cos φ", exact=True).fill("0.85")
+    playwright.expect(page.get_by_test_id("voltage-drop-result")).to_have_text("13.87 V")
+    playwright.expect(page.get_by_test_id("recommended-area")).to_have_text("4 mm²")
+    page.get_by_role("button", name="Info: Schweizer Kabelmodell", exact=True).click()
+    dialog = page.get_by_role("dialog", name="NIN-orientiertes Modell")
+    playwright.expect(dialog).to_contain_text("SN 411000:2025")
+    playwright.expect(dialog).to_contain_text("kein NIN-Normwert")
+    page.keyboard.press("Escape")
+    page.set_viewport_size({"width": 1440, "height": 1000})
+    page.locator(".engineering-lab").evaluate("el => el.scrollTop=0")
+    page.screenshot(path=str(tmp_path / "cable.png"), full_page=True)
+    with page.expect_download() as pending:
+        page.get_by_role("button", name="Ergebnis als JSON sichern", exact=True).click()
+    proof = json.loads(pending.value.path().read_bytes())
+    assert proof["result"]["temperature"] == 55
+    assert all(".ch/" in url for url in proof["sources"])
+    page.get_by_label("Laststrom I (A)", exact=True).fill("")
+    playwright.expect(page.get_by_role("button", name="Ergebnis als JSON sichern", exact=True)).to_be_disabled()
+    playwright.expect(page.get_by_test_id("voltage-drop-result")).to_have_text("–")
+    page.get_by_label("Laststrom I (A)", exact=True).fill("16")
+    page.get_by_role("button", name="Aluminium", exact=True).click()
+    playwright.expect(page.get_by_label("Leiterquerschnitt", exact=True)).to_have_value("10")
+    page.get_by_role("button", name="3~ · 400 V", exact=True).click()
+    playwright.expect(page.get_by_label("Bemessungsspannung Uₙ (V)", exact=True)).to_have_value("400")
+    page.set_viewport_size({"width": 390, "height": 844})
+    assert page.locator(".engineering-lab").evaluate("el => el.scrollWidth <= el.clientWidth")
+
+
+def test_shared_calculation_archive_settings_save_notes_restore_and_import(editor, tmp_path):
+    from test_documents import sample_pdf
+    page, _, _, _ = editor
+    base = page.url.rstrip("/")
+    state = page.request.get(base + "/api/tools/projektzentrale/state").json()
+    page.request.post(base + "/api/tools/projektzentrale/projects", headers={"X-Edeco-Projects": state["session_key"]}, data={"number":"1498","name":"Gemeinsames Projekt"})
+    server = tmp_path / "server"; server.mkdir()
+    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Berechnungen öffnen", exact=True).click()
+    page.get_by_role("button", name="Gemeinsame Ablage & Einstellungen", exact=True).click()
+    page.get_by_role("button", name="Ablage-Einstellungen", exact=True).click()
+    dialog = page.get_by_role("dialog", name="Ablage-Einstellungen")
+    dialog.get_by_label("Serverordner", exact=True).fill(str(server))
+    dialog.get_by_label("Ablage-Unterordner", exact=True).fill("Planung/Berechnungen")
+    dialog.get_by_role("button", name="Verbindung prüfen & speichern", exact=True).click()
+    playwright.expect(dialog).not_to_be_visible()
+    page.get_by_role("button", name="Berechnungen", exact=True).click()
+    page.get_by_role("button", name="Blitzschutz öffnen", exact=True).click()
+    playwright.expect(page.get_by_role("button", name="Projektbezogen auf Server speichern", exact=True)).to_be_enabled()
+    page.get_by_role("button", name="Projektbezogen auf Server speichern", exact=True).click()
+    dialog = page.get_by_role("dialog", name="Projektbezogen speichern")
+    playwright.expect(dialog.get_by_label("Ablage-Projektnummer", exact=True)).to_have_value("1498")
+    dialog.get_by_label("Rechenstand-Bezeichnung", exact=True).fill("Dachaufbau OG02")
+    dialog.get_by_label("Rechenstand-Notizen", exact=True).fill("Mit Bauleitung prüfen")
+    dialog.get_by_role("button", name="Als neuen Stand speichern", exact=True).click()
+    playwright.expect(dialog.get_by_role("status")).to_contain_text("Gemeinsam gespeichert")
+    page.get_by_role("button", name="Information schliessen", exact=True).click()
+    page.get_by_role("button", name="Gemeinsame Berechnungsablage öffnen", exact=True).click()
+    page.locator(".archive-item").filter(has_text="Dachaufbau OG02").click()
+    page.get_by_label("Weitere Notiz", exact=True).fill("Kollege hat den Planstand verglichen")
+    page.get_by_role("button", name="Notiz ergänzen", exact=True).click()
+    playwright.expect(page.locator(".archive-comment")).to_contain_text("Kollege hat den Planstand verglichen")
+    page.get_by_role("button", name="Eingaben laden & neu berechnen", exact=True).click()
+    playwright.expect(page.get_by_label("Berechnungsbemerkung", exact=True)).to_have_value("Mit Bauleitung prüfen")
+    playwright.expect(page.get_by_test_id("separation-result")).to_have_text("0.40 m")
+    page.get_by_role("button", name="Gemeinsame Berechnungsablage öffnen", exact=True).click()
+    page.get_by_role("button", name="Berechnung importieren", exact=True).click()
+    dialog = page.get_by_role("dialog", name="Berechnung gemeinsam ablegen")
+    dialog.get_by_label("Import-Bezeichnung", exact=True).fill("Ladegrid Beispiel")
+    dialog.get_by_label("Berechnungsexportdatei", exact=True).set_input_files({"name":"Ladegrid.pdf","mimeType":"application/pdf","buffer":sample_pdf([["Test-Ladegrid"]])})
+    dialog.get_by_role("button", name="Export gemeinsam ablegen", exact=True).click()
+    playwright.expect(dialog).not_to_be_visible()
+    playwright.expect(page.locator(".archive-item")).to_have_count(2)
+    playwright.expect(page.get_by_role("heading", name="Ladegrid Beispiel", exact=True)).to_be_visible()
+    with page.expect_download() as downloaded:
+        page.get_by_role("button", name="Originalexport herunterladen", exact=True).click()
+    assert downloaded.value.path().read_bytes() == sample_pdf([["Test-Ladegrid"]])
+    playwright.expect(page.get_by_role("button", name="Ablage-Einstellungen", exact=True)).to_be_enabled()
+    page.set_viewport_size({"width":1600,"height":1200})
+    page.locator(".engineering-lab").evaluate("el=>el.scrollTop=0")
+    page.screenshot(path=str(tmp_path / "gemeinsame-ablage.png"), full_page=True)
+    assert len(list((server / "Planung/Berechnungen").glob("*/P-*/*/berechnung.json"))) == 2
+
+
+def test_every_calculator_has_review_image_without_overlapping_labels(editor, tmp_path):
+    import json
+    import unicodedata
+    page, _, _, _ = editor
+    page.set_viewport_size({"width": 1600, "height": 1200})
+    page.emulate_media(reduced_motion="reduce")
+    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Berechnungen öffnen", exact=True).click()
+    playwright.expect(page.locator(".calc-tile")).to_have_count(26)
+    launchers = page.locator(".calc-tile button:not([disabled])").all_text_contents()
+    assert len(launchers) == 25
+    assert "premium" not in page.locator("body").inner_text().lower()
+    page.screenshot(path=str(tmp_path / "00-berechnungen.png"), full_page=True)
+    native_titles = {"Blitzschutz", "Kabelberechnung", "E-Mobilität · AC-Vorplanung"}
+    manifest = []
+    for index, label in enumerate(launchers, 1):
+        title = label.removesuffix(" öffnen")
+        slug = re.sub(r"[^a-z0-9]+", "-", unicodedata.normalize("NFKD", title).encode("ascii", "ignore").decode().lower()).strip("-")
+        filename = f"{index:02d}-{slug}"
+        page.get_by_role("button", name=label, exact=True).click()
+        playwright.expect(page.get_by_role("heading", level=1)).to_be_visible()
+        export_button = page.get_by_role("button", name="Ergebnis als JSON sichern", exact=True)
+        playwright.expect(export_button).to_be_enabled()
+        assert "premium" not in page.locator("body").inner_text().lower(), title
+        if title not in native_titles:
+            playwright.expect(page.locator(".wb-metric").first).to_be_visible()
+            first_number = page.locator('.wb-controls input[data-field-key][inputmode="decimal"]:visible').first
+            before = first_number.input_value()
+            assert before, title
+            first_number.fill("")
+            playwright.expect(export_button).to_be_disabled()
+            playwright.expect(page.locator('.wb-results [role="alert"]')).to_be_visible()
+            first_number.fill(before)
+            playwright.expect(export_button).to_be_enabled()
+        if title == "E-Mobilität · AC-Vorplanung":
+            playwright.expect(page.get_by_test_id("ev-current")).to_have_text("11.7 A")
+            page.get_by_label("Gebäudereserve (kW)", exact=True).fill("80")
+            playwright.expect(page.get_by_test_id("ev-budget")).to_have_text("30.9 kW")
+            page.get_by_role("button", name="Ohne LM", exact=True).click()
+            playwright.expect(page.locator(".ev-overload")).to_contain_text("79.1 kW")
+            page.get_by_role("button", name="Dynamisch", exact=True).click()
+            page.get_by_label("Gebäudereserve (kW)", exact=True).fill("30")
+        page.get_by_role("heading", level=1).click()
+        height = page.locator(".lab-main").evaluate("el=>Math.ceil(el.scrollHeight+150)")
+        page.set_viewport_size({"width": 1600, "height": min(3400, max(1200, height))})
+        page.locator(".engineering-lab").evaluate("el=>el.scrollTop=0")
+        page.mouse.move(1, 1)
+        page.screenshot(path=str(tmp_path / f"{filename}.png"), full_page=True)
+        manifest.append({"title": title, "file": f"{filename}.png"})
+        labels = page.locator(".lab-svg text").evaluate_all("els=>els.map(el=>{const r=el.getBoundingClientRect();return {text:el.textContent,x:r.x,y:r.y,w:r.width,h:r.height}})")
+        for label_index, a in enumerate(labels):
+            for b in labels[label_index + 1:]:
+                overlap_x = min(a["x"] + a["w"], b["x"] + b["w"]) - max(a["x"], b["x"])
+                overlap_y = min(a["y"] + a["h"], b["y"] + b["h"]) - max(a["y"], b["y"])
+                assert overlap_x <= 1 or overlap_y <= 1, f"{title}: overlapping labels {a['text']} / {b['text']}"
+        page.set_viewport_size({"width": 390, "height": 844})
+        assert page.locator(".engineering-lab").evaluate("el=>el.scrollWidth<=el.clientWidth"), title
+        if title == "E-Mobilität · AC-Vorplanung":
+            page.locator(".engineering-lab").evaluate("el=>el.scrollTop=0")
+            page.screenshot(path=str(tmp_path / f"{filename}-mobil.png"), full_page=True)
+        page.get_by_role("button", name="Heller Rechnermodus", exact=True).click()
+        assert page.locator(".engineering-lab").get_attribute("data-lab-theme") == "light"
+        page.get_by_role("button", name="Dunkler Rechnermodus", exact=True).click()
+        page.set_viewport_size({"width": 1600, "height": 1200})
+        page.get_by_role("button", name="Berechnungen", exact=True).click()
+    (tmp_path / "review-images.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def test_native_workbench_calculation_can_be_saved_and_restored_with_project_notes(editor, tmp_path):
+    import json
+    page, _, _, _ = editor
+    base = page.url.rstrip("/")
+    project_state = page.request.get(base + "/api/tools/projektzentrale/state").json()
+    response = page.request.post(base + "/api/tools/projektzentrale/projects", headers={"X-Edeco-Projects": project_state["session_key"]}, data={"number": "1498", "name": "Werkstattversorgung"})
+    assert response.ok
+    archive_api = base + "/api/tools/berechnungsablage"
+    archive_state = page.request.get(archive_api + "/state").json()
+    headers = {"X-Edeco-Projects": archive_state["session_key"]}
+    server = tmp_path / "server"
+    server.mkdir()
+    response = page.request.post(archive_api + "/settings", headers=headers, data={"root": str(server), "subfolder": "Berechnungen", "revision": archive_state["settings"]["revision"]})
+    assert response.ok
+    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Berechnungen öffnen", exact=True).click()
+    page.get_by_role("button", name="Ohmsches Gesetz öffnen", exact=True).click()
+    voltage = page.locator('input[data-field-key="voltage"]')
+    current = page.locator('input[data-field-key="current"]')
+    playwright.expect(voltage).to_be_enabled()
+    voltage.fill("48")
+    current.fill("2")
+    playwright.expect(page.locator('input[data-field-key="impedance"]')).to_have_count(0)
+    playwright.expect(page.locator('input[data-field-key="cos"]')).to_have_count(0)
+    page.locator('select[data-field-key="known"]').select_option("ur")
+    playwright.expect(page.locator('input[data-field-key="current"]')).to_have_count(0)
+    page.locator('input[data-field-key="impedance"]').fill("24")
+    playwright.expect(page.locator(".wb-metric").filter(has_text="Wirkleistung").locator("strong")).to_have_text("96 W")
+    page.locator('select[data-field-key="known"]').select_option("ui")
+    playwright.expect(page.locator('input[data-field-key="current"]')).to_have_value("2")
+    page.get_by_label("Berechnungsnotizen", exact=True).fill("48-V-Netzteil; rein ohmsche Beispielbelastung")
+    playwright.expect(page.locator(".wb-metric").filter(has_text="Wirkleistung").locator("strong")).to_have_text("96 W")
+    page.get_by_role("button", name="Projektbezogen auf Server speichern", exact=True).click()
+    dialog = page.get_by_role("dialog", name="Projektbezogen speichern")
+    playwright.expect(dialog.get_by_label("Rechenstand-Bezeichnung", exact=True)).to_have_value("Ohmsches Gesetz")
+    playwright.expect(dialog.get_by_label("Ablage-Projektnummer", exact=True)).to_have_value("1498")
+    dialog.get_by_label("Rechenstand-Bezeichnung", exact=True).fill("DC-Netzteil 48 V")
+    dialog.get_by_role("button", name="Als neuen Stand speichern", exact=True).click()
+    playwright.expect(dialog.get_by_role("status")).to_contain_text("Gemeinsam gespeichert")
+    page.get_by_role("button", name="Information schliessen", exact=True).click()
+    voltage.fill("99")
+    page.get_by_label("Berechnungsnotizen", exact=True).fill("Lokaler abweichender Entwurf")
+    page.get_by_role("button", name="Gemeinsame Berechnungsablage öffnen", exact=True).click()
+    page.locator(".archive-item").filter(has_text="DC-Netzteil 48 V").click()
+    page.get_by_role("button", name="Eingaben laden & neu berechnen", exact=True).click()
+    playwright.expect(page.locator('input[data-field-key="voltage"]')).to_have_value("48")
+    playwright.expect(page.locator('input[data-field-key="current"]')).to_have_value("2")
+    playwright.expect(page.get_by_label("Berechnungsnotizen", exact=True)).to_have_value("48-V-Netzteil; rein ohmsche Beispielbelastung")
+    playwright.expect(page.locator(".wb-metric").filter(has_text="Wirkleistung").locator("strong")).to_have_text("96 W")
+    with page.expect_download() as pending:
+        page.get_by_role("button", name="Ergebnis als JSON sichern", exact=True).click()
+    exported = json.loads(pending.value.path().read_bytes())
+    assert exported["calculatorId"] == "ohmsches-gesetz"
+    assert exported["input"]["voltage"] == "48"
+    records = page.request.get(archive_api + "/records", headers=headers).json()["items"]
+    assert len(records) == 1 and records[0]["source"] == "edeco"
+    record = page.request.get(archive_api + "/record", headers=headers, params={"key": records[0]["key"]}).json()
+    assert record["document"]["input"]["voltage"] == "48"
+    assert record["notes"] == "48-V-Netzteil; rein ohmsche Beispielbelastung"
+
+
+def test_project_hub_persists_contacts_and_references_and_passes_active_number_to_rename(editor, tmp_path):
+    from test_documents import sample_pdf
+    page, _, _, _ = editor
+    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Projektzentrale öffnen", exact=True).click()
+    page.get_by_role("button", name="Neues Projekt", exact=True).click()
+    page.get_by_label("Projektnummer", exact=True).fill("1498")
+    page.get_by_label("Projektname", exact=True).fill("Neubau Musterstrasse")
+    page.get_by_label("Projektadresse", exact=True).fill("Musterstrasse 1")
+    page.get_by_label("Ablageordner", exact=True).fill(r"X:\Projekte\1498")
+    page.get_by_role("button", name="Kontakt hinzufügen", exact=True).click()
+    page.get_by_label("Name Kontakt 1", exact=True).fill("Testkontakt")
+    page.get_by_label("Rolle Kontakt 1", exact=True).fill("Bauleitung")
+    page.get_by_label("E-Mail Kontakt 1", exact=True).fill("test@example.invalid")
+    page.get_by_role("button", name="Dokumentverweis hinzufügen", exact=True).click()
+    page.get_by_label(re.compile("^Dokumenttitel ")).fill("Apparatenplan OG02")
+    page.get_by_label(re.compile("^Dokumentpfad ")).fill(r"X:\Projekte\1498\Plan.pdf")
+    page.get_by_label("Notizen", exact=True).fill("Planlieferung vorbereiten")
+    page.get_by_role("button", name="Projekt speichern", exact=True).click()
+    playwright.expect(page.get_by_text("Projekt gespeichert.", exact=True)).to_be_visible()
+    playwright.expect(page.get_by_text("Aktiv: 1498 · Neubau Musterstrasse", exact=True)).to_be_visible()
+    page.set_viewport_size({"width": 1400, "height": 900})
+    page.screenshot(path=str(tmp_path / "project-hub.png"), full_page=True)
+    page.get_by_role("button", name="Dateien für dieses Projekt benennen", exact=True).click()
+    playwright.expect(page.get_by_role("textbox", name="Projektnummer", exact=True)).to_have_value("1498")
+    playwright.expect(page.locator(".rename-project")).to_contain_text("1498 · Neubau Musterstrasse")
+    playwright.expect(page.get_by_role("button", name="PDFs hinzufügen", exact=True)).to_be_enabled()
+    page.get_by_label("PDFs hinzufügen", exact=True).set_input_files({
+        "name": "Plan EG.pdf", "mimeType": "application/pdf", "buffer": sample_pdf([["Erdgeschoss"]]),
+    })
+    playwright.expect(page.get_by_label("Neuer Name für Plan EG.pdf", exact=True)).to_have_value("1498_E-G-APP-EG00-C-50.pdf")
+    # A project change in another window must not silently rewrite an open naming draft.
+    prefix = page.url.rstrip("/") + "/api/tools/projektzentrale"
+    state = page.request.get(prefix + "/state").json()
+    headers = {"X-Edeco-Projects": state["session_key"]}
+    second = page.request.post(prefix + "/projects", headers=headers, data={"number": "3000", "name": "Zweites Projekt"}).json()
+    page.request.post(prefix + "/selection", headers=headers, data={"project_id": second["id"]})
+    page.evaluate("window.dispatchEvent(new Event('focus'))")
+    apply = page.get_by_role("button", name="Projektnummer übernehmen", exact=True)
+    playwright.expect(apply).to_be_visible()
+    playwright.expect(page.get_by_role("textbox", name="Projektnummer", exact=True)).to_have_value("1498")
+    apply.click()
+    playwright.expect(page.get_by_role("textbox", name="Projektnummer", exact=True)).to_have_value("3000")
+    page.once("dialog", lambda dialog: dialog.accept())
+    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    picker = page.get_by_label("Aktives Projekt", exact=True)
+    playwright.expect(picker).to_have_value(second["id"])
+    first_id = next(project["id"] for project in state["projects"] if project["number"] == "1498")
+    picker.select_option(first_id)
+    playwright.expect(picker).to_have_value(first_id)
+    page.get_by_role("button", name="Projektzentrale öffnen", exact=True).click()
+    playwright.expect(page.get_by_label("Name Kontakt 1", exact=True)).to_have_value("Testkontakt")
+    playwright.expect(page.get_by_label(re.compile("^Dokumenttitel "))).to_have_value("Apparatenplan OG02")
+    page.get_by_label("Projekt archiviert", exact=True).check()
+    page.get_by_role("button", name="Projekt speichern", exact=True).click()
+    playwright.expect(page.get_by_text("Projekt gespeichert.", exact=True)).to_be_visible()
+    page.get_by_role("button", name="Archiv", exact=True).click()
+    playwright.expect(page.locator(".hub-project-list-item")).to_have_count(1)
+    page.reload()
+    page.get_by_role("button", name="Archiv", exact=True).click()
+    page.locator(".hub-project-list-item").click()
+    playwright.expect(page.get_by_label("Projekt archiviert", exact=True)).to_be_checked()
+    playwright.expect(page.get_by_label("Notizen", exact=True)).to_have_value("Planlieferung vorbereiten")
+    page.set_viewport_size({"width": 390, "height": 844})
+    assert page.locator(".project-hub").evaluate("el => el.scrollWidth <= el.clientWidth")
+
+
+def test_project_hub_failed_save_keeps_draft_and_can_retry_before_leaving(editor):
+    page, _, _, _ = editor
+    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Projektzentrale öffnen", exact=True).click()
+    page.get_by_role("button", name="Neues Projekt", exact=True).click()
+    page.get_by_label("Projektnummer", exact=True).fill("2000")
+    page.get_by_label("Projektname", exact=True).fill("Ungespeichertes Projekt")
+    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    dialog = page.get_by_role("alertdialog", name="Projektänderungen speichern?")
+    playwright.expect(dialog).to_be_visible()
+    page.route("**/api/tools/projektzentrale/projects", lambda route: route.fulfill(status=503, json={"detail": "Test: Speichern fehlgeschlagen."}))
+    dialog.get_by_role("button", name="Speichern und weiter", exact=True).click()
+    playwright.expect(dialog.get_by_role("alert")).to_contain_text("Speichern fehlgeschlagen")
+    playwright.expect(page.get_by_label("Projektname", exact=True)).to_have_value("Ungespeichertes Projekt")
+    page.unroute("**/api/tools/projektzentrale/projects")
+    dialog.get_by_role("button", name="Speichern und weiter", exact=True).click()
+    playwright.expect(page.get_by_role("heading", name="Ein Ort. Deine Werkzeuge.")).to_be_visible()
+    page.get_by_role("button", name="Projektzentrale öffnen", exact=True).click()
+    playwright.expect(page.get_by_label("Projektname", exact=True)).to_have_value("Ungespeichertes Projekt")
+
+
+def test_file_rename_template_detects_floors_blocks_duplicates_and_downloads_original_copies(editor, tmp_path):
+    import io
+    import zipfile
+    from test_documents import sample_pdf
+
+    page, _, _, _ = editor
+    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Dateien umbenennen öffnen", exact=True).click()
+    page.get_by_role("textbox", name="Projektnummer", exact=True).fill("1498")
+    page.get_by_label("PDFs hinzufügen", exact=True).set_input_files([
+        {"name": "Grundriss 2og.pdf", "mimeType": "application/pdf", "buffer": sample_pdf([["2. Obergeschoss"]])},
+        {"name": "Plan EG.pdf", "mimeType": "application/pdf", "buffer": sample_pdf([["Erdgeschoss"]])},
+    ])
+    first = page.get_by_label("Neuer Name für Grundriss 2og.pdf", exact=True)
+    second = page.get_by_label("Neuer Name für Plan EG.pdf", exact=True)
+    playwright.expect(first).to_have_value("1498_E-G-APP-OG02-C-50.pdf")
+    playwright.expect(second).to_have_value("1498_E-G-APP-EG00-C-50.pdf")
+    download = page.get_by_role("button", name="Benannte Kopien als ZIP herunterladen")
+    page.get_by_label("Geschoss verwenden", exact=True).uncheck()
+    playwright.expect(download).to_be_disabled()
+    playwright.expect(page.get_by_text("Namenskonflikt: bitte eindeutig benennen.", exact=True)).to_have_count(2)
+    page.get_by_label("Geschoss verwenden", exact=True).check()
+    page.get_by_label("Index verwenden", exact=True).uncheck()
+    playwright.expect(first).to_have_value("1498_E-G-APP-OG02-50.pdf")
+    page.get_by_label("Datum verwenden", exact=True).check()
+    page.get_by_label("Datum", exact=True).fill("2026-11-01")
+    playwright.expect(first).to_have_value("1498_E-G-APP-OG02-50-2026-11-01.pdf")
+    page.get_by_label("Datum verwenden", exact=True).uncheck()
+    page.get_by_label("Index verwenden", exact=True).check()
+    page.set_viewport_size({"width": 1400, "height": 900})
+    page.screenshot(path=str(tmp_path / "rename-preview.png"), full_page=True)
+    with page.expect_download() as pending:
+        download.click()
+    path = pending.value.path()
+    with zipfile.ZipFile(io.BytesIO(path.read_bytes())) as archive:
+        assert archive.namelist() == ["1498_E-G-APP-OG02-C-50.pdf", "1498_E-G-APP-EG00-C-50.pdf"]
+        assert archive.read(archive.namelist()[0]) == sample_pdf([["2. Obergeschoss"]])
+    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Dateien umbenennen öffnen", exact=True).click()
+    playwright.expect(page.get_by_role("textbox", name="Projektnummer", exact=True)).to_have_value("1498")
+    playwright.expect(page.get_by_role("button", name="PDFs hinzufügen", exact=True)).to_be_enabled()
+    page.get_by_label("PDFs hinzufügen", exact=True).set_input_files({
+        "name": "Konflikt OG02.pdf", "mimeType": "application/pdf", "buffer": sample_pdf([["Erdgeschoss"]]),
+    })
+    floor = page.get_by_label("Geschoss für Konflikt OG02.pdf", exact=True)
+    playwright.expect(floor).to_have_value("")
+    playwright.expect(download).to_be_disabled()
+    floor.fill("EG00")
+    playwright.expect(download).to_be_enabled()
+    page.set_viewport_size({"width": 390, "height": 844})
+    assert page.locator(".rename-tool").evaluate("el => el.scrollWidth <= el.clientWidth")
 
 
 @pytest.mark.skipif(not os.environ.get("EDECO_TEST_STIRLING_URL"), reason="Live Stirling service required")
@@ -904,3 +1377,44 @@ def test_the_list_shows_one_line_per_section_until_opened(editor):
     playwright.expect(block.locator("button.outline-item").first).to_be_visible()
     count = int(title.locator(".outline-count").inner_text())
     playwright.expect(block.locator("button.outline-item")).to_have_count(count)
+
+
+def test_charging_schema_updates_topology_values_and_each_budget_colour(editor, tmp_path):
+    page, _, _, _ = editor
+    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Berechnungen öffnen", exact=True).click()
+    page.get_by_role("button", name="Ladegrid PKW öffnen", exact=True).click()
+    playwright.expect(page.get_by_role("button", name="Ergebnis als JSON sichern", exact=True)).to_be_enabled()
+    feed = page.get_by_test_id("schema-grid-feed")
+    playwright.expect(feed).to_have_attribute("data-state", "limited")
+    assert "H" not in feed.get_attribute("d").upper(), "UV must feed directly downward without a left detour"
+    playwright.expect(page.get_by_test_id("schema-house-feed")).to_have_attribute("data-state", "normal")
+    playwright.expect(page.locator(".ev-schema-point")).to_have_count(6)
+    playwright.expect(page.locator(".ev-schema-allocated").first).to_have_text("6.7 kW")
+    page.locator(".wb-field-group").filter(has=page.get_by_text("Steuerung", exact=True)).locator("summary").click()
+    page.locator('select[data-field-key="mode"]').select_option("none")
+    playwright.expect(page.get_by_test_id("schema-house-feed")).to_have_attribute("data-state", "error")
+    playwright.expect(feed).to_have_attribute("data-state", "error")
+    playwright.expect(page.locator(".ev-schema-allocated").first).to_have_text("11 kW")
+    page.locator(".wb-field-group").filter(has=page.get_by_text("Grid 2", exact=True)).locator("summary").click()
+    page.locator('input[data-field-key="power2"]').fill("3")
+    playwright.expect(page.get_by_test_id("schema-house-feed")).to_have_attribute("data-state", "normal")
+    playwright.expect(feed).to_have_attribute("data-state", "error")
+    page.get_by_role("group", name="Ladegrid auswählen", exact=True).get_by_role("button", name="Grid 2", exact=True).click()
+    playwright.expect(feed).to_have_attribute("data-state", "normal")
+    playwright.expect(page.locator(".ev-schema-point")).to_have_count(4)
+    playwright.expect(page.locator(".ev-schema-allocated").first).to_have_text("3 kW")
+    page.locator('input[data-field-key="count2"]').fill("2")
+    playwright.expect(page.locator(".ev-schema-point")).to_have_count(2)
+    page.locator('input[data-field-key="power2"]').fill("")
+    playwright.expect(page.get_by_role("button", name="Ergebnis als JSON sichern", exact=True)).to_be_disabled()
+    playwright.expect(page.locator(".ev-schema-point")).to_have_count(0)
+    page.locator('input[data-field-key="power2"]').fill("3")
+    page.set_viewport_size({"width":1600,"height":1900})
+    page.get_by_role("group", name="Ladegrid auswählen", exact=True).get_by_role("button", name="Grid 1", exact=True).click()
+    page.locator(".engineering-lab").evaluate("el=>el.scrollTop=0")
+    page.screenshot(path=str(tmp_path / "ladegrid-grid-ueberlast.png"), full_page=True)
+    page.locator('select[data-field-key="mode"]').select_option("dynamic")
+    playwright.expect(feed).to_have_attribute("data-state", "limited")
+    page.locator(".engineering-lab").evaluate("el=>el.scrollTop=0")
+    page.screenshot(path=str(tmp_path / "ladegrid-lastmanagement.png"), full_page=True)

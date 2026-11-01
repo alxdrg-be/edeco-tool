@@ -1,12 +1,22 @@
-import { lazy, type ComponentType, type LazyExoticComponent } from "react";
+import { createElement, lazy, type ComponentType, type LazyExoticComponent } from "react";
+
+import { WORKBENCH_CATALOG } from "../tools/berechnungen/workbench/catalog";
 
 /** A module must use onHome only after saving or confirming pending edits. */
-export interface ToolProps { onHome: () => void }
+export interface ToolProps { onHome: () => void; onOpenTool?: (toolId: string) => void }
 
 export const MODULES: Readonly<Record<string, LazyExoticComponent<ComponentType<ToolProps>> | undefined>> = {
   "nova-legenden": lazy(() => import("../App")),
   "bim2steiger": lazy(() => import("./BimTool")),
   "dokumenten-assistent": lazy(() => import("../tools/dokumenten-assistent/DocumentAssistant")),
   "pdf-werkzeuge": lazy(() => import("../tools/pdf-workshop/PdfWorkshop")),
-  berechnungen: lazy(() => import("../tools/berechnungen/Berechnungen")),
+  "dateien-umbenennen": lazy(() => import("../tools/dateien-umbenennen/FileRename")),
+  "projektzentrale": lazy(() => import("../tools/projektzentrale/ProjectHub")),
+  "planlieferung": lazy(() => import("../tools/planlieferung/PlanDelivery")),
+  "berechnungen": lazy(() => import("../tools/berechnungen/Calculations")),
+  "blitzschutz": lazy(() => import("../tools/berechnungen/Lightning")),
+  "kabelberechnung": lazy(() => import("../tools/berechnungen/Cable")),
+  "emobilitaet": lazy(() => import("../tools/berechnungen/EV")),
+  "berechnungsablage": lazy(() => import("../tools/berechnungen/ablage/ArchiveView")),
+  ...Object.fromEntries(WORKBENCH_CATALOG.map(([id]) => [id, lazy(() => import("../tools/berechnungen/workbench/Workbench").then(module => ({ default: (props: ToolProps) => createElement(module.default, { ...props, calculatorId: id }) })))])),
 };

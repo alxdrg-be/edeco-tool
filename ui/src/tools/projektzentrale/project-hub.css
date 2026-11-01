@@ -1,0 +1,37 @@
+.project-hub { height: 100%; overflow: auto; background: var(--bg); color: var(--fg); }
+.project-hub .bim-toolbox-header { flex-wrap: wrap; }
+.project-hub header>span { margin-left: auto; color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
+.project-main { max-width: 1450px; margin: auto; padding: 24px clamp(16px, 3vw, 44px) 48px; }
+.project-heading, .project-editor-heading { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
+.project-main h1 { font-size: 30px; letter-spacing: -.8px; margin: 8px 0; }
+.project-main h2 { font-size: 19px; margin: 0 0 8px; overflow-wrap: anywhere; }
+.project-main p { font-size: 13px; line-height: 1.65; }
+.project-layout { display: grid; grid-template-columns: minmax(230px, 300px) minmax(0, 1fr); gap: 22px; align-items: start; }
+.hub-project-list, .project-editor { border: 1px solid var(--line); background: var(--panel); border-radius: 14px; padding: 22px; min-width: 0; }
+.hub-project-list { display: flex; flex-direction: column; gap: 14px; }
+.project-hub label { display: flex; flex-direction: column; gap: 7px; font-size: 12px; font-weight: 600; margin-bottom: 12px; }
+.project-hub input:not([type=checkbox]), .project-hub textarea { width: 100%; min-width: 0; box-sizing: border-box; padding: 11px; border: 1px solid var(--line-strong); border-radius: 8px; color: var(--fg); background: var(--panel); font: inherit; font-size: 13px; }
+.project-hub textarea { resize: vertical; }
+.project-tabs, .hub-project-actions { display: flex; gap: 9px; flex-wrap: wrap; align-items: center; margin: 10px 0; }
+.project-tabs { margin: 0; }
+.project-tabs [aria-pressed=true] { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
+.hub-project-list-item { display: flex; flex-direction: column; gap: 7px; padding: 14px; text-align: left; border: 1px solid var(--line); border-radius: 9px; background: var(--panel); color: var(--fg); cursor: pointer; overflow-wrap: anywhere; }
+.hub-project-list-item.is-selected { border-color: var(--accent); background: var(--accent-soft); }
+.hub-project-list-item>span:last-child { font-size: 12px; }
+.project-number { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; color: var(--accent); font-weight: 700; }
+.project-hub small, .project-muted { color: var(--muted); font-size: 12px; line-height: 1.6; }
+.project-editor fieldset { border: 0; border-top: 1px solid var(--line); padding: 18px 0; margin: 0; min-width: 0; }
+.project-editor legend { padding: 0 10px 0 0; font-size: 14px; font-weight: 650; }
+.project-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 14px; }
+.project-hub .project-check { flex-direction: row; align-items: center; margin: 18px 0; }
+.project-check input { accent-color: var(--accent); }
+.project-contact, .project-document { background: var(--panel-2); border: 1px solid var(--line); border-radius: 9px; padding: 16px; margin-bottom: 14px; }
+.project-error, .project-picker [role=alert] { color: var(--danger); font-size: 13px; }
+.project-notice { color: var(--ok); }
+.project-welcome { padding: 40px 28px; }
+.project-picker { max-width: 280px; min-width: 0; }
+.project-picker label { display: flex; gap: 5px; flex-direction: column; color: var(--muted); font-size: 10px; }
+.project-picker select { font: inherit; font-size: 12px; max-width: 100%; padding: 7px 9px; border: 1px solid var(--line-strong); border-radius: 8px; background: var(--panel); color: var(--fg); }
+.rename-project { padding: 14px 18px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 18px; font-size: 13px; }
+@media(max-width: 800px) { .project-layout { grid-template-columns: minmax(0, 1fr); } .hub-project-list { max-height: 320px; overflow: auto; } }
+@media(max-width: 500px) { .project-fields { grid-template-columns: minmax(0, 1fr); } .hub-project-list, .project-editor { padding: 16px; } .project-main h1 { font-size: 24px; } .project-picker { max-width: 150px; } }

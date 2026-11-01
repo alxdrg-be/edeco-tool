@@ -593,7 +593,7 @@ export default function Berechnungen({ onHome }: ToolProps) {
   const [tab, setTab] = useState<Tab>("spannungsfall");
   const [pdfNote, setPdfNote] = useState(false);
   return <div className="calc-tool">
-    <ToolHeader title="Berechnungen" onHome={onHome}>
+    <ToolHeader title="Formelrechner" onHome={onHome} homeLabel="← Zu den Berechnungen">
       <button type="button" className="btn" onClick={() => setPdfNote(true)}>PDF</button>
     </ToolHeader>
     <div className="calc-body">

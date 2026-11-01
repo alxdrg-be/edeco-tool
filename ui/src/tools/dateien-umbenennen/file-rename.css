@@ -1,0 +1,42 @@
+.rename-tool { height: 100%; overflow: auto; background: var(--bg); color: var(--fg); }
+.rename-tool .bim-toolbox-header { flex-wrap: wrap; }
+.rename-tool header span { color: var(--muted); font-size: 12px; margin-left: auto; }
+.rename-main { max-width: 1440px; margin: auto; padding: 24px clamp(16px, 3vw, 44px) 48px; }
+.rename-main h1 { font-size: 30px; letter-spacing: -.8px; margin: 8px 0; }
+.rename-main h2 { font-size: 18px; margin: 0; }
+.rename-main p { font-size: 13px; line-height: 1.65; }
+.rename-main small { color: var(--muted); font-size: 12px; line-height: 1.5; }
+.rename-template, .rename-preview { padding: 22px; margin-top: 22px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); min-width: 0; }
+.rename-parts { display: grid; grid-template-columns: repeat(auto-fit, minmax(195px, 1fr)); padding: 0; border: 0; gap: 12px; min-width: 0; }
+.rename-parts legend { font-size: 12px; margin-bottom: 12px; color: var(--muted); }
+.rename-part { border: 1px solid var(--line); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.rename-part.is-off { background: var(--bg); }
+.rename-check { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 650; }
+.rename-check input { accent-color: var(--accent); }
+.rename-tool input:not([type=checkbox]):not([type=file]) { width: 100%; min-width: 0; box-sizing: border-box; border: 1px solid var(--line-strong); border-radius: 7px; padding: 10px; background: var(--panel); color: var(--fg); font: inherit; font-size: 13px; }
+.rename-tool input:disabled { opacity: .5; }
+.rename-auto { font-size: 13px; min-height: 39px; }
+.rename-order { display: flex; gap: 6px; margin-top: auto; }
+.rename-order .btn { padding: 3px 12px; }
+.rename-example strong { overflow-wrap: anywhere; }
+.rename-actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin: 12px 0; }
+.rename-actions h2 { margin-right: auto; }
+.rename-file { display: none; }
+.rename-empty { border: 1px dashed var(--line-strong); border-radius: 10px; padding: 32px 20px; color: var(--muted); font-size: 13px; line-height: 1.7; }
+.rename-table-wrap { overflow-x: auto; }
+.rename-tool table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.rename-tool th, .rename-tool td { padding: 12px 8px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+.rename-tool th:nth-child(2) { min-width: 110px; }
+.rename-tool th.rename-name { min-width: 300px; }
+.rename-tool th.delivery-short { min-width: 85px; }
+.rename-tool td:first-child { min-width: 190px; max-width: 320px; overflow-wrap: anywhere; }
+.rename-tool td small { display: block; margin-top: 6px; }
+.rename-error { color: var(--danger) !important; }
+.rename-link { border: 0; background: none; color: var(--accent); padding: 6px 0; cursor: pointer; font-size: 12px; text-decoration: underline; }
+.delivery-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; margin-top: 18px; }
+.delivery-fields label { display: flex; flex-direction: column; gap: 7px; font-size: 12px; }
+.delivery-fields select { min-width: 0; max-width: 100%; border: 1px solid var(--line-strong); border-radius: 8px; padding: 10px; background: var(--panel); color: var(--fg); }
+.delivery-history { margin-top: 26px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 13px; }
+.delivery-record { margin: 14px 0; border: 1px solid var(--line); border-radius: 10px; padding: 16px; background: var(--panel); overflow-wrap: anywhere; }
+.delivery-sent { color: var(--ok); }
+@media(max-width: 600px) { .rename-template, .rename-preview { padding: 15px; } .rename-main h1 { font-size: 24px; } }

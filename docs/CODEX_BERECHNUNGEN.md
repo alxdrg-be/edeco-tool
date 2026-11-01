@@ -6,7 +6,11 @@ Ziel ist ein minimaler deutscher Rechner je Thema: Eingaben, ein Ergebnis mit de
 
 ## Anschluss, nicht Neubau
 
-Die reine Rechnung liegt in `ui/src/tools/berechnungen/calc.ts`, die Leiterdaten in `conductors.ts`, die Iz-Tabelle für den Motor in `iz.ts`, die Oberfläche in `Berechnungen.tsx`, die Grafiken in `graphics.tsx`. Tests: `npm test` im Ordner `ui` (Node-Testdatei `calc.test.ts`). Neue Rechner als weitere reine Funktionen und als weiteren Reiter im selben Werkzeug bauen. Keine 24 leeren Seiten. Den Katalogeintrag `berechnungen` nicht wieder auf «geplant» setzen.
+Die Kachel Berechnungen öffnet die Übersicht `Calculations.tsx`. Dort liegen die Vorprüfungen unter `workbench/`, Blitzschutz, Kabel-Spannungsfall, E-Mobilität und die Ablage. Diese Übersicht, die Ablage und den Blitzschutz nicht löschen und nicht durch eine leere Seite ersetzen. Die Hauptübersicht der Toolbox bleibt bei zehn Kacheln. `tool_count` bleibt 10. Die Übersicht zeigt 26 Kacheln `.calc-tile`. Diese Zahlen nur ändern, wenn derselbe Schritt die Tests in `backend/edeco_toolbox/__main__.py`, `backend/tests/test_editor_navigation.py` und `.github/workflows/build-windows.yml` mit anpasst.
+
+Der Knopf «Formelrechner öffnen» in dieser Übersicht öffnet `Berechnungen.tsx`. Die reine Rechnung dazu liegt in `calc.ts`, die Leiterdaten in `conductors.ts`, die Iz-Tabelle für den Motor in `iz.ts`, die Grafiken in `graphics.tsx`. Tests: `npm test` im Ordner `ui`, darunter `calc.test.ts`. Neue Nachweise als weitere reine Funktion und als weiteren Reiter in `Berechnungen.tsx` bauen. Keine zweite leere Seite für ein Thema, das dort schon einen Reiter hat.
+
+Wo `workbench/` dasselbe Thema schon als Vorprüfung rechnet, die Vorprüfung an dieselbe Formel angleichen oder das Ergebnis ausdrücklich als manuelle Vorprüfung beschriften, die kein NIN-Nachweis ist. Die Workbench-Verlustleistung rechnet den Spannungsfall heute mit cos φ = 1. Das ist nicht die Zielrechnung des Formelrechners. Die Workbench-Kurzschlussrechnung setzt keine Spannungsfaktoren cmax 1,05 und cmin 0,95. Diese beiden Workbench-Rechner nicht als Vorlage für den Formelrechner verwenden.
 
 Bereits umgesetzt und mit Tests belegt, nicht durch das Verhalten der Website zurückbauen:
 
@@ -51,7 +55,7 @@ Der Knopf «PDF» zeigt heute nur den Hinweis, dass keine Datei erzeugt wird. Di
 - Zuleitung Schnellcheck: die Überschrift nennt k_temp, die Rechnung ist fest auf 30 °C. Entweder die Umgebungstemperatur wirklich als Faktor rechnen und den Faktor anzeigen, oder «30 °C, k_temp = 1» schreiben und k_temp nicht in der Formel vortäuschen.
 - Beleuchtung: η nicht als LiTG- oder Norm-Wirkungsgrad ausgeben. Es ist eine Vereinfachung.
 - Selektivität LS–LS nicht als nachgewiesen ausgeben, solange keine Herstellerkennlinie vorliegt. Eine Staffelung 1 : 1,6 gilt höchstens als Hinweis für Schmelzsicherungen und muss als Hinweis beschriftet sein.
-- Es gibt auf der Vorlage keinen Trennungsabstand-Rechner nach SN 414022. Diesen Rechner nicht erfinden. Er ist höchstens ein späterer, getrennt beauftragter Ausbau.
+- elektro-rechner.ch hat keinen Trennungsabstand-Rechner nach SN 414022. Keinen zweiten daraus erfinden. Der bestehende Blitzschutz der Toolbox bleibt unverändert, solange kein eigener Auftrag ihn ändert.
 
 ## Daten aus Normen
 
@@ -61,7 +65,7 @@ Die SIA-2060-Näherung in `approximateSiaFactor` nicht als Tabelle 15 ausgeben. 
 
 ## Noch zu bauen
 
-Jeder Reiter zeigt die Norm in der Kopfzeile, die Formel mit den Live-Zahlen und eine eigene Grafik. Die Skizzen im bestehenden `graphics.tsx` weiterverwenden, nicht die SVG der Vorlage.
+Jeder neue Reiter im Formelrechner zeigt die Norm in der Kopfzeile, die Formel mit den Live-Zahlen und eine eigene Grafik. Die Skizzen im bestehenden `graphics.tsx` weiterverwenden, nicht die SVG der Vorlage. Eine Workbench-Vorprüfung desselben Namens bleibt erreichbar, bis ihre Formel der hier beschriebenen Rechnung entspricht.
 
 ### NIN-Kabelrechner
 
@@ -177,4 +181,4 @@ Grafik: gestapelte Jahreskosten.
 
 ## Tests und Abschluss
 
-Für jeden neuen Rechner mindestens einen Test der reinen Funktion: ein Zahlenbeispiel der Formel, ein ungültiger Fall ohne Ersatzwert, und die Beschriftung, die einen bekannten Vorlagenfehler verhindert (PoE-Typ, k_temp, η, LS–LS). `npm test` und `npm run typecheck` im Ordner `ui` müssen bestehen. Die Kachelzahl in `backend/edeco_toolbox/__main__.py`, `backend/tests/test_editor_navigation.py` und `.github/workflows/build-windows.yml` nur anfassen, wenn sich die Anzahl der Werkzeuge ändert. Sie steht bei elf, weil Berechnungen das elfte Werkzeug ist. Keinen Windows-Build starten.
+Für jeden neuen Rechner mindestens einen Test der reinen Funktion: ein Zahlenbeispiel der Formel, ein ungültiger Fall ohne Ersatzwert, und die Beschriftung, die einen bekannten Vorlagenfehler verhindert (PoE-Typ, k_temp, η, LS–LS). `npm test` und `npm run typecheck` im Ordner `ui` müssen bestehen. Die Kachelzahl der Toolbox-Startseite bleibt zehn, solange kein neues Werkzeug ausserhalb von Berechnungen dazukommt. Keinen Windows-Build starten.
