@@ -22,6 +22,7 @@ html:root[data-tool-color="rose"] { --accent: light-dark(#ab435f, #efa8bd); --ac
 .app.app-in-toolbox { grid-template-rows: auto minmax(0, 1fr); }
 .app-in-toolbox > .tool-header { grid-column: 1 / -1; }
 .app-in-toolbox > .app-nav { padding-top: 20px; }
+.app-in-toolbox .project-page.is-editing { padding-top: 12px; }
 @media (max-width: 740px) { .tool-header { padding: 10px 16px; gap: 10px; } .tool-header-logo { width: 92px; } .tool-header-title { flex: 1; min-width: 150px; } .tool-header-actions { width: 100%; justify-content: flex-end; } .tool-header-divider { display: none; } }
 .toolbox { height: 100%; overflow-y: auto; background: var(--bg); }
 .toolbox-header { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 20px clamp(24px, 5vw, 80px); background: var(--panel); border-bottom: 1px solid var(--line); }

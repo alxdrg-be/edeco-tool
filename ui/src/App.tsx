@@ -158,9 +158,45 @@ function AppContent({ onHome }: NovaToolProps) {
     return () => window.removeEventListener("nl:open-settings", open);
   }, [navigate]);
 
+  const headerActions = status && (
+            <div className="top-chips">
+              <div className={`data-status ${dataWarning ? "warn" : ""}`}>
+                <Menu label={noDatasets ? "Datensätze fehlen" : dataWarning ? "Firmenordner prüfen" : "Datenstatus"}>
+                  <dl className="status-details">
+                    <dt>Symbolbibliothek</dt>
+                    <dd>{status.datasets.length} Datensätze · {status.symbol_count.toLocaleString("de-CH")} Symbole</dd>
+                    <dt>Firmenordner</dt>
+                    <dd className={status.company_error ? "warn-text" : ""}>{status.company_error || status.settings.company_folder || "Nicht eingerichtet"}</dd>
+                    <dt>Nova-Version für neue Projekte</dt>
+                    <dd>{status.settings.nova_version}</dd>
+                  </dl>
+                  <button className="btn small" onClick={() => navigate(() => setTab("settings"))}>Einstellungen öffnen</button>
+                </Menu>
+              </div>
+              {!onHome && <button
+                className="chip theme-btn"
+                onClick={() => setTheme(effectiveDark(theme) ? "light" : "dark")}
+                title={effectiveDark(theme) ? "Zum hellen Modus wechseln" : "Zum dunklen Modus wechseln"}
+                aria-label={effectiveDark(theme) ? "Heller Modus" : "Dunkler Modus"}
+              >
+                <Icon name={effectiveDark(theme) ? "sun" : "moon"} size={16} />
+              </button>}
+              {update?.available && (
+                <button
+                  className="chip update"
+                  disabled={installing}
+                  onClick={showUpdate}
+                  title="Update ansehen"
+                >
+                  {installing ? "Update läuft …" : `Update ${update.latest} verfügbar`}
+                </button>
+              )}
+            </div>
+          );
+
   return (
     <div className={`app${onHome ? " app-in-toolbox" : ""}`} inert={pending}>
-      {onHome && <ToolHeader title="NOVA-Legenden" onHome={() => navigate(onHome)} onLogoClick={secret} />}
+      {onHome && <ToolHeader title="NOVA-Legenden" onHome={() => navigate(onHome)} onLogoClick={secret}>{headerActions}</ToolHeader>}
       <aside className="app-nav" aria-label="Programmnavigation">
         {!onHome && <div className="brand">
           <div
@@ -208,45 +244,11 @@ function AppContent({ onHome }: NovaToolProps) {
         </div>
       </aside>
       <div className="app-workspace">
-        <header className="topbar">
+        {!onHome && <header className="topbar">
           <div className="workspace-context"><span>{current.label}</span><span>{current.description}</span></div>
           <span className="powered topbar-powered">Powered by Trimble Nova</span>
-          {status && (
-            <div className="top-chips">
-              <div className={`data-status ${dataWarning ? "warn" : ""}`}>
-                <Menu label={noDatasets ? "Datensätze fehlen" : dataWarning ? "Firmenordner prüfen" : "Datenstatus"}>
-                  <dl className="status-details">
-                    <dt>Symbolbibliothek</dt>
-                    <dd>{status.datasets.length} Datensätze · {status.symbol_count.toLocaleString("de-CH")} Symbole</dd>
-                    <dt>Firmenordner</dt>
-                    <dd className={status.company_error ? "warn-text" : ""}>{status.company_error || status.settings.company_folder || "Nicht eingerichtet"}</dd>
-                    <dt>Nova-Version für neue Projekte</dt>
-                    <dd>{status.settings.nova_version}</dd>
-                  </dl>
-                  <button className="btn small" onClick={() => navigate(() => setTab("settings"))}>Einstellungen öffnen</button>
-                </Menu>
-              </div>
-              {!onHome && <button
-                className="chip theme-btn"
-                onClick={() => setTheme(effectiveDark(theme) ? "light" : "dark")}
-                title={effectiveDark(theme) ? "Zum hellen Modus wechseln" : "Zum dunklen Modus wechseln"}
-                aria-label={effectiveDark(theme) ? "Heller Modus" : "Dunkler Modus"}
-              >
-                <Icon name={effectiveDark(theme) ? "sun" : "moon"} size={16} />
-              </button>}
-              {update?.available && (
-                <button
-                  className="chip update"
-                  disabled={installing}
-                  onClick={showUpdate}
-                  title="Update ansehen"
-                >
-                  {installing ? "Update läuft …" : `Update ${update.latest} verfügbar`}
-                </button>
-              )}
-            </div>
-          )}
-        </header>
+          {headerActions}
+        </header>}
         <div className="main">
           {tab === "projects" && status && (
             <ProjectsPage categories={categories} novaVersion={status.settings.nova_version} notify={notify} onOpenSettings={() => navigate(() => setTab("settings"))} />

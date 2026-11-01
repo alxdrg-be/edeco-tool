@@ -15,7 +15,7 @@ def test_packaged_workshop_preview_merge_branding_and_licenses():
     url = os.environ['EDECO_TEST_TOOLBOX_URL']
     with sync_playwright() as playwright:
         browser = launch_chromium(playwright)
-        page = browser.new_page(viewport={'width': 1400, 'height': 1000})
+        page = browser.new_page(viewport={'width': 1400, 'height': 1000}, color_scheme='light')
         external = []
         def guard(route):
             target = urlsplit(route.request.url)
@@ -25,6 +25,28 @@ def test_packaged_workshop_preview_merge_branding_and_licenses():
                 route.continue_()
         page.route('**/*', guard)
         page.goto(url)
+        # The real packaged modules share one header, logo and theme control.
+        colors = {'light': [], 'dark': []}
+        for title in ('NOVA-Legenden', 'BIM2STEIGER', 'Dokumenten-Assistent'):
+            page.get_by_role('button', name=title + ' öffnen', exact=True).click()
+            expect(page.locator('.tool-header')).to_be_visible()
+            expect(page.get_by_role('img', name='edeco ag', exact=True)).to_have_count(1)
+            if title == 'NOVA-Legenden':
+                expect(page.get_by_role('heading', name='Deine Projekte', exact=True)).to_be_visible()
+            if page.get_by_role('button', name='Heller Modus', exact=True).is_visible():
+                page.get_by_role('button', name='Heller Modus', exact=True).click()
+            for mode in ('dark', 'light'):
+                page.get_by_role('button', name='Dunkler Modus' if mode == 'dark' else 'Heller Modus', exact=True).click()
+                expect(page.locator('html')).to_have_attribute('data-theme', mode)
+                colors[mode].append(page.locator('.tool-header-title').evaluate('(el) => getComputedStyle(el).color'))
+                if title == 'BIM2STEIGER':
+                    bim = page.frame_locator("iframe[title='BIM2STEIGER']")
+                    expect(bim.locator('html')).to_have_attribute('data-theme', mode)
+                    expect(bim.locator('.brand-group')).to_be_hidden()
+            if title == 'BIM2STEIGER':
+                expect(bim.locator('#homeView')).to_be_visible()
+            page.get_by_role('button', name='← Zur Toolbox', exact=True).click()
+            expect(page.get_by_role('button', name=title + ' öffnen', exact=True)).to_be_visible()
         page.get_by_role('button', name='PDF-Werkstatt öffnen', exact=True).click()
         expect(page.get_by_text('Offline bereit · auf diesem Computer')).to_be_visible(timeout=180000)
         frame = page.frame_locator("iframe[title='Stirling-PDF · edeco PDF-Werkstatt']")
@@ -33,6 +55,11 @@ def test_packaged_workshop_preview_merge_branding_and_licenses():
         expect(page.get_by_role('img', name='edeco ag', exact=True)).to_have_count(1)
         expect(frame.locator('.sui-logo').first).to_be_hidden()
         expect(frame.locator('.sui-brandmark').first).to_be_hidden()
+        for mode in ('dark', 'light'):
+            page.get_by_role('button', name='Dunkler Modus' if mode == 'dark' else 'Heller Modus', exact=True).click()
+            expect(frame.locator('html')).to_have_attribute('data-edeco-theme', mode)
+            colors[mode].append(page.locator('.tool-header-title').evaluate('(el) => getComputedStyle(el).color'))
+            assert len(set(colors[mode])) == 4, colors
         expect(frame.get_by_text('PDF mit Zeitstempel', exact=True)).to_have_count(0)
         picker.set_input_files([
             {'name': 'Plan-A.pdf', 'mimeType': 'application/pdf', 'buffer': sample_pdf([['FIRST PLAN']])},
