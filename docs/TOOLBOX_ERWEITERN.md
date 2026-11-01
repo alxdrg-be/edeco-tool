@@ -21,6 +21,9 @@ sie werden zur Laufzeit weder gewechselt noch heruntergeladen.
 - Die PDF-Werkstatt bettet Stirling Core ein. Unter `pdf_workshop/` liegen
   Verbindung, Sitzungsproxy und Firmenabläufe; die Originaloberfläche bleibt im
   Stirling-Dienst. [Architektur](PDF_WERKSTATT_ARCHITEKTUR.md).
+- Berechnungen ist als Work in progress verfügbar. Die Formeln liegen in
+  `ui/src/tools/berechnungen/`; der weitere Ausbau steht in
+  [CODEX_BERECHNUNGEN.md](CODEX_BERECHNUNGEN.md).
 - Dateien umbenennen, Projektzentrale, Änderungsbericht,
   Leistungsbilanz, Kabelberechnung und Anlagetool sind geplante Werkzeuge;
   die Kacheln sind deaktiviert und enthalten noch keine Fachfunktionen.

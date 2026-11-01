@@ -21,6 +21,8 @@ export const TOOLS: readonly ToolInfo[] = [
     description: "Geplant: Dateien nach Regeln umbenennen, Änderungen vorher prüfen und rückgängig machen.", status: "planned" },
   { id: "pdf-werkzeuge", title: "PDF-Werkstatt", category: "Dateien", symbol: "PDF", color: "rose",
     description: "PDF-Dateien und Seiten mit Stirling-PDF zusammenführen, trennen, bearbeiten und konvertieren.", status: "available", developmentStatus: "in-progress" },
+  { id: "berechnungen", title: "Berechnungen", category: "Elektroplanung", symbol: "ΔU", color: "blue",
+    description: "Spannungsfall, Kurzschluss, Transformator, Blindleistung und weitere Nachweise mit sichtbarer Formel.", status: "available", developmentStatus: "in-progress" },
   { id: "projektzentrale", title: "Projektzentrale", category: "Projekte", symbol: "P", color: "petrol",
     description: "Geplant: Projektdaten, Kontakte, Ordner und zuletzt verwendete Dokumente gemeinsam verwalten.", status: "planned" },
   { id: "aenderungsbericht", title: "Änderungsbericht", category: "Projekte", symbol: "Δ", color: "orange",

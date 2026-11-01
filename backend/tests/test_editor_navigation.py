@@ -209,7 +209,7 @@ def test_toolbox_shows_all_tiles_without_scroll_and_greys_only_planned_tools(edi
     page, _, _, _ = editor
     page.set_viewport_size({"width": 1400, "height": 900})
     page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
-    playwright.expect(page.locator(".toolbox-card")).to_have_count(10)
+    playwright.expect(page.locator(".toolbox-card")).to_have_count(11)
     assert page.locator(".toolbox").evaluate("el => el.scrollHeight <= el.clientHeight")
     # A 900px native window also needs space for its Windows title bar.
     page.set_viewport_size({"width": 1400, "height": 860})
@@ -228,6 +228,7 @@ def test_toolbox_shows_all_tiles_without_scroll_and_greys_only_planned_tools(edi
     playwright.expect(page.get_by_role("button", name="BIM2STEIGER öffnen", exact=True)).to_be_enabled()
     playwright.expect(page.get_by_role("button", name="Dokumenten-Assistent öffnen", exact=True)).to_be_enabled()
     playwright.expect(page.get_by_role("button", name="PDF-Werkstatt öffnen", exact=True)).to_be_enabled()
+    playwright.expect(page.get_by_role("button", name="Berechnungen öffnen", exact=True)).to_be_enabled()
     page.set_viewport_size({"width": 390, "height": 844})
     assert page.locator(".toolbox").evaluate("el => el.scrollWidth <= el.clientWidth")
     assert page.locator(".toolbox").evaluate("el => el.scrollHeight > el.clientHeight")

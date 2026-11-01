@@ -10,6 +10,7 @@ export default function ToolIcon({ id }: { id: string }) {
     leistungsbilanz: <><path d="M7 7v34h35M15 33V23h6v10M27 33V15h6v18M14 15l9-6 10-3" /></>,
     kabelberechnung: <><path d="M11 6v7a8 8 0 0 0 8 8h10a8 8 0 0 1 8 8v3a9 9 0 0 1-18 0v-1M7 6h8M33 30h8M16 33h6" /><path d="M19 24v-3M25 24v-3M25 18v3M31 18v3" /></>,
     anlagetool: <><rect x="16" y="5" width="16" height="11" rx="2" /><path d="M24 16v9M9 30v-5h30v5M24 25v5" /><rect x="4" y="30" width="10" height="12" rx="2" /><rect x="19" y="30" width="10" height="12" rx="2" /><rect x="34" y="30" width="10" height="12" rx="2" /></>,
+    berechnungen: <><rect x="9" y="6" width="30" height="36" rx="4" /><path d="M15 14h18M15 22h6M27 22h6M15 30h6M27 30h6M15 36h18" /></>,
   };
   return <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[id] ?? paths["nova-legenden"]}</svg>;
 }
