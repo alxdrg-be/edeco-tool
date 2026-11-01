@@ -6,7 +6,7 @@ export const PDF_TOOLS: PdfTool[] = [
   { id: "merge", title: "PDF zusammenfügen", description: "Mehrere PDFs oder ausgewählte Seiten als neues Dokument speichern.", group: "Seiten & Dokumente" },
   { id: "split", title: "PDF trennen", description: "Einzelne Seiten oder Abschnitte als separate PDF-Dateien ausgeben.", group: "Seiten & Dokumente" },
   { id: "rotate", title: "Seiten drehen", description: "Alle Seiten eines PDFs um 90°, 180° oder 270° drehen.", group: "Seiten & Dokumente" },
-  { id: "crop", title: "PDF zuschneiden", description: "Seitenränder in Millimetern festlegen und den sichtbaren Bereich verkleinern.", group: "Seiten & Dokumente" },
+  { id: "crop", title: "PDF zuschneiden", description: "Bereich auf der Vorschau markieren und das PDF passend zuschneiden.", group: "Seiten & Dokumente" },
   { id: "resize", title: "Seitengrösse ändern", description: "Papierformat und Ausrichtung ändern oder den Seiteninhalt skalieren.", group: "Seiten & Dokumente" },
   { id: "compress", title: "PDF komprimieren", description: "Die Dateigrösse mit einer wählbaren Kompressionsstufe reduzieren.", group: "Optimieren" },
   { id: "images-to-pdf", title: "Bilder in PDF", description: "PNG- und JPEG-Bilder in deiner Reihenfolge zu einem PDF verbinden.", group: "Konvertieren" },

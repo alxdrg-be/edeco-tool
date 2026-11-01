@@ -198,3 +198,17 @@
 .pdf-ocr-languages { display: flex; flex-direction: column; gap: 10px; font-size: 12px; font-weight: 600; }
 .pdf-ocr-languages label,.pdf-task-settings .pdf-ocr-force { flex-direction: row; align-items: center; gap: 8px; font-weight: 400; line-height: 1.7; }
 @media (max-width: 900px) { .pdf-task-layout { grid-template-columns: 1fr; } .pdf-tools-search { width: 100%; } .pdf-task-settings { max-width: none; } }
+
+.pdf-crop-canvas { touch-action: none; cursor: crosshair; user-select: none; }
+.pdf-crop-canvas img { pointer-events: none; }
+.pdf-crop-canvas .pdf-crop-overlay { pointer-events: none; border: 2px solid var(--accent); box-shadow: 0 0 0 1000px #0006; }
+.pdf-task-preview-page { overflow: hidden; }
+.pdf-visual-pages { display: flex; gap: 12px; overflow-x: auto; padding: 16px 0; }
+.pdf-visual-page { display: flex; align-items: center; gap: 10px; flex: 0 0 auto; }
+.pdf-mini-page { display: flex; flex-direction: column; gap: 6px; align-items: center; width: 100px; padding: 8px; border: 2px solid var(--line); border-radius: 10px; color: var(--fg); background: var(--panel); cursor: pointer; }
+.pdf-mini-page img { width: 75px; height: 100px; object-fit: contain; background: var(--panel-2); }
+.pdf-mini-page.is-current { border-color: var(--accent); }
+.pdf-cut-marker { align-self: stretch; margin: 30px 0; width: 88px; border: 1px dashed var(--line-strong); border-radius: 8px; background: var(--panel); color: var(--fg); cursor: pointer; }
+.pdf-cut-marker.is-cut { border: 2px dashed var(--accent); color: var(--accent); background: var(--accent-soft); }
+.pdf-task-settings details summary { cursor: pointer; margin-bottom: 12px; }
+.pdf-page-checkbox { font-size: 11px; display: flex; align-items: center; gap: 5px; }

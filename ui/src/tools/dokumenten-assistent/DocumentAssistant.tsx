@@ -3,6 +3,7 @@ import ToolHeader from "../../toolbox/ToolHeader";
 import type { ToolProps } from "../../toolbox/modules";
 import { request, sourceLabel, ROOT, type Answer, type DocumentInfo, type DocumentPage, type LibraryState, type Source } from "./api";
 import Settings from "./Settings";
+import FolderSettings from "./FolderSettings";
 import "./documents.css";
 
 export default function DocumentAssistant({ onHome }: ToolProps) {
@@ -19,6 +20,7 @@ export default function DocumentAssistant({ onHome }: ToolProps) {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [folderOpen, setFolderOpen] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
   const pageRequest = useRef(0);
   const controller = useRef<AbortController | null>(null);
@@ -122,6 +124,7 @@ export default function DocumentAssistant({ onHome }: ToolProps) {
 
   return <div className="document-assistant">
     <ToolHeader title="Dokumenten-Assistent" onHome={onHome} disabled={busy === "upload" || busy === "delete"}>
+      <button className="btn" disabled={!library || Boolean(busy)} onClick={() => setFolderOpen(true)}>Dokumentordner</button>
       <button className="btn" disabled={!library || Boolean(busy)} onClick={() => setSettingsOpen(true)}>KI-Verbindung</button>
     </ToolHeader>
     <div className="doc-workspace">
@@ -205,6 +208,7 @@ export default function DocumentAssistant({ onHome }: ToolProps) {
         </> : <div className="doc-preview-empty"><span aria-hidden="true">↗</span><h3>Quellen direkt nachlesen</h3><p>Klicke auf eine Fundstelle, um die Seite mit markiertem Text zu öffnen. Über „Ansehen“ kannst du auch ohne Frage im Dokument blättern.</p></div>}
       </section>
     </div>
+    {folderOpen && library && <FolderSettings sessionKey={library.session_key} onClose={()=>setFolderOpen(false)} onDocuments={documents=>{const choices=new Map(library.documents.map(doc=>[`${doc.title}\n${doc.edition}`,selected.includes(doc.id)]));setLibrary({...library,documents});setSelected(documents.filter(doc=>doc.empty_pages<doc.pages && (choices.get(`${doc.title}\n${doc.edition}`) ?? true)).map(doc=>doc.id));resetAnswer();}}/>}
     {settingsOpen && library && <Settings value={library.settings} sessionKey={library.session_key}
       onSave={settings => setLibrary({ ...library, settings })} onClose={() => setSettingsOpen(false)} />}
   </div>;

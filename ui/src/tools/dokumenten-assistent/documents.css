@@ -65,3 +65,8 @@
 .doc-ai-settings .doc-checkbox { flex-direction: row; font-weight: 400; }
 @media (max-width: 1120px) { .doc-workspace { grid-template-columns: 210px minmax(0, 1fr); overflow: auto; } .doc-preview { grid-column: 2; border-top: 1px solid var(--line); overflow: visible; } .doc-library { grid-row: span 2; overflow: visible; } .doc-conversation { overflow: visible; } }
 @media (max-width: 680px) { .doc-workspace { display: block; } .doc-library { border-right: 0; border-bottom: 1px solid var(--line); } .doc-document-list { max-height: 280px; overflow: auto; } .doc-conversation, .doc-preview { padding: 24px 18px; } .doc-preview { border-left: 0; } .doc-preview-empty { margin: 30px auto; } }
+
+.doc-setup-guide { margin: 20px 0; padding: 16px; border: 1px solid var(--line); border-radius: 10px; line-height: 1.7; }
+.doc-setup-guide summary { cursor: pointer; font-weight: 650; }
+.doc-setup-guide li { margin: 14px 0; }
+.doc-setup-guide code { overflow-wrap: anywhere; }

@@ -12,6 +12,17 @@ def test_keep_page_format_always_resets_stale_orientation():
     assert Options(page_size='A4', orientation='LANDSCAPE').orientation == 'LANDSCAPE'
 
 
+@pytest.mark.parametrize('box', [[0, 0, 1, 1], [.1, .2, .8, .9]])
+def test_visual_crop_box_is_normalized(box):
+    assert Options(crop_box=box).crop_box == box
+
+
+@pytest.mark.parametrize('box', [[1, 0, 0, 1], [0, 0, 0, 1], [-1, 0, 1, 1], [0, 0, 1, float('nan')]])
+def test_visual_crop_box_rejects_invalid_rectangles(box):
+    with pytest.raises(ValidationError):
+        Options(crop_box=box)
+
+
 def test_company_capabilities_follow_server_endpoints_without_local_java(tmp_path, monkeypatch):
     from edeco_toolbox.pdf_workshop.client import StirlingClient
     monkeypatch.setattr('edeco_toolbox.pdf_workshop.operations.runtime_root', lambda: tmp_path)

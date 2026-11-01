@@ -1,6 +1,7 @@
 import { useRef, useState, type FormEvent } from "react";
 import { useDialogFocus } from "../../useDialogFocus";
 import { request, type AISettings } from "./api";
+import SetupGuide from "./SetupGuide";
 
 export default function Settings({ value, sessionKey, onSave, onClose }: {
   value: AISettings; sessionKey: string; onSave: (settings: AISettings) => void; onClose: () => void;
@@ -52,11 +53,11 @@ export default function Settings({ value, sessionKey, onSave, onClose }: {
       {value.has_key && <label className="doc-checkbox"><input type="checkbox" checked={clearKey} disabled={busy}
         onChange={e => setClearKey(e.target.checked)} />Hinterlegten Schlüssel entfernen</label>}
       <p className="doc-help">{value.key_persistent ? "Der Schlüssel wird mit dem Windows-Benutzerprofil verschlüsselt gespeichert." : "Der Schlüssel bleibt in dieser Sitzung. Er wird auf diesem Betriebssystem nicht auf der Festplatte gespeichert."}</p>
-      <div className="doc-settings-note">Nur beim Klick auf „KI-Antwort“ werden die Frage und bis zu sechs gefundene Textauszüge an diesen Dienst gesendet. Originaldateien bleiben auf diesem PC. {provider === "ollama" ? "Ein freies Modell auf eurem Firmenserver verursacht keine API-Gebühren. Der Server benötigt passende Hardware und muss erreichbar sein." : "Für den Dienst können API-Kosten entstehen; ein ChatGPT-Abonnement enthält keinen API-Zugang."}</div>
+      <div className="doc-settings-note">Nur beim Klick auf „KI-Antwort“ werden die Frage und bis zu sechs gefundene Textauszüge an diesen Dienst gesendet. Originaldateien werden nicht an den KI-Dienst gesendet. {provider === "ollama" ? "Ein freies Modell auf eurem Firmenserver verursacht keine API-Gebühren. Der Server benötigt passende Hardware und muss erreichbar sein." : "Für den Dienst können API-Kosten entstehen; ein ChatGPT-Abonnement enthält keinen API-Zugang."}</div>
       {error && <p role="alert" className="doc-error">{error}</p>}
       {notice && <p role="status" className="doc-notice">{notice}</p>}
       <div className="doc-actions"><button className="btn" type="button" disabled={busy} onClick={onClose}>Schliessen</button>
         <button className="btn primary" disabled={busy}>{busy ? "Verbindung wird geprüft …" : provider === "ollama" ? "Speichern und Server prüfen" : "Zugang speichern"}</button></div>
-    </form>
+    </form><SetupGuide/>
   </div></div>;
 }

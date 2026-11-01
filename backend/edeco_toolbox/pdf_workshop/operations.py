@@ -44,9 +44,15 @@ class Options(BaseModel):
     dpi: Literal[72, 144, 300] = 144
     languages: list[Literal['deu', 'eng']] = Field(default=['deu', 'eng'], min_length=1, max_length=2)
     force_ocr: bool = False
+    split_mode: Literal['each', 'custom'] = 'each'
+    crop_box: list[float] | None = Field(default=None, min_length=4, max_length=4)
 
     @model_validator(mode='after')
     def keep_orientation(self):
+        if self.crop_box is not None:
+            x0, y0, x1, y1 = self.crop_box
+            if not (0 <= x0 < x1 <= 1 and 0 <= y0 < y1 <= 1):
+                raise ValueError('Bitte einen gültigen Bereich innerhalb der Seite wählen.')
         if self.page_size == 'KEEP':
             self.orientation = 'PORTRAIT'
         return self
@@ -142,7 +148,7 @@ def process(client, tool, files, options):
         geometry = page_geometry(source)
     count = len(geometry)
     if tool == 'split':
-        cuts = selected_pages(options.split_after, count - 1) if options.split_after else list(range(1, count))
+        cuts = selected_pages(options.split_after, count - 1) if options.split_after else ([] if options.split_mode == 'custom' else list(range(1, count)))
         result = source.data if not cuts else client.request_result('general/split-pages', [source], {'pageNumbers': ','.join(map(str, cuts))})
         if result.startswith(b'%PDF-'):
             output = io.BytesIO()
@@ -157,7 +163,7 @@ def process(client, tool, files, options):
         mm = 72 / 25.4
         for number in selected:
             width, height, _ = geometry[number - 1]
-            if (options.left + options.right) * mm >= width or (options.top + options.bottom) * mm >= height:
+            if options.crop_box is None and ((options.left + options.right) * mm >= width or (options.top + options.bottom) * mm >= height):
                 raise ValueError(f'Die Ränder sind für Seite {number} zu gross.')
         parts = []
         for key, group in groupby(range(count), lambda index: (geometry[index], index + 1 in selected)):
@@ -165,8 +171,10 @@ def process(client, tool, files, options):
             indices = list(group)
             part = source if len(indices) == count else PdfFile('Seiten.pdf', client.operation('general/rearrange-pages', [source], {'pageNumbers': ','.join(str(index + 1) for index in indices), 'customMode': 'CUSTOM'}))
             if crop:
-                part = PdfFile('Seiten.pdf', client.crop(part, Crop(options.left * mm, options.bottom * mm,
-                    width - (options.left + options.right) * mm, height - (options.top + options.bottom) * mm)))
+                box = options.crop_box
+                rectangle = Crop(box[0] * width, (1 - box[3]) * height, (box[2] - box[0]) * width, (box[3] - box[1]) * height) if box else Crop(options.left * mm, options.bottom * mm,
+                    width - (options.left + options.right) * mm, height - (options.top + options.bottom) * mm)
+                part = PdfFile('Seiten.pdf', client.crop(part, rectangle))
             parts.append(part)
         return (parts[0].data if len(parts) == 1 else client.merge(parts)), 'pdf'
     if tool == 'resize':

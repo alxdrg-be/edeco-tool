@@ -15,6 +15,7 @@ from ..paths import local_home
 from .ai import AISettings
 from .extract import MAX_BYTES
 from .store import DocumentStore
+from .folders import FolderSource
 
 PREFIX = "/api/tools/dokumenten-assistent"
 
@@ -33,10 +34,16 @@ class Question(BaseModel):
     use_ai: bool = False
 
 
+class FolderPreferences(BaseModel):
+    path: str = Field(max_length=2000)
+    recursive: bool = True
+
+
 def register(app):
     home = local_home() / "documents"
     store = DocumentStore(home)
     settings = AISettings(home)
+    folders = FolderSource(store)
     session_key = secrets.token_urlsafe(32)
     ai_lock = threading.Lock()
     app.state.documents = store
@@ -67,6 +74,27 @@ def register(app):
             raise HTTPException(400, str(exc)) from None
         finally:
             ai_lock.release()
+
+    @app.get(PREFIX + '/folder')
+    def folder_state(request: Request):
+        authorize(request)
+        return folders.public()
+
+    @app.post(PREFIX + '/folder')
+    def folder_save(request: Request, body: FolderPreferences):
+        authorize(request)
+        try:
+            return folders.configure(body.path, body.recursive)
+        except (ValueError, OSError):
+            raise HTTPException(400, 'Ordner nicht erreichbar oder ungültig. Bitte Pfad, Verbindung und Leserechte prüfen.') from None
+
+    @app.post(PREFIX + '/folder/sync')
+    def folder_sync(request: Request):
+        authorize(request)
+        try:
+            return folders.sync()
+        except (ValueError, OSError) as exc:
+            raise HTTPException(400, str(exc) if isinstance(exc, ValueError) else 'Ordner nicht lesbar. Lokale Kopien bleiben erhalten.') from None
 
     @app.post(PREFIX + "/connection")
     def connection(request: Request):

@@ -139,3 +139,23 @@ Seitenvorschaubilder, einen Merge mit Inhaltsprüfung, Branding und Quellenlinks
 Kein Test benötigt einen externen PDF-Dienst. Die sonstigen Module der Toolbox
 haben eigene Netzwerkfunktionen, etwa freiwillige Updateprüfung und den
 Dokumenten-Assistenten; diese sind keine Voraussetzung für die PDF-Werkstatt.
+
+
+## Visuelle Bedienung im aktuellen Quellstand
+
+Zuschneiden: direkt auf der Seitenvorschau einen Rahmen aufziehen. Ein neuer
+Rahmen ersetzt die Auswahl; „Ganze Seite wiederherstellen“ setzt sie zurück.
+Der relative Bereich kann auf alle Seiten (auch gemischte Formate), nur die
+angezeigte Seite oder per Miniatur-Auswahl auf bestimmte Seiten angewendet
+werden. Unter „Ränder genau eingeben“ bleibt die genaue Tastatureingabe in mm
+möglich. Der Zuschnitt ist weiterhin keine sichere Schwärzung.
+
+Trennen: zwischen den Seitenminiaturen die Trennstellen anklicken. PDF-Nummern
+zeigen die entstehenden Gruppen. „Jede Seite einzeln“ und „Alle zusammenlassen“
+setzen den Startzustand; die Ausgabe bleibt ein ZIP mit PDFs. Die alten
+Seitenangaben bleiben als genaue Alternative verfügbar. Andere Werkzeugansichten
+zeigen ebenfalls anklickbare Seitenminiaturen; für Bildausgabe und ausgewählten
+Zuschnitt können Seiten über Checkboxen gewählt werden.
+
+Diese Änderungen sind noch nicht in den Windows-Testpaketen mit Commit
+`8a5cba73` enthalten. Es wurde dafür noch kein neuer Windows-Build gestartet.

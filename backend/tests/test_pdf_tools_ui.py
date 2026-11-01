@@ -87,6 +87,7 @@ def test_all_pdf_tool_views_create_valid_local_downloads():
             if tool == 'split': page.get_by_label('Nach diesen Seiten trennen', exact=True).fill('1,2')
             if tool == 'rotate': page.get_by_label('Drehung', exact=True).select_option('270')
             if tool == 'crop':
+                page.get_by_text('Ränder genau eingeben (mm)', exact=True).click()
                 for label, value in [('Oben (mm)', '20'), ('Unten (mm)', '20'), ('Links (mm)', '10'), ('Rechts (mm)', '10')]:
                     page.get_by_label(label, exact=True).fill(value)
                 page.screenshot(path='output/ui-preview/pdf-tool-crop.png')
@@ -179,3 +180,54 @@ def test_crop_action_handles_mixed_formats_rotations_and_selected_pages():
                             image = bitmap.to_pil().convert('L')
                             assert image.getextrema()[0] < 150, 'Visible page contents disappeared during crop'
                             image.close()
+
+@pytest.mark.skipif(not os.environ.get('EDECO_TEST_TOOLBOX_URL'), reason='Running local Toolbox required')
+def test_visual_crop_and_split_controls_create_real_files():
+    from playwright.sync_api import sync_playwright, expect
+    with sync_playwright() as p:
+        browser=launch_chromium(p)
+        page=browser.new_page(viewport={'width':1400,'height':1000})
+        page.goto(os.environ['EDECO_TEST_TOOLBOX_URL'])
+        page.get_by_role('button',name='PDF-Werkstatt öffnen',exact=True).click()
+        page.get_by_role('button',name='PDF zuschneiden',exact=True).click(timeout=90000)
+        page.get_by_label('PDF hinzufügen',exact=True).set_input_files({'name':'Plan.pdf','mimeType':'application/pdf','buffer':sample_pdf([['FIRST PLAN'],['SECOND PLAN'],['THIRD PLAN']])})
+        canvas=page.get_by_label('Zuschnittbereich aufziehen',exact=True)
+        expect(canvas).to_be_visible()
+        box=canvas.bounding_box()
+        page.mouse.move(box['x']+box['width']*.1,box['y']+box['height']*.15)
+        page.mouse.down();page.mouse.move(box['x']+box['width']*.9,box['y']+box['height']*.85,steps=8);page.mouse.up()
+        page.screenshot(path='output/ui-preview/pdf-visual-crop.png')
+        with page.expect_response(lambda r:r.url.endswith('/process/crop')) as response:
+            page.get_by_role('button',name='Ergebnis erstellen',exact=True).click()
+        assert response.value.status==200,response.value.text()
+        with page.expect_download() as download:
+            page.get_by_role('link',name='Ergebnis herunterladen',exact=True).click()
+        with pdfium.PdfDocument(Path(download.value.path()).read_bytes()) as doc:
+            assert len(doc)==3
+            with closing(doc[0]) as first:
+                width,height=first.get_size()
+                assert abs(width-595*.8)<2 and abs(height-842*.7)<2,(width,height)
+        page.get_by_role('button',name='← Alle PDF-Werkzeuge',exact=True).click()
+        page.get_by_role('button',name='Zur Werkzeugübersicht',exact=True).click()
+        page.get_by_role('button',name='PDF trennen',exact=True).click()
+        page.get_by_label('PDF hinzufügen',exact=True).set_input_files({'name':'Plan.pdf','mimeType':'application/pdf','buffer':sample_pdf([['FIRST PLAN'],['SECOND PLAN'],['THIRD PLAN']])})
+        expect(page.get_by_role('button',name='Nach Seite 1 trennen',exact=True)).to_be_visible()
+        page.get_by_role('button',name='Alle zusammenlassen',exact=True).click()
+        page.get_by_role('button',name='Nach Seite 2 trennen',exact=True).click()
+        expect(page.get_by_role('button',name='Nach Seite 2 trennen',exact=True)).to_have_attribute('aria-pressed','true')
+        page.screenshot(path='output/ui-preview/pdf-visual-split.png')
+        with page.expect_response(lambda r:r.url.endswith('/process/split')) as response:
+            page.get_by_role('button',name='Ergebnis erstellen',exact=True).click()
+        assert response.value.status==200,response.value.text()
+        with page.expect_download() as download:
+            page.get_by_role('link',name='Ergebnis herunterladen',exact=True).click()
+        with zipfile.ZipFile(io.BytesIO(Path(download.value.path()).read_bytes())) as archive:
+            names=[name for name in archive.namelist() if name.endswith('.pdf')]
+            assert len(names)==2
+            with pdfium.PdfDocument(archive.read(names[0])) as first:
+                assert len(first)==2
+                for index,expected in enumerate(('FIRST PLAN','SECOND PLAN')):
+                    with closing(first[index]) as pdf_page, closing(pdf_page.get_textpage()) as text:
+                        assert expected in text.get_text_range()
+            assert 'THIRD PLAN' in pdf_text(archive.read(names[1]))
+        browser.close()
