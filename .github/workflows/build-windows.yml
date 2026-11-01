@@ -61,6 +61,7 @@ jobs:
       - name: Externe Netzverbindungen der PDF-Engine für Tests sperren
         shell: pwsh
         run: |
+          Set-NetFirewallProfile -Profile Domain,Private,Public -Enabled True
           $engine = (Resolve-Path 'packaging/pdf-runtime/java/bin/java.exe').Path
           New-NetFirewallRule -DisplayName 'edeco PDF offline test' -Direction Outbound -Action Block -Program $engine -RemoteAddress '0.0.0.0-126.255.255.255','128.0.0.0-255.255.255.255','::/0' | Out-Null
       - name: Windows-PDF-Verarbeitung ohne externen Dienst prüfen
@@ -183,6 +184,7 @@ jobs:
             if ($installer.ExitCode -ne 0) { throw "Installation fehlgeschlagen: $($installer.ExitCode)" }
             if ((Get-Content $marker).Trim() -ne 'keep-profile') { throw 'Benutzerprofil wurde verändert' }
             if (-not (Test-Path "$installDir\_internal\packaging\toolbox.ico")) { throw 'Toolbox-Icon fehlt' }
+            New-NetFirewallRule -DisplayName 'edeco installed PDF offline test' -Direction Outbound -Action Block -Program "$installDir\_internal\pdf-runtime\java\bin\java.exe" -RemoteAddress '0.0.0.0-126.255.255.255','128.0.0.0-255.255.255.255','::/0' | Out-Null
             $p = Start-Process -FilePath "$installDir\edeco-Toolbox.exe" -ArgumentList '--server','--port','8798' -PassThru
             try {
               $ok = $false
