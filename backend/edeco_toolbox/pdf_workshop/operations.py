@@ -79,7 +79,7 @@ def capabilities(config):
             'crop': ('crop', 'rearrange-pages', 'merge-pdfs'),
             'resize': ('scale-pages', 'rearrange-pages', 'merge-pdfs'),
             'compress': ('compress-pdf',), 'images-to-pdf': ('img-to-pdf',),
-            'pdf-to-images': ('pdf-to-img', 'rearrange-pages'),
+            'pdf-to-images': ('pdf-to-img',),
             'pdf-to-text': ('pdf-to-text',), 'ocr': ('ocr-pdf',),
         }
         return [{'id': tool, 'available': all(enabled.get(endpoint, False) for endpoint in endpoints[tool])

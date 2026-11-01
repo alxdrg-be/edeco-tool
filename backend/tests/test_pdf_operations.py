@@ -26,6 +26,11 @@ def test_company_capabilities_follow_server_endpoints_without_local_java(tmp_pat
     assert next(item for item in capabilities(config) if item['id'] == 'ocr')['available']
     enabled['rotate-pdf'] = False
     assert not next(item for item in capabilities(config) if item['id'] == 'rotate')['available']
+    enabled['pdf-to-img'] = True
+    enabled['rearrange-pages'] = False
+    assert next(item for item in capabilities(config) if item['id'] == 'pdf-to-images')['available']
+    enabled['pdf-to-img'] = False
+    assert not next(item for item in capabilities(config) if item['id'] == 'pdf-to-images')['available']
 
 
 def test_page_ranges_are_bounded_and_keep_the_requested_order():
