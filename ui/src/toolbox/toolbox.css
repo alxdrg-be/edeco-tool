@@ -71,3 +71,7 @@
 @media (max-width: 740px) { .toolbox-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; } .toolbox-brand { gap: 14px; font-size: 18px; } .toolbox-logo { width: 110px; } .toolbox-header { padding: 20px; gap: 10px; } .toolbox-main { padding-top: 30px; } .toolbox-filters { align-items: stretch; flex-direction: column; gap: 16px; } .toolbox-search { width: 100%; } .toolbox-tile { min-height: 230px; padding-inline: 8px; } }
 @media (max-width: 370px) { .toolbox-grid { grid-template-columns: 1fr; } }
 @media (max-width: 740px) { .toolbox-header { flex-wrap: wrap; } .toolbox-header-actions { margin-left: auto; } }
+@media (max-width: 740px) {
+  .toolbox-header-actions { flex-wrap: wrap; width: 100%; }
+  .toolbox-header-actions .project-picker { flex: 1 1 100%; max-width: none; }
+}

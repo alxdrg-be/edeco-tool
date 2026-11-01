@@ -1,3 +1,22 @@
+## Neue Projekt- und Rechenwerkzeuge
+
+- 25 native Rechenhilfen: eigene Vorprüfungen für die 24 Schweizer Referenzthemen plus Blitzschutz. Die bisherigen acht Entwurfskacheln rechnen jetzt; Umfang und Grenzen sind pro Rechner dokumentiert. Normtabellenwerte und Herstellergrenzen werden teilweise manuell eingetragen und nicht als automatische Fachkataloge ausgegeben.
+- Ladegrids mit reaktivem Schema: Hausanschluss, Unterverteiler, gerade Sammelschiene, Ladepunkte und Fahrzeuge. Cyan zeigt eingehaltene Leistungsbudgets, Gelb begrenzte Zuteilung, Rot die Überschreitung am jeweiligen Abschnitt. Die Kabel-/Schutzauslegung bleibt ungeprüft.
+- Gemeinsame Serverablage: Ordner einrichten, Rechenstände nach Berechnung und Projekt speichern, Notizen ergänzen und Eingaben neu berechnen. PDF-/JSON-Exporte können zusätzlich importiert werden. Kein SQLite auf dem Netzlaufwerk.
+
+
+- Rechner-Prototyp im edeco Rahmen: 65/35-Ansicht, synchronisierte Slider und Zahlenfelder, Tech-Dunkel-/Hellmodus, Lucide-Symbole und Info-Drawer für Formeln, Schweizer Quellen und Grenzen. Tailwind ohne globale Rücksetzung und mit eigenem Präfix.
+- Blitzschutz: interaktives Gebäude mit verschiebbarem Dachobjekt, schematischer Abstandszone und Warnfarben; Schweizer SN-414022-Verfahren bleibt erhalten.
+- Kabel-Spannungsfall: Schweizer Referenzmodell bei 55 °C, Wechsel-/Drehstrom, Cu/Al, Spannungsverlauf und Querschnitt allein nach Spannungsfall. Reaktanz als Richtwert markiert; Strombelastbarkeit und Schutzmassnahmen nicht geprüft. Nur Schweizer fachliche Quellen.
+- Planlieferungs-Assistent: Projekt, Empfänger und Lieferdatum wählen, PDFs mit Geschoss, Planart, Index und Massstab prüfen und als ZIP mit CSV-, Druck- und JSON-Planliste herunterladen. Unveränderlicher Projektverlauf mit Prüfsummen; Versand nur nach gesonderter Bestätigung protokollieren.
+- Bereich Berechnungen mit 25 nativen Rechenhilfen und zusätzlich geplanter Leistungsbilanz. Blitzschutz-Rechenhilfe mit eigener Gebäudevisualisierung, sichtbaren Faktoren und Rechenschritten, Abstandsvergleich und JSON-/Druckexport. Zahlenvergleich gegen die veröffentlichte Arthur-Flury-Referenz; fachliche Freigabe offen.
+- Projektzentrale: Projektnummer, Name, Adresse, Ablageordner, Notizen, Kontakte und Dokumentverweise lokal verwalten. Suche, Archivierung und dauerhafte aktive Projektauswahl in der Toolbox ergänzt.
+- Aktive Projektnummer an „Dateien umbenennen“ übergeben, inklusive direktem Werkzeugwechsel. Offene Namensvorlagen bleiben bei einem externen Projektwechsel erhalten; neue Nummer bewusst übernehmen.
+- Schutz vor ungespeicherten Eingaben und konkurrierenden Projektänderungen. Projektordner im Dateimanager öffnen, Dokumentpfade kopieren. Keine automatische Verlagerung von Dateien oder Zusammenführung mit bestehenden NOVA-Projekten.
+- Dateien umbenennen: Grundgerüst mit Projektnummer und einzeln wählbaren, sortierbaren Namensbausteinen nach dem Beispiel `1498_E-G-APP-OG02-C-50.pdf`. Datum standardmässig aus.
+- Geschosse aus Dateinamen und PDF-Text erkennen (z. B. `2og` → `OG02`), widersprüchliche Angaben manuell klären; Namen in der Vorschau korrigieren und Konflikte vor dem Export beheben.
+- Vorläufige Kürzelauswahl mit eigener Eingabe; Firmenliste folgt. Namensvorlage lokal speichern und benannte PDF-Kopien als ZIP herunterladen. Originale bleiben unverändert.
+
 ## edeco Toolbox 0.4.0
 
 - PDF-Werkstatt: die vorhandene Stirling-PDF-Core-Oberfläche öffnet sich direkt im Toolbox-Fenster mit edeco-Logo und Firmenfarben.

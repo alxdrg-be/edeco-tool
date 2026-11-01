@@ -7,16 +7,19 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "typecheck": "tsc -b",
-    "test": "node --experimental-strip-types --test src/sheets.test.ts src/uiState.test.ts src/legend.test.ts src/floors.test.ts src/saveSession.test.ts src/minesweeper.test.ts"
+    "test": "node --experimental-strip-types --test src/sheets.test.ts src/uiState.test.ts src/legend.test.ts src/floors.test.ts src/saveSession.test.ts src/minesweeper.test.ts src/tools/dateien-umbenennen/naming.test.ts src/tools/berechnungen/lightning.test.ts src/tools/berechnungen/engineering.test.ts src/tools/berechnungen/ev.test.ts src/tools/berechnungen/workbench/fundamentals.test.ts src/tools/berechnungen/workbench/installation.test.ts src/tools/berechnungen/workbench/planning.test.ts src/tools/berechnungen/workbench/definitions.test.ts src/tools/berechnungen/EVSchemaState.test.ts"
   },
   "dependencies": {
+    "lucide-react": "^1.66.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },
   "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^4.7.0",
+    "tailwindcss": "^4.3.3",
     "typescript": "~5.9.3",
     "vite": "^6.4.3"
   }

@@ -21,10 +21,38 @@ sie werden zur Laufzeit weder gewechselt noch heruntergeladen.
 - Die PDF-Werkstatt bettet Stirling Core ein. Unter `pdf_workshop/` liegen
   Verbindung, Sitzungsproxy und Firmenabläufe; die Originaloberfläche bleibt im
   Stirling-Dienst. [Architektur](PDF_WERKSTATT_ARCHITEKTUR.md).
-- Dateien umbenennen, Projektzentrale, Änderungsbericht,
+- Dateien umbenennen hat ein erstes nutzbares Grundgerüst unter
+  `ui/src/tools/dateien-umbenennen/` und `backend/edeco_toolbox/tools/file_rename/`:
+  wählbare Namensbausteine, gespeicherte Vorlage, Geschosserkennung,
+  Konfliktprüfung und ZIP mit benannten Kopien. Es benennt keine Originaldateien um.
+- Die Projektzentrale unter `ui/src/tools/projektzentrale/` und
+  `backend/edeco_toolbox/tools/projects/` verwaltet gemeinsame Projekt-UUIDs,
+  Stammdaten, Kontakte, Dokumentverweise, Archiv und aktive Auswahl. SQLite-Daten
+  bleiben unter `<Toolbox-Datenordner>/projects/` erhalten. Versionierte Updates
+  verhindern das Überschreiben neuerer Bearbeitungsstände. Das gemeinsame
+  Projektmodell steht im Ausbauplan. Dateien umbenennen übernimmt die aktive
+  Nummer beim Öffnen; bestehende offene Vorschauen werden bei einem externen
+  Projektwechsel nicht automatisch verändert.
+- Änderungsbericht,
   Leistungsbilanz, Kabelberechnung und Anlagetool sind geplante Werkzeuge;
   die Kacheln sind deaktiviert und enthalten noch keine Fachfunktionen.
   Umfang und Prioritäten stehen im [Ausbauplan](TOOLBOX_AUSBAUPLAN.md).
+- Der Planlieferungs-Assistent nutzt `FileRename` im Liefermodus und
+  `backend/edeco_toolbox/tools/deliveries/`. Liefernachweise werden in einer
+  separaten Tabelle der Projektdatenbank gespeichert und bleiben bei Änderungen
+  der Projektstammdaten unverändert. UUID und Inhaltsfingerabdruck schützen vor
+  doppelten oder abweichenden Wiederholungen; Dateinamen, Grenzen und Projektversion
+  werden vor dem Eintrag geprüft. Vorbereiten und Versandbestätigung sind getrennt.
+- `parentId: "berechnungen"` ordnet Rechner dem neuen Kachelbereich zu. Die
+  Hauptübersicht hat weiterhin zehn Kacheln; Leistungsbilanz bleibt unter
+  Berechnungen deaktiviert. Blitzschutz und Kabel-Spannungsfall liegen unter
+  `ui/src/tools/berechnungen/` und arbeiten offline. `LabUI.tsx` kapselt die
+  edeco Navigation, lokalen Rechner-Hell-/Dunkelmodus, Parameter mit Zahlenfeld
+  und Slider sowie Info-Drawer mit Fokusverwaltung. Tailwind 4 wird ohne Preflight
+  und mit `edeco:`-Präfix über das Vite-Plugin eingebunden, Lucide-Symbole werden
+  statisch importiert. Die Stilregeln in `lab.css` gelten für `.engineering-lab`.
+  Grundlagen erscheinen im Haupt-UI nur als kurze Prüfstatus; Druckberichte
+  enthalten Formeln, Annahmen, Quellen und Grenzen vollständig.
 
 ## Frontend
 

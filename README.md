@@ -10,21 +10,104 @@ farbige Werkzeugkacheln, Suche, Kategorien und Hell-/Dunkelmodus.
 | NOVA-Legenden | Nutzbar, Work in progress | Petrol |
 | BIM2STEIGER | Nutzbar, Work in progress; lokaler Katalog integriert | Blau |
 | Dokumenten-Assistent | Nutzbar, Work in progress; lokale Suche, KI über gemeinsamen Server | Violett |
-| Dateien umbenennen | Geplant | Grün |
+| Dateien umbenennen | Grundgerüst nutzbar, Work in progress | Grün |
 | PDF-Werkstatt | Stirling Core direkt eingebettet; lokaler Dienst/Firmenserver erforderlich | Rosé |
-| Projektzentrale | Geplant | Petrol |
+| Projektzentrale | Nutzbar, Work in progress | Petrol |
+| Planlieferungs-Assistent | Nutzbar, Work in progress; ZIP, Planlisten und Projektverlauf | Grün |
+| Berechnungen | Kachelbereich; Schweizer Blitzschutz- und Kabel-Rechenhilfen | Blau |
+| ↳ Blitzschutz | Trennungsabstand; fachliche Freigabe offen | Orange |
 | Änderungsbericht | Geplant | Orange |
 | Leistungsbilanz | Geplant | Violett |
-| Kabelberechnung | Geplant | Blau |
+| ↳ Kabelberechnung | Schweizer Spannungsfall-Vorprüfung; fachliche Freigabe offen | Blau |
 | Anlagetool | Geplant | Grün |
 
 BIM2STEIGER verwendet seinen vorhandenen Katalog mit 11’777 Katalogartikeln,
 Originalbildern, Favoriten, Modellimport und Ausschreibungen. Es läuft unter
 `/tools/bim2steiger/` im selben lokalen Server und Desktopfenster wie Nova.
-Die sechs geplanten Erweiterungen sind als ausgegraute, deaktivierte Kacheln
-vorbereitet. Alle zehn Werkzeuge sind im normalen Desktopfenster (1400 × 900)
+Die drei geplanten Erweiterungen sind als ausgegraute, deaktivierte Kacheln
+vorbereitet; Leistungsbilanz liegt im Bereich Berechnungen.
+Alle zehn Hauptkacheln sind im normalen Desktopfenster (1400 × 900)
 ohne Scrollen sichtbar; kleinere Fenster können scrollen. Umfang und Reihenfolge
 der Erweiterungen stehen im [Ausbauplan](docs/TOOLBOX_AUSBAUPLAN.md).
+
+**Dateien umbenennen** bereitet PDF-Namen nach einer gespeicherten Vorlage vor,
+zum Beispiel `1498_E-G-APP-OG02-C-50.pdf`. Projektnummer, Fachbereich,
+Darstellung, Planart, Geschoss, Index, Massstab und optional Datum lassen sich
+einzeln einschalten und umsortieren. Eigene Kürzel sind möglich; die vollständige
+Firmenliste folgt später. Geschosse werden aus Dateinamen und dem Text der ersten
+fünf PDF-Seiten erkannt, Widersprüche bleiben zur manuellen Auswahl offen.
+Die Vorschau ist korrigierbar und verhindert doppelte Namen. Der ZIP-Download
+enthält benannte, inhaltlich unveränderte Kopien; Originaldateien werden nicht
+umbenannt. Scans erhalten keine automatische OCR. Grenzen: 100 PDFs, je 30 MB,
+insgesamt 150 MB. Vorlagen bleiben auf diesem PC gespeichert; ausgewählte Dateien
+und einzelne Korrekturen nur bis zum Verlassen des Werkzeugs.
+
+Die **Projektzentrale** verwaltet Projektnummer, Name, Adresse, Ablageordner,
+Notizen, Kontakte und Dokumentverweise. Laufende und archivierte Projekte lassen
+sich getrennt durchsuchen. Neue Projekte werden aktiv ausgewählt; die Auswahl
+ist auch im Kopf der Toolbox änderbar und bleibt nach einem Neustart bestehen.
+„Dateien umbenennen“ übernimmt beim Öffnen die aktive Projektnummer. Ändert sich
+das aktive Projekt in einem anderen Fenster, bleibt eine offene Namensvorlage
+erhalten; die neue Nummer lässt sich bewusst übernehmen.
+Projektordner können im Dateimanager geöffnet, Dokumentpfade kopiert werden.
+Ordner und Dokumente werden nicht automatisch angelegt, verschoben oder kopiert.
+Die Projektliste liegt lokal im Toolbox-Datenordner und wird nicht zwischen PCs
+synchronisiert. Bestehende NOVA-Projekte behalten ihre eigene Verwaltung.
+
+Der **Planlieferungs-Assistent** übernimmt ein Projekt und die Namensvorlage.
+Pro PDF können Geschoss, Planart, Index und Massstab korrigiert werden. Das
+Lieferpaket enthält unveränderte PDF-Kopien und eine Planliste als CSV (Excel),
+HTML-Druckansicht und JSON mit SHA-256-Prüfsummen. Empfänger, Lieferdatum und
+Projektstand werden dauerhaft protokolliert. Wiederholtes Herunterladen derselben
+Vorbereitung erzeugt keinen doppelten Verlaufseintrag. Die Projektzentrale zeigt
+die letzten 200 Lieferungen der Toolbox mit Planlisten. PDF-Inhalte und ZIPs
+werden serverseitig nicht dauerhaft gespeichert; nur ihre Metadaten und Prüfsummen.
+Ein vorbereitetes Paket ist kein Versand. Erst die ausdrückliche Bestätigung
+„Als versendet bestätigen“ protokolliert den Versand; das Tool sendet keine E-Mails.
+
+Unter **Berechnungen** liegen 25 native Rechenhilfen: die 24 Themen der Schweizer
+Referenz und zusätzlich Blitzschutz. Die Werkzeuge sind eigene Modellrechnungen
+und Vorprüfungen. Normtabellenwerte, Herstellergrenzen und Korrekturfaktoren sind
+teilweise ausdrücklich manuell einzutragen; eine vollständige Gleichwertigkeit
+mit den Fachkatalogen der Referenz wird nicht behauptet. Umfang je Rechner:
+[Rechner und Grenzen](docs/RECHNER_UMFANG.md). Leistungsbilanz bleibt zusätzlich
+geplant. Die gemeinsame Ablage
+speichert Rechenstände und Notizen nach Berechnungstyp und Projekt in einem
+einstellbaren Serverordner, einschliesslich importierter PDF-/JSON-Exporte.
+Einrichtung, Grenzen und Zusammenarbeit: [Berechnungsablage](docs/BERECHNUNGSABLAGE.md).
+Die React-Oberfläche nutzt Tailwind mit eigenem
+`edeco:`-Präfix und Lucide-Symbole. Navigation und Projektkontext bleiben in der
+edeco Toolbox. Der Rechnerbereich hat einen lokalen Tech-Dunkelmodus und eine
+helle edeco-Ansicht; andere Werkzeuge behalten ihre Darstellung. Slider und
+Zahlenfelder aktualisieren SVG und Live-Werte sofort. Alle Parameter haben
+Info-Icons für fokussierbare, per Escape schliessbare Grundlagen-Drawer.
+Blitzschutz berechnet den Trennungsabstand mit
+`s = k × (U / xₙ) / n × A`, zeigt Leitungsweg und Abstand in einer eigenen
+Gebäudezeichnung und prüft die Mindestanzahl Ableiter gesondert. Grundlage ist
+das [veröffentlichte Schweizer Verfahren von Arthur Flury](https://www.aflury.ch/de/fachwissen/trennungsabstand-rechner/)
+mit Bezug auf SN 414022:2024, Seite 38. Klassen I–III, Einheiten, Faktoren,
+Aufrundung und Grenzen stehen im Info-Drawer und im Druckbericht. Das Dachmodell
+reagiert schematisch auf A, ein Dachobjekt lässt sich mit Maus oder Tastatur
+verschieben. Die Zone wechselt bei unterschrittenem Abstand auf Rot; sie zeigt
+keinen Fangschutzbereich. Fünf Zahlenfälle sind gegen die Referenz
+geprüft; eine fachliche Freigabe am Objekt ist noch offen. Entwürfe werden lokal
+im Browserprofil pro ausgewähltem Projekt gespeichert. JSON-Export und
+Drucken/als PDF speichern sind vorhanden. Keine Fremdskripte oder externen
+Aufrufe sind zur Laufzeit für die Rechnung erforderlich.
+
+**Kabel-Spannungsfall** verwendet ausschliesslich die veröffentlichte Schweizer
+Referenz von [elektro-rechner.ch](https://www.elektro-rechner.ch/Rechner/spannungsfall.html)
+mit Bezug auf [NIN 2025 / Electrosuisse](https://www.electrosuisse.ch/de/nin-2025/):
+Widerstandswerte nach SN EN 60228, Korrektur auf 55 °C und ein ausdrücklich als
+Richtwert markierter Reaktanzanteil. Wechsel- und symmetrischer Drehstrom, Cu und
+Al (ab 10 mm²), Spannungsverlauf, Budgetvergleich und nächster geeigneter
+Standardquerschnitt allein aus Spannungsfall sind vorhanden. Das voreingestellte
+4-%-Budget gilt nicht zusätzlich pro Abschnitt; vorgeschaltete Abschnitte sind
+im Projekt zu berücksichtigen. Strombelastbarkeit, Verlegeart, Schutzorgane und
+Abschaltbedingungen werden nicht nachgewiesen. Fünf Wertevergleiche gegen die
+Schweizer Referenz stimmen überein. Deutsche Grenzwerte oder ein zusätzlicher
+IEC-Rechnermodus sind nicht enthalten. Der vollständige Normtext und eine
+fachliche Freigabe bleiben ausserhalb dieses Prototyps.
 
 Der **Dokumenten-Assistent** liest eigene PDF-, TXT- und Markdown-Dateien ein.
 Fundstellen enthalten Dokumentstand, PDF-Seite beziehungsweise Blattlabel und

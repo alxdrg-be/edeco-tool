@@ -6,6 +6,7 @@ import { MODULES } from "./modules";
 import ToolIcon from "./ToolIcon";
 import { api } from "../api";
 import ToolboxUpdates from "./ToolboxUpdates";
+import ProjectPicker from "../tools/projektzentrale/ProjectPicker";
 import "./toolbox.css";
 
 class ToolBoundary extends Component<{ children: ReactNode; onHome: () => void }, { failed: boolean }> {
@@ -57,7 +58,7 @@ export default function Toolbox() {
 
   if (ActiveTool) return <ToolBoundary key={active} onHome={goHome}>
     <Suspense fallback={<main className="toolbox-message" role="status">Tool wird geladen …</main>}>
-      <ActiveTool onHome={goHome} />
+      <ActiveTool onHome={goHome} onOpenTool={id => { if (MODULES[id]) setActive(id); }} />
     </Suspense>
   </ToolBoundary>;
 
@@ -69,7 +70,7 @@ export default function Toolbox() {
         <span className="toolbox-brand-divider" />
         <span>Toolbox</span>
       </div>
-      <div className="toolbox-header-actions"><ToolboxUpdates />
+      <div className="toolbox-header-actions"><ProjectPicker /><ToolboxUpdates />
       <button className="btn" aria-label={effectiveDark(theme) ? "Heller Modus" : "Dunkler Modus"}
         onClick={() => {
           const next = effectiveDark(theme) ? "light" : "dark";

@@ -1,5 +1,8 @@
 export default function ToolIcon({ id }: { id: string }) {
   const paths: Record<string, React.ReactNode> = {
+    berechnungen: <><rect x="10" y="4" width="28" height="40" rx="4"/><path d="M16 11h16v8H16ZM16 27h4m-2-2v4m9-2h5m-16 9h4m7-2 5 5m0-5-5 5"/></>,
+    blitzschutz: <><path d="M28 3 10 27h13l-3 18 19-27H26Z"/></>,
+    planlieferung: <><path d="M8 7h22v27H8ZM15 15h9M15 22h9M17 41h23V16M28 34h17m-6-6 6 6-6 6"/></>,
     "nova-legenden": <><rect x="10" y="7" width="28" height="34" rx="3" /><path d="M17 17h14M23 25h8M23 33h8" /><circle cx="17" cy="25" r="1" /><circle cx="17" cy="33" r="1" /></>,
     bim2steiger: <><path d="m24 5 17 10v18L24 43 7 33V15Z M7 15l17 10 17-10M24 25v18M16 10l17 10v9" /></>,
     "dokumenten-assistent": <><path d="M27 6H12a3 3 0 0 0-3 3v30a3 3 0 0 0 3 3h13M27 6v12h12M27 6l12 12M16 25h10M16 32h6" /><circle cx="33" cy="32" r="8" /><path d="m39 38 6 6M30 32h6M33 29v6" /></>,

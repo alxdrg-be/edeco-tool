@@ -13,6 +13,10 @@ from .bim import create_app as create_bim_app
 from .update_api import register as register_updates
 from .documents.api import register as register_documents
 from .pdf_workshop.api import register as register_pdf_workshop
+from .tools.file_rename.api import register as register_file_rename
+from .tools.projects.api import register as register_projects
+from .tools.deliveries.api import register as register_deliveries
+from .tools.calculation_archive.api import register as register_archive
 
 
 def create_app(state: AppState | None = None, ui_dir: Path | None = None):
@@ -23,6 +27,10 @@ def create_app(state: AppState | None = None, ui_dir: Path | None = None):
     register_updates(app)
     register_documents(app)
     register_pdf_workshop(app)
+    register_file_rename(app)
+    register_projects(app)
+    register_deliveries(app)
+    register_archive(app)
 
     @app.get("/api/toolbox/status")
     def status():
