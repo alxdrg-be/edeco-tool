@@ -25,7 +25,7 @@ from .paths import local_home
 REPOSITORY = "alxdrg-be/edeco-tool"
 API = f"https://api.github.com/repos/{REPOSITORY}"
 RELEASES_URL = f"https://github.com/{REPOSITORY}/releases"
-MAX_SETUP = 512 * 1024 * 1024
+MAX_SETUP = 1900 * 1024 * 1024  # Bundled PDF engine; keep below GitHub's 2 GiB asset limit.
 log = logging.getLogger(__name__)
 
 
@@ -217,6 +217,8 @@ class UpdateManager:
                 raise ValueError("Zuerst ein verfügbares Update prüfen.")
             asset = dict(self.asset)
             folder = Path(tempfile.mkdtemp(prefix="edeco-Toolbox-Update-"))
+            if shutil.disk_usage(folder).free < asset['size'] * 4:
+                raise ValueError('Für Download und Entpacken des Offline-Pakets ist zu wenig freier Speicher verfügbar. Bitte mindestens 6 GB freigeben.')
             target = folder / asset["name"]
             with self._request(asset["url"], binary=True) as response:
                 download_verified(response, target, asset["sha256"], asset["size"])
@@ -246,7 +248,9 @@ class UpdateManager:
             return
         target, digest, size = self.pending
         # Check again after closing the window, before scheduling execution.
-        if target.stat().st_size != size or not hmac.compare_digest(hashlib.sha256(target.read_bytes()).hexdigest(), digest):
+        with target.open('rb') as stream:
+            actual_digest = hashlib.file_digest(stream, 'sha256').hexdigest()
+        if target.stat().st_size != size or not hmac.compare_digest(actual_digest, digest):
             raise ValueError("Das vorbereitete Setup wurde verändert.")
         launch_setup(target, Path(sys.executable).parent)
         self.pending = None

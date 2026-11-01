@@ -1,3 +1,12 @@
+## edeco Toolbox 0.5.0
+
+- edeco PDF-Werkstatt vollständig lokal: Java 25, Windows-PDFium, qpdf und Tesseract inklusive Deutsch/Englisch in Setup und Portable-Paket enthalten.
+- Automatischer Start auf 127.0.0.1 mit zufälligem Port und Sitzungsschutz; Windows Job Objects beenden auch Kindprozesse beim Absturz oder erzwungenen Beenden.
+- Zusammenfügen, Trennen, Vorschau, Drehen, Zuschneiden, Skalieren, Komprimieren, Bild-/Text-Konvertierung und OCR werden mit dem tatsächlichen Windows-Paket geprüft.
+- Offline-Oberfläche mit edeco-Logo; Originalhinweise, Lizenztexte und Quellcode-Beigaben unter Info / Lizenzen.
+- Kein PDF-Firmenserver, Internet, VPN, Docker oder separates Java nötig. Office-/Webseiten-/Video-/KI-Konvertierung und OCRmyPDF-Zusatzoptionen gehören nicht zu dieser Ausgabe.
+- Grössere Pakete: Updateprüfung unterstützt Setups bis 1900 MiB, streamt die Prüfsummenprüfung und prüft freien Speicher. Mindestens 6 GB freien Speicher vorsehen.
+
 ## edeco Toolbox 0.4.0
 
 - PDF-Werkstatt: die vorhandene Stirling-PDF-Core-Oberfläche öffnet sich direkt im Toolbox-Fenster mit edeco-Logo und Firmenfarben.

@@ -1,5 +1,10 @@
 # PDF-Werkstatt: Stirling integrieren
 
+**Stand ab 0.5.0:** Die Windows-Ausgabe enthält jetzt die vollständige lokale
+Laufzeit. Die folgenden Serverüberlegungen dokumentieren den ursprünglichen
+Ansatz. Für Paketierung, Offline-Betrieb und aktuelle Tests gilt
+[PDF offline unter Windows](PDF_OFFLINE_WINDOWS.md).
+
 **Entscheidung:** Die vorhandene Stirling-PDF-Core-Oberfläche und ihre
 Verarbeitung werden in die bestehende edeco Toolbox integriert. Eine neue
 PDF-Engine oder ein zweiter Desktop-Unterbau wird für diesen Schritt nicht

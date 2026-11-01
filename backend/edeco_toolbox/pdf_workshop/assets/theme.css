@@ -58,3 +58,5 @@ html[data-edeco-theme="dark"] {
 .sui-logo--vertical { min-width: 230px; min-height: 115px; }
 .sui-logo > * { visibility: hidden; }
 html[data-edeco-theme="dark"] .sui-logo { background-image: url("/tools/pdf-werkstatt/edeco/logo.svg?theme=dark"); }
+.sui-brandmark { background: url('/tools/pdf-werkstatt/edeco/logo.svg') center / contain no-repeat; }
+.sui-brandmark > * { visibility: hidden; }

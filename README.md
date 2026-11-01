@@ -11,7 +11,7 @@ farbige Werkzeugkacheln, Suche, Kategorien und Hell-/Dunkelmodus.
 | BIM2STEIGER | Nutzbar, Work in progress; lokaler Katalog integriert | Blau |
 | Dokumenten-Assistent | Nutzbar, Work in progress; lokale Suche, KI über gemeinsamen Server | Violett |
 | Dateien umbenennen | Geplant | Grün |
-| PDF-Werkstatt | Stirling Core direkt eingebettet; lokaler Dienst/Firmenserver erforderlich | Rosé |
+| PDF-Werkstatt | Stirling Core mit vollständig mitgelieferter Windows-Offline-Laufzeit | Rosé |
 | Projektzentrale | Geplant | Petrol |
 | Änderungsbericht | Geplant | Orange |
 | Leistungsbilanz | Geplant | Violett |
@@ -36,12 +36,12 @@ zunächst pro PC; sie wird nicht automatisch zwischen Rechnern geteilt.
 Eine kostenpflichtige OpenAI-kompatible API ist optional. Details und Grenzen:
 [Dokumenten-Assistent](docs/DOKUMENTEN_ASSISTENT.md).
 
-Die **PDF-Werkstatt** bettet die originale Stirling-PDF-Core-Oberfläche in die
-Toolbox ein. Vorhandene PDF-Funktionen werden wiederverwendet; edeco-Logo,
-Firmenfarben und freigegebene Abläufe ergänzen die Oberfläche. Der Dienst läuft
-auf demselben PC oder einmal im Firmennetz; die Toolbox-PCs brauchen bei der
-Servervariante weder Docker noch Java. [Dienst ausrollen](deployment/pdf-workshop/README.md),
-[Architektur und modularer Controller](docs/PDF_WERKSTATT_ARCHITEKTUR.md).
+Die **edeco PDF-Werkstatt** verwendet die originale kostenlose Stirling-Core-Oberfläche.
+Ab 0.5.0 enthalten Windows-Setup und Portable-Paket Java, Windows-PDFium, qpdf,
+Tesseract und OCR-Sprachdaten für Deutsch/Englisch. Der Dienst startet automatisch
+auf 127.0.0.1 und benötigt weder Internet noch Firmenserver, VPN, Docker oder
+zusätzliche Installationen. Lizenztexte und mitgelieferte Quellen sind unter
+**Info / Lizenzen** zugänglich. [Offline-Build, Tests und Einschränkungen](docs/PDF_OFFLINE_WINDOWS.md).
 
 Die gemeinsame Anwendung liegt auf `main`. Die Branches `Nova-Legenden` und
 `BIM2STEIGER` enthalten die ursprünglichen Programme; `toolbox` hält den bisherigen
@@ -109,8 +109,11 @@ portable ZIP, Einrichtungspakete und zugehörige SHA-256-Dateien dauerhaft.
 Ab 0.3.0 enthält das Release zusätzlich `edeco-KI-Server-Einrichtung-….zip` mit
 Anleitung und Starthelfer für den einen gemeinsamen KI-Server. Diese ZIP wird
 auf den normalen Toolbox-PCs nicht benötigt.
-Ab 0.4.0 liegt zusätzlich `edeco-PDF-Dienst-….zip` mit Compose-Datei und Anleitung
-für den Stirling-Dienst bei.
+Ab 0.5.0 ist der PDF-Dienst in beiden Windows-Paketen enthalten. Das frühere
+separate Docker-Dienstpaket entfällt. Der Download ist entsprechend grösser;
+für Installation und Updates mindestens 6 GB freien Speicher vorsehen.
+Bei einer Vorversion mit 512-MiB-Updategrenze das neue Setup einmal von der
+Release-Seite starten; das vorhandene Benutzerprofil bleibt erhalten.
 Die Windows-EXE und das Setup werden erst in diesem Windows-Workflow erzeugt;
 sie sind kein Bestandteil des Quellcode-Imports.
 

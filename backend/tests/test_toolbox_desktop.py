@@ -4,6 +4,27 @@ from types import SimpleNamespace
 from edeco_toolbox import __main__ as desktop
 
 
+def test_local_desktop_probe_ignores_dead_system_proxy(monkeypatch):
+    from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+    import threading
+    class Handler(BaseHTTPRequestHandler):
+        def do_GET(self):
+            self.send_response(200 if self.path == '/api/toolbox/status' else 404)
+            self.end_headers()
+        def log_message(self, *args):
+            pass
+    server = ThreadingHTTPServer(('127.0.0.1', 0), Handler)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    monkeypatch.setenv('HTTP_PROXY', 'http://127.0.0.1:1')
+    monkeypatch.setenv('HTTPS_PROXY', 'http://127.0.0.1:1')
+    monkeypatch.setenv('NO_PROXY', '')
+    try:
+        assert desktop.wait_until_up(f'http://127.0.0.1:{server.server_port}', timeout=3)
+    finally:
+        server.shutdown(); server.server_close(); thread.join(timeout=3)
+
+
 def test_native_probe_requires_rendered_tiles_and_records_success(tmp_path):
     events = []
     window = SimpleNamespace(evaluate_js=lambda script: True, destroy=lambda: events.append("closed"))

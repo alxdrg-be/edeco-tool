@@ -5,7 +5,7 @@ import { useDialogFocus } from "../../useDialogFocus";
 import "./pdf-workshop.css";
 
 interface State {
-  service_url: string; managed: boolean; title: string; accent: string; session_key: string;
+  service_url: string; managed: boolean; local: boolean; title: string; accent: string; session_key: string;
   workflows: { id: string; title: string }[];
 }
 interface Health { ready: boolean; version: string; message: string }
@@ -38,6 +38,7 @@ export default function PdfWorkshop({ onHome }: ToolProps) {
   const [health, setHealth] = useState<Health | null>(null);
   const [url, setUrl] = useState("");
   const [settings, setSettings] = useState(false);
+  const [info, setInfo] = useState(false);
   const [workflows, setWorkflows] = useState(false);
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
@@ -63,6 +64,14 @@ export default function PdfWorkshop({ onHome }: ToolProps) {
     void load();
     return () => { alive = false; };
   }, []);
+
+  useEffect(() => {
+    if (!state?.local || health?.ready) return;
+    const timer = window.setInterval(() => {
+      void action<Health>("/check", state.session_key).then(setHealth).catch(e => setError(String(e)));
+    }, 2000);
+    return () => window.clearInterval(timer);
+  }, [state, health?.ready]);
 
   async function check(save: boolean) {
     if (!state || busy) return;
@@ -106,11 +115,14 @@ export default function PdfWorkshop({ onHome }: ToolProps) {
       <span className="bim-toolbox-logo" role="img" aria-label="edeco ag" dangerouslySetInnerHTML={{ __html: edecoLogo.replace(/<\?xml[^?]*\?>/, "") }} />
       <button className="btn" onClick={goHome} disabled={busy === "workflow"}>← Zur Toolbox</button>
       <span className="pdf-workshop-title">{state?.title || "edeco PDF-Werkstatt"}</span>
-      {health?.ready && <span className="pdf-service-badge">Stirling-PDF {health.version} · interner Dienst</span>}
+      {health?.ready && <span className="pdf-service-badge">{state?.local ? "Offline bereit · auf diesem Computer" : `Stirling-PDF ${health.version} · interner Dienst`}</span>}
       {Boolean(state?.workflows.length) && <button className="btn" onClick={() => setWorkflows(!workflows)}>Firmenabläufe</button>}
-      <button className="btn" onClick={() => setSettings(!settings)}>Verbindung</button>
+      {!state?.local && <button className="btn" onClick={() => setSettings(!settings)}>Verbindung</button>}
+      <button className="btn" onClick={() => setInfo(!info)}>Info / Lizenzen</button>
     </header>
-    {(settings || !health?.ready) && <section className="pdf-connection" aria-label="PDF-Verbindung">
+    {state?.local && !health?.ready && <section className="pdf-connection" aria-label="Lokaler PDF-Dienst"><h1>edeco PDF-Werkstatt</h1><p role="status">{health?.message || "Der lokale PDF-Dienst wird gestartet. Beim ersten Start kann dies etwas dauern."}</p><button className="btn" disabled={Boolean(busy)} onClick={() => void check(false)}>Status prüfen</button>{error && <p role="alert">{error}</p>}</section>}
+    {info && <section className="pdf-connection"><button className="btn" onClick={() => setInfo(false)}>Info schliessen</button><iframe className="pdf-stirling-frame" title="Info / Lizenzen" src={API + "/licenses"} /></section>}
+    {!state?.local && (settings || !health?.ready) && <section className="pdf-connection" aria-label="PDF-Verbindung">
       <div><h1>Deine PDF-Werkstatt.</h1><p>Die vollständige Stirling-Oberfläche – direkt in der edeco Toolbox.</p>
         <p className="pdf-muted">PDFs werden ausschliesslich an den von euch eingestellten Stirling-Dienst übertragen. Bitte nur euren lokalen Dienst oder den firmeneigenen Server eintragen.</p></div>
       <form onSubmit={event => { event.preventDefault(); void check(!state?.managed); }}>

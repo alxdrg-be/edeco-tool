@@ -51,10 +51,12 @@ def main():
             draw.text((82 * scale, 259 * scale), "Alle Werkzeuge.", anchor="mt", font=font(10 * scale), fill="white")
             draw.text((82 * scale, 276 * scale), "Ein Programm.", anchor="mt", font=font(10 * scale), fill="white")
             image.save(OUT / ("toolbox-wizard-image.png" if scale == 1 else "toolbox-wizard-image-2x.png"))
+            image.save(OUT / ("toolbox-wizard-image.bmp" if scale == 1 else "toolbox-wizard-image-2x.bmp"))
         small = Image.new("RGB", (55, 55), "white")
         miniature = icon.resize((55, 55), Image.Resampling.LANCZOS)
         small.paste(miniature, (0, 0), miniature)
         small.save(OUT / "toolbox-wizard-small.png")
+        small.save(OUT / "toolbox-wizard-small.bmp")
         browser.close()
     print("Toolbox-Icon und edeco-Installerbilder erstellt.")
 

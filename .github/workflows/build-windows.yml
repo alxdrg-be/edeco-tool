@@ -13,42 +13,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  pdf-engine:
-    name: Stirling Core und Toolbox-Integration prüfen
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-      - name: Stirling Core mit OCR starten
-        run: docker compose -f deployment/pdf-workshop/docker-compose.yml up -d --build --wait --wait-timeout 150
-      - name: Testumgebung vorbereiten
-        run: |
-          python -m pip install -r backend/requirements.txt -r backend/requirements-browser-tests.txt
-          python -m playwright install --with-deps chromium
-          npm ci --prefix ui
-          npm run build --prefix ui
-      - name: Echte PDF-Verarbeitung und eingebettete Oberfläche prüfen
-        env:
-          EDECO_TEST_STIRLING_URL: http://127.0.0.1:8088
-          EDECO_STIRLING_URL: http://127.0.0.1:8088
-        run: |
-          python -m pytest backend/tests/test_pdf_workshop.py backend/tests/test_pdf_stirling_live.py -q
-          python -m pytest backend/tests/test_editor_navigation.py -q -k stirling_embedded
-      - name: Dienstprotokoll sichern
-        if: always()
-        run: docker compose -f deployment/pdf-workshop/docker-compose.yml logs --no-color > stirling-test.log
-      - uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: stirling-integration-log
-          path: stirling-test.log
   build:
-    needs: pdf-engine
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -58,6 +23,14 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+      - uses: actions/cache@v4
+        with:
+          path: packaging/pdf-runtime-cache
+          key: windows-pdf-runtime-${{ hashFiles('packaging/pdf-runtime.lock.json') }}
       - name: Buildnummer und Quellstand hinterlegen
         id: version
         shell: python
@@ -83,6 +56,18 @@ jobs:
         run: |
           python -m pip install -r backend/requirements.txt -r packaging/requirements-windows.txt -r backend/requirements-browser-tests.txt
           python -m playwright install chromium
+      - name: Vollständige Offline-PDF-Laufzeit vorbereiten
+        run: python packaging/prepare_pdf_runtime.py
+      - name: Externe Netzverbindungen der PDF-Engine für Tests sperren
+        shell: pwsh
+        run: |
+          $engine = (Resolve-Path 'packaging/pdf-runtime/java/bin/java.exe').Path
+          New-NetFirewallRule -DisplayName 'edeco PDF offline test' -Direction Outbound -Action Block -Program $engine -RemoteAddress '0.0.0.0-126.255.255.255','128.0.0.0-255.255.255.255','::/0' | Out-Null
+      - name: Windows-PDF-Verarbeitung ohne externen Dienst prüfen
+        env:
+          EDECO_TEST_PDF_RUNTIME: '1'
+          EDECO_TOOLBOX_HOME: '${{ runner.temp }}/pdf-runtime-tests'
+        run: python -m pytest backend/tests/test_pdf_stirling_live.py backend/tests/test_pdf_runtime.py -q --junitxml=output/pdf-runtime-tests.xml
       - name: KI-Serverhilfe auf Syntax prüfen
         shell: pwsh
         run: |
@@ -102,6 +87,8 @@ jobs:
       - name: EXE auf Start und Oberfläche prüfen
         shell: pwsh
         run: |
+          $engine = (Resolve-Path 'dist/edeco-Toolbox/_internal/pdf-runtime/java/bin/java.exe').Path
+          New-NetFirewallRule -DisplayName 'edeco packaged PDF offline test' -Direction Outbound -Action Block -Program $engine -RemoteAddress '0.0.0.0-126.255.255.255','128.0.0.0-255.255.255.255','::/0' | Out-Null
           $env:NOVA_LEGENDEN_HOME = "$env:RUNNER_TEMP\toolbox-home"
           $p = Start-Process -FilePath 'dist\edeco-Toolbox\edeco-Toolbox.exe' -ArgumentList '--server','--port','8799' -PassThru
           try {
@@ -121,6 +108,9 @@ jobs:
             if (-not $nova.version) { throw 'Nova-Modul nicht verfügbar' }
             $bim = Invoke-RestMethod 'http://127.0.0.1:8799/tools/bim2steiger/api/meta'
             if ($bim.catalogue_articles -lt 1) { throw 'BIM-Katalog fehlt' }
+            $env:EDECO_TEST_TOOLBOX_URL = 'http://127.0.0.1:8799'
+            python -m pytest backend/tests/test_pdf_stirling_live.py backend/tests/test_pdf_packaged_ui.py -q --junitxml=output/pdf-exe-tests.xml
+            if ($LASTEXITCODE) { throw 'PDF-Verarbeitung oder Oberfläche in der EXE fehlgeschlagen' }
             $env:DOC_SMOKE_FILE = Join-Path $env:RUNNER_TEMP 'document-source-smoke.pdf'
             @'
           import os, sys
@@ -156,18 +146,18 @@ jobs:
           Move-Item $config ($config + '.disabled')
           try {
             $p = Start-Process -FilePath $exe -ArgumentList '--desktop-smoke-test','--port','8797' -PassThru
-            if (-not $p.WaitForExit(90000)) { Stop-Process -Id $p.Id -Force; throw 'Baseline-Fensterstart hängt' }
+            if (-not $p.WaitForExit(210000)) { Stop-Process -Id $p.Id -Force; throw 'Baseline-Fensterstart hängt' }
             Write-Host "Download-Markierung ohne Anwendungskonfiguration: Exitcode $($p.ExitCode)"
           } finally { Move-Item ($config + '.disabled') $config }
           $env:EDECO_TOOLBOX_HOME = Join-Path $env:RUNNER_TEMP 'native-fixed-smoke'
           $p = Start-Process -FilePath $exe -ArgumentList '--desktop-smoke-test','--port','8797' -PassThru
-          if (-not $p.WaitForExit(90000)) { Stop-Process -Id $p.Id -Force; throw 'Nativer Fensterstart hängt' }
+          if (-not $p.WaitForExit(210000)) { Stop-Process -Id $p.Id -Force; throw 'Nativer Fensterstart hängt' }
           if ($p.ExitCode -ne 0) {
             Get-Content "$env:EDECO_TOOLBOX_HOME\toolbox.log" -Tail 60
             throw 'Nativer Fensterstart fehlgeschlagen'
           }
           $report = Get-Content "$env:EDECO_TOOLBOX_HOME\desktop-smoke.json" -Raw | ConvertFrom-Json
-          if (-not $report.ok -or $report.tool_count -ne 10) { throw 'Toolbox wurde im Programmfenster nicht gerendert' }
+          if (-not $report.ok -or $report.tool_count -ne 10 -or -not $report.pdf_ready) { throw 'Toolbox oder PDF-Werkstatt wurde im Programmfenster nicht gerendert' }
       - name: Installer bauen
         shell: pwsh
         run: |
@@ -203,9 +193,12 @@ jobs:
                 } catch { Start-Sleep 1 }
               }
               if (-not $ok) { throw 'Installierte Toolbox startet nicht' }
+              $env:EDECO_TEST_TOOLBOX_URL = 'http://127.0.0.1:8798'
+              python -m pytest backend/tests/test_pdf_stirling_live.py -q
+              if ($LASTEXITCODE) { throw 'Installierte PDF-Laufzeit fehlgeschlagen' }
             } finally { Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue }
             $gui = Start-Process -FilePath "$installDir\edeco-Toolbox.exe" -ArgumentList '--desktop-smoke-test','--port','8796' -PassThru
-            if (-not $gui.WaitForExit(90000)) { Stop-Process -Id $gui.Id -Force; throw 'Installiertes Programmfenster hängt' }
+            if (-not $gui.WaitForExit(210000)) { Stop-Process -Id $gui.Id -Force; throw 'Installiertes Programmfenster hängt' }
             if ($gui.ExitCode -ne 0) {
               Get-Content "$env:EDECO_TOOLBOX_HOME\toolbox.log" -Tail 60
               throw 'Installiertes Programmfenster startet nicht'
@@ -214,15 +207,20 @@ jobs:
       - name: Portable Ausgabe und Release-Text erstellen
         shell: pwsh
         run: |
-          Compress-Archive -Path 'dist/edeco-Toolbox' -DestinationPath 'dist-installer/edeco-Toolbox-Portable-${{ steps.version.outputs.version }}.zip' -CompressionLevel Optimal
+          python packaging/make_portable.py --version '${{ steps.version.outputs.version }}'
           Compress-Archive -Path 'packaging/ki-server/*' -DestinationPath 'dist-installer/edeco-KI-Server-Einrichtung-${{ steps.version.outputs.version }}.zip' -CompressionLevel Optimal
-          Compress-Archive -Path @('deployment/pdf-workshop/Dockerfile', 'deployment/pdf-workshop/docker-compose.yml', 'deployment/pdf-workshop/README.md', 'deployment/pdf-workshop/company.example.json', 'deployment/pdf-workshop/.env.example', 'deployment/pdf-workshop/STIRLING-LICENSE.txt') -DestinationPath 'dist-installer/edeco-PDF-Dienst-${{ steps.version.outputs.version }}.zip' -CompressionLevel Optimal
           Copy-Item TOOLBOX_NEUIGKEITEN.md release-body.md
           Add-Content release-body.md "`n`nBuild $env:GITHUB_RUN_NUMBER · Commit $env:GITHUB_SHA"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: windows-pdf-test-results-${{ github.run_number }}
+          path: output/
       - name: Prüfsummen erstellen
         shell: pwsh
         run: |
           Get-ChildItem 'dist-installer/*' | Where-Object { $_.Extension -in '.exe','.zip' } | ForEach-Object {
+            if ($_.Length -gt 1900MB) { throw "Release-Asset überschreitet die Paketgrenze: $($_.Name)" }
             $hash = (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
             Set-Content -Path ($_.FullName + '.sha256') -Value ($hash + '  ' + $_.Name) -Encoding ascii
           }
@@ -230,14 +228,16 @@ jobs:
         with:
           name: edeco-Toolbox-Setup-Build-${{ github.run_number }}
           path: dist-installer/edeco-Toolbox-Setup-*
+          compression-level: 0
           if-no-files-found: error
-          retention-days: 30
+          retention-days: 7
       - uses: actions/upload-artifact@v4
         with:
           name: edeco-Toolbox-portabel-Build-${{ github.run_number }}
-          path: dist/edeco-Toolbox/
+          path: dist-installer/edeco-Toolbox-Portable-*
+          compression-level: 0
           if-no-files-found: error
-          retention-days: 30
+          retention-days: 7
       - name: Toolbox unter Releases veröffentlichen
         if: github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2

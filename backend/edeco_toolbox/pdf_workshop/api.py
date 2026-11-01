@@ -3,8 +3,10 @@
 import hmac
 import html
 import json
+import os
 import re
 import secrets
+import sys
 from contextlib import asynccontextmanager
 from datetime import datetime
 from pathlib import Path
@@ -18,6 +20,7 @@ from pydantic import BaseModel, Field
 from . import API, ROOT
 from .client import PdfFile, StirlingClient
 from .config import Configuration
+from .runtime import PdfRuntime, runtime_root
 
 ASSETS = Path(__file__).parent / "assets"
 MAX_UPLOAD = 250 * 1024 * 1024
@@ -30,6 +33,8 @@ class Connection(BaseModel):
 
 def register(app):
     config = Configuration()
+    if getattr(sys, 'frozen', False) or os.environ.get('EDECO_PDF_RUNTIME'):
+        config.runtime = PdfRuntime()
     session_key = secrets.token_urlsafe(32)
     app.state.pdf_workshop = config
     proxy_client = None
@@ -37,7 +42,7 @@ def register(app):
     def get_proxy_client():
         nonlocal proxy_client
         if proxy_client is None:
-            proxy_client = httpx.AsyncClient(timeout=httpx.Timeout(300, connect=10), follow_redirects=False,
+            proxy_client = httpx.AsyncClient(timeout=httpx.Timeout(300, connect=10), follow_redirects=False, trust_env=False,
                                              transport=getattr(app.state, "pdf_proxy_transport", None),
                                              limits=httpx.Limits(max_connections=30, max_keepalive_connections=20))
         return proxy_client
@@ -51,10 +56,14 @@ def register(app):
     @asynccontextmanager
     async def lifespan(application):
         async with previous_lifespan(application) as lifecycle_state:
+            if config.runtime:
+                config.runtime.start()
             try:
                 yield lifecycle_state
             finally:
                 await close_proxy()
+                if config.runtime:
+                    config.runtime.close()
 
     app.router.lifespan_context = lifespan
 
@@ -90,7 +99,26 @@ def register(app):
     @app.post(API + "/check")
     def check(request: Request):
         authorize(request, key=True)
+        if config.runtime:
+            return config.runtime.health()
         return StirlingClient(config.url, config.api_key).health()
+
+    @app.get(API + '/licenses', response_class=HTMLResponse)
+    def licenses(request: Request):
+        authorize(request)
+        root = runtime_root()
+        text = (root / 'NOTICE.html').read_text(encoding='utf-8') if (root / 'NOTICE.html').is_file() else '<h1>Info / Lizenzen</h1><p>Stirling PDF Core 3.2.2 · MIT · Copyright Stirling PDF Inc.</p>'
+        return HTMLResponse(text, headers={'Content-Security-Policy': "default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'"})
+
+    @app.get(API + '/licenses/{name}')
+    def license_file(request: Request, name: str):
+        authorize(request)
+        folder = runtime_root() / 'licenses'
+        target = folder / name
+        if Path(name).name != name or not target.is_file():
+            raise HTTPException(404)
+        from fastapi.responses import FileResponse
+        return FileResponse(target, filename=name)
 
     @app.post(API + "/workflows/{profile_id}")
     def workflow(request: Request, profile_id: str, file: UploadFile = File(...)):
@@ -106,7 +134,7 @@ def register(app):
             raise HTTPException(409, "Der vorgegebene Zielordner ist nicht erreichbar. Bitte das Netzlaufwerk prüfen.")
         try:
             if profile.get("stamp"):
-                data = StirlingClient(config.url, config.api_key).stamp(PdfFile(file.filename or "Dokument.pdf", data), str(profile["stamp"])[:100])
+                data = StirlingClient(config.url, config.api_key, engine_secret=config.runtime.secret if config.runtime else '').stamp(PdfFile(file.filename or "Dokument.pdf", data), str(profile["stamp"])[:100])
             stem = Path((file.filename or "Dokument.pdf").replace("\\", "/")).stem
             stem = re.sub(r"[^\w .-]", "_", stem)[:100].strip(" .") or "Dokument"
             target = folder / f"{stem}_Entwurf_{datetime.now():%Y%m%d-%H%M%S}_{secrets.token_hex(3)}.pdf"
@@ -120,12 +148,17 @@ def register(app):
 
     async def proxy(request: Request, path: str = ""):
         authorize(request, cookie=True)
+        if config.runtime and not config.runtime.health()['ready']:
+            raise HTTPException(503, config.runtime.message)
         if path == "edeco/theme.css":
             css = (ASSETS / "theme.css").read_text(encoding="utf-8").replace("__EDECO_ACCENT__", config.public()["accent"])
             return Response(css, media_type="text/css", headers={"Cache-Control": "no-store"})
         if path == "edeco/bridge.js":
             return Response((ASSETS / "bridge.js").read_text(encoding="utf-8"), media_type="application/javascript", headers={"Cache-Control": "no-store"})
-        if path == "edeco/logo.svg" or path.startswith("modern-logo/") and path.split("/")[-1] in {
+        if path == 'edeco/offline-options.json':
+            target = runtime_root() / 'offline-options.json'
+            return Response(target.read_bytes() if config.runtime and target.is_file() else b'[]', media_type='application/json')
+        if path == "edeco/logo.svg" or path.startswith('assets/wordmark-') and path.endswith('.svg') or path.startswith("modern-logo/") and path.split("/")[-1] in {
                 "StirlingPDFLogoBlackText.svg", "StirlingPDFLogoGreyText.svg", "StirlingPDFLogoWhiteText.svg", "logo-tooltip.svg"}:
             logo = (ASSETS / "edeco-logo.svg").read_text(encoding="utf-8")
             if "White" in path or request.query_params.get("theme") == "dark":
@@ -148,6 +181,8 @@ def register(app):
         headers["cookie"] = remote_cookies
         headers["accept-encoding"] = "identity"
         headers["origin"] = config.url
+        if config.runtime:
+            headers['X-Edeco-Engine'] = config.runtime.secret
         if config.api_key:
             headers["X-API-KEY"] = config.api_key
         client = get_proxy_client()
@@ -179,10 +214,13 @@ def register(app):
             text = raw.decode("utf-8")
             title = html.escape(config.public()["title"])
             text = re.sub(r"<title>.*?</title>", lambda _: f"<title>{title}</title>", text, flags=re.S)
-            additions = f'<link rel="stylesheet" href="{ROOT}/edeco/theme.css"><script src="{ROOT}/edeco/bridge.js"></script>'
+            offline = '<script>window.edecoOffline=true;</script>' if config.runtime else ''
+            additions = offline + f'<link rel="stylesheet" href="{ROOT}/edeco/theme.css"><script src="{ROOT}/edeco/bridge.js"></script>'
             text = text.replace("</head>", additions + "</head>")
             response_headers.pop("content-encoding", None)
             response_headers["Cache-Control"] = "no-store"
+            if config.runtime:
+                response_headers['Content-Security-Policy'] = "default-src 'self' blob: data:; connect-src 'self' blob: data:; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; font-src 'self' data:; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'"
             return HTMLResponse(text, status_code=upstream.status_code, headers=response_headers)
         async def stream():
             try:

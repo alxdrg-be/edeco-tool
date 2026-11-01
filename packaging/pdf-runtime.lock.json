@@ -1,0 +1,199 @@
+﻿{
+    "tessdata_commit":  "87416418657359cb625c412a48b6e1d6d41c29bd",
+    "stirling_version":  "3.2.2",
+    "files":  [
+                  {
+                      "url":  "https://www.7-zip.org/a/7z2501-x64.msi",
+                      "name":  "7zip.msi",
+                      "sha256":  "e7eb0b7ed5efa4e087b7b17f191797f7af5b7f442d1290c66f3a21777005ef57"
+                  },
+                  {
+                      "url":  "https://raw.githubusercontent.com/tesseract-ocr/tessdata_fast/87416418657359cb625c412a48b6e1d6d41c29bd/deu.traineddata",
+                      "name":  "deu.traineddata",
+                      "sha256":  "19d219bbb6672c869d20a9636c6816a81eb9a71796cb93ebe0cb1530e2cdb22d"
+                  },
+                  {
+                      "url":  "https://raw.githubusercontent.com/tesseract-ocr/tessdata_fast/87416418657359cb625c412a48b6e1d6d41c29bd/eng.traineddata",
+                      "name":  "eng.traineddata",
+                      "sha256":  "7d4322bd2a7749724879683fc3912cb542f19906c83bcc1a52132556427170b2"
+                  },
+                  {
+                      "url":  "https://github.com/adoptium/temurin25-binaries/releases/download/jdk-25.0.5%2B8/OpenJDK25U-jre_x64_windows_hotspot_25.0.5_8.zip",
+                      "name":  "java.zip",
+                      "sha256":  "da78d54a2fcdbba1e92d5e3f07dd30236f96297891c4a21a781c3f38f5c0beae"
+                  },
+                  {
+                      "url":  "https://github.com/adoptium/temurin25-binaries/releases/download/jdk-25.0.5%2B8/OpenJDK25U-jdk-sources_25.0.5_8.tar.gz",
+                      "name":  "java-source.tar.gz",
+                      "sha256":  "f331d870d998f9c144c361c220960f8ad2de169dc1b1c4dc4145291c501c2341"
+                  },
+                  {
+                      "url":  "https://raw.githubusercontent.com/tesseract-ocr/tessdata_fast/87416418657359cb625c412a48b6e1d6d41c29bd/osd.traineddata",
+                      "name":  "osd.traineddata",
+                      "sha256":  "9cf5d576fcc47564f11265841e5ca839001e7e6f38ff7f7aacf46d15a96b00ff"
+                  },
+                  {
+                      "url":  "https://github.com/qpdf/qpdf/releases/download/v12.4.2/qpdf-12.4.2-mingw64.zip",
+                      "name":  "qpdf.zip",
+                      "sha256":  "773d2fa0c7d161e2271430734338e560a07b25d0edf11ceee8e53de435012766"
+                  },
+                  {
+                      "url":  "https://github.com/Stirling-Tools/Stirling-PDF/releases/download/v3.2.2/Stirling-PDF.jar",
+                      "name":  "stirling.jar",
+                      "sha256":  "34ea9dda52f1432baa0a21cafc785005de1df5280d481e3352cc246e6b8c71e1"
+                  },
+                  {
+                      "url":  "https://github.com/Stirling-Tools/Stirling-PDF/archive/refs/tags/v3.2.2.zip",
+                      "name":  "stirling-source.zip",
+                      "sha256":  "df2167b89d5a7f619dab724e987052c6941d1e807e170b558affb7ecca0b9bb5"
+                  },
+                  {
+                      "url":  "https://raw.githubusercontent.com/tesseract-ocr/tessdata_fast/87416418657359cb625c412a48b6e1d6d41c29bd/LICENSE",
+                      "name":  "tessdata-LICENSE",
+                      "sha256":  "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+                  },
+                  {
+                      "url":  "https://github.com/UB-Mannheim/tesseract/releases/download/v5.4.0.20240606/tesseract-ocr-w64-setup-5.4.0.20240606.exe",
+                      "name":  "tesseract.exe",
+                      "sha256":  "c885fff6998e0608ba4bb8ab51436e1c6775c2bafc2559a19b423e18678b60c9"
+                  },
+                  {
+                      "url":  "https://github.com/UB-Mannheim/tesseract/archive/refs/tags/v5.4.0.20240606.zip",
+                      "name":  "tesseract-source.zip",
+                      "sha256":  "66afffb1d33693f2bb1e815c3e2acf6657692a4e1ddbf303a41121c40cdc4ba4"
+                  },
+                  {
+                      "url":  "https://repo.maven.apache.org/maven2/com/stirling/jpdfium-natives-windows-x64/1.1.6/jpdfium-natives-windows-x64-1.1.6.jar",
+                      "name":  "jpdfium-natives-windows-x64-1.1.6.jar",
+                      "sha256":  "b0f70399bb0e2b670d83b0c24b84f8976b6fcc0ff21577ddfa6afee460f2b095"
+                  },
+                  {
+                      "url":  "https://github.com/Stirling-Tools/JPDFium/archive/refs/tags/v1.1.6.zip",
+                      "name":  "jpdfium-source.zip",
+                      "sha256":  "1837abd4875d0e2cf2a93224c55b67b5c6e58aa89da9beb9a3545e9cf132af8b"
+                  },
+                  {
+                      "url":  "https://msedge.sf.dl.delivery.mp.microsoft.com/filestreamingservice/files/b7919cc9-680d-4253-bf32-732988e68aa6/Microsoft.WebView2.FixedVersionRuntime.156.0.4314.58.x64.cab",
+                      "name":  "webview2.cab",
+                      "sha256":  "857dcfd6f7035508a29645fa2978c3a6a841f220df77cc366d318894e19f4792"
+                  },
+                  {
+                      "url":  "https://raw.githubusercontent.com/gcc-mirror/gcc/releases/gcc-14.1.0/COPYING3",
+                      "name":  "GCC-COPYING3.txt",
+                      "sha256":  "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903"
+                  },
+                  {
+                      "url":  "https://raw.githubusercontent.com/gcc-mirror/gcc/releases/gcc-14.1.0/COPYING.RUNTIME",
+                      "name":  "GCC-RUNTIME-EXCEPTION.txt",
+                      "sha256":  "9d6b43ce4d8de0c878bf16b54d8e7a10d9bd42b75178153e3af6a815bdc90f74"
+                  },
+                  {
+                      "url":  "https://sourceware.org/pub/bzip2/bzip2-1.0.8.tar.gz",
+                      "name":  "source-bzip2-1.0.8.tar.gz",
+                      "sha256":  "ab5a03176ee106d3f0fa90e381da478ddae405918153cca248e682cd0c4a2269"
+                  },
+                  {
+                      "url":  "https://github.com/libexpat/libexpat/archive/refs/tags/R_2_6_2.tar.gz",
+                      "name":  "source-expat-2.6.2.tar.gz",
+                      "sha256":  "fbd032683370d761ba68dba2566d3280a154f5290634172d60a79b24d366d9dc"
+                  },
+                  {
+                      "url":  "https://deb.debian.org/debian/pool/main/g/giflib/giflib_5.2.1.orig.tar.gz",
+                      "name":  "source-giflib-5.2.1.tar.gz",
+                      "sha256":  "31da5562f44c5f15d63340a09a4fd62b48c45620cd302f77a6d9acf0077879bd"
+                  },
+                  {
+                      "url":  "https://www.cl.cam.ac.uk/~mgk25/jbigkit/download/jbigkit-2.1.tar.gz",
+                      "name":  "source-jbigkit-2.1.tar.gz",
+                      "sha256":  "de7106b6bfaf495d6865c7dd7ac6ca1381bd12e0d81405ea81e7f2167263d932"
+                  },
+                  {
+                      "url":  "https://github.com/libjpeg-turbo/libjpeg-turbo/archive/refs/tags/3.0.1.tar.gz",
+                      "name":  "source-jpeg-turbo-3.0.1.tar.gz",
+                      "sha256":  "5b9bbca2b2a87c6632c821799438d358e27004ab528abf798533c15d50b39f82"
+                  },
+                  {
+                      "url":  "https://github.com/DanBloomberg/leptonica/archive/refs/tags/1.84.1.tar.gz",
+                      "name":  "source-leptonica-1.84.1.tar.gz",
+                      "sha256":  "ecd7a868403b3963c4e33623595d77f2c87667e2cfdd9b370f87729192061bef"
+                  },
+                  {
+                      "url":  "https://github.com/Esri/lerc/archive/refs/tags/v4.0.0.tar.gz",
+                      "name":  "source-lerc-4.0.0.tar.gz",
+                      "sha256":  "91431c2b16d0e3de6cbaea188603359f87caed08259a645fd5a3805784ee30a0"
+                  },
+                  {
+                      "url":  "https://github.com/libarchive/libarchive/archive/refs/tags/v3.7.4.tar.gz",
+                      "name":  "source-libarchive-3.7.4.tar.gz",
+                      "sha256":  "cf7fc85b9f663c06dc2b7036b7ee54d02712167e04b07bdcc4c27553abf2d6ff"
+                  },
+                  {
+                      "url":  "https://github.com/BLAKE2/libb2/archive/refs/tags/v0.98.1.tar.gz",
+                      "name":  "source-libb2-0.98.1.tar.gz",
+                      "sha256":  "10053dbc2fa342516b780a6bbf6e7b2a2360b8d49c5ac426936bf3df82526732"
+                  },
+                  {
+                      "url":  "https://github.com/ebiggers/libdeflate/archive/refs/tags/v1.20.tar.gz",
+                      "name":  "source-libdeflate-1.20.tar.gz",
+                      "sha256":  "ed1454166ced78913ff3809870a4005b7170a6fd30767dc478a09b96847b9c2a"
+                  },
+                  {
+                      "url":  "https://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.17.tar.gz",
+                      "name":  "source-libiconv-1.17.tar.gz",
+                      "sha256":  "8f74213b56238c85a50a5329f77e06198771e70dd9a739779f4c02f65d971313"
+                  },
+                  {
+                      "url":  "https://github.com/pnggroup/libpng/archive/refs/tags/v1.6.43.tar.gz",
+                      "name":  "source-libpng-1.6.43.tar.gz",
+                      "sha256":  "fecc95b46cf05e8e3fc8a414750e0ba5aad00d89e9fdf175e94ff041caf1a03a"
+                  },
+                  {
+                      "url":  "https://github.com/lz4/lz4/archive/refs/tags/v1.9.4.tar.gz",
+                      "name":  "source-lz4-1.9.4.tar.gz",
+                      "sha256":  "0b0e3aa07c8c063ddf40b082bdf7e37a1562bda40a0ff5272957f3e987e0e54b"
+                  },
+                  {
+                      "url":  "https://github.com/mingw-w64/mingw-w64/archive/refs/tags/v12.0.0.tar.gz",
+                      "name":  "source-mingw-w64-12.0.0.tar.gz",
+                      "sha256":  "fa41d462041ed72e29a5101049e5991d4aea5c552fd75f7ac0074989fc54ceb7"
+                  },
+                  {
+                      "url":  "https://github.com/uclouvain/openjpeg/archive/refs/tags/v2.5.2.tar.gz",
+                      "name":  "source-openjpeg-2.5.2.tar.gz",
+                      "sha256":  "90e3896fed910c376aaf79cdd98bdfdaf98c6472efd8e1debf0a854938cbda6a"
+                  },
+                  {
+                      "url":  "https://github.com/openssl/openssl/archive/refs/tags/openssl-3.3.0.tar.gz",
+                      "name":  "source-openssl-3.3.0.tar.gz",
+                      "sha256":  "1a47bdc46fac256a0dc8efb696f7f76fa5f96049ba1b60fded5478bd3165c6d2"
+                  },
+                  {
+                      "url":  "https://download.osgeo.org/libtiff/tiff-4.6.0.tar.gz",
+                      "name":  "source-tiff-4.6.0.tar.gz",
+                      "sha256":  "88b3979e6d5c7e32b50d7ec72fb15af724f6ab2cbf7e10880c360a77e4b5d99a"
+                  },
+                  {
+                      "url":  "https://github.com/webmproject/libwebp/archive/refs/tags/v1.4.0.tar.gz",
+                      "name":  "source-webp-1.4.0.tar.gz",
+                      "sha256":  "12af50c45530f0a292d39a88d952637e43fb2d4ab1883c44ae729840f7273381"
+                  },
+                  {
+                      "url":  "https://github.com/tukaani-project/xz/archive/refs/tags/v5.6.1.tar.gz",
+                      "name":  "source-xz-5.6.1.tar.gz",
+                      "sha256":  "237284fae40e5f8e9908f0a977e7d0b9a5c7c1c10a41b8e6ed0fb40e930467c8"
+                  },
+                  {
+                      "url":  "https://github.com/madler/zlib/archive/refs/tags/v1.3.1.tar.gz",
+                      "name":  "source-zlib-1.3.1.tar.gz",
+                      "sha256":  "17e88863f3600672ab49182f217281b6fc4d3c762bde361935e436a95214d05c"
+                  },
+                  {
+                      "url":  "https://github.com/facebook/zstd/archive/refs/tags/v1.5.6.tar.gz",
+                      "name":  "source-zstd-1.5.6.tar.gz",
+                      "sha256":  "30f35f71c1203369dc979ecde0400ffea93c27391bfd2ac5a9715d2173d92ff7"
+                  }
+              ],
+    "schema":  1,
+    "architecture":  "windows-x64",
+    "webview2_version":  "156.0.4314.58"
+}

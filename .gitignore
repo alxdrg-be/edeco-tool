@@ -27,4 +27,8 @@ packaging/app.ico
 packaging/toolbox.ico
 packaging/toolbox-icon.png
 packaging/toolbox-wizard-*.png
+packaging/toolbox-wizard-*.bmp
 ui/*.tsbuildinfo
+.tools/
+packaging/pdf-runtime/
+packaging/pdf-runtime-cache/
