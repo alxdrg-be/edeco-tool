@@ -6,11 +6,23 @@
 .tool-color-green { --tool: #399477; --tool-deep: #25775c; --tool-tint: #eaf6f0; }
 .tool-color-rose { --tool: #c26279; --tool-deep: #a3445d; --tool-tint: #fbeef2; }
 /* Nova uses the shared petrol theme, including its accessible dark variant. */
-:root[data-tool-color="blue"] { --accent: light-dark(#2864ba, #8db9ff); --accent-hover: light-dark(#1c4f98, #b8d3ff); --accent-soft: light-dark(#ecf2fc, #1b314e); }
-:root[data-tool-color="violet"] { --accent: light-dark(#7451b9, #c3a8f5); --accent-hover: light-dark(#573995, #ddcafa); --accent-soft: light-dark(#f2eefb, #302443); }
-:root[data-tool-color="orange"] { --accent: light-dark(#a75e10, #efb967); --accent-hover: light-dark(#844809, #f5ce94); --accent-soft: light-dark(#fff4e5, #3b2b17); }
-:root[data-tool-color="green"] { --accent: light-dark(#297a5f, #8bd4b7); --accent-hover: light-dark(#205e49, #b1e4cf); --accent-soft: light-dark(#eaf6f0, #19382c); }
-:root[data-tool-color="rose"] { --accent: light-dark(#ab435f, #efa8bd); --accent-hover: light-dark(#87314a, #f6c7d5); --accent-soft: light-dark(#fbeef2, #40232e); }
+html:root[data-tool-color="blue"] { --accent: light-dark(#2864ba, #8db9ff); --accent-hover: light-dark(#1c4f98, #b8d3ff); --accent-soft: light-dark(#ecf2fc, #1b314e); }
+html:root[data-tool-color="violet"] { --accent: light-dark(#7451b9, #c3a8f5); --accent-hover: light-dark(#573995, #ddcafa); --accent-soft: light-dark(#f2eefb, #302443); }
+html:root[data-tool-color="orange"] { --accent: light-dark(#a75e10, #efb967); --accent-hover: light-dark(#844809, #f5ce94); --accent-soft: light-dark(#fff4e5, #3b2b17); }
+html:root[data-tool-color="green"] { --accent: light-dark(#297a5f, #8bd4b7); --accent-hover: light-dark(#205e49, #b1e4cf); --accent-soft: light-dark(#eaf6f0, #19382c); }
+html:root[data-tool-color="rose"] { --accent: light-dark(#ab435f, #efa8bd); --accent-hover: light-dark(#87314a, #f6c7d5); --accent-soft: light-dark(#fbeef2, #40232e); }
+:root[data-tool-color] { --cta: var(--accent); --cta-hover: var(--accent-hover); --on-cta: var(--on-accent); }
+.tool-header { display: flex; align-items: center; flex-wrap: wrap; flex-shrink: 0; gap: 16px; min-height: 76px; padding: 12px 24px; background: var(--panel); border-bottom: 1px solid var(--line); box-shadow: inset 0 -3px var(--accent); }
+.tool-header-logo { display: block; width: 110px; flex-shrink: 0; color: var(--logo-ink); }
+.tool-header-logo svg { display: block; width: 100%; height: auto; }
+.tool-header-divider { height: 30px; border-left: 1px solid var(--line); }
+.tool-header-title { display: flex; align-items: center; gap: 9px; font-size: 14px; font-weight: 650; color: var(--accent); }
+.tool-header-mark { width: 8px; height: 8px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+.tool-header-actions { margin-left: auto; display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.app.app-in-toolbox { grid-template-rows: auto minmax(0, 1fr); }
+.app-in-toolbox > .tool-header { grid-column: 1 / -1; }
+.app-in-toolbox > .app-nav { padding-top: 20px; }
+@media (max-width: 740px) { .tool-header { padding: 10px 16px; gap: 10px; } .tool-header-logo { width: 92px; } .tool-header-title { flex: 1; min-width: 150px; } .tool-header-actions { width: 100%; justify-content: flex-end; } .tool-header-divider { display: none; } }
 .toolbox { height: 100%; overflow-y: auto; background: var(--bg); }
 .toolbox-header { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 20px clamp(24px, 5vw, 80px); background: var(--panel); border-bottom: 1px solid var(--line); }
 .toolbox-brand { display: flex; align-items: center; gap: 25px; font-size: 22px; font-weight: 550; letter-spacing: -.6px; }

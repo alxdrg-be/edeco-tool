@@ -1,5 +1,6 @@
 ## edeco Toolbox 0.5.0
 
+- Gemeinsame Werkzeugleiste mit genau einem edeco-Logo, Rückweg und Hell-/Dunkelmodus in allen Tools. Akzentfarben: NOVA Petrol, BIM Blau, Dokumenten-Assistent Violett und PDF-Werkstatt Rosé; eingebettete Arbeitsbereiche folgen dem gewählten Modus.
 - edeco PDF-Werkstatt vollständig lokal: Java 25, Windows-PDFium, qpdf und Tesseract inklusive Deutsch/Englisch in Setup und Portable-Paket enthalten.
 - Automatischer Start auf 127.0.0.1 mit zufälligem Port und Sitzungsschutz; Windows Job Objects beenden auch Kindprozesse beim Absturz oder erzwungenen Beenden.
 - Zusammenfügen, Trennen, Vorschau, Drehen, Zuschneiden, Skalieren, Komprimieren, Bild-/Text-Konvertierung und OCR werden mit dem tatsächlichen Windows-Paket geprüft.

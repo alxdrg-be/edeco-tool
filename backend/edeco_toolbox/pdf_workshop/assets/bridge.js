@@ -3,8 +3,16 @@
   let hasWork = false;
   window.edecoPDF = { hasWork: () => hasWork };
   try {
-    const mode = window.parent.document.documentElement.dataset.theme;
-    document.documentElement.dataset.edecoTheme = mode === "dark" || (mode !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches) ? "dark" : "light";
+    const parentRoot = window.parent.document.documentElement;
+    const syncTheme = () => {
+      const mode = parentRoot.dataset.theme;
+      const theme = mode === "dark" || (mode !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches) ? "dark" : "light";
+      document.documentElement.dataset.edecoTheme = theme;
+      document.documentElement.dataset.mantineColorScheme = theme;
+    };
+    syncTheme();
+    new MutationObserver(syncTheme).observe(parentRoot, { attributes: true, attributeFilter: ["data-theme"] });
+    window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", syncTheme);
   } catch { /* The complete integration uses the same-origin Toolbox proxy. */ }
   document.addEventListener("change", event => {
     if (event.target instanceof HTMLInputElement && event.target.type === "file" && event.target.files?.length) hasWork = true;

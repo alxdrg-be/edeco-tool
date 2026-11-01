@@ -10,6 +10,7 @@ import { NavigationProvider, useNavigation } from "./Navigation";
 import { Icon } from "./components/Icons";
 import Menu from "./components/Menu";
 import edecoLogo from "./assets/edeco-logo.svg?raw";
+import ToolHeader from "./toolbox/ToolHeader";
 import Minesweeper from "./components/Minesweeper";
 import UpdateDialog, { type UpdatePhase } from "./components/UpdateDialog";
 
@@ -53,6 +54,11 @@ function AppContent({ onHome }: NovaToolProps) {
     applyTheme(mode);
     setThemeState(mode);
     api.saveTheme(mode).catch(() => undefined); // localStorage is empty after a restart of the window
+  }, []);
+  useEffect(() => {
+    const sync = () => setThemeState(loadTheme());
+    window.addEventListener("edeco-theme-change", sync);
+    return () => window.removeEventListener("edeco-theme-change", sync);
   }, []);
 
   const notify = useCallback((text: string, error = false) => {
@@ -153,10 +159,10 @@ function AppContent({ onHome }: NovaToolProps) {
   }, [navigate]);
 
   return (
-    <div className="app" inert={pending}>
+    <div className={`app${onHome ? " app-in-toolbox" : ""}`} inert={pending}>
+      {onHome && <ToolHeader title="NOVA-Legenden" onHome={() => navigate(onHome)} onLogoClick={secret} />}
       <aside className="app-nav" aria-label="Programmnavigation">
-        {onHome && <button type="button" className="btn toolbox-back" onClick={() => navigate(onHome)}>← Zur Toolbox</button>}
-        <div className="brand">
+        {!onHome && <div className="brand">
           <div
             className="brand-logo"
             role="img"
@@ -165,7 +171,7 @@ function AppContent({ onHome }: NovaToolProps) {
             dangerouslySetInnerHTML={{ __html: edecoLogo.replace(/<\?xml[^?]*\?>/, "") }}
           />
           <div className="brand-name">NOVA<span>Legenden</span></div>
-        </div>
+        </div>}
         <div className="nav-label">Arbeitsbereich</div>
         <nav className="tabs" aria-label="Hauptnavigation">
           {NAVIGATION.map((item) => (
@@ -220,14 +226,14 @@ function AppContent({ onHome }: NovaToolProps) {
                   <button className="btn small" onClick={() => navigate(() => setTab("settings"))}>Einstellungen öffnen</button>
                 </Menu>
               </div>
-              <button
+              {!onHome && <button
                 className="chip theme-btn"
                 onClick={() => setTheme(effectiveDark(theme) ? "light" : "dark")}
                 title={effectiveDark(theme) ? "Zum hellen Modus wechseln" : "Zum dunklen Modus wechseln"}
                 aria-label={effectiveDark(theme) ? "Heller Modus" : "Dunkler Modus"}
               >
                 <Icon name={effectiveDark(theme) ? "sun" : "moon"} size={16} />
-              </button>
+              </button>}
               {update?.available && (
                 <button
                   className="chip update"

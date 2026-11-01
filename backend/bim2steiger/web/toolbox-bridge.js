@@ -1,6 +1,16 @@
 'use strict';
 // Same-origin bridge to the common launcher. The original standalone UI keeps working.
 if (document.documentElement.dataset.toolbox === 'true') {
+  const parentRoot = window.parent.document.documentElement;
+  const syncTheme = () => {
+    const mode = parentRoot.dataset.theme;
+    state.theme = mode === 'dark' || (mode !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+    applyTheme();
+    savePreferences();
+  };
+  syncTheme();
+  new MutationObserver(syncTheme).observe(parentRoot, { attributes: true, attributeFilter: ['data-theme'] });
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', syncTheme);
   window.edecoToolbox = {
     async prepareLeave() {
       if (document.querySelector('dialog[open]')) {

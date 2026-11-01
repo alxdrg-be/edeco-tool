@@ -30,7 +30,9 @@ def test_packaged_workshop_preview_merge_branding_and_licenses():
         frame = page.frame_locator("iframe[title='Stirling-PDF · edeco PDF-Werkstatt']")
         picker = frame.locator('input[type=file]').first
         picker.wait_for(state='attached', timeout=60000)
-        expect(frame.locator('.sui-logo').first).to_have_css('background-image', __import__('re').compile('edeco/logo.svg'))
+        expect(page.get_by_role('img', name='edeco ag', exact=True)).to_have_count(1)
+        expect(frame.locator('.sui-logo').first).to_be_hidden()
+        expect(frame.locator('.sui-brandmark').first).to_be_hidden()
         expect(frame.get_by_text('PDF mit Zeitstempel', exact=True)).to_have_count(0)
         picker.set_input_files([
             {'name': 'Plan-A.pdf', 'mimeType': 'application/pdf', 'buffer': sample_pdf([['FIRST PLAN']])},

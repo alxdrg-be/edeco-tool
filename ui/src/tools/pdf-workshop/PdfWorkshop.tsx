@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import edecoLogo from "../../assets/edeco-logo.svg?raw";
+import ToolHeader from "../../toolbox/ToolHeader";
 import type { ToolProps } from "../../toolbox/modules";
 import { useDialogFocus } from "../../useDialogFocus";
 import "./pdf-workshop.css";
@@ -111,15 +111,12 @@ export default function PdfWorkshop({ onHome }: ToolProps) {
   }
 
   return <div className="pdf-workshop">
-    <header className="bim-toolbox-header">
-      <span className="bim-toolbox-logo" role="img" aria-label="edeco ag" dangerouslySetInnerHTML={{ __html: edecoLogo.replace(/<\?xml[^?]*\?>/, "") }} />
-      <button className="btn" onClick={goHome} disabled={busy === "workflow"}>← Zur Toolbox</button>
-      <span className="pdf-workshop-title">{state?.title || "edeco PDF-Werkstatt"}</span>
+    <ToolHeader title="edeco PDF-Werkstatt" onHome={goHome} disabled={busy === "workflow"}>
       {health?.ready && <span className="pdf-service-badge">{state?.local ? "Offline bereit · auf diesem Computer" : `Stirling-PDF ${health.version} · interner Dienst`}</span>}
       {Boolean(state?.workflows.length) && <button className="btn" onClick={() => setWorkflows(!workflows)}>Firmenabläufe</button>}
       {!state?.local && <button className="btn" onClick={() => setSettings(!settings)}>Verbindung</button>}
       <button className="btn" onClick={() => setInfo(!info)}>Info / Lizenzen</button>
-    </header>
+    </ToolHeader>
     {state?.local && !health?.ready && <section className="pdf-connection" aria-label="Lokaler PDF-Dienst"><h1>edeco PDF-Werkstatt</h1><p role="status">{health?.message || "Der lokale PDF-Dienst wird gestartet. Beim ersten Start kann dies etwas dauern."}</p><button className="btn" disabled={Boolean(busy)} onClick={() => void check(false)}>Status prüfen</button>{error && <p role="alert">{error}</p>}</section>}
     {info && <section className="pdf-connection"><button className="btn" onClick={() => setInfo(false)}>Info schliessen</button><iframe className="pdf-stirling-frame" title="Info / Lizenzen" src={API + "/licenses"} /></section>}
     {!state?.local && (settings || !health?.ready) && <section className="pdf-connection" aria-label="PDF-Verbindung">
