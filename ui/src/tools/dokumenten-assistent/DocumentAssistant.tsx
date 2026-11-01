@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import edecoLogo from "../../assets/edeco-logo.svg?raw";
+import ToolHeader from "../../toolbox/ToolHeader";
 import type { ToolProps } from "../../toolbox/modules";
 import { request, sourceLabel, ROOT, type Answer, type DocumentInfo, type DocumentPage, type LibraryState, type Source } from "./api";
 import Settings from "./Settings";
@@ -121,13 +121,9 @@ export default function DocumentAssistant({ onHome }: ToolProps) {
   const highlighted = (number: number) => Boolean(source && page && source.document_id === page.document.id && source.page === page.number && number >= source.start_line && number <= source.end_line);
 
   return <div className="document-assistant">
-    <header className="bim-toolbox-header">
-      <span className="bim-toolbox-logo" role="img" aria-label="edeco ag"
-        dangerouslySetInnerHTML={{ __html: edecoLogo.replace(/<\?xml[^?]*\?>/, "") }} />
-      <button className="btn" disabled={busy === "upload" || busy === "delete"} onClick={onHome}>← Zur Toolbox</button>
-      <span className="bim-toolbox-label">Dokumenten-Assistent · Work in progress</span>
+    <ToolHeader title="Dokumenten-Assistent" onHome={onHome} disabled={busy === "upload" || busy === "delete"}>
       <button className="btn" disabled={!library || Boolean(busy)} onClick={() => setSettingsOpen(true)}>KI-Verbindung</button>
-    </header>
+    </ToolHeader>
     <div className="doc-workspace">
       <aside className="doc-library" aria-label="Dokumentbibliothek">
         <div className="doc-section-title"><h1>Deine Dokumente</h1><span>{documents.length}</span></div>

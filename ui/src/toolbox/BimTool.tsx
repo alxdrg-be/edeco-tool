@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { applyTheme, effectiveDark, loadTheme } from "../theme";
-import edecoLogo from "../assets/edeco-logo.svg?raw";
+import ToolHeader from "./ToolHeader";
 import type { ToolProps } from "./modules";
 import { api } from "../api";
 
@@ -41,13 +41,9 @@ export default function BimTool({ onHome }: ToolProps) {
   }
 
   return <div className="bim-workspace">
-    <header className="bim-toolbox-header">
-      <span className="bim-toolbox-logo" role="img" aria-label="edeco ag"
-        dangerouslySetInnerHTML={{ __html: edecoLogo.replace(/<\?xml[^?]*\?>/, "") }} />
-      <button type="button" className="btn" disabled={busy} onClick={leave}>← Zur Toolbox</button>
-      <span className="bim-toolbox-label">BIM2STEIGER</span>
+    <ToolHeader title="BIM2STEIGER" onHome={() => void leave()} disabled={busy}>
       {error && <span role="alert">{error}</span>}
-    </header>
+    </ToolHeader>
     <iframe ref={frame} title="BIM2STEIGER" className="bim-frame"
       src={`/tools/bim2steiger/bim2steiger.html?toolbox=1&theme=${theme}`} />
   </div>;

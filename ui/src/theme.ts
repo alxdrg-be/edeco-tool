@@ -21,6 +21,7 @@ export function applyTheme(mode: ThemeMode): void {
   } catch {
     /* private window: mode lasts for this session */
   }
+  window.dispatchEvent(new Event("edeco-theme-change"));
 }
 
 export function effectiveDark(mode: ThemeMode): boolean {

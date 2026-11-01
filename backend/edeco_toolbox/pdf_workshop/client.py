@@ -32,14 +32,16 @@ class Crop:
 
 
 class StirlingClient:
-    def __init__(self, url: str, api_key: str = "", *, transport=None):
+    def __init__(self, url: str, api_key: str = "", *, transport=None, engine_secret=""):
         self.url = service_url(url) + ROOT
         self.headers = {"X-API-KEY": api_key} if api_key else {}
+        if engine_secret:
+            self.headers['X-Edeco-Engine'] = engine_secret
         self.transport = transport
 
     def health(self):
         try:
-            with httpx.Client(timeout=5, headers=self.headers, transport=self.transport, follow_redirects=False) as client:
+            with httpx.Client(timeout=5, headers=self.headers, transport=self.transport, follow_redirects=False, trust_env=False) as client:
                 response = client.get(self.url + "/api/v1/info/status")
             response.raise_for_status()
             data = response.json()
@@ -55,7 +57,7 @@ class StirlingClient:
         uploads = [("fileInput", (Path(file.name.replace("\\", "/")).name, file.data, "application/pdf")) for file in files]
         try:
             with httpx.Client(timeout=httpx.Timeout(300, connect=10), headers=self.headers,
-                              transport=self.transport, follow_redirects=False) as client:
+                              transport=self.transport, follow_redirects=False, trust_env=False) as client:
                 response = client.post(self.url + "/api/v1/" + endpoint, files=uploads, data=fields)
             response.raise_for_status()
         except httpx.HTTPError:

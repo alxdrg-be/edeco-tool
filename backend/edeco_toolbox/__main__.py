@@ -3,6 +3,7 @@
 import argparse
 import json
 import logging
+import os
 import sys
 import threading
 import time
@@ -10,13 +11,27 @@ import webbrowser
 from pathlib import Path
 
 import uvicorn
+import httpx
 
 from nova_legend import config, dialogs
-from nova_legend.__main__ import free_port, wait_until_up
+from nova_legend.__main__ import free_port
 
 from . import APP_NAME, version_label
 from .app import create_app
 from .paths import local_home
+
+
+def wait_until_up(url: str, timeout: float = 60.0) -> bool:
+    deadline = time.monotonic() + timeout
+    with httpx.Client(trust_env=False, timeout=2) as client:
+        while time.monotonic() < deadline:
+            try:
+                if client.get(url + '/api/toolbox/status').status_code == 200:
+                    return True
+            except httpx.HTTPError:
+                pass
+            time.sleep(.3)
+    return False
 
 
 def desktop_profile(home: Path) -> Path:
@@ -53,8 +68,20 @@ def probe_desktop(window, home: Path):
             time.sleep(.25)
         if not report["ok"]:
             report["error"] = "Das native Fenster hat die Toolbox nicht gerendert."
+        elif getattr(sys, 'frozen', False):
+            report['ok'] = False
+            window.evaluate_js("document.querySelector('button[aria-label=\"PDF-Werkstatt öffnen\"]').click()")
+            deadline = time.monotonic() + 160
+            while time.monotonic() < deadline:
+                if window.evaluate_js("Boolean(document.querySelector('.pdf-stirling-frame')?.contentDocument?.querySelector('input[type=file]'))"):
+                    report.update(ok=True, pdf_ready=True)
+                    break
+                time.sleep(.5)
+            if not report['ok']:
+                report['error'] = 'Die lokale PDF-Werkstatt wurde im nativen Fenster nicht bereit.'
     except Exception:
         logging.exception("Native desktop smoke test failed")
+        report['ok'] = False
         report["error"] = "Fehler beim Rendern im nativen Fenster."
     finally:
         (home / "desktop-smoke.json").write_text(json.dumps(report), encoding="utf-8")
@@ -99,6 +126,10 @@ def main(argv=None):
             logging.warning("pywebview fehlt; öffne Browser")
         else:
             webview.settings["ALLOW_DOWNLOADS"] = True
+            if getattr(sys, 'frozen', False):
+                from .pdf_workshop.runtime import runtime_root
+                webview.settings['WEBVIEW2_RUNTIME_PATH'] = str(runtime_root() / 'webview2')
+                os.environ['WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS'] = '--disable-background-networking --disable-component-update --disable-domain-reliability --no-pings'
             webview.settings["OPEN_EXTERNAL_LINKS_IN_BROWSER"] = True
             icon = config.resource_dir() / "packaging" / "toolbox.ico"
             window = webview.create_window(f"{APP_NAME} {version_label()}", url,

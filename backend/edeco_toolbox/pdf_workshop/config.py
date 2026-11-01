@@ -25,6 +25,7 @@ def service_url(value: str) -> str:
 
 class Configuration:
     def __init__(self):
+        self.runtime = None
         self.path = local_home() / "pdf-workshop" / "settings.json"
         self.path.parent.mkdir(parents=True, exist_ok=True)
         company_path = os.environ.get("EDECO_PDF_COMPANY_CONFIG")
@@ -42,10 +43,12 @@ class Configuration:
 
     @property
     def managed(self):
-        return bool(os.environ.get("EDECO_STIRLING_URL") or self.company.get("service_url"))
+        return bool(self.runtime or os.environ.get("EDECO_STIRLING_URL") or self.company.get("service_url"))
 
     @property
     def url(self):
+        if self.runtime:
+            return self.runtime.url or 'http://127.0.0.1:1'
         return service_url(os.environ.get("EDECO_STIRLING_URL") or self.company.get("service_url")
                            or self.personal.get("service_url") or "http://127.0.0.1:8088")
 
@@ -62,7 +65,7 @@ class Configuration:
         accent = self.company.get("accent", "#c26279")
         if not isinstance(accent, str) or not re.fullmatch(r"#[0-9a-fA-F]{6}", accent):
             accent = "#c26279"
-        return {"service_url": self.url, "managed": self.managed,
-                "title": str(self.company.get("title", "edeco PDF-Werkstatt"))[:100], "accent": accent,
+        return {"service_url": self.url, "managed": self.managed, "local": bool(self.runtime),
+                "title": "edeco PDF-Werkstatt", "accent": accent,
                 "workflows": [{"id": item["id"], "title": item.get("title", item["id"])}
                               for item in self.company.get("workflows", []) if isinstance(item, dict) and "id" in item]}

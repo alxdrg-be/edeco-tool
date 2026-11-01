@@ -1,6 +1,6 @@
 /* Shared edeco typography, surfaces and control geometry; BIM uses a blue accent. */
 html[data-toolbox=true][data-theme] {
-  --brand: #3877d4; --brand-soft: #ecf2fc; --ink: #203039; --muted: #64757f;
+  --brand: #2864ba; --brand-soft: #ecf2fc; --ink: #203039; --muted: #64757f;
   --line: #e1e8ec; --surface: #fff; --canvas: #f4f7f8;
   font-family: "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
 }
@@ -11,7 +11,17 @@ html[data-toolbox=true][data-theme=dark] {
 }
 html[data-toolbox=true] body { font-family: inherit; background: var(--canvas); }
 html[data-toolbox=true] .header { background: var(--surface); box-shadow: none; }
-html[data-toolbox=true] .brand-mark { display: none; }
+html[data-toolbox=true] .brand-group,
+html[data-toolbox=true] #themeToggle { display: none; }
 html[data-toolbox=true] :is(.button,.search-trigger,input,select,textarea) { border-radius: 8px; }
 html[data-toolbox=true] :is(.position-card,.home-card,.chapter-card,dialog) { border-radius: 14px; }
 html[data-toolbox=true] .brand-word { font-weight: 650; }
+html[data-toolbox=true] .catalogue { background: var(--surface); color: var(--muted); border-right: 1px solid var(--line); }
+html[data-toolbox=true] :is(.catalogue-top,.catalogue-footer) { border-color: var(--line); }
+html[data-toolbox=true] :is(.catalogue-top strong,.catalogue-footer strong,.tree-section summary,.tree-button>span:last-child,.catalogue-overview) { color: var(--ink); }
+html[data-toolbox=true] :is(.workspace,.tree-label,.tree-subtitle,.tree-keys,.catalogue-footer,.tree-button small,.section-count,.catalogue-year) { color: var(--muted); }
+html[data-toolbox=true] :is(.catalogue-overview,.tree-button):hover { background: var(--brand-soft); color: var(--brand); }
+html[data-toolbox=true] :is(.catalogue-overview[aria-current=page],.tree-button.selected) { background: var(--brand-soft); color: var(--brand); border-color: transparent; box-shadow: inset 3px 0 var(--brand); }
+html[data-toolbox=true] :is(.tree-button.selected>span:last-child,.tree-button.selected small,.catalogue-overview .icon) { color: var(--brand); }
+html[data-toolbox=true] .catalogue-switch select { background: var(--surface); color: var(--ink); border-color: var(--line); }
+html[data-toolbox=true] .tree-collapse { background: var(--surface); color: var(--muted); border-color: var(--line); }

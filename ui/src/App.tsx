@@ -10,6 +10,7 @@ import { NavigationProvider, useNavigation } from "./Navigation";
 import { Icon } from "./components/Icons";
 import Menu from "./components/Menu";
 import edecoLogo from "./assets/edeco-logo.svg?raw";
+import ToolHeader from "./toolbox/ToolHeader";
 import Minesweeper from "./components/Minesweeper";
 import UpdateDialog, { type UpdatePhase } from "./components/UpdateDialog";
 
@@ -53,6 +54,11 @@ function AppContent({ onHome }: NovaToolProps) {
     applyTheme(mode);
     setThemeState(mode);
     api.saveTheme(mode).catch(() => undefined); // localStorage is empty after a restart of the window
+  }, []);
+  useEffect(() => {
+    const sync = () => setThemeState(loadTheme());
+    window.addEventListener("edeco-theme-change", sync);
+    return () => window.removeEventListener("edeco-theme-change", sync);
   }, []);
 
   const notify = useCallback((text: string, error = false) => {
@@ -152,11 +158,47 @@ function AppContent({ onHome }: NovaToolProps) {
     return () => window.removeEventListener("nl:open-settings", open);
   }, [navigate]);
 
+  const headerActions = status && (
+            <div className="top-chips">
+              <div className={`data-status ${dataWarning ? "warn" : ""}`}>
+                <Menu label={noDatasets ? "Datensätze fehlen" : dataWarning ? "Firmenordner prüfen" : "Datenstatus"}>
+                  <dl className="status-details">
+                    <dt>Symbolbibliothek</dt>
+                    <dd>{status.datasets.length} Datensätze · {status.symbol_count.toLocaleString("de-CH")} Symbole</dd>
+                    <dt>Firmenordner</dt>
+                    <dd className={status.company_error ? "warn-text" : ""}>{status.company_error || status.settings.company_folder || "Nicht eingerichtet"}</dd>
+                    <dt>Nova-Version für neue Projekte</dt>
+                    <dd>{status.settings.nova_version}</dd>
+                  </dl>
+                  <button className="btn small" onClick={() => navigate(() => setTab("settings"))}>Einstellungen öffnen</button>
+                </Menu>
+              </div>
+              {!onHome && <button
+                className="chip theme-btn"
+                onClick={() => setTheme(effectiveDark(theme) ? "light" : "dark")}
+                title={effectiveDark(theme) ? "Zum hellen Modus wechseln" : "Zum dunklen Modus wechseln"}
+                aria-label={effectiveDark(theme) ? "Heller Modus" : "Dunkler Modus"}
+              >
+                <Icon name={effectiveDark(theme) ? "sun" : "moon"} size={16} />
+              </button>}
+              {update?.available && (
+                <button
+                  className="chip update"
+                  disabled={installing}
+                  onClick={showUpdate}
+                  title="Update ansehen"
+                >
+                  {installing ? "Update läuft …" : `Update ${update.latest} verfügbar`}
+                </button>
+              )}
+            </div>
+          );
+
   return (
-    <div className="app" inert={pending}>
+    <div className={`app${onHome ? " app-in-toolbox" : ""}`} inert={pending}>
+      {onHome && <ToolHeader title="NOVA-Legenden" onHome={() => navigate(onHome)} onLogoClick={secret}>{headerActions}</ToolHeader>}
       <aside className="app-nav" aria-label="Programmnavigation">
-        {onHome && <button type="button" className="btn toolbox-back" onClick={() => navigate(onHome)}>← Zur Toolbox</button>}
-        <div className="brand">
+        {!onHome && <div className="brand">
           <div
             className="brand-logo"
             role="img"
@@ -165,7 +207,7 @@ function AppContent({ onHome }: NovaToolProps) {
             dangerouslySetInnerHTML={{ __html: edecoLogo.replace(/<\?xml[^?]*\?>/, "") }}
           />
           <div className="brand-name">NOVA<span>Legenden</span></div>
-        </div>
+        </div>}
         <div className="nav-label">Arbeitsbereich</div>
         <nav className="tabs" aria-label="Hauptnavigation">
           {NAVIGATION.map((item) => (
@@ -202,45 +244,11 @@ function AppContent({ onHome }: NovaToolProps) {
         </div>
       </aside>
       <div className="app-workspace">
-        <header className="topbar">
+        {!onHome && <header className="topbar">
           <div className="workspace-context"><span>{current.label}</span><span>{current.description}</span></div>
           <span className="powered topbar-powered">Powered by Trimble Nova</span>
-          {status && (
-            <div className="top-chips">
-              <div className={`data-status ${dataWarning ? "warn" : ""}`}>
-                <Menu label={noDatasets ? "Datensätze fehlen" : dataWarning ? "Firmenordner prüfen" : "Datenstatus"}>
-                  <dl className="status-details">
-                    <dt>Symbolbibliothek</dt>
-                    <dd>{status.datasets.length} Datensätze · {status.symbol_count.toLocaleString("de-CH")} Symbole</dd>
-                    <dt>Firmenordner</dt>
-                    <dd className={status.company_error ? "warn-text" : ""}>{status.company_error || status.settings.company_folder || "Nicht eingerichtet"}</dd>
-                    <dt>Nova-Version für neue Projekte</dt>
-                    <dd>{status.settings.nova_version}</dd>
-                  </dl>
-                  <button className="btn small" onClick={() => navigate(() => setTab("settings"))}>Einstellungen öffnen</button>
-                </Menu>
-              </div>
-              <button
-                className="chip theme-btn"
-                onClick={() => setTheme(effectiveDark(theme) ? "light" : "dark")}
-                title={effectiveDark(theme) ? "Zum hellen Modus wechseln" : "Zum dunklen Modus wechseln"}
-                aria-label={effectiveDark(theme) ? "Heller Modus" : "Dunkler Modus"}
-              >
-                <Icon name={effectiveDark(theme) ? "sun" : "moon"} size={16} />
-              </button>
-              {update?.available && (
-                <button
-                  className="chip update"
-                  disabled={installing}
-                  onClick={showUpdate}
-                  title="Update ansehen"
-                >
-                  {installing ? "Update läuft …" : `Update ${update.latest} verfügbar`}
-                </button>
-              )}
-            </div>
-          )}
-        </header>
+          {headerActions}
+        </header>}
         <div className="main">
           {tab === "projects" && status && (
             <ProjectsPage categories={categories} novaVersion={status.settings.nova_version} notify={notify} onOpenSettings={() => navigate(() => setTab("settings"))} />

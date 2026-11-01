@@ -1,11 +1,14 @@
 # PyInstaller build description. Run from the project root:
 #   pyinstaller packaging/edeco_toolbox.spec --noconfirm
 from pathlib import Path
-from shutil import copyfile
+from shutil import copyfile, copytree, rmtree
 
 from PyInstaller.utils.hooks import collect_data_files, collect_dynamic_libs, collect_submodules, copy_metadata
 
 root = Path(SPECPATH).parent
+pdf_runtime = root / 'packaging' / 'pdf-runtime'
+if not (pdf_runtime / 'manifest.json').is_file():
+    raise RuntimeError('Prepare the locked offline PDF runtime before building the Toolbox')
 
 a = Analysis(
     [str(root / "packaging" / "toolbox_launcher.py")],
@@ -38,6 +41,13 @@ exe = EXE(
     version=None,
 )
 coll = COLLECT(exe, a.binaries, a.datas, name="edeco-Toolbox")
+runtime_destination = Path(DISTPATH) / 'edeco-Toolbox' / '_internal' / 'pdf-runtime'
+if runtime_destination.exists():
+    if not runtime_destination.resolve().is_relative_to(Path(DISTPATH).resolve()):
+        raise RuntimeError('Runtime output must stay inside the build directory')
+    rmtree(runtime_destination)
+copytree(pdf_runtime, runtime_destination)
+copyfile(root / 'packaging' / 'PORTABLE_README.txt', Path(DISTPATH) / 'edeco-Toolbox' / 'LIESMICH.txt')
 
 # CLR reads the process configuration next to the EXE, not inside _internal.
 copyfile(root / "packaging" / "edeco-Toolbox.exe.config",

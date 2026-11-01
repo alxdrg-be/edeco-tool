@@ -49,12 +49,9 @@ html[data-edeco-theme="dark"] {
   --c-text-muted: #a3b5bf !important;
   --c-primary: #efa8bd !important;
   --c-accent-text: #efa8bd !important;
+  --file-active-badge-fg: #7dcda1 !important;
 }
-.sui-logo {
-  min-width: 135px;
-  min-height: 48px;
-  background: url("/tools/pdf-werkstatt/edeco/logo.svg") center / contain no-repeat;
-}
-.sui-logo--vertical { min-width: 230px; min-height: 115px; }
-.sui-logo > * { visibility: hidden; }
-html[data-edeco-theme="dark"] .sui-logo { background-image: url("/tools/pdf-werkstatt/edeco/logo.svg?theme=dark"); }
+/* The common Toolbox header owns the single company logo. Attribution stays
+   available through Info / Lizenzen rather than repeated workspace branding. */
+.sui-logo, .sui-brandmark { display: none !important; }
+.file-sidebar-header { display: none !important; }

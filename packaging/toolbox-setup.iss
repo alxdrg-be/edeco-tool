@@ -1,6 +1,6 @@
 ﻿; Inno Setup script for edeco-Toolbox. Build: iscc /DAppVersion=0.4.0 packaging\toolbox-setup.iss
 #ifndef AppVersion
-  #define AppVersion "0.4.0"
+  #define AppVersion "0.5.0"
 #endif
 
 [Setup]
@@ -17,11 +17,14 @@ OutputDir=..\dist-installer
 OutputBaseFilename=edeco-Toolbox-Setup-{#AppVersion}
 SetupIconFile=toolbox.ico
 UninstallDisplayIcon={app}\edeco-Toolbox.exe
-Compression=lzma2
+Compression=lzma2/fast
+LZMANumBlockThreads=2
+LZMADictionarySize=32768
 SolidCompression=yes
+DiskSpanning=no
 WizardStyle=modern
-WizardImageFile=toolbox-wizard-image.png,toolbox-wizard-image-2x.png
-WizardSmallImageFile=toolbox-wizard-small.png
+WizardImageFile=toolbox-wizard-image.bmp,toolbox-wizard-image-2x.bmp
+WizardSmallImageFile=toolbox-wizard-small.bmp
 WizardImageBackColor=$00927C01
 WizardSmallImageBackColor=$00FFFFFF
 CloseApplications=yes
@@ -58,6 +61,9 @@ Name: "desktopicon"; Description: "Symbol auf dem Desktop anlegen"; GroupDescrip
 
 [Files]
 Source: "..\dist\edeco-Toolbox\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+
+[InstallDelete]
+Type: filesandordirs; Name: "{app}\_internal\pdf-runtime"
 
 [Icons]
 Name: "{group}\edeco-Toolbox"; Filename: "{app}\edeco-Toolbox.exe"; IconFilename: "{app}\_internal\packaging\toolbox.ico"

@@ -4,7 +4,6 @@
 - Ladegrids mit reaktivem Schema: Hausanschluss, Unterverteiler, gerade Sammelschiene, Ladepunkte und Fahrzeuge. Cyan zeigt eingehaltene Leistungsbudgets, Gelb begrenzte Zuteilung, Rot die Überschreitung am jeweiligen Abschnitt. Die Kabel-/Schutzauslegung bleibt ungeprüft.
 - Gemeinsame Serverablage: Ordner einrichten, Rechenstände nach Berechnung und Projekt speichern, Notizen ergänzen und Eingaben neu berechnen. PDF-/JSON-Exporte können zusätzlich importiert werden. Kein SQLite auf dem Netzlaufwerk.
 
-
 - Rechner-Prototyp im edeco Rahmen: 65/35-Ansicht, synchronisierte Slider und Zahlenfelder, Tech-Dunkel-/Hellmodus, Lucide-Symbole und Info-Drawer für Formeln, Schweizer Quellen und Grenzen. Tailwind ohne globale Rücksetzung und mit eigenem Präfix.
 - Blitzschutz: interaktives Gebäude mit verschiebbarem Dachobjekt, schematischer Abstandszone und Warnfarben; Schweizer SN-414022-Verfahren bleibt erhalten.
 - Kabel-Spannungsfall: Schweizer Referenzmodell bei 55 °C, Wechsel-/Drehstrom, Cu/Al, Spannungsverlauf und Querschnitt allein nach Spannungsfall. Reaktanz als Richtwert markiert; Strombelastbarkeit und Schutzmassnahmen nicht geprüft. Nur Schweizer fachliche Quellen.
@@ -16,6 +15,16 @@
 - Dateien umbenennen: Grundgerüst mit Projektnummer und einzeln wählbaren, sortierbaren Namensbausteinen nach dem Beispiel `1498_E-G-APP-OG02-C-50.pdf`. Datum standardmässig aus.
 - Geschosse aus Dateinamen und PDF-Text erkennen (z. B. `2og` → `OG02`), widersprüchliche Angaben manuell klären; Namen in der Vorschau korrigieren und Konflikte vor dem Export beheben.
 - Vorläufige Kürzelauswahl mit eigener Eingabe; Firmenliste folgt. Namensvorlage lokal speichern und benannte PDF-Kopien als ZIP herunterladen. Originale bleiben unverändert.
+
+## edeco Toolbox 0.5.0
+
+- Gemeinsame Werkzeugleiste mit genau einem edeco-Logo, Rückweg und Hell-/Dunkelmodus in allen Tools. Akzentfarben: NOVA Petrol, BIM Blau, Dokumenten-Assistent Violett und PDF-Werkstatt Rosé; eingebettete Arbeitsbereiche folgen dem gewählten Modus.
+- edeco PDF-Werkstatt vollständig lokal: Java 25, Windows-PDFium, qpdf und Tesseract inklusive Deutsch/Englisch in Setup und Portable-Paket enthalten.
+- Automatischer Start auf 127.0.0.1 mit zufälligem Port und Sitzungsschutz; Windows Job Objects beenden auch Kindprozesse beim Absturz oder erzwungenen Beenden.
+- Zusammenfügen, Trennen, Vorschau, Drehen, Zuschneiden, Skalieren, Komprimieren, Bild-/Text-Konvertierung und OCR werden mit dem tatsächlichen Windows-Paket geprüft.
+- Offline-Oberfläche mit edeco-Logo; Originalhinweise, Lizenztexte und Quellcode-Beigaben unter Info / Lizenzen.
+- Kein PDF-Firmenserver, Internet, VPN, Docker oder separates Java nötig. Office-/Webseiten-/Video-/KI-Konvertierung und OCRmyPDF-Zusatzoptionen gehören nicht zu dieser Ausgabe.
+- Grössere Pakete: Updateprüfung unterstützt Setups bis 1900 MiB, streamt die Prüfsummenprüfung und prüft freien Speicher. Mindestens 6 GB freien Speicher vorsehen.
 
 ## edeco Toolbox 0.4.0
 
