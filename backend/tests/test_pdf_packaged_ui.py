@@ -45,6 +45,8 @@ def test_packaged_workshop_preview_merge_branding_and_licenses():
                     expect(bim.locator('.brand-group')).to_be_hidden()
             if title == 'BIM2STEIGER':
                 expect(bim.locator('#homeView')).to_be_visible()
+                bim_frame = next(child for child in page.frames if '/tools/bim2steiger/' in child.url)
+                bim_frame.wait_for_function('window.edecoToolbox && pendingToolRequests === 0')
             page.get_by_role('button', name='← Zur Toolbox', exact=True).click()
             expect(page.get_by_role('button', name=title + ' öffnen', exact=True)).to_be_visible()
         page.get_by_role('button', name='PDF-Werkstatt öffnen', exact=True).click()
