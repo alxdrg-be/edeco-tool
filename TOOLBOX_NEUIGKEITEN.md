@@ -2,6 +2,7 @@
 
 - Neuer Name und neues Hub-Logo. Gemeinsame Kopfzeile, Schrift und Farbgrundlagen in allen Werkzeugen; „EDECO Engineering“ entfernt.
 - Sichtbarer Button „Zum Toolhub“ und direkter Werkzeug-/Rechnerwechsel mit Suche. Bestehende Speicher- und Rückfragedialoge bleiben wirksam.
+- Eigene Bezeichnungen und Bearbeiternamen beim Speichern bleiben auch bei einer langsamen Antwort der gemeinsamen Ablage erhalten.
 - Projektauswahl und Kopfzeilenbuttons gleich hoch; Suche und Kategorien zusammengefasst. Acht verfügbare Hauptwerkzeuge haben eigene Akzentfarben.
 - NIN-Kabelvorprüfung mit Einadrig-/Mehradrig-Führung und verständlichen Verlegearten. Selektivitätskette mit wählbarer Spannungstoleranz und gekennzeichneten Altständen.
 - Eigene kW-Werte direkt in Ladegrids, Power Units und Abgabepunkten eingebbar. Kostenplaner auf 64 Positionen erweitert; die 60 Ausbaukohorten der Referenz passen hinein.

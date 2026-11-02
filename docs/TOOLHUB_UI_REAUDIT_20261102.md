@@ -12,6 +12,9 @@ Stand: 2. November 2026. Ausgangsbasis: Build 20 / `dc476e65`.
 - Der Wechsel verwendet die bestehenden Verlassensprüfungen der jeweiligen
   Werkzeuge. Ein offener BIM-Dialog, ungespeicherte NOVA-/Projektdaten und
   geöffnete PDF-Dateien werden weiterhin berücksichtigt.
+- Im Ablage-Speicherdialog überschreibt das nachgeladene Standardprofil keine
+  bereits bearbeiteten Bezeichnungen oder Bearbeiternamen. Auch ausdrücklich
+  geleerte Felder behalten ihren Wert und ihre Pflichtfeldprüfung.
 - Gemeinsamer Modus und lokal geladene Inter-Schrift. Die frühere separate
   Rechnerpalette ist an die gemeinsamen Farbwerte gebunden.
 - Acht unterscheidbare Akzentfarben der verfügbaren Hauptwerkzeuge; identische
