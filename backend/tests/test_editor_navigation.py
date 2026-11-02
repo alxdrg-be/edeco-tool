@@ -892,13 +892,24 @@ def test_common_updater_checks_and_requires_confirmation_before_install(editor):
              "can_install": False, "packaged": True, "automatic": False,
              "release_url": "https://github.com/alxdrg-be/edeco-tool/releases", "session_key": "test-session"}
     actions = []
+    notes = """## Version 0.2.0 Build 5
+- Neue Rechnerauswahl
+- Verbesserte Grafiken
+- Wissens-Hub ergänzt
+- Fehlerkorrekturen
+- Ruhigere Schrift
+- Weitere Eingaben ergänzt
+
+## Frühere Version
+- Veraltete Änderung
+"""
     page.route("**/api/toolbox/updates", lambda route: route.fulfill(json=state))
     def action(route):
         assert route.request.headers.get("x-edeco-update") == "test-session"
         kind = route.request.url.rsplit("/", 1)[1]
         actions.append(kind)
         if kind == "check":
-            route.fulfill(json={**state, "status": "available", "latest": "v0.2.0-build.5", "can_install": True, "message": "Ein Toolbox-Update ist verfügbar."})
+            route.fulfill(json={**state, "status": "available", "latest": "v0.2.0-build.5", "notes": notes, "can_install": True, "message": "Ein Toolbox-Update ist verfügbar."})
         else:
             assert kind == "install" and json.loads(route.request.post_data) == {}
             route.fulfill(json={**state, "status": "installing", "message": "Setup geprüft. Die Toolbox schliesst sich."})
@@ -906,11 +917,42 @@ def test_common_updater_checks_and_requires_confirmation_before_install(editor):
     page.route("**/api/toolbox/updates/install", action)
     page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
     page.get_by_role("button", name="Nach Updates suchen", exact=True).click()
+    changes = page.locator(".toolbox-update-changes")
+    playwright.expect(changes.get_by_role("heading", name="Was sich geändert hat")).to_be_visible()
+    playwright.expect(changes.get_by_text("Neue Rechnerauswahl", exact=True)).to_be_visible()
+    playwright.expect(changes.get_by_text("Ruhigere Schrift", exact=True)).to_be_visible()
+    playwright.expect(changes.get_by_text("Weitere Eingaben ergänzt", exact=True)).not_to_be_visible()
+    playwright.expect(changes).not_to_contain_text("Veraltete Änderung")
+    changes.locator("summary").click()
+    playwright.expect(changes.get_by_text("Weitere Eingaben ergänzt", exact=True)).to_be_visible()
+    full_notes = page.locator(".toolbox-update-full-notes")
+    playwright.expect(full_notes.locator("pre")).not_to_be_visible()
+    full_notes.locator("summary").click()
+    playwright.expect(full_notes.locator("pre")).to_contain_text("Veraltete Änderung")
+    assert actions == ["check"]
     page.get_by_role("button", name="Update installieren", exact=True).click()
     assert actions == ["check"]
     page.get_by_role("button", name="Jetzt aktualisieren", exact=True).click()
     playwright.expect(page.get_by_role("status").filter(has_text="Setup geprüft")).to_be_visible()
     assert actions == ["check", "install"]
+
+
+def test_common_updater_shows_when_release_has_no_change_notes(editor):
+    page, _, _, _ = editor
+    state = {"current": "v0.2.0-build.4", "latest": "v0.2.0-build.5",
+             "status": "available", "message": "Ein Toolbox-Update ist verfügbar.",
+             "can_install": False, "packaged": False, "automatic": False,
+             "release_url": "https://github.com/alxdrg-be/edeco-tool/releases", "session_key": "test-session"}
+    page.route("**/api/toolbox/updates", lambda route: route.fulfill(json=state))
+    page.route("**/api/toolbox/updates/check", lambda route: route.fulfill(json=state))
+    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Update verfügbar", exact=True).click()
+    changes = page.locator(".toolbox-update-changes")
+    playwright.expect(changes).to_be_visible()
+    playwright.expect(changes).to_contain_text("keine Änderungsnotizen")
+    playwright.expect(page.get_by_role("link", name="Releases öffnen", exact=True)).to_have_attribute(
+        "href", state["release_url"])
+    playwright.expect(page.get_by_role("button", name="Update installieren", exact=True)).to_have_count(0)
 
 
 def title(client, pid):

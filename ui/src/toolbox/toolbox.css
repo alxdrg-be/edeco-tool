@@ -70,7 +70,18 @@ html:root[data-tool-color="rose"] { --accent: light-dark(#ab435f, #efa8bd); --ac
 .toolbox-update-version { font-size: 12px; color: var(--muted); }
 .toolbox-update-preference { display: flex; align-items: center; gap: 10px; margin: 18px 0; }
 .toolbox-update-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
-.toolbox-update-notes { white-space: pre-wrap; font: inherit; color: var(--muted); }
+.toolbox-update-changes { margin: 20px 0; padding: 18px 20px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 12px; overflow-wrap: anywhere; }
+.toolbox-update-changes h3 { margin: 0; font-size: 15px; font-weight: 650; }
+.toolbox-update-changes-version { margin: 5px 0 14px; color: var(--muted); font-size: 12px; }
+.toolbox-update-changes ul { margin: 12px 0 0; padding-left: 20px; }
+.toolbox-update-changes li { padding-left: 3px; margin: 8px 0; line-height: 1.5; }
+.toolbox-update-changes li::marker { color: var(--accent); }
+.toolbox-update-more { margin-top: 14px; }
+.toolbox-update-more summary { color: var(--accent); cursor: pointer; font-size: 13px; font-weight: 550; }
+.toolbox-update-notes-missing { margin-bottom: 0; color: var(--muted); line-height: 1.5; }
+.toolbox-update-full-notes { margin: 16px 0; }
+.toolbox-update-full-notes summary { cursor: pointer; color: var(--muted); font-size: 13px; }
+.toolbox-update-notes { white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; font-size: 12px; line-height: 1.5; color: var(--muted); max-height: 260px; overflow-y: auto; }
 .toolbox-update-confirm { padding: 16px; background: var(--accent-soft); border-radius: 10px; margin-top: 16px; }
 .bim-workspace { height: 100%; display: flex; flex-direction: column; background: var(--bg); }
 .bim-toolbox-header { display: flex; align-items: center; flex-wrap: wrap; gap: 18px; padding: 14px 24px; background: var(--panel); border-bottom: 1px solid var(--line); }

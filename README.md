@@ -240,6 +240,8 @@ sie sind kein Bestandteil des Quellcode-Imports.
 Im Toolbox-Startbildschirm **Nach Updates suchen** öffnen. Installierte und
 portable Windows-Versionen prüfen standardmässig beim Start nach neuen Releases;
 im Quellcode erfolgt die Prüfung manuell. Die Option lässt sich ausschalten.
+Im Updatefenster stehen die Änderungen der angebotenen Version direkt sichtbar;
+weitere Punkte und der vollständige Release-Text lassen sich aufklappen.
 Die installierte Windows-Version bietet nach Bestätigung den Download des
 Setups an, prüft Grösse und SHA-256 aus GitHub und schliesst die Toolbox.
 Ein unabhängiger Helfer wartet auf das Prozessende, installiert am bisherigen

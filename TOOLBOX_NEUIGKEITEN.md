@@ -1,5 +1,6 @@
 ## Rechner, Wissens-Hub und flüssige Darstellung · 2. November 2026
 
+- Updatefenster mit direkt sichtbarer Änderungsliste zur angebotenen Version; weitere Punkte und der vollständige Release-Text sind aufklappbar. Fehlende Änderungsnotizen werden ausdrücklich angezeigt.
 - Alle 26 Rechenmodelle auf Basis des aktuellen Hauptzweigs geprüft; direkte angemeldete Referenzprüfung ohne externen Browserdienst. Zahlenabgleich und offene Norm-/Herstellerfreigaben stehen im neuen Gesamtaudit.
 - Kompakte Dropdowns für lange Listen, Nennströme, Icn und Querschnitte. B/C/D/K/Z als kurze Auswahlzeile mit passender Beschreibung darunter; Phasen und Material bleiben direkt auswählbar.
 - Wissens-Hub mit elf Themen im Kopf der Toolbox und der Rechner sowie kontextuellen Links aus Info-Drawern. Ausführliche Erklärungen und Formeln starten geschlossen. Eingaben bleiben beim Wechsel erhalten.
@@ -8,7 +9,7 @@
 - SIA-Referenzprofile für 16 Nutzungen und vier Zonen, erweiterte Brandmelderplanung, bis sechs Schutzstufen mit Kabelpfad, 467 Kabel-Faktenwerte mit CPR-/Lieferantenbezug und genauerer Ladekostenvergleich ergänzt.
 - PKW-/LKW-Grid-Einstellungen, AC-/DC-Bezug, Mindestleistungen und Aktiv/Wartend erweitert; PV/Speicher mit explizitem Anschlussort und getrennten Brutto-/Nettowerten. Gespeicherte Altmodelle behalten ihre Bedeutung.
 - Grafikfehler bei ungültigen Kabelwerten und beim Blitzschutz-Leitungsweg korrigiert. Keine erfundene Netzspannung oder Gebäudehöhe als Ersatz für Eingabedaten.
-- Vor dem Build lokal geprüft: 308 Rechen-/Quellen-/Regressionstests, 74 bestandene Browser-/Ablageprüfungen und alle 26 Modelle in Desktop-/Mobilansicht. Der Windows-Build prüft die vollständige Offline-PDF-Laufzeit zusätzlich.
+- Vor dem Build lokal geprüft: 315 Rechen-/Quellen-/UI-Regressionstests, Browser-/Ablageprüfungen und alle 26 Modelle in Desktop-/Mobilansicht. Auch Änderungsanzeige und Installationsbestätigung sind im Browser geprüft. Der Windows-Build prüft die vollständige Offline-PDF-Laufzeit zusätzlich.
 
 ## Neue Projekt- und Rechenwerkzeuge
 
