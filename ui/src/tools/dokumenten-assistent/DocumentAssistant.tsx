@@ -163,7 +163,7 @@ export default function DocumentAssistant({ onHome, onOpenTool }: ToolProps) {
             <button type="button" className="btn primary" disabled={!canAsk || !library?.settings.configured} onClick={() => void ask(true)}>
               {busy === "ai" ? "Antwort wird erstellt …" : "KI-Antwort"}</button>
             {(busy === "ai" || busy === "search") && <button className="btn" type="button" onClick={() => controller.current?.abort()}>Abbrechen</button>}</div>
-          {!library?.settings.configured && <p className="doc-help">Die Fundstellensuche ist kostenlos nutzbar. Für formulierte Antworten zuerst den <button type="button" className="doc-text-button" disabled={!library || Boolean(busy)} onClick={() => setSettingsOpen(true)}>gemeinsamen KI-Server verbinden</button>.</p>}
+          {!library?.settings.configured && <p className="doc-help">Die Fundstellensuche ist kostenlos nutzbar. Für formulierte Antworten zuerst die <button type="button" className="doc-text-button" disabled={!library || Boolean(busy)} onClick={() => setSettingsOpen(true)}>KI-Verbindung einrichten</button> – lokal auf diesem PC oder mit einem gemeinsamen KI-Server.</p>}
         </form>
         {error && <p role="alert" className="doc-error">{error}</p>}
         {notice && <p role="status" className="doc-notice">{notice}</p>}

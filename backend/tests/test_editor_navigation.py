@@ -864,7 +864,7 @@ def test_document_assistant_defaults_to_free_server_and_opens_cited_pdf_page(edi
     dialog = page.get_by_role("dialog", name="KI-Verbindung einrichten")
     playwright.expect(dialog.get_by_label("Betriebsart")).to_have_value("ollama")
     dialog.get_by_label("KI-Serveradresse", exact=True).fill("http://ki-server:11434/api/chat")
-    dialog.get_by_role("button", name="Speichern und Server prüfen").click()
+    dialog.get_by_role("button", name="Speichern und Verbindung prüfen").click()
     playwright.expect(dialog).to_contain_text("Testserver erreichbar")
     dialog.get_by_role("button", name="Schliessen", exact=True).click()
     def answer(route):

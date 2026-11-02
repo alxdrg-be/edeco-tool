@@ -1,3 +1,8 @@
+## Qwen lokal einrichten · 2. November 2026
+
+- Dokumenten-Assistent mit aufklappbarer Anleitung für Qwen/Ollama auf dem eigenen PC: Windows-Download, PowerShell-Befehl, lokale Adresse, Modellname und Verbindungsprüfung.
+- Gemeinsamer Firmenserver bleibt als Alternative erklärt. Die Beschriftungen unterscheiden lokalen Betrieb und Firmenserver; bestehende Verbindungsdaten werden beim Lesen der Anleitung nicht geändert.
+
 ## edeco Toolhub · gemeinsame Oberfläche und Rechnerergänzungen · 2. November 2026
 
 - Neuer Name und neues Hub-Logo. Gemeinsame Kopfzeile, Schrift und Farbgrundlagen in allen Werkzeugen; „EDECO Engineering“ entfernt.

@@ -162,9 +162,11 @@ fachliche Freigabe bleiben ausserhalb dieses Prototyps.
 Der **Dokumenten-Assistent** liest eigene PDF-, TXT- und Markdown-Dateien ein.
 Fundstellen enthalten Dokumentstand, PDF-Seite beziehungsweise Blattlabel und
 Textzeilen. Ein Klick zeigt die Stelle im Original markiert. Die Fundstellensuche
-funktioniert ohne KI-Server. Formulierte Antworten können über einen gemeinsamen
-Ollama-Server mit freiem Modell erzeugt werden: keine API-Gebühren und keine
-Modellinstallation auf den einzelnen Toolbox-PCs. Die Dokumentbibliothek bleibt
+funktioniert ohne KI-Server. Formulierte Antworten können mit Qwen/Ollama auf
+dem eigenen PC oder einem gemeinsamen Firmenserver erzeugt werden. Die
+aufklappbare Einrichtungshilfe ist direkt unter **KI-Verbindung** erreichbar.
+Bei gemeinsamem Betrieb ist keine Modellinstallation auf den einzelnen PCs
+nötig; bei lokalem Betrieb läuft das Modell auf diesem PC. Die Dokumentbibliothek bleibt
 zunächst pro PC; sie wird nicht automatisch zwischen Rechnern geteilt.
 Eine kostenpflichtige OpenAI-kompatible API ist optional. Details und Grenzen:
 [Dokumenten-Assistent](docs/DOKUMENTEN_ASSISTENT.md).
