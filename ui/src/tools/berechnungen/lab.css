@@ -22,3 +22,7 @@
 .calc-group{margin:28px 0}.calc-group>h2{font-size:16px;color:var(--fg);margin:0 0 16px}.calc-group .lab-tile h2{font-size:17px}.calc-group .lab-tile{padding:20px}
 
 .lab-reading-guide{padding:15px 20px;margin:0;background:var(--panel);color:var(--muted);font-size:12px;line-height:1.7;border-bottom:1px solid var(--line)}
+
+.lab-pdf{gap:6px;font-size:12px}.lab-heading>div{min-width:0}.lab-subtitle{display:block;line-height:1.7;overflow-wrap:anywhere}
+
+.lab-live-formula{padding:14px 18px;margin:12px 18px;border:1px solid var(--line);border-radius:8px;background:var(--bg);overflow-wrap:anywhere}.lab-live-formula strong{font-size:12px;line-height:1.7}.lab-live-formula code{display:block;font:12px/1.8 ui-monospace,monospace;white-space:pre-wrap;margin-top:5px}

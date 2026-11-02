@@ -118,7 +118,7 @@ def test_all_native_calculator_ids_can_save_and_reload_shared_records(env, tmp_p
     share.mkdir()
     with TestClient(create_app(original.app.state.nova), base_url="http://127.0.0.1") as client:
         state = client.get(PREFIX + "/state").json()
-        assert len(state["tools"]) == 25
+        assert len(state["tools"]) == 26
         headers = {"X-Edeco-Projects": state["session_key"]}
         config = client.post(PREFIX + "/settings", headers=headers, json={"root": str(share), "subfolder": "Berechnungen", "revision": state["settings"]["revision"]}).json()
         for tool_id in state["tools"]:
@@ -127,4 +127,4 @@ def test_all_native_calculator_ids_can_save_and_reload_shared_records(env, tmp_p
             assert saved.status_code == 200, (tool_id, saved.text)
             loaded = client.get(PREFIX + "/record", headers=headers, params={"key": saved.json()["key"]})
             assert loaded.json()["document"] == document
-        assert len(client.get(PREFIX + "/records", headers=headers).json()["items"]) == 25
+        assert len(client.get(PREFIX + "/records", headers=headers).json()["items"]) == 26

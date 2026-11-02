@@ -33,15 +33,15 @@ const close = (actual: number, expected: number, tolerance = 1e-9) => assert.ok(
 test("reference NIN correction kernel agrees when the same explicit table value and factors are entered", () => {
   // Reference calculate(): supplied Iz₀=50 A, kT=.87, kH=.8, n=1 → displayed34.8 A.
   // This deliberately does not purport to validate the provider's NIN catalogue.
-  const r = run("nin-kabelrechner", { iz0: "50", temperature: "0.87", grouping: "0.8" });
+  const r = run("nin-kabelrechner", { tableMode: "manual", iz0: "50", temperature: "0.87", grouping: "0.8" });
   close(numeric(r, "Korrigierte Strombelastbarkeit Iz"), 34.8);
   assert.equal(r.status.tone, "ok");
 });
 
 test("parallel ampacity retains precision instead of copying the reference's intermediate integer rounding", () => {
-  const one = run("strombelastbarkeit", { base: "246", temperature: "1", grouping: "1", circuits: "1" });
+  const one = run("strombelastbarkeit", { tableMode: "manual", base: "246", temperature: "1", grouping: "1", circuits: "1" });
   close(numeric(one, "Gesamt-Iz"), 246);
-  const two = run("strombelastbarkeit", { base: "246", temperature: "1", grouping: "0.88", circuits: "2" });
+  const two = run("strombelastbarkeit", { tableMode: "manual", base: "246", temperature: "1", grouping: "0.88", circuits: "2" });
   // Website Strombelastbarkeit calc() rounds216.48 A to216 before ×2 →432 A.
   // Website nin-kabelrechner calculate() instead displays433 A for the same factors.
   // Our unrounded432.96 A is intentional and avoids early integer quantisation.
@@ -64,25 +64,25 @@ test("bonding matches source HPA/OPA results when equivalent manual PE and table
     ["25", "16", "yes", 16, 16], // source phase50/PEN25/LPS
     ["4", "6", "yes", 10, 4], // source phase4/PEN4/LPS
   ] as const) {
-    const r = run("potenzialausgleich", { pe, hpaTable, lps, connection: "foreign", minimum: "4" });
+    const r = run("potenzialausgleich", { paMode: "manual", pe, hpaTable, lps, connection: "foreign", minimum: "4" });
     close(numeric(r, "Haupt-PA aus den Eingaben"), hpa);
     close(numeric(r, "Zusätzlicher PA"), additional);
   }
 });
 
 test("PV discounted cost, capital value and interpolated payback match source economics for equal assumptions", () => {
-  const r = run("pva-rechner", { area: "100", usable: "100", efficiency: "20", yield: "1050", orientation: "100", cost: "2000", grant: "0", self: "40", tariff: "0.29", feed: "0.09", om: "1", degradation: "0.5", years: "25", discount: "3" });
+  const r = run("pva-rechner", { roof:"manual",modulePreset:"manual",tariffPreset:"manual",feedPreset:"manual",grantMode:"manual",headlineBasis:"net", sizing: "power", power: "20", area: "100", usable: "100", efficiency: "20", yield: "1050", orientation: "100", cost: "2000", grant: "0", self: "40", tariff: "0.29", feed: "0.09", om: "1", degradation: "0.5", years: "25", discount: "3" });
   close(numeric(r, "Anlageleistung · STC"), 20);
   close(numeric(r, "Jahresertrag · Jahr 1"), 21);
   close(numeric(r, "Amortisation"), 13.053345385820549);
   close(numeric(r, "Diskontierte Gestehungskosten"), 13.527327119725403);
   close(numeric(r, "Kapitalwert"), 12056.704186021152);
   // Source uses whole-module floor rounding for a NEW plant. This case fixes an
-  // equivalent20 kWp plant; native continuous area modelling is not a module layout.
+  // equivalent20 kWp plant using the direct-power input; module sizing is tested separately.
 });
 
 test("fire-load sum matches reference calcVariante for mixed cable counts and partial lengths", () => {
-  const r = run("brandlast", { length: "10", q1: "3", n1: "10", l1: "10", q2: "0.5", n2: "5", l2: "6", q3: "0", n3: "0", l3: "0" });
+  const r = run("brandlast", { fireloadMode:"legacy", length: "10", q1: "3", n1: "10", l1: "10", q2: "0.5", n2: "5", l2: "6", q3: "0", n3: "0", l3: "0" });
   close(numeric(r, "Brandlast total"), 315);
   close(numeric(r, "Brandlast bezogen auf Fluchtweg"), 31.5);
   close(numeric(r, "Kabel total"), 15);
@@ -90,16 +90,34 @@ test("fire-load sum matches reference calcVariante for mixed cable counts and pa
 });
 
 test("PoE DC power matches three source-engine cases at equal temperature and contact assumptions", () => {
-  for (const [voltage, power, circuits, maxCurrent, length, resistance, pd, outV, loss] of [
-    ["54", "25", "1", "0.6", "80", "9.38", 23.391632373113854, 50.525925925925925, 1.6083676268861455],
-    ["48", "90", "2", "1", "90", "8.5", 76.552734375, 40.828125, 13.447265625],
-    ["48", "13", "1", "0.35", "20", "9.38", 12.862394097222221, 47.49191666666667, .13760590277777776],
+  for (const [type, voltage, power, circuits, maxCurrent, length, resistance, pd, outV, loss] of [
+    ["2", "54", "25", "1", "0.6", "80", "9.38", 23.391632373113854, 50.525925925925925, 1.6083676268861455],
+    ["4", "48", "90", "2", "1", "90", "8.5", 76.552734375, 40.828125, 13.447265625],
+    ["1", "48", "13", "1", "0.35", "20", "9.38", 12.862394097222221, 47.49191666666667, .13760590277777776],
   ] as const) {
-    const r = run("poe", { voltage, power, circuits, maxCurrent, length, resistance, temperature: "20", connector: "0" });
+    const r = run("poe", { cable:"manual", type, voltage, power, circuits, maxCurrent, length, resistance, temperature: "20", connector: "0" });
     close(numeric(r, "Leistung am Endgerät"), pd);
     close(numeric(r, "Spannung am Endgerät"), outV);
     close(numeric(r, "Kabel-/Kontaktverlust"), loss);
   }
   // The source explicitly marks its PoE power/current catalogue as provisional.
   // Matching that model is not an IEEE or RP certification.
+});
+
+
+test("PoE generic Cat6A reference reproduces all four observed type budgets and homogeneous RP results", () => {
+  // Numeric outputs read from the inspected source engine on 2026-11-02 at 90 m,
+  // single-wire7.5 Ω/100m,20°C, no additional contacts. Code is not bundled.
+  for(const [type,voltage,pd,drop,loss,rp] of [
+    ["1","48",12.5048828125,1.828125,.4951171875,"RP1"],
+    ["2","48",23.1689453125,3.515625,1.8310546875,"RP2"],
+    ["3","53",51.365477038091846,3.5023584905660377,3.6345229619081527,"RP2"],
+    ["4","53",80.26788892844428,5.731132075471699,9.732111071555714,"RP3"],
+  ] as const) {
+    const result=run("poe",{type,voltage,cable:"cat6a-s-awg23",length:"90",temperature:"20",connector:"0"});
+    close(numeric(result,"Leistung am Endgerät"),pd);
+    close(numeric(result,"Kabel-/Kontaktverlust"),loss);
+    close(Number(voltage)-numeric(result,"Spannung am Endgerät"),drop);
+    assert.equal(result.rows?.find(row=>row.label==="RP-Kategorie · Referenzansatz")?.value,rp);
+  }
 });

@@ -21,9 +21,14 @@ export const REFERENCE_PROVENANCE = {
   beleuchtung: { url: "https://www.elektro-rechner.ch/Rechner/beleuchtung.html", sha256: "4e535e5b70d0e18899c8e1d71de897e50cd153de231edda81a0995f5bebe6e90" },
   kurzschlussstrom: { url: "https://www.elektro-rechner.ch/Rechner/kurzschlussstrom.html", sha256: "2d7b87c24dfc5d700dc362dfbbf61cf73fba67dfaab14860d9b68abd9eab838f" },
 };
+const MANUAL_FIXTURE_MODES: Record<string, Record<string, string>> = {
+  motoranlauf: { inputMode: "power", efficiencyMode: "manual", checkIz: "off" },
+  verlustleistung: { durationMode: "annual" },
+  beleuchtung: { luxMode: "manual", luminaire: "manual", etaMode: "manual" },
+};
 const run = (id: string, patch: Record<string, string> = {}) => {
   const definition = FUNDAMENTALS.find(item => item.id === id)!;
-  return definition.calculate({ ...defaults(definition), ...patch });
+  return definition.calculate({ ...defaults(definition), ...MANUAL_FIXTURE_MODES[id], ...patch });
 };
 function metric(result: CalculationResult, label: string) { return Number(result.metrics.find(item => item.label === label)!.value); }
 function row(result: CalculationResult, label: string) { return Number(result.rows!.find(item => item.label === label)!.value); }
@@ -96,21 +101,101 @@ test("executed reference: DC and balanced AC Ohm cases match common outputs", ()
   assert.equal((row(ac, "Blindleistung · Betrag") / 1000).toFixed(2), "5.84");
 });
 
-test("executed reference: lighting common lumen minimum matches; complete-grid rounding stays explicitly separate", () => {
+test("executed reference: lighting uses the reference ceil count and the same installed power", () => {
   // Reference room10×8×3m, plane0.8m, reflection0.5, MF0.8, panel4320lm/36W.
   // The reference derives eta_R=0.6585858585858586; edeco accepts this as a manual factor.
   const r = run("beleuchtung", { length: "10", width: "8", height: "3", plane: "0.8", lux: "500", lumen: "4320", watts: "36", utilisation: "0.6585858585858586", maintenance: "0.8", cos: "1" });
   assert.equal(row(r, "Leuchten rechnerisch, aufgerundet"), 18); // actual reference r-N
   assert.equal(row(r, "Raumindex").toFixed(2), "2.02");
-  assert.equal(metric(r, "Leuchten im rechteckigen Raster"), 20); // own extra full-row constraint, not reference parity
-  assert.match(r.formula, /volle Reihen/);
+  assert.equal(metric(r, "Leuchtenanzahl"), 18);
+  assert.equal(metric(r, "Installierte Leistung"), 648);
+  assert.equal(r.diagram?.kind === "room" ? r.diagram.count : null, 18);
+  assert.equal(row(r, "Vollständiges Raster · optional"), 20);
 });
 
-test("executed reference: short-circuit common cold impedance matches; source bound and TN model are not interchangeable", () => {
+test("executed reference: cold cmax and warm cmin magnitude models match while scope stays explicit", () => {
   const r = run("kurzschlussstrom"); // 630kVA/4%, 400V, Cu16mm²,25m,n=1
   assert.equal(metric(r, "Impedanz 3~-Pfad").toFixed(2), "31.37");
-  // Actual source upper-bound displayed7.729kA includes c_max1.05, edeco model uses c=1.
-  assert.equal((metric(r, "3~-Kurzschluss · Modell") * 1.05).toFixed(3), "7.729");
-  assert.notEqual(metric(r, "L–PE-Schleife · Modell").toFixed(3), "2.685"); // source's conservative Ik_min
+  // Reference displayed7.729kA with c_max1.05 and2.685kA with c_min0.95 at80°C.
+  assert.equal(metric(r, "3~-Kurzschluss · Modell").toFixed(3), "7.729");
+  assert.equal(metric(r, "L–PE-Schleife · Modell").toFixed(3), "2.685");
   assert.match(r.status.text, /kein normativer Ik-max-\/Ik-min-Nachweis/);
+});
+
+test("executed reference: all nineteen IE3 power presets include matching MSS and PVC/B2 choices", () => {
+  const observed = [
+    [.37, "0.8", "4.9", 1, 1.5], [.55, "1.2", "6.9", 1.6, 1.5], [.75, "1.5", "9.3", 1.6, 1.5],
+    [1.1, "2.2", "13.3", 2.5, 1.5], [1.5, "3.0", "17.9", 4, 1.5], [2.2, "4.3", "25.9", 6.3, 1.5],
+    [3, "5.8", "34.9", 6.3, 1.5], [4, "7.7", "46.0", 10, 1.5], [5.5, "10.4", "62.5", 13, 1.5],
+    [7.5, "14.1", "84.5", 16, 1.5], [11, "20.4", "122.6", 25, 4], [15, "27.7", "165.9", 32, 6],
+    [18.5, "33.9", "203.6", 40, 6], [22, "40.2", "241.0", 50, 10], [30, "54.4", "326.6", 63, 16],
+    [37, "66.9", "401.5", 80, 25], [45, "81.1", "486.7", 100, 35], [55, "98.7", "592.4", 100, 35],
+    [75, "134.1", "804.4", null, 70],
+  ] as const;
+  for (const [kw, nominal, start, mss, area] of observed) {
+    const r = run("motoranlauf", { kw: String(kw), efficiencyMode: "preset", checkIz: "auto", isolation: "pvc", methodIz: "B2" });
+    assert.equal(metric(r, "Motor-Nennstrom").toFixed(1), nominal, String(kw));
+    assert.equal(metric(r, "Anlaufstrom · Annahme").toFixed(1), start, String(kw));
+    assert.equal(row(r, "Automatisch gewählter Querschnitt"), area, String(kw));
+    const mssValue = r.rows!.find(item => item.label === "MSS-Grössenempfehlung")!.value;
+    assert.equal(mssValue, mss === null ? "keine bis 125 A" : mss, String(kw));
+  }
+  const xlpe = run("motoranlauf", { kw: "75", efficiencyMode: "preset", checkIz: "auto", isolation: "xlpe", methodIz: "E", method: "vfd" });
+  assert.equal(metric(xlpe, "Anlaufstrom · Annahme").toFixed(1), "160.9");
+  assert.equal(row(xlpe, "Automatisch gewählter Querschnitt"), 35);
+  assert.equal(row(xlpe, "Iz des gewählten Querschnitts"), 158);
+});
+
+test("executed reference: direct motor current gives matching star-start, MSS and cable selection", () => {
+  const r = run("motoranlauf", { inputMode: "current", nominalCurrent: "100", method: "star", checkIz: "auto", isolation: "pvc", methodIz: "B2" });
+  assert.equal(metric(r, "Motor-Nennstrom").toFixed(1), "100.0");
+  assert.equal(metric(r, "Anlaufstrom · Annahme").toFixed(1), "200.0");
+  assert.equal(row(r, "Scheinleistung bei Nennlast").toFixed(2), "69.28");
+  assert.equal(row(r, "MSS-Grössenempfehlung"), 100);
+  assert.equal(row(r, "Automatisch gewählter Querschnitt"), 50);
+  assert.equal(row(r, "Iz des gewählten Querschnitts"), 118);
+});
+
+test("executed reference: all nineteen lighting presets and empirical room-reflection cases match", () => {
+  const counts = [18,16,13,38,24,16,11,6,4,3,13,10,127,32,73,48,14,7,10];
+  const watts = [648,640,650,684,672,560,550,600,600,600,585,600,762,640,657,672,700,700,600];
+  for (let lamp = 0; lamp < counts.length; lamp++) {
+    const r = run("beleuchtung", { luminaire: String(lamp), etaMode: "room", luxMode: "500", reflectance: "0.5", cos: "1" });
+    assert.equal(metric(r, "Leuchtenanzahl"), counts[lamp], String(lamp));
+    assert.equal(metric(r, "Installierte Leistung"), watts[lamp], String(lamp));
+    assert.equal(row(r, "Erforderlicher Gesamtlichtstrom").toFixed(0), "75920");
+  }
+  for (const [reflectance, count, power] of [["0.3",20,720],["0.7",17,612]] as const) {
+    const r = run("beleuchtung", { luminaire: "0", etaMode: "room", luxMode: "500", reflectance });
+    assert.equal(metric(r, "Leuchtenanzahl"), count);
+    assert.equal(metric(r, "Installierte Leistung"), power);
+  }
+  const outdoor = run("beleuchtung", { luminaire: "18", etaMode: "room", luxMode: "100", reflectance: "0.5", maintenance: "0.67", cos: "1" });
+  assert.equal(metric(outdoor, "Leuchtenanzahl"), 3);
+  assert.equal(metric(outdoor, "Installierte Leistung"), 180);
+  assert.equal(row(outdoor, "Erforderlicher Gesamtlichtstrom").toFixed(0), "18130");
+});
+
+test("executed reference: calendar loss cost spans three years and preserves zero operating time", () => {
+  const r = run("verlustleistung", { durationMode: "calendar", dailyHours: "8", days: "250", years: "3" });
+  assert.equal(metric(r, "Gesamtkosten im Zeitraum").toFixed(2), "242.76");
+  assert.equal(row(r, "Betriebsstunden total"), 6000);
+  assert.equal(row(r, "Energieverluste total").toFixed(1), "971.0");
+  const zero = run("verlustleistung", { durationMode: "calendar", dailyHours: "0", days: "250", years: "3" });
+  assert.equal(metric(zero, "Gesamtkosten im Zeitraum"), 0);
+});
+
+test("executed reference: direct source impedance includes matching peak and thermal indicators", () => {
+  const r = run("kurzschlussstrom", { sourceMode: "impedance", sourceImpedance: "25.6" });
+  assert.equal(metric(r, "3~-Kurzschluss · Modell").toFixed(3), "6.042");
+  assert.equal(metric(r, "L–PE-Schleife · Modell").toFixed(3), "2.257");
+  assert.equal(row(r, "Stossstrom · Näherung").toFixed(2), "9.10");
+  assert.equal(row(r, "Thermischer I√t-Ansatz · 0.1 s").toFixed(3), "1.911");
+  const t = run("transformator", { ukMode: "manual", ukManual: "5.5" });
+  assert.equal(metric(t, "Kurzschluss · starres Netz").toFixed(3), "6.561");
+  assert.equal(row(t, "Kurzschlussspannung bezogen auf U₂"), 22);
+  const ac = run("ohmsches-gesetz", { system: "3", known: "ui", voltage: "400", current: "16", cos: "0" });
+  assert.equal(row(ac, "Phasenwinkel φ"), 90);
+  assert.equal(metric(ac, "Wirkleistung"), 0);
+  assert.equal((row(ac, "Blindleistung · Betrag") / 1000).toFixed(2), "11.09");
 });

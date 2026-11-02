@@ -3,7 +3,7 @@ import type { calculateEV, EVInput } from "./ev-model.ts";
 import { schemaState, signalColour, type EVSchemaState } from "./EVSchemaState.ts";
 import "./ev-schema.css";
 
-type Result = Pick<ReturnType<typeof calculateEV>, "houseKW" | "gridKW" | "perPoint" | "reserveExceeded" | "capacityOK">;
+type Result = Pick<ReturnType<typeof calculateEV>, "houseKW" | "gridKW" | "perPoint" | "reserveExceeded" | "capacityOK"> & Partial<Pick<ReturnType<typeof calculateEV>, "allocated" | "activeCount" | "waitingCount" | "pointPowers" | "pointPhases" | "phases" | "strongestPhaseCurrent" | "reserveCurrent" | "chargerKind" | "pvKWp" | "pvKW" | "batteryKWh" | "batteryKW" | "generationKW" | "sourceConnection" | "strongestGridPhaseCurrent" | "strongestHousePhaseCurrent">>;
 
 function decimal(value: string) {
   return /^\d+(?:[.,]\d+)?$/.test(value.trim()) ? Number(value.trim().replace(",", ".")) : NaN;
@@ -20,15 +20,20 @@ export default function EVSchema({ input, result, signals }: { input: EVInput; r
   const count = Number.isInteger(requestedCount) && requestedCount > 0 ? requestedCount : 0;
   const shown = Math.min(12, count), columns = Math.min(4, shown || 1), rows = Math.ceil(shown / columns);
   const firstX = 520, trunkX = 405;
-  const width = Math.max(840, firstX + (columns - 1) * 180 + 100), height = rows ? 660 + (rows - 1) * 400 : 340;
+  const sources = result ? [{ id: "pv", label: "PV · Leistungsannahme", power: result.pvKW ?? 0, detail: `${format(result.pvKWp, "kWp")} × 0.7` }, { id: "battery", label: "Speicher · Tagesenergie", power: result.batteryKW ?? 0, detail: format(result.batteryKWh, "kWh/Tag") }].filter(source => source.power > 0) : [];
+  const width = Math.max(840, firstX + (columns - 1) * 180 + 100, sources.length ? 600 + sources.length * 250 : 0), height = rows ? 660 + (rows - 1) * 400 : 340;
   const state = signals ?? schemaState(result ? {
-    houseKW: result.houseKW, reserveKW: decimal(input.reserve), totalAssignedKW: result.perPoint * count,
-    gridKW: result.gridKW, gridAssignedKW: result.perPoint * count,
+    houseKW: result.houseKW, reserveKW: decimal(input.reserve), totalAssignedKW: result.allocated ?? result.perPoint * count,
+    gridKW: result.gridKW, gridAssignedKW: result.allocated ?? result.perPoint * count,
+    waitingCount: result.waitingCount,
+    housePhaseCurrent: result.strongestHousePhaseCurrent ?? (result.strongestPhaseCurrent === undefined ? undefined : result.strongestPhaseCurrent + (result.reserveCurrent ?? 0)), housePhaseLimit: decimal(input.house),
+    gridPhaseCurrent: result.strongestGridPhaseCurrent ?? result.strongestPhaseCurrent, gridPhaseLimit: decimal(input.grid),
+    houseGenerationKW: result.generationKW, gridGenerationKW: result.sourceConnection === "grid" ? result.generationKW : 0,
     nominalPerPointKW: decimal(input.power), assignedPerPointKW: result.perPoint, managed: input.mode !== "none",
   } : null);
-  const houseColour = signalColour(state.house.tone), gridColour = signalColour(state.grid.tone), pointColour = signalColour(state.points.tone);
+  const houseColour = signalColour(state.house.tone), gridColour = signalColour(state.grid.tone);
   const nominal = result ? decimal(input.power) : undefined;
-  const allocated = result?.perPoint;
+  const hasActivity = result?.activeCount !== undefined;
   const hasMore = count > shown;
 
   return <figure className="ev-schema" aria-label="Elektrisches Ladegrid-Schema">
@@ -37,15 +42,16 @@ export default function EVSchema({ input, result, signals }: { input: EVInput; r
       <span>{shown ? `${shown} von ${count} Ladepunkten` : "Eingaben prüfen"}</span>
       <span className="ev-schema-mobile-hint">↔ Schema horizontal verschieben</span>
     </div>
-    <p className="ev-schema-explanation">Der Hausanschluss speist die Unterverteilung (UV), deren Sammelschiene die Ladepunkte versorgt. Pro Punkt stehen Nennleistung und gleichmässige Modellzuteilung getrennt; aktive und wartende Ladepunkte werden nicht simuliert.</p>
+    <p className="ev-schema-explanation">Der Hausanschluss speist die Unterverteilung und die Sammelschiene. {hasActivity ? `${result!.activeCount} Ladepunkte aktiv, ${result!.waitingCount ?? 0} wartend. Die Darstellung ist eine Modellaufnahme; Ladezeiten und Fahrzeugzustände werden nicht simuliert.` : "Pro Punkt stehen Nennleistung und gleichmässige Modellzuteilung getrennt; aktive und wartende Ladepunkte werden nicht simuliert."}</p>
     <div className="ev-schema-signals" aria-label="Status der Leistungsabschnitte">
       {([{ key: "house", label: "Haus" }, { key: "grid", label: "Grid" }, { key: "points", label: "Ladepunkte" }] as const).map(item => <span key={item.key} data-state={state[item.key].tone} style={{ borderColor: signalColour(state[item.key].tone) }}><i style={{ background: signalColour(state[item.key].tone) }} /><strong>{item.label}</strong>{state[item.key].label}</span>)}
     </div>
     <div className="ev-schema-scroll" role="region" tabIndex={0} aria-label="Ladegrid-Schema, bei Bedarf horizontal verschieben">
       <svg className="lab-svg ev-schema-svg" viewBox={`0 0 ${width} ${height}`} role="img" aria-labelledby={`${id}-title ${id}-description`} style={{ minWidth: Math.min(width, 900) }}>
-        <title id={`${id}-title`}>Hausanschluss, Unterverteiler und AC-Ladepunkte</title>
+        <title id={`${id}-title`}>Hausanschluss, Unterverteiler und Ladepunkte</title>
         <desc id={`${id}-description`}>Der Hausanschluss speist den Grid-Unterverteiler. Von dort führt eine Sammelschiene über schematische Schutzorgane zu den Ladepunkten und Fahrzeugen. Jeder Ladepunkt zeigt konfigurierte Nennleistung und rechnerische Zuteilung getrennt. Die Schutzorgane sind nicht dimensioniert. {hasMore ? `${count - shown} weitere Ladepunkte werden nicht einzeln gezeichnet.` : ""}</desc>
 
+        {sources.length > 0 && <g className="ev-schema-local-sources"><path d={`M${result?.sourceConnection === "grid" ? 405 : 129} 40V14H${700 + (sources.length - 1) * 250}`} stroke="var(--ok)" strokeWidth="2" fill="none" />{sources.map((source, index) => <g key={source.id} data-testid={`schema-${source.id}-source`}><path d={`M${700 + index * 250} 14V40`} stroke="var(--ok)" strokeWidth="2" /><rect x={590 + index * 250} y="40" width="220" height="140" rx="12" fill="var(--panel)" stroke="var(--ok)" strokeWidth="2" /><text x={700 + index * 250} y="73" textAnchor="middle" className="ev-schema-title">{source.label}</text><text x={700 + index * 250} y="116" textAnchor="middle" className="ev-schema-ampere">{format(source.power, "kW")}</text><text x={700 + index * 250} y="152" textAnchor="middle" className="ev-schema-power">{source.detail}</text></g>)}</g>}
         <g className="ev-schema-supply">
           <rect x="24" y="40" width="210" height="140" rx="12" fill="var(--panel)" stroke={houseColour} strokeWidth="2" />
           <text x="129" y="73" textAnchor="middle" className="ev-schema-title">Hausanschluss</text>
@@ -67,9 +73,13 @@ export default function EVSchema({ input, result, signals }: { input: EVInput; r
         })}
         {Array.from({ length: shown }, (_, index) => {
           const x = firstX + (index % columns) * 180, busY = 272 + Math.floor(index / columns) * 400;
-          return <g className="ev-schema-point" data-index={index + 1} data-state={state.points.tone} key={index}>
+          const assigned = result?.pointPowers?.[index] ?? result?.perPoint;
+          const waiting = hasActivity && index >= result!.activeCount!;
+          const pointColour = waiting ? "var(--muted)" : signalColour(state.points.tone);
+          const phaseLabel = result?.phases === 1 ? `L${result.pointPhases?.[index] ?? index % 3 + 1}` : "3~";
+          return <g className={`ev-schema-point${waiting ? " ev-schema-waiting" : ""}`} data-index={index + 1} data-state={waiting ? "waiting" : state.points.tone} data-active={hasActivity ? !waiting : undefined} key={index}>
             <rect x={x - 24} y={busY - 38} width="48" height="24" rx="5" fill="var(--accent-soft)" stroke={pointColour} />
-            <text x={x} y={busY - 21} textAnchor="middle" className="ev-schema-ac">AC</text>
+            <text x={x} y={busY - 21} textAnchor="middle" className="ev-schema-ac">{result?.chargerKind === "dc" ? "DC" : "AC"}</text>
             <path d={`M${x} ${busY}V${busY + 88}`} stroke={pointColour} strokeWidth="2.5" fill="none" />
             <rect x={x - 11} y={busY + 40} width="22" height="26" rx="3" fill="var(--panel)" stroke="var(--muted)" strokeWidth="1.5" />
             <path d={`M${x - 5} ${busY + 59}l10-13`} stroke="var(--muted)" strokeWidth="1.5" />
@@ -87,17 +97,19 @@ export default function EVSchema({ input, result, signals }: { input: EVInput; r
             <circle cx={x - 27} cy={busY + 262} r="8" fill="var(--canvas)" stroke={pointColour} strokeWidth="2" /><circle cx={x + 27} cy={busY + 262} r="8" fill="var(--canvas)" stroke={pointColour} strokeWidth="2" />
 
             <text x={x} y={busY + 301} textAnchor="middle" className="ev-schema-rated">Nennleistung {format(nominal, "kW")}</text>
-            <text x={x} y={busY + 330} textAnchor="middle" className="ev-schema-allocated" style={{ fill: pointColour }}>{format(allocated, "kW")}</text>
-            <text x={x} y={busY + 351} textAnchor="middle" className="ev-schema-secondary">Zuteilung · LP {String(index + 1).padStart(2, "0")}</text>
+            <text x={x} y={busY + 330} textAnchor="middle" className="ev-schema-allocated" style={{ fill: pointColour }}>{format(assigned, "kW")}</text>
+            <text x={x} y={busY + 351} textAnchor="middle" className="ev-schema-secondary">{hasActivity ? waiting ? "Wartet" : "Aktiv" : "Zuteilung"} · LP {String(index + 1).padStart(2, "0")}{hasActivity && ` · ${phaseLabel}`}</text>
           </g>;
         })}
         {!shown && <text x={width / 2} y="280" textAnchor="middle" className="ev-schema-secondary">Eine gültige Anzahl Ladepunkte eingeben.</text>}
       </svg>
     </div>
     <figcaption className="ev-schema-legend">
+      {sources.length > 0 && <span><i style={{ background: "var(--ok)" }} />PV / Speicher · symmetrische Leistungsannahme am {result?.sourceConnection === "grid" ? "Grid-UV" : "Haus"}</span>}
       <span><i style={{ background: signalColour("normal") }} />Budget eingehalten</span>
       <span><i style={{ background: signalColour("limited") }} />Lastmanagement begrenzt</span>
       <span><i style={{ background: signalColour("error") }} />Leistungsbudget überschritten</span>
+      {hasActivity && <span><i style={{ background: "var(--muted)" }} />Wartender Ladepunkt · 0 kW</span>}
       <span><i style={{ background: signalColour("unknown") }} />Eingaben ungültig</span>
       <span><i className="ev-schema-protection" />Graues Schutzsymbol: Auslegung ungeprüft</span>
       <span>Linien: Sammelschiene und Zuleitungen · Farben gelten für das Leistungsmodell, nicht für Kabel- oder Schutznachweise.</span>

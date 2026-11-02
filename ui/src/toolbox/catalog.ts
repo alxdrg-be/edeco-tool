@@ -13,6 +13,8 @@ export interface ToolInfo {
 
 /** Planned tools need metadata only; register a loader when their implementation is ready. */
 export const TOOLS: readonly ToolInfo[] = [
+  { id: "netzplaner", title: "Netzplaner · NIN (Beta)", category: "Berechnungen", symbol: "NET", color: "blue", parentId: "berechnungen",
+    description: "Modulare Einlinienschemas mit Einspeisung, Verteilung, Schutzorganen, Lasten und abschnittsbezogenen Modellprüfungen.", status: "available", developmentStatus: "in-progress" },
   { id: "nova-legenden", title: "NOVA-Legenden", category: "Elektroplanung", symbol: "NL", color: "petrol",
     description: "Pläne importieren, Symbole zuordnen und elektrische Legenden erstellen.", status: "available", developmentStatus: "in-progress" },
   { id: "bim2steiger", title: "BIM2STEIGER", category: "BIM", symbol: "B2S", color: "blue",
@@ -34,7 +36,7 @@ export const TOOLS: readonly ToolInfo[] = [
   { id: "blitzschutz", title: "Blitzschutz", category: "Berechnungen", symbol: "⚡", color: "orange", parentId: "berechnungen",
     description: "Trennungsabstand nach dem veröffentlichten Schweizer Verfahren berechnen und am Gebäude visualisieren. Fachliche Freigabe offen.", status: "available", developmentStatus: "in-progress" },
   { id: "emobilitaet", title: "E-Mobilität · AC-Vorplanung", category: "Berechnungen", symbol: "EV", color: "green", parentId: "berechnungen",
-    description: "Eigene dreiphasige AC-Leistungs-Vorplanung mit Gebäudereserve und manuellem Lastmanagementmodell.", status: "available", developmentStatus: "in-progress" },
+    description: "Ein- und dreiphasige AC-Vorplanung mit Gebäudereserve, aktiven/wartenden Punkten und Aussenleiterprüfung.", status: "available", developmentStatus: "in-progress" },
   { id: "berechnungsablage", title: "Gemeinsame Berechnungsablage", category: "Berechnungen", symbol: "A", color: "petrol", parentId: "berechnungen",
     description: "Rechenstände und Berechnungsexporte projektbezogen im Serverordner mit Notizen gemeinsam ablegen.", status: "available", developmentStatus: "in-progress" },
   ...WORKBENCH_TOOLS,

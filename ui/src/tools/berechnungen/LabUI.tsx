@@ -5,6 +5,7 @@ import { useDialogFocus } from "../../useDialogFocus";
 import "./lab.css";
 import { ArchiveSaveDialog } from "./ablage/ArchiveDialogs";
 import type { ArchivePayload } from "./ablage/api";
+import { exportCalculationPDF, type CalculationPDFReport } from "./pdfExport";
 
 export interface Help { title: string; content: ReactNode }
 export function InfoButton({ title, onClick }: { title: string; onClick: () => void }) {
@@ -42,22 +43,32 @@ export function Parameter({ label, value, onChange, min, max, step = 1, unit, in
 export function Segments<T extends string>({ label, value, options, onChange, disabled = false }: { label: string; value: T; options: { value: T; label: string }[]; onChange: (value: T) => void; disabled?: boolean }) {
   return <div className="lab-segments" role="group" aria-label={label}>{options.map(option => <button type="button" key={option.value} disabled={disabled} aria-pressed={value === option.value} onClick={() => onChange(option.value)}>{option.label}</button>)}</div>;
 }
-export function LabShell({ title, subtitle, children, help, setHelp, onHome, onOpenTool, exportData, canExport, report, archive, reviewLabel = "Rechenhilfe · Freigabe offen" }: ToolProps & {
-  title: string; subtitle: string; children: ReactNode; help: Help | null; setHelp: (help: Help | null) => void; exportData?: () => void; canExport?: boolean; report?: ReactNode; archive?: ArchivePayload; reviewLabel?: string;
+export function LabShell({ title, subtitle, children, help, setHelp, onHome, onOpenTool, exportData, canExport, canArchive, report, pdfReport, archive, reviewLabel = "Rechenhilfe · Freigabe offen" }: ToolProps & {
+  title: string; subtitle: string; children: ReactNode; help: Help | null; setHelp: (help: Help | null) => void; exportData?: () => void; canExport?: boolean; canArchive?: boolean; report?: ReactNode; pdfReport?: CalculationPDFReport | null; archive?: ArchivePayload; reviewLabel?: string;
 }) {
   const [saveOpen, setSaveOpen] = useState(false);
+  const [pdfBusy, setPDFBusy] = useState(false), [pdfError, setPDFError] = useState("");
   const [dark, setDark] = useState(() => { try { return localStorage.getItem("edeco.calculations.theme") !== "light"; } catch { return true; } });
   function toggle() { setDark(old => { try { localStorage.setItem("edeco.calculations.theme", old ? "light" : "dark"); } catch { /* theme still works in memory */ } return !old; }); }
+  async function downloadPDF() {
+    if (!canExport || !pdfReport || pdfBusy) return;
+    setPDFBusy(true); setPDFError("");
+    try { await exportCalculationPDF(pdfReport); }
+    catch (error) { setPDFError(error instanceof Error ? error.message : "PDF konnte nicht erstellt werden."); }
+    finally { setPDFBusy(false); }
+  }
   return <div className={`calc-workspace engineering-lab ${canExport ? "lab-export-ready" : ""}`} data-lab-theme={dark ? "dark" : "light"}>
     <div className="lab-shell" inert={Boolean(help || saveOpen)}>
       <header className="lab-header calc-no-print"><button className="lab-back" onClick={() => onOpenTool ? onOpenTool("berechnungen") : onHome()}><ArrowLeft size={17} /><span>Berechnungen</span></button><span className="lab-brand">edeco<span> / {title}</span></span>
         <div className="lab-header-actions"><button className="lab-icon" onClick={toggle} aria-label={dark ? "Heller Rechnermodus" : "Dunkler Rechnermodus"}>{dark ? <Sun size={18} /> : <Moon size={18} />}</button>
-          {archive && <button className="lab-icon" disabled={!canExport} aria-label="Projektbezogen auf Server speichern" title="Gemeinsam speichern" onClick={() => setSaveOpen(true)}><Save size={18} /></button>}
+          {archive && <button className="lab-icon" disabled={!(canArchive ?? canExport)} aria-label="Projektbezogen auf Server speichern" title="Gemeinsam speichern" onClick={() => setSaveOpen(true)}><Save size={18} /></button>}
           {onOpenTool && <button className="lab-icon" aria-label="Gemeinsame Berechnungsablage öffnen" title="Gemeinsame Ablage" onClick={() => onOpenTool("berechnungsablage")}><FolderOpen size={18} /></button>}
+          {pdfReport !== undefined && <button className="lab-icon lab-pdf" disabled={!canExport || !pdfReport || pdfBusy} aria-label="Berechnung als PDF herunterladen" onClick={downloadPDF}><Download size={17} /><span>{pdfBusy ? "PDF …" : "PDF"}</span></button>}
           {exportData && <><button className="lab-icon" disabled={!canExport} aria-label="Ergebnis als JSON sichern" title="JSON sichern" onClick={exportData}><Download size={18} /></button><button className="lab-icon" disabled={!canExport} aria-label="Drucken / als PDF speichern" title="Drucken / PDF" onClick={() => window.print()}><Printer size={18} /></button></>}
           <button className="lab-home" onClick={onHome}>Zur Toolbox</button></div>
       </header>
       <main className="lab-main"><div className="lab-heading"><div><p className="lab-eyebrow">EDECO ENGINEERING</p><h1>{title}</h1><span className="lab-subtitle">{subtitle}</span></div><span className="lab-review">{reviewLabel}</span></div>
+        {pdfError && <p className="lab-error" role="alert">{pdfError}</p>}
         {children}
         <div className="lab-print-only lab-prose">{report}</div>
       </main>

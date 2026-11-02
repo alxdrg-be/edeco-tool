@@ -28,8 +28,14 @@ export interface CalculationResult {
   seriesLabel?: string;
   seriesUnit?: string;
   seriesLabels?: [string, string];
-  diagram?: { kind: "chain"; nodes: DiagramNode[] } | { kind: "room"; length: number; width: number; columns: number; rows: number; radius?: number };
+  comparisons?: { title: string; unit: string; items: { label: string; actual: number; target: number }[] }[];
+  diagram?: { kind: "chain"; nodes: DiagramNode[] } | { kind: "room"; length: number; width: number; columns: number; rows: number; count?: number; radius?: number };
   charging?: { houseAmps: number; houseKW: number; reserveKW: number; totalAssignedKW: number; mode: "none" | "dynamic" | "static"; grids: { label: string; amps: number; assigned: number; count: number; power: number }[] };
+  chargingNetwork?: import("./chargingGrid.ts").ChargingNetworkResult;
+  depotNetwork?: import("./chargingGrid.ts").DepotNetworkResult;
+  costModels?: import("./chargingCosts.ts").CostBusinessResult[];
+  siaBreakdown?: import("./siaModel.ts").SIABalance;
+  poeRoute?: import("./poeRoute.ts").PoeRouteResult;
 }
 export interface CalculatorDefinition {
   id: string;

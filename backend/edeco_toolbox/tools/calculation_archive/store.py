@@ -14,6 +14,7 @@ from pathlib import Path
 from urllib.parse import quote
 
 TOOLS = {
+    "netzplaner": "Netzplaner · NIN (Beta)",
     "blitzschutz": "Blitzschutz", "kabelberechnung": "Kabel-Spannungsfall", "emobilitaet": "E-Mobilität · Vorplanung",
     "nin-kabelrechner": "NIN-Kabelvorprüfung", "strombelastbarkeit": "Strombelastbarkeit",
     "kurzschlussstrom": "Kurzschlussstrom", "ls-schalter": "LS-Schalter", "potenzialausgleich": "Potenzialausgleich",
