@@ -27,13 +27,13 @@ function LeaveDialog({ onClose, onLeave }: { onClose: () => void; onLeave: () =>
   useDialogFocus(ref, onClose);
   return <div className="modal-back"><div ref={ref} className="modal" role="alertdialog" aria-modal="true" aria-labelledby="pdf-leave-title" tabIndex={-1}>
     <h2 id="pdf-leave-title">Ergebnisse gespeichert?</h2>
-    <p>In der PDF-Werkstatt wurden Dateien geöffnet oder verarbeitet. Bitte benötigte Ergebnisse herunterladen, bevor du zur Toolbox wechselst.</p>
+    <p>In der PDF-Werkstatt wurden Dateien geöffnet oder verarbeitet. Bitte benötigte Ergebnisse vor dem Werkzeugwechsel herunterladen.</p>
     <div className="pdf-actions"><button className="btn primary" onClick={onClose}>Hier bleiben</button>
-      <button className="btn" onClick={onLeave}>Zur Toolbox wechseln</button></div>
+      <button className="btn" onClick={onLeave}>Werkzeug wechseln</button></div>
   </div></div>;
 }
 
-export default function PdfWorkshop({ onHome }: ToolProps) {
+export default function PdfWorkshop({ onHome, onOpenTool }: ToolProps) {
   const [state, setState] = useState<State | null>(null);
   const [health, setHealth] = useState<Health | null>(null);
   const [url, setUrl] = useState("");
@@ -43,7 +43,7 @@ export default function PdfWorkshop({ onHome }: ToolProps) {
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
-  const [leave, setLeave] = useState(false);
+  const [leave, setLeave] = useState<(() => void) | null>(null);
   const [revision, setRevision] = useState(0);
   const frame = useRef<HTMLIFrameElement>(null);
 
@@ -91,10 +91,11 @@ export default function PdfWorkshop({ onHome }: ToolProps) {
     finally { setBusy(""); }
   }
 
-  function goHome() {
+  function requestLeave(action: () => void) {
+    if (busy === "workflow") return;
     const child = frame.current?.contentWindow as PdfWindow | null;
-    if (child?.edecoPDF?.hasWork()) setLeave(true);
-    else onHome();
+    if (child?.edecoPDF?.hasWork()) setLeave(() => action);
+    else action();
   }
 
   async function workflow(event: FormEvent<HTMLFormElement>) {
@@ -111,7 +112,7 @@ export default function PdfWorkshop({ onHome }: ToolProps) {
   }
 
   return <div className="pdf-workshop">
-    <ToolHeader title="edeco PDF-Werkstatt" onHome={goHome} disabled={busy === "workflow"}>
+    <ToolHeader title="edeco PDF-Werkstatt" onHome={() => requestLeave(onHome)} onOpenTool={onOpenTool ? id => requestLeave(() => onOpenTool(id)) : undefined} disabled={busy === "workflow"}>
       {health?.ready && <span className="pdf-service-badge">{state?.local ? "Offline bereit · auf diesem Computer" : `Stirling-PDF ${health.version} · interner Dienst`}</span>}
       {Boolean(state?.workflows.length) && <button className="btn" onClick={() => setWorkflows(!workflows)}>Firmenabläufe</button>}
       {!state?.local && <button className="btn" onClick={() => setSettings(!settings)}>Verbindung</button>}
@@ -120,7 +121,7 @@ export default function PdfWorkshop({ onHome }: ToolProps) {
     {state?.local && !health?.ready && <section className="pdf-connection" aria-label="Lokaler PDF-Dienst"><h1>edeco PDF-Werkstatt</h1><p role="status">{health?.message || "Der lokale PDF-Dienst wird gestartet. Beim ersten Start kann dies etwas dauern."}</p><button className="btn" disabled={Boolean(busy)} onClick={() => void check(false)}>Status prüfen</button>{error && <p role="alert">{error}</p>}</section>}
     {info && <section className="pdf-connection"><button className="btn" onClick={() => setInfo(false)}>Info schliessen</button><iframe className="pdf-stirling-frame" title="Info / Lizenzen" src={API + "/licenses"} /></section>}
     {!state?.local && (settings || !health?.ready) && <section className="pdf-connection" aria-label="PDF-Verbindung">
-      <div><h1>Deine PDF-Werkstatt.</h1><p>Die vollständige Stirling-Oberfläche – direkt in der edeco Toolbox.</p>
+      <div><h1>Deine PDF-Werkstatt.</h1><p>Die vollständige Stirling-Oberfläche – direkt im edeco Toolhub.</p>
         <p className="pdf-muted">PDFs werden ausschliesslich an den von euch eingestellten Stirling-Dienst übertragen. Bitte nur euren lokalen Dienst oder den firmeneigenen Server eintragen.</p></div>
       <form onSubmit={event => { event.preventDefault(); void check(!state?.managed); }}>
         <label>Adresse des Firmen-PDF-Dienstes<input type="url" required value={url} disabled={!state || state.managed || Boolean(busy)}
@@ -140,6 +141,6 @@ export default function PdfWorkshop({ onHome }: ToolProps) {
       {notice && <p role="status">{notice}</p>}{error && <p role="alert" className="pdf-error">{error}</p>}
     </section>}
     {health?.ready && <iframe ref={frame} key={revision} className="pdf-stirling-frame" title="Stirling-PDF · edeco PDF-Werkstatt" src="/tools/pdf-werkstatt/" />}
-    {leave && <LeaveDialog onClose={() => setLeave(false)} onLeave={onHome} />}
+    {leave && <LeaveDialog onClose={() => setLeave(null)} onLeave={leave} />}
   </div>;
 }

@@ -38,6 +38,7 @@ function CatalogChoice({ row, label, onChange, disabled }: { row: CatalogRow; la
 
 export default function FireLoadControls({ input, onChange, disabled = false, rowsKey = "fireloadRows", lengthKey = "length", title = "Kabelbestand" }: { input: Inputs; onChange: (key: string, value: string) => void; disabled?: boolean; rowsKey?: "fireloadRows" | "fireloadRowsAfter"; lengthKey?: "length" | "route"; title?: string }) {
   if (input.fireloadMode !== "dynamic") return null;
+  if (rowsKey === "fireloadRowsAfter" && input.comparisonEnabled === "no") return null;
   let rows: CatalogRow[];
   try { rows = parseFireLoadRows(input[rowsKey], true); }
   catch (error) { return <p role="alert" className="lab-error">{(error as Error).message}</p>; }

@@ -1,7 +1,8 @@
-# edeco Toolbox
+# edeco Toolhub
 
-Gemeinsame, erweiterbare Desktopanwendung für die Elektroplanung: edeco-Logo,
-farbige Werkzeugkacheln, Suche, Kategorien und Hell-/Dunkelmodus.
+Gemeinsame Desktopanwendung für die Elektroplanung mit einheitlichem Logo,
+Kopfleiste, Schrift und Hell-/Dunkelmodus. Werkzeuge und Rechner lassen sich
+direkt über die Kopfzeile wechseln; „Zum Toolhub“ führt zur Übersicht zurück.
 
 ## Werkzeuge
 
@@ -12,9 +13,9 @@ farbige Werkzeugkacheln, Suche, Kategorien und Hell-/Dunkelmodus.
 | Dokumenten-Assistent | Nutzbar, Work in progress; lokale Suche, KI über gemeinsamen Server | Violett |
 | Dateien umbenennen | Nutzbar, Work in progress | Grün |
 | PDF-Werkstatt | Stirling Core mit vollständig mitgelieferter Windows-Offline-Laufzeit | Rosé |
-| Projektzentrale | Nutzbar, Work in progress | Petrol |
-| Planlieferungs-Assistent | Nutzbar, Work in progress; ZIP, Planlisten und Projektverlauf | Grün |
-| Berechnungen | 26 native Schweizer Rechenhilfen inklusive Netzplaner (Beta) | Blau |
+| Projektzentrale | Nutzbar, Work in progress | Gold |
+| Planlieferungs-Assistent | Nutzbar, Work in progress; ZIP, Planlisten und Projektverlauf | Koralle |
+| Berechnungen | 26 native Schweizer Rechenhilfen inklusive Netzplaner (Beta) | Orange |
 | ↳ Blitzschutz | Trennungsabstand; fachliche Freigabe offen | Orange |
 | Änderungsbericht | Geplant | Orange |
 | Leistungsbilanz | Geplant | Violett |
@@ -29,6 +30,21 @@ vorbereitet; Leistungsbilanz liegt im Bereich Berechnungen.
 Alle zehn Hauptkacheln sind im normalen Desktopfenster (1400 × 900)
 ohne Scrollen sichtbar; kleinere Fenster können scrollen. Umfang und Reihenfolge
 der Erweiterungen stehen im [Ausbauplan](docs/TOOLBOX_AUSBAUPLAN.md).
+
+Der neue Produktname ändert keine bestehenden Datenpfade, AppId oder
+Update-Dateinamen. Installierte Vorversionen können weiter aktualisiert werden.
+Die Namensvorlage im Planlieferungs-Assistenten startet geschlossen; PDFs und
+Lieferangaben bleiben dadurch direkt erreichbar.
+
+Der erneute angemeldete Quellenabgleich vom 2. November 2026 ist getrennt für
+[Installation und Schutz](docs/REAUDIT_INSTALLATION_20261102.md),
+[Energie und Gebäude](docs/REAUDIT_ENERGIE_20261102.md) sowie
+[Ladeinfrastruktur](docs/REAUDIT_EMOBILITAET_20261102.md) dokumentiert.
+Konkrete Ergänzungen betreffen die Verlegeartführung, Selektivitätsfaktoren,
+eigene Ladeleistungen, 64 Kostenpositionen, PV-Analysen und den optionalen
+Brandlastvergleich. Der Netzplaner bleibt ein begrenztes radiales TN-Modell;
+zusätzliche Netzformen und der umfangreichere Verbraucherkatalog der Quelle
+sind damit nicht vollständig nachgebildet.
 
 **Dateien umbenennen** bereitet PDF-Namen nach einer gespeicherten Vorlage vor,
 zum Beispiel `1498_E-G-APP-OG02-C-50.pdf`. Projektnummer, Fachbereich,

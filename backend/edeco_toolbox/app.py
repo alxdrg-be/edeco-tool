@@ -46,5 +46,5 @@ def create_app(state: AppState | None = None, ui_dir: Path | None = None):
     else:
         @app.get("/", response_class=HTMLResponse)
         def missing_ui():
-            return "<h1>edeco Toolbox</h1><p>Oberfläche im Ordner ui mit npm ci und npm run build bauen.</p>"
+            return "<h1>edeco Toolhub</h1><p>Oberfläche im Ordner ui mit npm ci und npm run build bauen.</p>"
     return app

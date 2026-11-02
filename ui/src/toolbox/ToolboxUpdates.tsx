@@ -91,7 +91,7 @@ function UpdateDialog({ state, busy, error, run, close }: {
   return <div className="modal-back">
     <div ref={ref} className="modal toolbox-update-dialog" role="dialog" aria-modal="true"
       aria-labelledby="toolbox-update-title" tabIndex={-1}>
-      <h2 id="toolbox-update-title">Toolbox-Updates</h2>
+      <h2 id="toolbox-update-title">Toolhub-Updates</h2>
       <p>Ein gemeinsames Update für alle Werkzeuge.</p>
       {state && <>
         <p className="toolbox-update-version">Installierter Stand: {state.current}</p>
@@ -118,7 +118,7 @@ function UpdateDialog({ state, busy, error, run, close }: {
           Beim Programmstart nach Updates suchen
         </label>
         {confirm && <div className="toolbox-update-confirm">
-          <p>Die Toolbox schliesst sich für das Update. Danach startet sie wieder. Persönliche Daten bleiben ausserhalb des Installationsordners erhalten.</p>
+          <p>Der Toolhub schliesst sich für das Update. Danach startet er wieder. Persönliche Daten bleiben ausserhalb des Installationsordners erhalten.</p>
           <button className="btn primary" disabled={Boolean(busy)} onClick={() => run("install")}>Jetzt aktualisieren</button>
         </div>}
       </>}

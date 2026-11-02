@@ -35,13 +35,14 @@ export function createFireComparisonDefinition(legacy:CalculatorDefinition):Calc
   const rowsField=(key:string,label:string,defaults:readonly FireLoadRow[]):Field=>({key,label,default:JSON.stringify(defaults),kind:"text",group:label,visibleWhen:dynamic,help:"Eigene Kabelpositionen mit Herstellerwert, Anzahl, Länge und Nachweisstatus. Die voreingestellten Werte sind ausschliesslich manuelle Rechenbeispiele."});
   return {
     ...legacy,
-    description:"Beliebig viele eigene Kabelpositionen vor und nach einer Sanierung vergleichen.",
+    description:"Eine Kabelvariante erfassen oder zwei unabhängige Zustände vergleichen.",
     scope:"VKF BSR 14-15 Ziffer 5.2.1 / NIN 4.2.2.2.7 · eigene Kabelwerte, horizontaler Vergleich oder vertikale Mengenbilanz",
     fields:[
       {key:"fireloadMode",label:"Kabelerfassung",default:"dynamic",kind:"select",group:"Vergleich",options:[{value:"dynamic",label:"Getrennte Kabelpositionslisten vorher / nachher"},{value:"legacy",label:"Gespeicherter Vergleich zweier Kabelgruppen"}],help:"Neue Listen führen beide Zustände unabhängig. Gespeicherte Gruppenrechnungen bleiben im Bestandsmodus erreichbar."},
+      {key:"comparisonEnabled",label:"Variantenvergleich",default:"no",kind:"select",group:"Vergleich",visibleWhen:dynamic,options:[{value:"no",label:"Eine Variante"},{value:"yes",label:"Zwei Varianten vergleichen"}],help:"Variante A kann allein berechnet werden. Ein deaktivierter zweiter Zustand bleibt gespeichert, wird aber weder geprüft noch als Nullbestand ausgegeben."},
       ...legacyFields,
       rowsField("fireloadRows","Kabelbestand vorher",beforeExamples),
-      rowsField("fireloadRowsAfter","Kabelbestand nachher",afterExamples),
+      {...rowsField("fireloadRowsAfter","Kabelbestand nachher",afterExamples),visibleWhen:[...dynamic,{key:"comparisonEnabled",values:["yes"]}]},
     ],
     calculate(input:Inputs):CalculationResult {
       if(input.fireloadMode==="legacy")return validateResult(legacy.calculate(input));
@@ -50,8 +51,12 @@ export function createFireComparisonDefinition(legacy:CalculatorDefinition):Calc
       const routeType=input.routeType as "horizontal"|"vertical",horizontal=routeType==="horizontal";
       const length=number(input,"route","Fluchtweglänge",0,100000);
       const limit=horizontal?number(input,"limit","Horizontaler Vergleichswert",0,1e6):null;
-      const beforeRows=parseFireLoadRows(input.fireloadRows),afterRows=parseFireLoadRows(input.fireloadRowsAfter);
+      const comparison=input.comparisonEnabled??"yes";
+      if(!["yes","no"].includes(comparison))throw new Error("Eine Variante oder zwei Vergleichsvarianten wählen.");
+      const beforeRows=parseFireLoadRows(input.fireloadRows);
       const before=calculateFireLoadPositions(fireLoadRowsToPositions(beforeRows),length,routeType,limit??200);
+      if(comparison==="no")return validateResult({...before,rows:[{label:"Variantenvergleich",value:"Variante A ohne Vergleich"},...(before.rows??[])],limitations:[...before.limitations,"Nur Variante A ist in dieser Bilanz aktiv. Gespeicherte Werte einer deaktivierten Variante B werden nicht ausgewertet."]});
+      const afterRows=parseFireLoadRows(input.fireloadRowsAfter);
       const after=calculateFireLoadPositions(fireLoadRowsToPositions(afterRows),length,routeType,limit??200);
       const beforeTotal=numericMetric(before,"Brandlast total"),afterTotal=numericMetric(after,"Brandlast total");
       const beforeDensity=numericMetric(before,"Brandlast bezogen auf Fluchtweg"),afterDensity=numericMetric(after,"Brandlast bezogen auf Fluchtweg");

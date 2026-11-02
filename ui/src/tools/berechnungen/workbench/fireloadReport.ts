@@ -22,5 +22,6 @@ export function fireloadReportInputs(input: Inputs): { label: string; value: str
       ];
     });
   };
+  if(input.comparisonEnabled === "no")return list("fireloadRows", "Variante A · ");
   return input.fireloadRowsAfter === undefined ? list("fireloadRows") : [...list("fireloadRows", "Vorher · "), ...list("fireloadRowsAfter", "Nachher · ")];
 }

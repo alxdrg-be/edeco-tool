@@ -94,7 +94,7 @@ function Corridor({ result, input }: { result: CalculationResult; input?: Inputs
     return values.every(value => Number.isInteger(value) && value >= 0) ? values.reduce((sum, value) => sum + value, 0) : null;
   };
   const numericMetric = (label: string) => { const value = result.metrics.find(metric => metric.label === label)?.value; return typeof value === "number" ? value : null; };
-  const comparison = input && Object.hasOwn(input, "countBefore1");
+  const comparison = input && Object.hasOwn(input, "countBefore1") && (input.fireloadMode !== "dynamic" || input.comparisonEnabled !== "no");
   const states = comparison ? [
     { label: "Vorher", count: input?.fireloadMode === "dynamic" ? numericMetric("Kabel vorher") : counted(["countBefore1", "countBefore2"]), metric: result.metrics.find(metric => metric.label === "Vorher") ?? result.metrics[0] },
     { label: "Nachher", count: input?.fireloadMode === "dynamic" ? numericMetric("Kabel nachher") : counted(["countAfter1", "countAfter2"]), metric: result.metrics.find(metric => metric.label === "Nachher") ?? result.metrics[1] },

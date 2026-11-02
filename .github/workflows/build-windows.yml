@@ -1,4 +1,4 @@
-name: 'Toolbox: Windows-Setup bauen'
+name: 'Toolhub: Windows-Setup bauen'
 
 on:
   push:
@@ -97,14 +97,14 @@ jobs:
             for ($i = 0; $i -lt 60; $i++) {
               try {
                 $status = Invoke-RestMethod 'http://127.0.0.1:8799/api/toolbox/status'
-                $ok = $status.name -eq 'edeco Toolbox'
+                $ok = $status.name -eq 'edeco Toolhub'
                 if ($ok) { break }
               } catch { Start-Sleep 1 }
             }
             if (-not $ok) { throw 'Toolbox startet nicht' }
             if ($status.build -ne [int]$env:GITHUB_RUN_NUMBER -or $status.commit -ne $env:GITHUB_SHA) { throw 'Falsche Buildkennung in der EXE' }
             $page = Invoke-WebRequest 'http://127.0.0.1:8799/' -UseBasicParsing
-            if ($page.Content -notmatch 'edeco Toolbox') { throw 'Toolbox-Oberfläche fehlt' }
+            if ($page.Content -notmatch 'edeco Toolhub') { throw 'Toolbox-Oberfläche fehlt' }
             $nova = Invoke-RestMethod 'http://127.0.0.1:8799/api/status'
             if (-not $nova.version) { throw 'Nova-Modul nicht verfügbar' }
             $bim = Invoke-RestMethod 'http://127.0.0.1:8799/tools/bim2steiger/api/meta'
@@ -246,7 +246,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.version.outputs.version }}-build.${{ github.run_number }}
-          name: edeco Toolbox ${{ steps.version.outputs.version }} (Build ${{ github.run_number }})
+          name: edeco Toolhub ${{ steps.version.outputs.version }} (Build ${{ github.run_number }})
           target_commitish: ${{ github.sha }}
           body_path: release-body.md
           files: dist-installer/*

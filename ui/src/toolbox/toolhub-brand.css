@@ -1,0 +1,6 @@
+.toolhub-brand { display: inline-flex; align-items: center; gap: 9px; flex: none; color: var(--fg, #203039); vertical-align: middle; white-space: nowrap; }
+.toolhub-brand-mark { display: block; width: 32px; height: 32px; flex: none; }
+.toolhub-brand-wordmark { display: flex; align-items: baseline; gap: 4px; font: 500 18px/1.15 var(--font-ui, system-ui); letter-spacing: -.55px; }
+.toolhub-brand-wordmark strong { font-weight: 750; }
+.toolhub-brand-wordmark > span { font-weight: 450; }
+.toolhub-brand.is-compact { gap: 0; }

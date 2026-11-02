@@ -1,5 +1,8 @@
 # Rechnerüberarbeitung und direkter Quellenabgleich
 
+Der anschliessende erneute Quellenabgleich und die Toolhub-Oberfläche stehen
+unter [Toolhub und Reaudit](TOOLHUB_UI_REAUDIT_20261102.md).
+
 Nachtrag: Die anschliessenden Änderungen an Serverabsicherung,
 Kurzschlussfaktoren, Quellenanzeige und CI sind unter
 [Absicherung und Rechenfaktoren](ABSICHERUNG_20261102.md) dokumentiert.

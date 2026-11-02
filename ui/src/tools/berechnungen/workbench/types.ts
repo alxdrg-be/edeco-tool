@@ -36,6 +36,7 @@ export interface CalculationResult {
   costModels?: import("./chargingCosts.ts").CostBusinessResult[];
   siaBreakdown?: import("./siaModel.ts").SIABalance;
   poeRoute?: import("./poeRoute.ts").PoeRouteResult;
+  pvAnalysis?: import("./pvAnalysis.ts").PVAnalysis;
 }
 export interface CalculatorDefinition {
   id: string;

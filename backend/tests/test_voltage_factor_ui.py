@@ -14,7 +14,7 @@ def selected_tolerance(page, value):
 def test_short_circuit_tolerance_updates_numbers_and_preserves_saved_legacy_model(editor):
     page, _, _, _ = editor
     page.set_viewport_size({"width": 1600, "height": 1100})
-    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Zum Toolhub", exact=True).click()
     page.get_by_role("button", name="Berechnungen öffnen", exact=True).click()
     page.get_by_role("button", name="Kurzschlussstrom öffnen", exact=True).click()
     tolerance = selected_tolerance(page, "plus10")

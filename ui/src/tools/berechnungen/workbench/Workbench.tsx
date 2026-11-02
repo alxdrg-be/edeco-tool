@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Calculator } from "lucide-react";
+import { Calculator, ListTree } from "lucide-react";
 import type { ToolProps } from "../../../toolbox/modules";
 import { useProjectHub } from "../../projektzentrale/projectHubState";
 import { downloadBlob } from "../../planlieferung/DeliveryHistory";
@@ -13,6 +13,7 @@ import { hasTechnicalGraphic } from "./TechnicalGraphics";
 import { fieldOptions, optionsWithProjectValue } from "../electricalOptions";
 import { calculationExplanation } from "./explanations";
 import { migrateWorkbenchInputs } from "./migrateInputs";
+import { editNinInstallationInput, ninMethodOptions } from './installationMethodChoices';
 import PlanningControls from "./PlanningControls";
 import SIATableControls from "./SIATableControls";
 import PoeRouteControls from "./PoeRouteControls";
@@ -29,6 +30,24 @@ const BREAKER_CHARACTERISTICS: Record<string, { range: string; uses: string; sta
   Z: { range: "2–3 × Iₙ", uses: "Empfindliche elektronische Lasten.", standard: "Herstellerspezifischer Bereich; konkrete Gerätekennlinie prüfen." },
 };
 
+function structureSummary(id: string, input: Inputs): string {
+  const rows = (key: string): Record<string, unknown>[] => {
+    const value: unknown = JSON.parse(input[key]);
+    if (!Array.isArray(value)) throw new Error("Positionsliste prüfen");
+    return value;
+  };
+  try {
+    if (id === "premium-pkw") { const grids = rows("grids"); return `${grids.length} Grids · ${grids.reduce((sum, grid) => sum + (Array.isArray(grid.groups) ? grid.groups.length : 0), 0)} Punktgruppen`; }
+    if (id === "premium-lkw") return `${rows("depotUnits").length} Power Units · ${rows("depotPoints").length} Abgabepunkte`;
+    if (id === "premium-ladekosten") return `${rows("costRows").length} Kostenpositionen`;
+    if (id === "premium-selektivitaet") return `${rows("selectivityStages").length} Schutzstufen`;
+    if (id === "premium-poe") return `${rows("poeSegments").length} Teilstrecken`;
+    if (id === "premium-sia2056") return `${rows("siaZones").length} Zonen`;
+    if (id === "premium-brandlast" && input.comparisonEnabled !== "no") return `${rows("fireloadRows").length} Positionen A · ${rows("fireloadRowsAfter").length} Positionen B`;
+    return `${rows("fireloadRows").length} Kabelpositionen`;
+  } catch { return "Positionsliste prüfen"; }
+}
+
 export default function Workbench({ calculatorId, ...props }: ToolProps & { calculatorId: string }) {
   const definition = CALCULATORS.find(item => item.id === calculatorId);
   if (!definition) return <div role="alert">Unbekannter Rechner.</div>;
@@ -41,6 +60,7 @@ function CalculatorForm({ definition, ...props }: ToolProps & { definition: (typ
   const [project, setProject] = useState<ArchiveProject | null>(null), [ready, setReady] = useState(false);
   const [help, setHelp] = useState<Help | null>(null), [storageError, setStorageError] = useState(""), [restoreError, setRestoreError] = useState("");
   const loaded = useRef(false), key = `edeco.workbench.v1.${definition.id}.${project?.id || project?.number || "unassigned"}`;
+  const positions = useRef<HTMLDetailsElement>(null);
   useEffect(() => {
     if (!hub || loaded.current) return; loaded.current = true;
     const restored = consumeRestore(definition.id), chosen = restored?.project ?? (active ? { id: active.id, number: active.number, name: active.name } : null);
@@ -59,17 +79,18 @@ function CalculatorForm({ definition, ...props }: ToolProps & { definition: (typ
   const visibleFields = definition.fields.filter(field => !["grids", "depotUnits", "depotPoints", "costRows", "siaZones", "poeSegments", "fireloadRows", "fireloadRowsAfter", "selectivityStages", "chargingSourceConnection"].includes(field.key) && (!field.visibleWhen || field.visibleWhen.every(condition => condition.values.includes(input[condition.key]))));
   if (definition.id === "ls-schalter") visibleFields.sort((a, b) => (a.key === "rated" ? -1 : b.key === "rated" ? 1 : 0));
   const choices = Object.fromEntries(definition.fields.map(field => [field.key, field.options ?? fieldOptions(definition.id, field.key) ?? []]));
+  if (definition.id === 'nin-kabelrechner') choices.method = ninMethodOptions(['single', 'multi'].includes(input.conductorKind) ? input.conductorKind : 'all');
   const groups = Array.from(new Set(visibleFields.map(field => field.group ?? "Eingaben")));
   const positionEditor = definition.id === "premium-selektivitaet" && input.selectivityMode === "stages" ? { title: "Schutzstufen und Zuleitungen bearbeiten", content: <SelectivityControls input={input} onChange={editField} disabled={!ready} /> }
     : definition.id === "premium-sia2056" && input.siaMode === "manual" ? { title: "Zonen und Verbraucher bearbeiten", content: <SIATableControls input={input} onChange={editField} disabled={!ready} /> }
     : definition.id === "premium-poe" && input.poeRouteMode === "published" ? { title: "PoE-Teilstrecken bearbeiten", content: <PoeRouteControls input={input} onChange={editField} disabled={!ready} /> }
     : definition.id === "brandlast" && input.fireloadMode === "dynamic" ? { title: "Kabelpositionen bearbeiten", content: <FireLoadControls input={input} onChange={editField} disabled={!ready} /> }
-    : definition.id === "premium-brandlast" && input.fireloadMode === "dynamic" ? { title: "Kabelpositionen vorher / nachher bearbeiten", content: <><FireLoadControls input={input} onChange={editField} disabled={!ready} lengthKey="route" title="Vorher" /><FireLoadControls input={input} onChange={editField} disabled={!ready} rowsKey="fireloadRowsAfter" lengthKey="route" title="Nachher" /></> }
+    : definition.id === "premium-brandlast" && input.fireloadMode === "dynamic" ? { title: input.comparisonEnabled === "no" ? "Kabelpositionen Variante A bearbeiten" : "Kabelpositionen vorher / nachher bearbeiten", content: <><FireLoadControls input={input} onChange={editField} disabled={!ready} lengthKey="route" title={input.comparisonEnabled === "no" ? "Variante A" : "Vorher"} />{input.comparisonEnabled !== "no" && <FireLoadControls input={input} onChange={editField} disabled={!ready} rowsKey="fireloadRowsAfter" lengthKey="route" title="Nachher" />}</> }
     : definition.id === "premium-pkw" && input.layout === "modular" ? { title: "Ladegrids und Punktgruppen bearbeiten", content: <PlanningControls calculatorId={definition.id} input={input} onChange={editField} disabled={!ready} /> }
     : definition.id === "premium-lkw" && input.depotLayout === "modular" ? { title: "Power Units und Abgabepunkte bearbeiten", content: <PlanningControls calculatorId={definition.id} input={input} onChange={editField} disabled={!ready} /> }
     : definition.id === "premium-ladekosten" && input.costLayout === "contracts" ? { title: "Ladepunkte und Kostenpositionen bearbeiten", content: <PlanningControls calculatorId={definition.id} input={input} onChange={editField} disabled={!ready} /> } : null;
   function editField(key: string, value: string) {
-    setInput(old => ({ ...old, [key]: value, ...(definition.id === "poe" && key === "type" && value !== "manual" ? { voltage: ["1", "2"].includes(value) ? "48" : "53" } : {}) }));
+    setInput(old => definition.id === 'nin-kabelrechner' ? editNinInstallationInput(old, key, value) : ({ ...old, [key]: value, ...(definition.id === "poe" && key === "type" && value !== "manual" ? { voltage: ["1", "2"].includes(value) ? "48" : "53" } : {}) }));
   }
   function choiceField(key: string, label: string) {
     const options = optionsWithProjectValue(choices[key], input[key]);
@@ -79,15 +100,22 @@ function CalculatorForm({ definition, ...props }: ToolProps & { definition: (typ
     }
     return <ChoiceCards id={`wb-${key}`} fieldKey={key} label={label} value={input[key]} disabled={!ready} options={options} onChange={value => editField(key, value)} />;
   }
+  function openPositions() {
+    if (!positions.current) return;
+    positions.current.open = true;
+    positions.current.querySelector("summary")?.focus();
+    positions.current.scrollIntoView({ block: "start", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+  }
   const calculationReport = result ? workbenchReport(definition, input, result, notes, project) : null;
   const foundation = <><p>{definition.scope}</p>{result && <><code>{result.formula}</code><ul>{result.limitations.map(item => <li key={item}>{item}</li>)}</ul></>}<p>Tabellenwerte, Herstellergrenzen und projektabhängige Faktoren sind anhand der zum Projekt passenden Normausgabe, Datenblätter und Nachweise zu bestätigen. Beispielwerte sind keine fachliche Freigabe.</p></>;
   return <LabShell {...props} knowledgeId={definition.id} title={definition.title} subtitle={`${calculationNorm(definition.id, input)}${project ? ` · ${project.number} · ${project.name}` : ""}`} help={help} setHelp={setHelp} canExport={Boolean(ready && result)} pdfReport={calculationReport} archive={{ toolId: definition.id, project, notes, document }} exportData={() => downloadBlob(new Blob([JSON.stringify(document, null, 2)], { type: "application/json" }), `${definition.id.replace("premium-", "")}.json`)} report={<><h2>{definition.title}</h2><h3>Eingaben des Rechenstands</h3><table><thead><tr><th>Parameter</th><th>Wert</th></tr></thead><tbody>{calculationReport?.inputs.map((row, index) => <tr key={index}><td>{row.label}</td><td>{row.value}</td></tr>)}</tbody></table>{foundation}<p>Notizen: {notes}</p></>}>
-    {positionEditor && <details className="wb-position-editor"><summary>{positionEditor.title}<span>Positionsliste öffnen</span></summary><div className="wb-position-content">{positionEditor.content}</div></details>}
+    {positionEditor && <details className="wb-position-editor" ref={positions}><summary><ListTree size={18} aria-hidden="true" /><span className="wb-structure-title">{positionEditor.title}<small>{structureSummary(definition.id, input)}</small></span><span>Bearbeiten</span></summary><div className="wb-position-content">{positionEditor.content}</div></details>}
     <div className="lab-bento wb-layout"><section className={`wb-results ${result && (result.diagram || result.charging || result.chargingNetwork || result.depotNetwork || result.siaBreakdown || result.poeRoute || result.series?.length || result.comparisons?.length || hasTechnicalGraphic(definition.id, result)) ? "wb-has-graphic" : ""}`} aria-label="Berechnungsergebnis"><div className="wb-result-heading"><span><Calculator size={17} /> Live-Auswertung</span><InfoButton title="Berechnungsgrundlagen" onClick={() => setHelp({ title: "Berechnungsgrundlagen", content: foundation })} /></div>
       <Explanation className="wb-reading-guide" title="Ergebnis verstehen"><p>{calculationExplanation(definition.id, input)}</p></Explanation>
       {result ? <ResultView result={result} calculatorId={definition.id} input={input} /> : <div className="lab-error" role="alert">{error}</div>}
       <Explanation className="wb-foundations" title="Formel, Quellen & Voraussetzungen">{foundation}<KnowledgeLink calculatorId={definition.id} onOpenTool={props.onOpenTool}>Grundlagen im Wissens-Hub</KnowledgeLink></Explanation>
     </section><section className="lab-controls wb-controls" aria-label="Rechnereingaben"><div className="lab-control-heading"><h2>Parameter</h2><button className="lab-open" onClick={() => { setInput(defaults(definition)); setRestoreError(""); }} disabled={!ready}>Beispielwerte</button></div>
+      {positionEditor && <button type="button" className="wb-structure-entry" onClick={openPositions}><ListTree size={17} aria-hidden="true" /><span>Struktur bearbeiten<small>{structureSummary(definition.id, input)}</small></span></button>}
       {groups.map((group, i) => <details className="wb-field-group" open={i === 0} key={group}><summary>{group}</summary>{visibleFields.filter(field => (field.group ?? "Eingaben") === group).map(field => <div className="wb-field" key={field.key}><div><label htmlFor={`wb-${field.key}`}>{field.label}{field.unit ? ` (${field.unit})` : ""}</label><InfoButton title={`${group} · ${field.label}`} onClick={() => setHelp({ title: field.label, content: <><p>{field.help}</p>{foundation}</> })} /></div>{(field.kind === "select" || choices[field.key].length > 0) ? choiceField(field.key, field.label) : <input id={`wb-${field.key}`} data-field-key={field.key} type="text" inputMode={field.kind === "text" ? "text" : "decimal"} autoComplete="off" maxLength={field.kind === "text" ? 180 : 24} value={input[field.key]} disabled={!ready} onChange={event => editField(field.key, event.target.value)} />}</div>)}</details>)}
       <label className="lab-label" htmlFor="wb-notes">Notizen / Grundlagenverweis</label><textarea id="wb-notes" aria-label="Berechnungsnotizen" value={notes} maxLength={10000} rows={3} onChange={event => setNotes(event.target.value)} />{storageError && <p role="alert" className="lab-error">{storageError}</p>}
     </section></div>

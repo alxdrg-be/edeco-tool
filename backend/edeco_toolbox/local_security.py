@@ -21,7 +21,7 @@ from starlette.types import ASGIApp, Receive, Scope, Send
 SESSION_HEADER = "X-Edeco-Session"
 SAFE_METHODS = frozenset({"GET", "HEAD", "OPTIONS"})
 LOCAL_HOST = re.compile(r"^(127\.0\.0\.1|localhost)(?::([0-9]{1,5}))?$", re.I)
-FORBIDDEN = "Die Anfrage bitte direkt in der lokalen edeco Toolbox ausführen."
+FORBIDDEN = "Die Anfrage bitte direkt im lokalen edeco Toolhub ausführen."
 
 
 class LocalSession:

@@ -19,7 +19,7 @@ from test_editor_navigation import editor, env, playwright  # noqa: F401 - share
 ])
 def test_calculator_sources_are_in_collapsed_knowledge_section(editor, tool_id, reference):
     page, _, _, _ = editor
-    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Zum Toolhub", exact=True).click()
     page.evaluate("tool => { location.hash = `rechner/${tool}`; }", tool_id)
     playwright.expect(page.get_by_role("button", name="Ergebnis als JSON sichern", exact=True)).to_be_enabled()
     playwright.expect(page.locator('a[href*="elektro-rechner.ch"]')).to_have_count(0)

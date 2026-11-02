@@ -64,3 +64,19 @@ test("saved short-circuit inputs retain cmax 1.05 until their voltage tolerance 
   assert.equal(migrated("kurzschlussstrom", { voltageTolerance: "" }).input.voltageTolerance, "");
   assert.throws(() => migrated("kurzschlussstrom", { voltageTolerance: 1.1 }), /Zeichenfolge/);
 });
+
+test('saved variable selectivity stages retain their original voltage factor until explicitly changed',()=>{
+  const {definition,input}=migrated('premium-selektivitaet',{selectivityMode:'stages',sourceIk:'10'});
+  assert.equal(input.selectivityMode,'stages');assert.equal(input.voltageTolerance,'legacy');
+  assert.equal(defaults(definition).voltageTolerance,'plus10');
+  assert.match(definition.calculate(input).status.text,/Altstand/);
+  assert.equal(migrated('premium-selektivitaet',{selectivityMode:'stages',voltageTolerance:'plus10'}).input.voltageTolerance,'plus10');
+});
+
+test("saved dynamic fire comparisons retain both states while new calculations start with one variant",()=>{
+  const old=migrated("premium-brandlast",{fireloadMode:"dynamic",fireloadRows:"[]",fireloadRowsAfter:"[]"});
+  assert.equal(old.input.comparisonEnabled,"yes");
+  assert.equal(defaults(old.definition).comparisonEnabled,"no");
+  assert.equal(migrated("premium-brandlast",{comparisonEnabled:"no"}).input.comparisonEnabled,"no");
+  assert.equal(migrated("premium-brandlast",{comparisonEnabled:""}).input.comparisonEnabled,"");
+});

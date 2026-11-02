@@ -16,7 +16,7 @@ const legacy:CalculatorDefinition={
   calculate(input) {return {metrics:[{label:"Legacy-Zahl",value:number(input,"countBefore1","Anzahl",0,1000,true)}],status:{tone:"neutral",text:"Bestandsrechnung"},formula:`Bestand ${input.countBefore1}`,limitations:["Manuelle Bestandsdaten"]};},
 };
 const definition=createFireComparisonDefinition(legacy);
-const calculate=(patch:Inputs={})=>definition.calculate({...defaults(definition),...patch});
+const calculate=(patch:Inputs={})=>definition.calculate({...defaults(definition),comparisonEnabled:"yes",...patch});
 const metric=(result:CalculationResult,label:string)=>{const value=result.metrics.find(item=>item.label===label)?.value;assert.notEqual(value,undefined,label);return value;};
 const close=(value:unknown,expected:number)=>{assert.equal(typeof value,"number");assert.ok(Math.abs((value as number)-expected)<1e-9,`${value} != ${expected}`);};
 const rows=(prefix:string,values:readonly (readonly [string,string,string])[],evidence:FireLoadRow["evidence"]="documented")=>JSON.stringify(values.map(([mjPerMeter,quantity,length],index)=>({id:`${prefix}-${index+1}`,name:`Kabel ${index+1}`,mjPerMeter,quantity,length,evidence})));
@@ -24,6 +24,7 @@ const rows=(prefix:string,values:readonly (readonly [string,string,string])[],ev
 test("fresh comparisons preserve the calculator ID and hide independent legacy fields without mutating them",()=>{
   assert.equal(definition.id,"premium-brandlast");
   assert.equal(defaults(definition).fireloadMode,"dynamic");
+  assert.equal(defaults(definition).comparisonEnabled,"no");
   assert.equal(legacy.fields.find(field=>field.key==="countBefore1")?.visibleWhen,undefined);
   assert.deepEqual(definition.fields.find(field=>field.key==="countBefore1")?.visibleWhen,[{key:"fireloadMode",values:["legacy"]}]);
   assert.deepEqual(definition.fields.find(field=>field.key==="limit")?.visibleWhen,[{key:"routeType",values:["horizontal"]}]);
@@ -104,4 +105,23 @@ test("legacy calculation retains its original fields and ignores hidden new JSON
   const input={...defaults(definition),fireloadMode:"legacy",countBefore1:"37",fireloadRows:"broken",fireloadRowsAfter:"broken"};
   assert.deepEqual(definition.calculate(input),legacy.calculate(input));
   assert.throws(()=>definition.calculate({...input,countBefore1:""}));
+});
+
+test("a new single variant does not invent an empty after-state or inspect hidden B values",()=>{
+  const input={...defaults(definition),fireloadRows:rows("a",[["2","3","20"]]),fireloadRowsAfter:"not JSON"};
+  const result=definition.calculate(input);
+  close(metric(result,"Brandlast total"),120);
+  close(metric(result,"Brandlast bezogen auf Fluchtweg"),6);
+  assert.equal(result.metrics.some(item=>["Nachher","Reduktion","Kabel nachher"].includes(item.label)),false);
+  assert.ok(result.rows?.some(row=>row.value==="Variante A ohne Vergleich"));
+  assert.equal(input.fireloadRowsAfter,"not JSON");
+  assert.throws(()=>definition.calculate({...input,comparisonEnabled:"yes"}));
+  assert.throws(()=>definition.calculate({...input,comparisonEnabled:""}));
+});
+
+test("saved dynamic comparisons without the new switch retain both original states",()=>{
+  const input={...defaults(definition)};delete input.comparisonEnabled;
+  const result=definition.calculate(input);
+  close(metric(result,"Vorher"),50);
+  close(metric(result,"Nachher"),15);
 });

@@ -30,7 +30,7 @@ def test_packaged_workshop_preview_merge_branding_and_licenses():
         for title in ('NOVA-Legenden', 'BIM2STEIGER', 'Dokumenten-Assistent'):
             page.get_by_role('button', name=title + ' öffnen', exact=True).click()
             expect(page.locator('.tool-header')).to_be_visible()
-            expect(page.get_by_role('img', name='edeco ag', exact=True)).to_have_count(1)
+            expect(page.get_by_role('img', name='edeco Toolhub', exact=True)).to_have_count(1)
             if title == 'NOVA-Legenden':
                 expect(page.get_by_role('heading', name='Deine Projekte', exact=True)).to_be_visible()
             if page.get_by_role('button', name='Heller Modus', exact=True).is_visible():
@@ -47,14 +47,14 @@ def test_packaged_workshop_preview_merge_branding_and_licenses():
                 expect(bim.locator('#homeView')).to_be_visible()
                 bim_frame = next(child for child in page.frames if '/tools/bim2steiger/' in child.url)
                 bim_frame.wait_for_function('window.edecoToolbox && pendingToolRequests === 0')
-            page.get_by_role('button', name='← Zur Toolbox', exact=True).click()
+            page.get_by_role('button', name='Zum Toolhub', exact=True).click()
             expect(page.get_by_role('button', name=title + ' öffnen', exact=True)).to_be_visible()
         page.get_by_role('button', name='PDF-Werkstatt öffnen', exact=True).click()
         expect(page.get_by_text('Offline bereit · auf diesem Computer')).to_be_visible(timeout=180000)
         frame = page.frame_locator("iframe[title='Stirling-PDF · edeco PDF-Werkstatt']")
         picker = frame.locator('input[type=file]').first
         picker.wait_for(state='attached', timeout=60000)
-        expect(page.get_by_role('img', name='edeco ag', exact=True)).to_have_count(1)
+        expect(page.get_by_role('img', name='edeco Toolhub', exact=True)).to_have_count(1)
         expect(frame.locator('.sui-logo').first).to_be_hidden()
         expect(frame.locator('.sui-brandmark').first).to_be_hidden()
         for mode in ('dark', 'light'):

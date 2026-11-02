@@ -28,7 +28,7 @@ log = logging.getLogger(__name__)
 
 
 def create_app(root: Path = ROOT) -> FastAPI:
-    app = FastAPI(title="BIM2STEIGER · edeco Toolbox")
+    app = FastAPI(title="BIM2STEIGER · edeco Toolhub")
     catalogue = core.Catalogue(root / "data" / "catalogue.sqlite")
     app.state.catalogue = catalogue
     version = json.loads((root / "version.json").read_text(encoding="utf-8"))
@@ -90,7 +90,7 @@ def create_app(root: Path = ROOT) -> FastAPI:
 
     def updates():
         return {"current": version, "status": "current", "installed": False,
-                "message": "Updates werden gemeinsam für die edeco Toolbox bereitgestellt.",
+                "message": "Updates werden gemeinsam für den edeco Toolhub bereitgestellt.",
                 "can_install": False, "checked_at": None, "managed_by_toolbox": True}
 
     app.get("/api/updates")(updates)
@@ -99,7 +99,7 @@ def create_app(root: Path = ROOT) -> FastAPI:
         if operation == "updates/check":
             return updates()
         if operation == "updates/install":
-            return failure("Bitte die gesamte edeco Toolbox aktualisieren.", 409)
+            return failure("Bitte den gesamten edeco Toolhub aktualisieren.", 409)
         if operation == "import":
             if body.get("content_base64"):
                 try:

@@ -30,7 +30,7 @@ export function KnowledgeLink({ calculatorId, onOpenTool, children }: {
     event.preventDefault();
     openKnowledge(onOpenTool, calculatorId);
   }
-  return <a className="lab-knowledge-link" href={`#wissen${topic ? `/${topic}` : ""}`} onClick={open}>
-    <BookOpen size={16} aria-hidden="true" />{children ?? "Wissens-Hub"}<ArrowUpRight size={14} aria-hidden="true" />
+  return <a className="lab-knowledge-link" aria-label={children ? undefined : "Wissens-Hub"} title={children ? undefined : "Wissens-Hub"} href={`#wissen${topic ? `/${topic}` : ""}`} onClick={open}>
+    <BookOpen size={16} aria-hidden="true" /><span>{children ?? "Wissens-Hub"}</span><ArrowUpRight size={14} aria-hidden="true" />
   </a>;
 }

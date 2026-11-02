@@ -5,7 +5,7 @@ import { request, sourceLabel, ROOT, type Answer, type DocumentInfo, type Docume
 import Settings from "./Settings";
 import "./documents.css";
 
-export default function DocumentAssistant({ onHome }: ToolProps) {
+export default function DocumentAssistant({ onHome, onOpenTool }: ToolProps) {
   const [library, setLibrary] = useState<LibraryState | null>(null);
   const [selected, setSelected] = useState<string[]>([]);
   const [edition, setEdition] = useState("");
@@ -121,7 +121,7 @@ export default function DocumentAssistant({ onHome }: ToolProps) {
   const highlighted = (number: number) => Boolean(source && page && source.document_id === page.document.id && source.page === page.number && number >= source.start_line && number <= source.end_line);
 
   return <div className="document-assistant">
-    <ToolHeader title="Dokumenten-Assistent" onHome={onHome} disabled={busy === "upload" || busy === "delete"}>
+    <ToolHeader title="Dokumenten-Assistent" onHome={onHome} onOpenTool={onOpenTool} disabled={busy === "upload" || busy === "delete"}>
       <button className="btn" disabled={!library || Boolean(busy)} onClick={() => setSettingsOpen(true)}>KI-Verbindung</button>
     </ToolHeader>
     <div className="doc-workspace">
@@ -133,7 +133,7 @@ export default function DocumentAssistant({ onHome }: ToolProps) {
         <label className={`btn doc-add ${busy ? "is-disabled" : ""}`}>{busy === "upload" ? "Dokumente werden eingelesen …" : "+ Dokumente hinzufügen"}
           <input ref={upload} type="file" accept=".pdf,.txt,.md" multiple disabled={!library || Boolean(busy)}
             aria-label="Dokumente hinzufügen" onChange={e => void addFiles(e.target.files)} /></label>
-        <p className="doc-help">Max. 100 MB und 2000 PDF-Seiten pro Datei. Originale werden im persönlichen Toolbox-Datenordner aufbewahrt.</p>
+        <p className="doc-help">Max. 100 MB und 2000 PDF-Seiten pro Datei. Originale werden im persönlichen Toolhub-Datenordner aufbewahrt.</p>
         {!documents.length && <div className="doc-empty-library">Füge dein erstes Dokument hinzu. Danach kannst du Fundstellen suchen und Fragen stellen.</div>}
         <div className="doc-document-list">{documents.map(doc => <article key={doc.id} className="doc-document">
           <label className="doc-checkbox"><input type="checkbox" checked={selected.includes(doc.id)}
@@ -145,7 +145,7 @@ export default function DocumentAssistant({ onHome }: ToolProps) {
           <div className="doc-document-actions"><button className="btn" disabled={Boolean(busy)} onClick={() => void openPage(doc.id, 1)}>Ansehen</button>
             <button className="btn" disabled={Boolean(busy)} onClick={() => setDeleting(doc.id)}>Entfernen</button></div>
           {deleting === doc.id && <div className="doc-delete" role="group" aria-label={`${doc.title} entfernen`}>
-            <p>Dieses Dokument und seinen Suchindex aus der Toolbox entfernen? Die ursprüngliche Datei ausserhalb der Toolbox bleibt erhalten.</p>
+            <p>Dieses Dokument und seinen Suchindex aus dem Toolhub entfernen? Die ursprüngliche Datei ausserhalb des Toolhubs bleibt erhalten.</p>
             <button className="btn danger" disabled={Boolean(busy)} onClick={() => void remove(doc.id)}>Jetzt entfernen</button>
             <button className="btn" disabled={Boolean(busy)} onClick={() => setDeleting(null)}>Abbrechen</button>
           </div>}

@@ -2,6 +2,8 @@ import { integer, number, type Inputs, type SeriesItem } from "./types.ts";
 
 export interface CostPointInput { id:string;label:string;preset?:string;kind:"ac"|"dc";count:string;commission:string;power:string;hardware:string;installation:string;basis:string;annualEnergy:string;replacement:string }
 export interface CostBusinessResult { id:"V1"|"V2"|"V3"|"V4";label:string;selected:boolean;initial:number;replacement:number;capex:number;annual:number;opex:number;total:number;averagePerPointYear:number;series:SeriesItem[] }
+// Four reference classes across all 15 investment years require 60 cohorts.
+export const COST_MAX_ROWS = 64;
 export const COST_MODEL_OPTIONS=[{value:"V1",label:"V1 · Eigenständiger Betrieb"},{value:"V2",label:"V2 · Betriebscontracting"},{value:"V3",label:"V3 · Stations-Contracting"},{value:"V4",label:"V4 · Vollständiges Contracting"}] as const;
 export const COST_POINT_PRESETS = [
   {id:"ac",label:"11–22 kW AC",kind:"ac",power:"11",hardware:"2000",installation:"750",basis:"2300",annualEnergy:"3500",replacement:"2750"},
@@ -17,7 +19,7 @@ export function defaultCostRows():CostPointInput[]{return COST_POINT_PRESETS.map
 const numeric=(value:unknown,label:string,max=1e9,zero=false)=>number({value:typeof value==="number"?String(value):typeof value==="string"?value:""},"value",label,0,max,zero);
 export function parseCostRows(raw:string,editing=false):CostPointInput[]{
   let rows:unknown;try{rows=JSON.parse(raw);}catch{throw new Error("Kostenpositionen: gültige gespeicherte Liste erforderlich.");}
-  if(!Array.isArray(rows)||!rows.length||rows.length>24)throw new Error("1 bis 24 Ladepunkt-Kostenpositionen erfassen.");
+  if(!Array.isArray(rows)||!rows.length||rows.length>COST_MAX_ROWS)throw new Error(`1 bis ${COST_MAX_ROWS} Ladepunkt-Kostenpositionen erfassen.`);
   const ids=new Set<string>();
   return rows.map((row,index)=>{if(!row||typeof row!=="object"||Array.isArray(row))throw new Error(`Kostenposition ${index+1}: gültige Daten erforderlich.`);const value=row as Record<string,unknown>;if(typeof value.id!=="string"||!value.id||ids.has(value.id))throw new Error("Kostenpositionen benötigen eindeutige IDs.");ids.add(value.id);if(typeof value.label!=="string"||(!editing&&!value.label.trim())||value.label.length>60)throw new Error("Kostenposition: Bezeichnung mit 1 bis 60 Zeichen eingeben.");if(!["ac","dc"].includes(String(value.kind)))throw new Error("Kostenposition: AC oder DC wählen.");return value as unknown as CostPointInput;});
 }

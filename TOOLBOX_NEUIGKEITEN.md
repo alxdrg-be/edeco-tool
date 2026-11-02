@@ -1,3 +1,14 @@
+## edeco Toolhub · gemeinsame Oberfläche und Rechnerergänzungen · 2. November 2026
+
+- Neuer Name und neues Hub-Logo. Gemeinsame Kopfzeile, Schrift und Farbgrundlagen in allen Werkzeugen; „EDECO Engineering“ entfernt.
+- Sichtbarer Button „Zum Toolhub“ und direkter Werkzeug-/Rechnerwechsel mit Suche. Bestehende Speicher- und Rückfragedialoge bleiben wirksam.
+- Projektauswahl und Kopfzeilenbuttons gleich hoch; Suche und Kategorien zusammengefasst. Acht verfügbare Hauptwerkzeuge haben eigene Akzentfarben.
+- NIN-Kabelvorprüfung mit Einadrig-/Mehradrig-Führung und verständlichen Verlegearten. Selektivitätskette mit wählbarer Spannungstoleranz und gekennzeichneten Altständen.
+- Eigene kW-Werte direkt in Ladegrids, Power Units und Abgabepunkten eingebbar. Kostenplaner auf 64 Positionen erweitert; die 60 Ausbaukohorten der Referenz passen hinein.
+- PV mit aufklappbarer Sensitivität, Ertrags- und Tarifhistoriengrafik sowie optionalem CO₂-Projektvergleich. Brandlast-Variante B ist optional; bestehende Vergleiche bleiben erhalten.
+- Planlieferung mit klarer Schrittfolge und eingeklappter Namensvorlage. Mobile Export- und Speicheraktionen liegen in einem kompakten Aktionsmenü.
+- Frischer Quellenabgleich mit geöffneten Auswahlfeldern, FAQ und Erweiterungen dokumentiert. Netzplaner weiterhin vereinfachtes TN-Modell; zusätzliche Netzformen und Verbrauchervorgaben der Quelle bleiben als Unterschiede ausgewiesen.
+
 ## Lokale Absicherung und geprüfte Rechenfaktoren · 2. November 2026
 
 - 26 Rechner mit Wissens-Hub, kompakten Dropdowns und direkt wählbaren LS-Charakteristiken. Ausführliche Erklärungen bleiben aufklappbar.

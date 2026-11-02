@@ -8,7 +8,7 @@ from test_editor_navigation import editor, env, playwright  # noqa: F401 - share
 
 
 def open_network(page):
-    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Zum Toolhub", exact=True).click()
     page.get_by_role("button", name="Berechnungen öffnen", exact=True).click()
     playwright.expect(page.locator(".calc-tile")).to_have_count(26)
     page.get_by_role("button", name="Netzplaner (Beta) öffnen", exact=True).click()

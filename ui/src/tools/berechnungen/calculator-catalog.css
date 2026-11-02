@@ -75,3 +75,9 @@
 @media(max-width:540px){.knowledge-topic-grid{grid-template-columns:minmax(0,1fr)}.knowledge-section summary{font-size:14px}.knowledge-breadcrumb{font-size:12px}}
 @media(prefers-reduced-motion:reduce){.knowledge-hub *,.calc-catalog *{transition:none!important;animation:none!important}}
 @media print{.knowledge-search,.knowledge-breadcrumb,.knowledge-related{display:none}.knowledge-article-layout{display:block}.knowledge-section>div{display:block!important}.knowledge-section{break-inside:avoid}}
+
+/* Align overview headings, filters and cards to a single content edge. */
+.lab-main:has(>.calc-catalog),.lab-main:has(>.knowledge-hub){max-width:1380px}
+.calc-catalog,.knowledge-hub{max-width:none;margin-inline:0}
+.calc-shortcuts{justify-content:flex-start;align-items:center;gap:12px;margin-bottom:28px}.calc-shortcuts>div{gap:8px}
+.calc-catalog .lab-tile{padding:20px;border-radius:14px}.calc-catalog .calc-card-top{margin-bottom:16px}.calc-catalog .lab-tile h2{font-size:17px;margin-bottom:7px}.calc-catalog .lab-tile p{font-size:13px;line-height:1.6;margin-bottom:12px}.calc-catalog .lab-tile>.lab-open::after{border-radius:14px}

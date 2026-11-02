@@ -7,6 +7,7 @@ export type ChargingMode = "none" | "static" | "dynamic";
 export interface StationGroupInput {
   id: string; label: string; kind: ChargingKind; count: string; power: string;
   phase: "auto" | "1" | "2" | "3"; efficiency: string; minimum: string;
+  powerMode?: "preset" | "custom";
   factorMode: "manual" | "curve"; factor: string; userClass: "residents" | "visitors" | "transit";
 }
 export interface ChargingGridInput { id: string; label: string; amps: string; groups: StationGroupInput[]; mode?:ChargingMode|"inherit"; factorMode?:"group"|"manual"|"curve"; factor?:string; userClass?:"residents"|"visitors"|"transit" }
@@ -58,7 +59,7 @@ export function parseChargingGrids(raw: string, editing = false): ChargingGridIn
       if (!record(group)) throw new Error(`${label}, Gruppe ${j+1}: gültige Gruppe erforderlich.`);
       const groupId = text(group.id,"Gruppen-ID");
       if (groupIds.has(groupId)) throw new Error(`${label}: Gruppen-IDs müssen eindeutig sein.`); groupIds.add(groupId);
-      return { ...group, id:groupId, label:editing && typeof group.label === "string" ? group.label : text(group.label,"Gruppenbezeichnung"), kind:choose(group.kind,["ac1","ac3","dc"],"Ladeart"), phase:choose(group.phase,["auto","1","2","3"],"Phasenwahl") } as unknown as StationGroupInput;
+      return { ...group, id:groupId, label:editing && typeof group.label === "string" ? group.label : text(group.label,"Gruppenbezeichnung"), kind:choose(group.kind,["ac1","ac3","dc"],"Ladeart"), phase:choose(group.phase,["auto","1","2","3"],"Phasenwahl"),...(group.powerMode===undefined?{}:{powerMode:choose(group.powerMode,["preset","custom"],"Leistungsauswahl")}) } as unknown as StationGroupInput;
     });
     return { id,label,amps:typeof grid.amps === "number" ? String(grid.amps) : grid.amps as string,groups,...(grid.mode===undefined?{}:{mode:choose<ChargingMode|"inherit">(grid.mode,["inherit","none","static","dynamic"],"Grid-Lastmanagement")}),...(grid.factorMode===undefined?{}:{factorMode:choose<"group"|"manual"|"curve">(grid.factorMode,["group","manual","curve"],"Grid-Faktorgrundlage")}),...(grid.factor===undefined?{}:{factor:grid.factor as string}),...(grid.userClass===undefined?{}:{userClass:grid.userClass as "residents"|"visitors"|"transit"}) };
   });
@@ -90,6 +91,8 @@ export function calculateChargingNetwork(input: Inputs): ChargingNetworkResult {
       if (!Number.isInteger(count)) throw new Error(`${grid.label}: ganze Anzahl Ladepunkte eingeben.`);
       if (stations.length + count > 2000) throw new Error("Das gemischte Modell unterstützt höchstens 2000 Ladepunkte pro Rechenstand.");
       const power = numeric(group.power,`${grid.label} · Ladeleistung`,5000);
+      const customPower=group.powerMode==="custom"||!CHARGING_POWER_CHOICES[group.kind].includes(power);
+      const samePowerGroup=(other:StationGroupInput)=>other.kind===group.kind&&Number(String(other.power).replace(',','.'))===power&&(other.powerMode==="custom"||!CHARGING_POWER_CHOICES[other.kind].includes(Number(String(other.power).replace(',','.'))))===customPower;
       const efficiency = group.kind === "dc" ? numeric(group.efficiency,`${grid.label} · DC-Wirkungsgrad`,1) : 1;
       const uncapped=gridMode==="none"||grid.mode==="static";
       const minimum = !uncapped && count > 0 ? numeric(group.minimum,`${grid.label} · Projekt-Mindestleistung`,power) : 0;
@@ -100,18 +103,18 @@ export function calculateChargingNetwork(input: Inputs): ChargingNetworkResult {
         const factorMode = choose(perGrid?grid.factorMode:group.factorMode,["manual","curve"],"Faktorgrundlage");
         if (factorMode === "manual") factor = numeric(perGrid?grid.factor:group.factor,`${grid.label} · Leistungsanteil`,1,true);
         else {
-          const curveCount=perGrid?grid.groups.filter(other=>other.kind===group.kind&&Number(String(other.power).replace(',','.'))===power).reduce((sum,other)=>sum+numeric(other.count,`${grid.label} · Gruppenanzahl`,1000,true),0):count;
+          const curveCount=perGrid?grid.groups.filter(samePowerGroup).reduce((sum,other)=>sum+numeric(other.count,`${grid.label} · Gruppenanzahl`,1000,true),0):count;
           const userClass=choose(perGrid?grid.userClass:group.userClass,["residents","visitors","transit"],"Anwenderklasse");
-          const observed = publishedEVFactor(userClass,curveCount,power,!CHARGING_POWER_CHOICES[group.kind].includes(power));
+          const observed = publishedEVFactor(userClass,curveCount,power,customPower);
           if (observed === null) throw new Error(`${group.label}: für diese Anwenderklasse und Ladeleistung ist keine veröffentlichte Referenzkurve hinterlegt. Manuellen Faktor wählen.`);
           factor = observed;
         }
       }
       let requestedCount = gridMode === "static" ? Math.ceil(count * factor) : count;
       if(gridMode==="static"&&perGridFactor){
-        const groupKey=`${group.kind}:${power}`;
+        const groupKey=`${group.kind}:${power}:${customPower?"custom":"preset"}`;
         if(!requestedPerPower.has(groupKey)){
-          const sameCount=grid.groups.filter(other=>other.kind===group.kind&&Number(String(other.power).replace(',','.'))===power).reduce((sum,other)=>sum+numeric(other.count,`${grid.label} · Gruppenanzahl`,1000,true),0);
+          const sameCount=grid.groups.filter(samePowerGroup).reduce((sum,other)=>sum+numeric(other.count,`${grid.label} · Gruppenanzahl`,1000,true),0);
           requestedPerPower.set(groupKey,Math.ceil(sameCount*factor));
         }
         requestedCount=Math.min(count,requestedPerPower.get(groupKey)!);
@@ -212,7 +215,7 @@ export function calculateDepotNetwork(input:Inputs):DepotNetworkResult {
   const unitInputs=parseDepotUnits(input.depotUnits),pointInputs=parseDepotPoints(input.depotPoints);
   const units:DepotUnitResult[]=unitInputs.map(unit=>{
     const modules=numeric(unit.modules,`${unit.label} · Module`,100);if(!Number.isInteger(modules))throw new Error(`${unit.label}: ganze Modulzahl eingeben.`);
-    const modulePower=numeric(unit.modulePower,`${unit.label} · Modulleistung`,2000),efficiency=numeric(unit.efficiency,`${unit.label} · Wirkungsgrad`,1),gridAmps=numeric(unit.gridAmps,`${unit.grid} · Vorsicherung`,10000),powerBasis=choose(unit.powerBasis??"dc",["ac","dc"],"Leistungsbezug der Power Unit");
+    const modulePower=numeric(unit.modulePower,`${unit.label} · Modulleistung`,5000),efficiency=numeric(unit.efficiency,`${unit.label} · Wirkungsgrad`,1),gridAmps=numeric(unit.gridAmps,`${unit.grid} · Vorsicherung`,10000),powerBasis=choose(unit.powerBasis??"dc",["ac","dc"],"Leistungsbezug der Power Unit");
     const unitMode=choose(unit.mode&&unit.mode!=="inherit"?unit.mode:mode,["none","static","dynamic"],"Grid-Lastmanagement");
     const factor=reference&&unitMode==="static"?numeric(unit.factor??input.depotReferenceFactor??"1","Statischer Gridfaktor",1,true):1;
     return{id:unit.id,label:unit.label,grid:unit.grid,gridAmps,modules,modulePower,efficiency,powerBasis,mode:unitMode,factor,capacityDC:modules*modulePower*(powerBasis==="ac"?efficiency:1),demandDC:0,assignedDC:0,acInputKW:0,overload:false};
@@ -290,7 +293,7 @@ export function planningReportInputs(calculatorId:string,input:Inputs):{label:st
       return [{label:grid.label,value:`Vorsicherung ${grid.amps} A · LM ${effectiveMode}${gridFactor}`},...grid.groups.map(group=>{
         const groupFactor=effectiveMode==="static"&&factorMode==="group"?` · ${group.factorMode==="curve"?`Referenzkurve ${group.userClass}`:`k ${group.factor}`}`:"";
         const minimum=effectiveMode!=="none"&&grid.mode!=="static"?` · Mindestleistung ${group.minimum} kW`:"";
-        return {label:`${grid.label} · ${group.label}`,value:`${group.count} × ${group.power} kW · ${group.kind.toUpperCase()}${group.kind==="ac1"?` · Phase ${group.phase}`:""}${group.kind==="dc"?` · η ${group.efficiency}`:""}${minimum}${groupFactor}`};
+        return {label:`${grid.label} · ${group.label}`,value:`${group.count} × ${group.power} kW · ${group.kind.toUpperCase()}${group.powerMode==="custom"?" · eigene Leistung":""}${group.kind==="ac1"?` · Phase ${group.phase}`:""}${group.kind==="dc"?` · η ${group.efficiency}`:""}${minimum}${groupFactor}`};
       })];
     })];
   }

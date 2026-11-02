@@ -10,13 +10,14 @@ export function migrateWorkbenchInputs(id: string, currentDefaults: Inputs, save
   if (id === "pva-rechner") { missing("sizing", "area"); missing("roof", "manual"); missing("tariffPreset", "manual"); missing("feedPreset", "manual"); missing("modulePreset", "manual"); missing("grantMode", "manual"); missing("headlineBasis", "net"); }
   if (id === "poe") { missing("type", "manual"); missing("cable", "manual"); }
   if (["nin-kabelrechner", "strombelastbarkeit"].includes(id)) missing("tableMode", "manual");
+  if (id === "nin-kabelrechner") missing("conductorKind", "all");
   if (id === "potenzialausgleich") missing("paMode", "manual");
   if (id === "motoranlauf") { missing("inputMode", "power"); missing("efficiencyMode", "manual"); missing("checkIz", "off"); }
   if (id === "beleuchtung") { missing("layout", "full"); missing("luminaire", "manual"); missing("etaMode", "manual"); missing("luxMode", "manual"); }
   if (id === "verlustleistung") missing("durationMode", "annual");
   if (id === "transformator") missing("ukMode", "preset");
   if (id === "kurzschlussstrom") { missing("sourceMode", "nameplate"); missing("voltageTolerance", "legacy"); }
-  if (id === "premium-selektivitaet") missing("selectivityMode", "legacy");
+  if (id === "premium-selektivitaet") { missing("selectivityMode", "legacy"); missing("voltageTolerance", "legacy"); }
   if (id === "premium-brandmelder") { missing("gridRule", "radius"); missing("detectorBasis", "manual"); }
   if (id === "premium-pkw") missing("layout", "legacy");
   if (id === "premium-lkw") missing("depotLayout", "legacy");
@@ -29,5 +30,6 @@ export function migrateWorkbenchInputs(id: string, currentDefaults: Inputs, save
   }
   if (id === "premium-sia2056") missing("siaMode", "legacy");
   if (["brandlast", "premium-brandlast"].includes(id)) missing("fireloadMode", "legacy");
+  if (id === "premium-brandlast") missing("comparisonEnabled", "yes");
   return next;
 }

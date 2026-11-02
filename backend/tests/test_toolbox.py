@@ -11,10 +11,10 @@ def test_shared_host_exposes_nova_api_before_static_files(env, tmp_path):
     original, _ = env
     ui = tmp_path / "ui"
     ui.mkdir()
-    (ui / "index.html").write_text("<title>edeco Toolbox</title>")
+    (ui / "index.html").write_text("<title>edeco Toolhub</title>")
     with TestClient(create_app(original.app.state.nova, ui_dir=ui), base_url="http://127.0.0.1") as client:
-        assert client.get("/api/toolbox/status").json()["name"] == "edeco Toolbox"
-        assert "edeco Toolbox" in client.get("/").text
+        assert client.get("/api/toolbox/status").json()["name"] == "edeco Toolhub"
+        assert "edeco Toolhub" in client.get("/").text
         assert client.get("/api/status").json()["symbol_count"] > 0
         project = client.post("/api/projects", json={"name": "Toolbox"})
         assert project.status_code == 200

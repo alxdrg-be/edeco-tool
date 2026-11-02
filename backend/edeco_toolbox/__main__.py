@@ -1,4 +1,4 @@
-"""Toolbox desktop lifecycle, persistent browser profile and common updates."""
+"""Toolhub desktop lifecycle, persistent browser profile and common updates."""
 
 import argparse
 import json
@@ -67,7 +67,7 @@ def probe_desktop(window, home: Path):
                 break
             time.sleep(.25)
         if not report["ok"]:
-            report["error"] = "Das native Fenster hat die Toolbox nicht gerendert."
+            report["error"] = "Das native Fenster hat den Toolhub nicht gerendert."
         elif getattr(sys, 'frozen', False):
             report['ok'] = False
             window.evaluate_js("document.querySelector('button[aria-label=\"PDF-Werkstatt öffnen\"]').click()")
@@ -112,7 +112,7 @@ def main(argv=None):
     thread = threading.Thread(target=server.run, daemon=True)
     thread.start()
     if not wait_until_up(url):
-        logging.error("Toolbox-Server startet nicht")
+        logging.error("Toolhub-Server startet nicht")
         return 1
     if not args.browser:
         try:
@@ -147,11 +147,11 @@ def main(argv=None):
                     options["func"] = lambda: probe_desktop(window, home)
                 webview.start(**options)
             except Exception:
-                logging.exception("Toolbox window could not start")
+                logging.exception("Toolhub window could not start")
                 if not args.desktop_smoke_test and sys.platform == "win32":
                     import ctypes
                     ctypes.windll.user32.MessageBoxW(None,
-                        "Das Toolbox-Fenster konnte nicht gestartet werden. Bitte das vollständige Setup verwenden.\n\n"
+                        "Das Toolhub-Fenster konnte nicht gestartet werden. Bitte das vollständige Setup verwenden.\n\n"
                         f"Fehlerprotokoll: {home / 'toolbox.log'}", APP_NAME, 0x10)
                 return 1
             finally:

@@ -29,13 +29,13 @@ export interface Toast {
   error?: boolean;
 }
 
-export interface NovaToolProps { onHome?: () => void }
+export interface NovaToolProps { onHome?: () => void; onOpenTool?: (toolId: string) => void }
 
-export default function App({ onHome }: NovaToolProps) {
-  return <NavigationProvider><AppContent onHome={onHome} /></NavigationProvider>;
+export default function App({ onHome, onOpenTool }: NovaToolProps) {
+  return <NavigationProvider><AppContent onHome={onHome} onOpenTool={onOpenTool} /></NavigationProvider>;
 }
 
-function AppContent({ onHome }: NovaToolProps) {
+function AppContent({ onHome, onOpenTool }: NovaToolProps) {
   const { navigate, pending } = useNavigation();
   const [tab, setTab] = useState<Tab>("projects");
   const [status, setStatus] = useState<Status | null>(null);
@@ -196,7 +196,7 @@ function AppContent({ onHome }: NovaToolProps) {
 
   return (
     <div className={`app${onHome ? " app-in-toolbox" : ""}`} inert={pending}>
-      {onHome && <ToolHeader title="NOVA-Legenden" onHome={() => navigate(onHome)} onLogoClick={secret}>{headerActions}</ToolHeader>}
+      {onHome && <ToolHeader title="NOVA-Legenden" onHome={() => navigate(onHome)} onOpenTool={onOpenTool ? id => { void navigate(() => onOpenTool(id)); } : undefined} onLogoClick={secret}>{headerActions}</ToolHeader>}
       <aside className="app-nav" aria-label="Programmnavigation">
         {!onHome && <div className="brand">
           <div
