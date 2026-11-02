@@ -56,8 +56,9 @@ html .engineering-lab[data-lab-theme] {
   .toolhub-nav-short { display:inline; }
   .toolhub-header:has(.toolhub-back) .toolhub-brand-wordmark { display:none; }
   .toolhub-header[class]>.toolhub-back { min-height:36px; padding:7px 8px; font-size:11px; }
-  .toolhub-header[class] .toolhub-header-actions { gap:6px; }
+  .toolhub-header[class] .toolhub-header-actions { gap:3px; }
   .toolhub-header[class] .toolhub-header-actions>button,.toolhub-header[class] .toolhub-header-actions>a { min-height:36px; height:36px; padding:7px 8px; font-size:11px; }
+  .toolhub-header[class] .toolhub-header-actions>.toolhub-nav-trigger { padding-inline:3px; gap:3px; }
   .toolhub-header .toolhub-knowledge>span,.toolhub-header .lab-knowledge-link>span,.toolhub-header .lab-knowledge-link>svg:last-child { display:none; }
   .toolhub-header .toolhub-knowledge,.toolhub-header .lab-knowledge-link { width:36px; justify-content:center; gap:0; }
   .lab-export-actions { display:block; position:relative; flex:none; }

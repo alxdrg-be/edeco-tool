@@ -187,8 +187,13 @@ class FormatTests(unittest.TestCase):
 
     def test_recorded_nova_model_keeps_empty_rooms_and_reads_storey(self):
         source=Path('/home/ubuntu/.cursor/projects/workspace/uploads/ELT_GRU_UG02_1dca.n4m')
-        if not source.is_file():self.skipTest('Nova-Beispieldatei liegt nur in dieser Arbeitsumgebung')
-        elements,warnings=import_model(source.name,source.read_bytes())
+        try:
+            if not source.is_file():
+                self.skipTest('Optionale externe Nova-Beispieldatei ist nicht vorhanden')
+            source_bytes=source.read_bytes()
+        except OSError as error:
+            self.skipTest(f'Optionale externe Nova-Beispieldatei ist nicht zugänglich: {error}')
+        elements,warnings=import_model(source.name,source_bytes)
         self.assertEqual(len(elements),211)
         self.assertEqual(sum(1 for item in elements if item['room']),0)
         self.assertEqual(sum(1 for item in elements if item['storey']=='UG02'),101)

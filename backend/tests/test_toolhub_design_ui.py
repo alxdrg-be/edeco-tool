@@ -1,6 +1,8 @@
 """Check the reported floating header/filter controls across real workspaces."""
 from __future__ import annotations
 
+import pytest
+
 from test_editor_navigation import editor, env, playwright  # noqa: F401
 from test_toolhub_navigation_ui import switch_calculator, switch_tool
 
@@ -45,15 +47,20 @@ def test_toolhub_header_alignment_palette_and_shared_theme(editor):
             playwright.expect(page.get_by_label("Fachbereich", exact=True)).to_be_visible()
 
 
-def test_mobile_calculator_actions_are_compact_and_remain_available(editor):
+@pytest.mark.parametrize("width", [360, 375, 390])
+def test_mobile_calculator_actions_are_compact_and_remain_available(editor, width):
     page, _, _, _ = editor
     switch_tool(page, "Berechnungen")
     switch_calculator(page, "LS-Schalter")
-    page.set_viewport_size({"width": 390, "height": 844})
+    page.set_viewport_size({"width": width, "height": 844})
     playwright.expect(page.get_by_role("button", name="Zum Toolhub", exact=True)).to_be_visible()
+    page.evaluate("document.fonts.ready")
     actions = page.locator(".lab-export-actions")
     playwright.expect(actions).not_to_have_attribute("open", "")
     assert page.locator(".toolhub-header").bounding_box()["height"] <= 150
+    rows = page.locator(".toolhub-header-actions").evaluate(
+        "el => [...el.children].map(node => node.getBoundingClientRect().top)")
+    assert max(rows) - min(rows) <= 1
     actions.locator("summary").click()
     export = page.get_by_role("button", name="Ergebnis als JSON sichern", exact=True)
     playwright.expect(export).to_be_visible()

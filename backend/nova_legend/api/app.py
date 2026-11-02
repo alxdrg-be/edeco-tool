@@ -253,7 +253,7 @@ def create_app(state: AppState | None = None, ui_dir: Path | None = None, *,
     @app.post("/api/update/install")
     def update_install() -> dict:
         if not updates_enabled:
-            raise HTTPException(409, "Bitte die gesamte edeco Toolbox aktualisieren.")
+            raise HTTPException(409, "Bitte den gesamten edeco Toolhub aktualisieren.")
         info = updater.check(channel=update_channel())
         if not info.available:
             raise HTTPException(400, info.message or "Kein Update verfügbar")

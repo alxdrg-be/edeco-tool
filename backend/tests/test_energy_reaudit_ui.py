@@ -41,7 +41,7 @@ def test_pv_extended_analysis_is_collapsed_reactive_and_removed_for_invalid_inpu
 
     with page.expect_download() as downloading:
         page.get_by_role('button', name='Ergebnis als JSON sichern', exact=True).click()
-    document = json.loads(Path(downloading.value.path()).read_text())
+    document = json.loads(Path(downloading.value.path()).read_text(encoding='utf-8'))
     assert len(document['result']['pvAnalysis']['scenarios']) == 5
     assert document['result']['pvAnalysis']['history'][-1]['year'] == 2026
     assert document['input']['self'] == '50'
@@ -74,7 +74,7 @@ def test_fire_variant_b_can_be_disabled_without_inventing_a_zero_state_or_losing
     playwright.expect(page.locator('.wb-metrics')).not_to_contain_text('Reduktion')
     with page.expect_download() as downloading:
         page.get_by_role('button', name='Ergebnis als JSON sichern', exact=True).click()
-    document = json.loads(Path(downloading.value.path()).read_text())
+    document = json.loads(Path(downloading.value.path()).read_text(encoding='utf-8'))
     assert json.loads(document['input']['fireloadRowsAfter'])[0]['mjPerMeter'] == ''
     assert not any(item['label'] == 'Nachher' for item in document['result']['metrics'])
     choose_field(page, 'comparisonEnabled', 'yes')

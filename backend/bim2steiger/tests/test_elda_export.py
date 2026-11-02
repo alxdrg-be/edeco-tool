@@ -97,9 +97,13 @@ class EldaExportTests(unittest.TestCase):
 
     def test_sample_calculation_lines_round_trip(self):
         sample = Path('/home/ubuntu/.cursor/projects/workspace/uploads/ELDA14980000_f93f.DAT')
-        if not sample.is_file():
-            self.skipTest('Messerli sample is not on this machine')
-        text = sample.read_bytes().decode('cp850')
+        try:
+            if not sample.is_file():
+                self.skipTest('Optional Messerli sample is unavailable on this machine')
+            sample_bytes = sample.read_bytes()
+        except OSError as error:
+            self.skipTest(f'Optional Messerli sample is unavailable or unreadable: {error}')
+        text = sample_bytes.decode('cp850')
         checked = 0
         for line in text.split('\r\n'):
             if not line.startswith('GAE000D0026K') or len(line) < 68 + 14 + 1 + 26:
