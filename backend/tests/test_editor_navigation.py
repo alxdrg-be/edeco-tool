@@ -239,8 +239,11 @@ def test_bim_open_dialog_and_storage_failure_prevent_leaving(editor):
     playwright.expect(page.get_by_role("heading", name="Ein Ort. Deine Werkzeuge.")).to_be_visible()
 
 
-def test_toolbox_shows_all_tiles_without_scroll_and_greys_only_planned_tools(editor):
+@pytest.mark.parametrize("font_family", [None, "DejaVu Sans, sans-serif"], ids=["system-font", "wide-system-font"])
+def test_toolbox_shows_all_tiles_without_scroll_and_greys_only_planned_tools(editor, font_family):
     page, _, _, _ = editor
+    if font_family:
+        page.evaluate("font => document.documentElement.style.setProperty('--font-ui', font)", font_family)
     page.set_viewport_size({"width": 1400, "height": 900})
     page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
     playwright.expect(page.locator(".toolbox-card")).to_have_count(10)

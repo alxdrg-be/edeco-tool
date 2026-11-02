@@ -7,6 +7,7 @@
 - Quellen gesammelt im Wissens-Hub; wiederholte Anbieterlinks aus den Rechneransichten entfernt. Normbezüge und Datenstände bleiben nachvollziehbar.
 - Weiche Diagrammübergänge und Stromflussdarstellung in berechneten, belasteten Leitungsabschnitten.
 - Updatefenster zeigt die Änderungen der angebotenen Version direkt; weitere Punkte und vollständige Notizen sind aufklappbar und per Tastatur erreichbar.
+- Startseite mit stabilen Kachelhöhen auch bei breiteren Systemschriften; alle zehn Werkzeuge passen ins vorgesehene Desktopfenster.
 - Automatische Testerkennung sowie zusätzliche Linux-Prüfungen für Pull Requests und main, einschliesslich Lint-, Rechen- und Browsertests.
 
 ## Rechner, Wissens-Hub und flüssige Darstellung · 2. November 2026

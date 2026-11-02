@@ -89,6 +89,13 @@ html:root[data-tool-color="rose"] { --accent: light-dark(#ab435f, #efa8bd); --ac
 .bim-toolbox-logo svg { display: block; width: 100%; height: auto; }
 .bim-toolbox-label { color: var(--accent); font-size: 12px; font-weight: 650; margin-left: auto; }
 .bim-frame { width: 100%; flex: 1; min-height: 0; border: 0; background: var(--bg); }
+/* Reserve two title lines so wider system fonts do not enlarge a desktop row. */
+@media (min-width: 1200px) {
+  .toolbox-tile { padding-bottom: 8px; }
+  .toolbox-symbol { margin-bottom: 6px; }
+  .toolbox-tile h2 { min-height: 2.6em; line-height: 1.3; margin-bottom: 3px; }
+  .toolbox-tile-action { margin-top: 6px; }
+}
 /* Leave room for the Windows title bar in the default 1400 × 900 desktop window. */
 @media (min-width: 1200px) and (max-height: 880px) { .toolbox-header { padding-block: 16px; } .toolbox-main { padding-block: 20px 16px; } .toolbox-intro { margin-bottom: 16px; } .toolbox-footer { margin-top: 16px; } }
 @media (max-width: 1199px) { .toolbox-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } .toolbox-main { padding-top: 30px; } .toolbox-intro { margin-bottom: 24px; } .toolbox-tile { min-height: 220px; } }
