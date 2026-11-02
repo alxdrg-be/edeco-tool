@@ -14,6 +14,7 @@ export const MODULES: Readonly<Record<string, LazyExoticComponent<ComponentType<
   "projektzentrale": lazy(() => import("../tools/projektzentrale/ProjectHub")),
   "planlieferung": lazy(() => import("../tools/planlieferung/PlanDelivery")),
   "berechnungen": lazy(() => import("../tools/berechnungen/Calculations")),
+  "netzplaner": lazy(() => import("../tools/berechnungen/NetworkPlanner")),
   "blitzschutz": lazy(() => import("../tools/berechnungen/Lightning")),
   "kabelberechnung": lazy(() => import("../tools/berechnungen/Cable")),
   "emobilitaet": lazy(() => import("../tools/berechnungen/EV")),

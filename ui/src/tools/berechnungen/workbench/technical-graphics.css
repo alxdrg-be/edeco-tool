@@ -1,0 +1,10 @@
+.technical-figure{margin:0;border:1px solid var(--line);background:var(--panel);border-radius:12px;min-width:0;overflow:hidden}
+.technical-figure>header{display:flex;justify-content:space-between;align-items:baseline;gap:15px;padding:18px 20px 12px}.technical-figure h2{font-size:13px;line-height:1.5;margin:0}.technical-figure>header>span{font:10px ui-monospace,monospace;color:var(--muted)}
+.technical-scroll{width:100%;max-width:100%;overflow:auto;overscroll-behavior-x:contain;scrollbar-color:var(--line-strong) var(--canvas)}
+.engineering-lab .technical-svg{display:block;width:100%;height:auto;min-width:680px;max-height:none;background:var(--canvas)}
+.engineering-lab .technical-svg .technical-node-label{font:12px var(--font-ui);fill:var(--muted)}.engineering-lab .technical-svg .technical-node-value{font:500 20px ui-monospace,monospace;fill:var(--fg)}.engineering-lab .technical-svg .technical-node-detail{font:11px ui-monospace,monospace;fill:var(--muted)}
+.technical-figure>figcaption{display:grid;gap:5px;padding:14px 20px 17px;color:var(--muted);font-size:10px;line-height:1.7}.technical-cascade-svg{max-width:900px;margin:auto}
+@media(max-width:760px){.technical-figure>header{padding:15px 15px 10px}.technical-figure>figcaption{padding:12px 15px 15px}}
+@media print{.technical-scroll{overflow:visible}.engineering-lab .technical-svg{min-width:0!important;width:100%}.technical-figure{break-inside:avoid}}
+
+.engineering-lab .technical-svg .technical-core-label{font:600 13px ui-monospace,monospace;fill:var(--fg)}

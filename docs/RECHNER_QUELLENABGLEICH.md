@@ -1,89 +1,115 @@
-# Abgleich mit sichtbarer Clientlogik
+# Abgleich mit sichtbaren Referenzen
 
-Stand: 1. November 2026. Geprüft wurden mathematische Beziehungen und
-reproduzierbare Fälle aus den öffentlich ausgelieferten HTML-/JavaScript-Rechnern
-von elektro-rechner.ch. Das ist eine separate Prüfung nach dem vorherigen
-[visuellen Vergleich](RECHNER_VISUELLER_VERGLEICH.md).
+Stand: 2. November 2026. edeco enthält 26 aktive eigene Modelle: 24 reguläre
+Themen von elektro-rechner.ch, dessen Netzplaner (Beta) und Arthur-Flury-Blitzschutz.
+[Inventar](RECHNER_INVENTAR.md), [Umfang](RECHNER_UMFANG.md) und
+[visueller Vergleich](RECHNER_VISUELLER_VERGLEICH.md) beschreiben die Abdeckung.
+Dieser Bericht unterscheidet reproduzierte Zahlenfälle, veröffentlichte
+Datenstände und weiterhin offene Norm-/Herstellerzuordnungen.
 
-Die öffentlichen Berechnungsfunktionen wurden mit passenden Eingaben in einer
+## Quellen und Methode
+
+Öffentliche HTML-/JavaScript-Funktionen wurden mit gültigen Eingaben in einer
 isolierten JavaScript-Umgebung ausgeführt. DOM-/Ausgabehilfen wurden nachgebildet;
-teilweise wurden Validierungshelfer durch gültige Eingaben ersetzt. Diese Fälle
-belegen daher die Rechenarithmetik und Ausgabe-Rundung, keine vollständige
-Browservalidierung oder automatische Normtabellenzuordnung.
+teilweise wurden Validierungshelfer ersetzt. Die Fälle prüfen Arithmetik und
+Rundung, nicht sämtliche Browservalidierung oder Normtabellenzuordnung.
 
-Die Regressionstests behalten beobachtete Zahlen, Quellen-URLs, Datum und
-SHA-256 der untersuchten Quellen. Fremder Programmcode und vollständige
-Normkataloge sind nicht Teil der Toolbox. Serverseitiger PHP-Code wurde nicht
-eingesehen. Sichtbarer Clientcode ist auch kein Nachweis fachlicher Richtigkeit.
+Quellen-URLs, Abrufdatum und SHA-256 sind bei den gespeicherten Zahlenfällen und
+Datensätzen dokumentiert. Die eigene Implementierung verwendet datierte
+veröffentlichte Zahlenstände; ein vollständiger lizenzierter Normkatalog oder
+fremde Anwendung wird nicht ausgeliefert. Serverseitiger PHP-Code wurde nicht
+eingesehen. Die fehlende Extraktion einer Clientfunktion durch ein Browserwerkzeug
+belegt nicht, dass diese Funktion auf der Website nicht vorhanden ist.
 
-## Ergebnis je öffentlichem Thema
+## Öffentliche Themen
 
-| Thema | Ergebnis im vergleichbaren Umfang |
+| Thema | Belegter Fall / aktuelle Datenbasis | Grenze der Aussage |
+| --- | --- | --- |
+| Spannungsfall | Fünf Fälle mit Cu/Al, 1~/3~, cos φ, 55 °C und maximaler Länge stimmen nach Referenzrundung. 25 m Cu 2.5 mm², 16 A, 230 V → 6.74 V / 2.93 % / 34.1 m Budgetlänge. | Nur das veröffentlichte ΔU-Modell; keine Strombelastbarkeitsfreigabe. |
+| EV | Gemeinsame Leistungs-/Aktivfälle sowie neue Energie-, PV-/Speicher- und Kurvenfälle wurden aus öffentlicher Clientlogik gewonnen. 3 × 11 kW, k = 0.5 → 2 aktiv / 1 wartend / 22 kW bei ausreichendem Budget. | Referenzkurven sind kein unabhängig bestätigter vollständiger SIA-2060-Normkatalog. Einphasige Budgetprüfung und Modelltoleranz werden nicht durch fehlerhafte Warnfarben der Referenz ersetzt. |
+| NIN-Kabel | Publizierte Cu-Iz-Matrizen, PVC/XLPE, Aderzahl, Verlegearten sowie belegte Temperatur-/Häufungsfaktoren sind nativ. Gemeinsamer Korrekturkern: 50 × 0.87 × 0.8 = 34.8 A. | Datensatz und ausgewählte Fälle, keine vollständige unabhängige NIN-Zertifizierung. Fehlende Kombinationen werden gesperrt. |
+| Strombelastbarkeit | E/F-, PVC-/XLPE- und CFW-Referenzansätze mit Faktoren. edeco erhält 246 × 0.88 × 2 = 432.96 A. | Die Referenz rundet teils pro Kreis auf 432 A, eine andere Seite auf 433 A. Diese Zwischenrundung wird nicht übernommen; CFW ist ein begrenzter Herstelleransatz. |
+| LS | B16 48–80 A, C20 100–200 A, D32 320–640 A stimmen. Vorsicherung und TN-Zeitansatz sind ergänzt. | NH-Backup wird nur aus dokumentierter Benutzereingabe berücksichtigt; kein automatischer Hersteller-Koordinationskatalog. |
+| PA | Gemeinsame HPA-/ÖPA-Fälle sowie eingegrenzte veröffentlichte Phasen-/PEN-Zuordnung für Cu 4–120 mm². | Referenz-Stufenansatz, kein vollständiger NIN-Katalog oder Ausführungsnachweis. EPA ist nur dokumentiert. |
+| Transformator | 250 kVA, 20 kV/400 V, u_k 4 % → 360.8 A sekundär und 9.021 kA bei starrem Netz, c = 1; weiterer Typenschildfall stimmt. | Keine vollständige Netz-/Schaltgruppenstudie; manuelles u_k bleibt möglich. |
+| Motor | 7.5 kW, η 0.904, cos φ 0.85 → 14.1 A / 84.5 A direkt beziehungsweise 28.2 A ideal im Sternanlauf. Publizierte IE3-Beispiele und Kabelgrundwerte ergänzen Typenschildstrom und manuelles η. | Keine automatische Temperatur-/Häufungskorrektur oder Bestätigung des konkreten Motors/Schutzgeräts. |
+| Blindleistung | 100 kW, cos φ 0.75 → 0.95 ergeben 55.3 kvar. Bereits erreichtes Ziel liefert 0 kvar und unveränderten Ist-Zustand. | Verlustkosten sind Projektannahmen. Der Kompensationsort wird dokumentiert und verändert wie in der Referenz die Formel nicht. |
+| Verlustleistung | Cu 2.5 mm², 25 m, 16 A, 3~, 55 °C → 161.84 W und bei cos φ = 1 ein ΔU von 5.840 V; weitere Jahresfälle stimmen. | Kalender-/Jahresbetrieb, R/X und ΔU-Suche sind eigene klar bezeichnete Modi; unpublizierte X′-Werte werden nicht ergänzt. |
+| Ohm | DC- und symmetrische AC-Fälle stimmen; 48 V / 2 A → 24 Ω / 96 W. | Nur gewählte bekannte Grössen; keine behauptete Gleichheit sämtlicher UI-Zustände. |
+| Licht | Identische Referenzannahmen liefern 18 Leuchten / 648 W. Volle Rasterreihen ergeben optional 20. Leuchtenbeispiele und empirische Reflexions-/Raumableitung sind hinterlegt. | Empirische Näherung, keine photometrischen Tabellen oder freigegebene Produktdatenbank. |
+| Kurzschluss | Kalter c_max- und warmer c_min-Betragsfall: 7.729 / 2.685 kA bei 80 °C. Quellenwahl, Stossstrom und I√t sind ergänzt. | Modellwerte sind weder normativer Ik-min-/Ik-max-Nachweis noch garantierte obere/untere Schranken. |
+| PV | Gemeinsame Wirtschaftlichkeitsfälle bei gleichen Leistungs-/Tarifannahmen stimmen. Publizierte Dach-/Modul-, Tarif-, Mindestvergütungs- und Förderstände sowie Bestand/Speicher sind nativ ergänzt. | Kein Live-EVU-/PVGIS-/Pronovo-Abruf. Tarifsnapshot 2026 und datierte Förderansätze bestätigen; Speicherzusatz ist keine Stunden-/Lastgangsimulation. |
+| Brandlast öffentlich | Gemeinsame Bilanz: 315 MJ / 31.5 MJ/m bei 10 m Strecke. Eine eigene erweiterbare Positionsliste ersetzt die bisherige Beschränkung auf drei Positionen. | Benutzerwerte und Nachweisstatus, kein Hersteller-/CPR-Katalog oder lokale Ausführungsprüfung. |
+| PoE öffentlich | Gemeinsame DC-/PD-Fälle und publizierte generische Kabel-/Typwerte. | Typbudgets und RP-Ansätze sind Referenzannahmen, keine vollständige IEEE-/RP-/Thermikfreigabe. |
+
+Wichtige Herkunftsdateien: `reference-ev-cable.test.ts`,
+`reference-fundamentals.test.ts`, `reference-installation.test.ts`, `EVdata.ts`,
+`fundamentalsData.ts` und `referenceInstallationData.ts`. Tests eigener
+Modellfunktionen werden nicht als zusätzliche unabhängige Anbieterbelege gezählt.
+
+## Angemeldete Themen: belastbare Fälle und offene Profile
+
+Frühere automatisierte Berichte mischten teilweise gewünschte Eingaben mit
+Ergebnissen vorheriger Standardzustände. Diese Berichte zählen weiterhin nicht
+als bestandene numerische Vergleiche. Das betrifft insbesondere den
+[sichtbaren Lauf e19c5ad0](https://agent.tinyfish.ai/runs/e19c5ad0-c803-4dad-af7b-1e16de72da17)
+und den [Clientquellenlauf 48972228](https://agent.tinyfish.ai/runs/48972228-3edc-49cf-af51-aa460dd0a638),
+der die acht Seiten besuchte, aber deren eingebettete Berechnungsfunktionen nicht
+verlässlich extrahieren konnte. Das ist eine Grenze der Methode.
+
+| Thema | Aktueller Nachweisstand |
 | --- | --- |
-| Spannungsfall | Fünf Fälle stimmen nach Referenzrundung überein: Cu/Al, 1~/3~, Blindanteil, 55 °C und maximale Länge. Beispiel: 25 m Cu 2.5 mm², 16 A, 230 V → 6.74 V / 2.93 % / 34.1 m Budgetlänge. |
-| E-Mobilität | Drei gemeinsame symmetrische 3~-Fälle stimmen bei der zugeteilten Leistung überein. Keine Gleichwertigkeit für 1~, Warteschlangen, PV/Speicher oder automatische SIA-Faktoren. |
-| NIN-Kabel | Der Korrekturkern stimmt bei identischen manuellen Tabellenwerten und Faktoren: 50 A × 0.87 × 0.8 = 34.8 A. Keine Prüfung oder Übernahme des gesamten Normkatalogs. |
-| Strombelastbarkeit | edeco rechnet mit voller Präzision. Bei 246 A × 0.88 × 2 bleiben 432.96 A; eine Referenzseite rundet pro Kreis auf 216 A und zeigt 432 A, die andere zeigt gerundet 433 A. Diese abweichende Zwischenrundung wird nicht übernommen. |
-| LS-Schalter | Gemeinsame magnetische Bereiche stimmen: B16 48–80 A, C20 100–200 A, D32 320–640 A. Hersteller-Selektivitäts-/Back-up-Daten sind nicht gleichwertig eingebettet. |
-| Potenzialausgleich | Drei Fälle stimmen mit entsprechend eingetragenen Schweizer HPA-/PE-Tabellenwerten überein. Die automatische Tabellenzuordnung der Referenz bleibt eine Funktionsdifferenz. |
-| Transformator | Beispiel 250 kVA, 20 kV/400 V, uₖ 4 % → 360.8 A sekundär und 9.021 kA im starren Modell. Ein weiterer Zahlenfall stimmt ebenfalls. |
-| Motoranlauf | Bei gleichem η und cos φ stimmen Nenn- und Anlaufstrom: 7.5 kW, η 0.904, cos φ 0.85 → 14.1 A / 84.5 A direkt beziehungsweise 28.2 A ideal im Sternanlauf. |
-| Blindleistung | Gemeinsame Kompensations- und Verlustkostenfälle stimmen. Beispiel 100 kW, 0.75 → 0.95: 55.3 kvar. Bereits erreichtes Ziel liefert nun ausdrücklich 0 kvar statt eines Fehlers. |
-| Verlustleistung | Zwei gemeinsame I²R-Fälle stimmen. Beispiel Cu 2.5 mm², 25 m, 16 A, 3~, 55 °C → 161.84 W und 5.840 V. |
-| Ohmsches Gesetz | DC- und symmetrische AC-Fälle stimmen; 48 V / 2 A → 24 Ω / 96 W. |
-| Beleuchtung | Die gemeinsame Lumenrechnung liefert im Prüffall mindestens 18 Leuchten. edeco rundet für sein vollständiges Rechteckraster auf 20 auf; Referenzanzahl und installierte Rasterleistung sind deshalb nicht gleich. |
-| Kurzschlussstrom | Keine Gleichwertigkeit zu Referenz-Ik-min/max: Dort werden zusätzliche Spannungsfaktoren und ein anderes warmes Schleifenmodell verwendet. Der edeco-Wert bleibt ausdrücklich eine Impedanz-Näherung ohne normativen Ik-min/max-Nachweis. |
-| PV-Anlage | Vergleichbare Wirtschaftlichkeitsfälle bei gleicher installierter Leistung, Tarifen und Betrachtungsdauer stimmen. Der edeco-Flächenansatz ist kontinuierlich; die Referenz rundet auf ganze Module ab. |
-| Brandlast, Grundrechnung | Gemeinsame Bilanz: drei Kabelpositionen ergeben 315 MJ und 31.5 MJ/m bei 10 m Bezugsstrecke. Herstellerwerte und CPR-Zuordnung sind getrennte Eingaben/Nachweise. |
-| PoE, Leistungsbudget | Drei DC-Leistungs-/Verlustfälle stimmen bei 20 °C und ohne zusätzliche Kontaktwiderstände. Die Referenz bezeichnet mehrere Konstanten selbst als Richtwerte; deren RP-/thermische Modellierung wird nicht als bestätigte Normgrundlage übernommen. |
+| Ladegrid PKW | Modulare gemischte Punkte mit Phasen, Mindestleistungen und Aktiv/Warten sind eigene Budgetlogik. Nicht sämtliche geschützten Referenzkonfigurationen numerisch abgeglichen. |
+| Ladegrid E-LKW | Modulare PUs/Leistungsmodule und zugeordnete DC-Punkte sind nativ. Wirkungsgrade, Topologie und Regelzustände nicht vollständig gegen den Anbieter geprüft. |
+| Brandmelder | Manuelle geometrische Regeln; automatische SES-Klassen, Raum-/Decken-/Höhenzuordnung und weitere Anbieterbereiche bleiben offen. |
+| Selektivität | Hinweise oder dokumentierte Benutzer-Paargrenzen; keine vollständigen Gerätekennlinien-/Koordinationstabellen eingebettet. |
+| Ladekosten | **Ein zuordenbarer Basic-AC-Fall ist abgeglichen**, siehe unten. DC, Detailkosten und alle übrigen Vertragszustände sind davon nicht abgedeckt. |
+| SIA 2056 | Getrennte Anwendung von Kcor auf Rohleistung und Jahresgleichzeitigkeit auf Rohenergie ist beobachtet und im neuen manuellen Modell berücksichtigt. **Automatische Profile bleiben gesperrt**, weil die vollständigen Rohkoeffizienten fehlen. |
+| PoE-Strecke | Segment-/Patchmodell und veröffentlichte thermische/RP-Ansätze sind nativ, mit manueller Temperatur-Alternative. Koordinierte vollständige Anbieterfälle und normative Tragfähigkeit sind nicht bestätigt. |
+| Brandlastvergleich | Unabhängige manuelle Vorher-/Nachher-Positionslisten. Keine vollständige numerische Referenzprüfung realer belegter Kabelpläne oder automatischer CPR-Zuordnung. |
 
-Tests: `reference-fundamentals.test.ts`, `reference-installation.test.ts` und
-`reference-ev-cable.test.ts` im jeweiligen Rechnerverzeichnis. Sie enthalten
-die konkrete Herkunft und Genauigkeit der gespeicherten Zahlenfälle.
+### Basic-Kostenfall
 
-## Acht Dashboard-Themen
+[Browserbeobachtung 652c34c0-8ea0-4a8a-a39c-1c980921708c](https://agent.tinyfish.ai/runs/652c34c0-8ea0-4a8a-a39c-1c980921708c):
+vier AC-Punkte ab 2026, je 2000 CHF Beschaffung + 750 CHF Installation +
+2300 CHF Basis; 3500 kWh/a pro Punkt zu 0.25 CHF/kWh. Wartung 25 CHF je
+11-kW-Äquivalent und Jahr, Backend 12.5 CHF je Punkt/Monat; Contractinggebühren
+Betrieb/Station/Basis 20/30/20 CHF je Äquivalent/Monat. 15 Jahre, keine späteren
+Ausbaujahrgänge. Die vier Gesamtkosten sind **94'200 / 98'100 / 97'700 /
+102'900 CHF**. Für V1 stimmen 31'200 CHF Investition inklusive Ersatz,
+63'000 CHF Betrieb und die vollständigen Jahreszahlungen. Der entsprechende
+Fixture steht in `chargingCosts.test.ts`.
 
-Die angemeldeten Seiten wurden erneut geöffnet und ihre sichtbaren Formeln und
-Ergebnisse untersucht. Der automatisierte Bericht konnte jedoch nicht für alle
-Felder verlässlich denselben Parameterzustand nachweisen. Beispielsweise wurden
-gewünschte PKW-/Kosten-Testeingaben zusammen mit Ergebnissen der vorherigen
-Standardkonfiguration gemeldet. Solche gemischten Zustände werden ausdrücklich
-nicht als bestandene Zahlenvergleiche verwendet.
+### SIA-Faktorbeobachtung
 
-| Thema | Was weiterhin offen ist |
-| --- | --- |
-| Ladegrid PKW | Identischer Mehrgrid-/Lastmanagementzustand mit nachvollziehbaren Aktiv-/Wartezuständen. |
-| Ladegrid E-LKW | Identische PU-Topologie, Wirkungsgrade und Begrenzungen. |
-| Brandmelder | Zuordnung von Raumtyp, Decke, Höhe und Normtabellen; edeco nutzt manuelle geometrische Annahmen. |
-| Selektivität | Identische Herstellerkombination und dokumentierte Randbedingungen; keine Freigabe aus blossen Nennstromverhältnissen. |
-| Ladekosten | Vollständig identische Kosten-/Tarif-/Vertragsparameter, nicht nur gleiche Überschrift. |
-| SIA 2056 | Identische Zonen-/Verbraucherzuordnung und Tabellenfaktoren. |
-| PoE-Streckenplaner | Identische Kabel-, Temperatur-, Patch- und Kanalparameter. |
-| Brandlast Fluchtweg | Belegter Kabelbestand vor/nach Sanierung statt eines leeren Beispielplans. |
+[Browserlauf 80e49f35-8c4b-4873-80e7-82bcd113621f](https://agent.tinyfish.ai/runs/80e49f35-8c4b-4873-80e7-82bcd113621f)
+zeigt getrennte Faktoren: P_roh × Kcor sowie E_roh × Jahresgleichzeitigkeit.
+Beobachtet wurden 17 Nutzungsbezeichnungen inklusive „keine Zone“, sieben
+Verbrauchergruppen und deren Klassenkennungen. Für Büro waren Kcor
+0.6/0.7/0.8, für Wohnen MFH 1.0 sichtbar. Diese Angaben belegen keine komplette
+Koeffiziententabelle oder Auswahlregel für andere Nutzungen.
 
-Diese acht eigenen Vorprüfungen haben separate mathematische Tests; der
-vollständige numerische Referenzabgleich ist damit nicht als bestanden erklärt.
-Blitzschutz bleibt mit seinen separat dokumentierten Arthur-Flury-Fällen geprüft.
+Die angezeigten Rohsummen sind gerundet. Beispielsweise lassen 73.8 MWh und
+die angezeigten 59.1 MWh nach Faktor 0.8 keine exakte ungerundete
+Energiekoeffizienten-Tabelle rekonstruieren. Daraus werden keine Profile erfunden.
+Das neue manuelle Modell verwendet explizit eingegebene W/m² und kWh/(m²·a),
+prüft die Faktoren unabhängig und bildet flächengewichtete Summen. Die sieben
+Gruppen erhalten keine automatischen Normwerte. Bis eine vollständige belegte
+und nutzbare Datenbasis vorliegt, ist der automatische Modus gesperrt. Das alte
+Faktor-/Stundenmodell bleibt als ausdrücklich anderes Bestandsmodell erhalten.
 
-## Korrekturen und Darstellung
+## Netzplaner und Abschlussprüfung
 
-- Ein leerer, ausgeblendeter statischer Leistungsanteil blockiert dynamische
-  beziehungsweise ungeregelte Ladeplanung nicht mehr.
-- Bereits ausreichender Leistungsfaktor ergibt 0 Kompensationsbedarf; der
-  tatsächliche Ist-Zustand bleibt sichtbar.
-- Hausanschluss, Grid-Vorsicherung und weitere Gerätenennwerte verwenden
-  diskrete Auswahlwerte aus den sichtbaren Referenzmenüs. Die Liste ist keine
-  allgemeine Freigabe jedes Werts durch jeden Netzbetreiber. Gespeicherte
-  abweichende Projektwerte werden ausdrücklich beibehalten und nicht gerundet.
-- Die 63-A-Leistungsanzeige wird korrekt aus 400 V / 3~ berechnet: 43.6 kW.
-- Statisch bedeutet bei edeco ein gleichmässiger Leistungsanteil für alle
-  Punkte. Die Referenz aktiviert stattdessen aufgerundet ganze Stationen:
-  3 × 11 kW bei Faktor 0.5 bedeuten dort 2 aktive Stationen / 22 kW, im
-  edeco-Anteilsmodell 16.5 kW. Das wird nicht als identisches Verfahren bezeichnet.
-- Die Referenz kann im exakt gesättigten dynamischen Fall durch Rundungsfehler
-  einen roten Hinweis mit angezeigten 100 % ausgeben. edeco behält die geprüfte
-  numerische Toleranz und übernimmt diesen Fehlalarm nicht.
-- Grafikaufbau, Symbolik und Bedienung dienen als Inspiration. Das eigene
-  Schema bleibt an die tatsächliche edeco-Modelllogik gekoppelt. Kurze
-  Erklärungen und Legenden sind immer sichtbar; detaillierte Normhinweise
-  und Herleitungen bleiben zusätzlich über ⓘ erreichbar.
+Der [ursprüngliche Beta-Fund](https://agent.tinyfish.ai/runs/67d57183-96fc-4193-8568-8afe36ec4944)
+unter [elektro-rechner.ch/planer](https://www.elektro-rechner.ch/planer) zeigte fünf
+Knoten ohne Verbindungen; eine grüne NIN-Anzeige war kein numerischer Prüffall.
+Der neue eigene Editor berechnet verbundene radiale Netze und erzeugt nach
+expliziter Prüfung einen datierten Prüfstand. Änderungen machen ihn veraltet.
+Phasen-/Neutralleiterströme, kumulierter Spannungsfall, Quellenmodelle und
+Schutzbedingungen werden modellbezogen geprüft. Eine vollständige numerische
+Übereinstimmung mit dem Beta-Anbieter oder NIN-Freigabe ist nicht behauptet.
+
+Aktuelle Gesamtprüfung und neue Vorschaubilder werden separat nach Abschluss
+der Integrationschecks berichtet. Der angekündigte Electrosuisse-Vergleich steht
+bis zur Bereitstellung durch den Nutzer aus. Arthur-Flury-Blitzschutz behält seine
+separat dokumentierten Zahlenfälle und den bisherigen Druck-/PDF-Weg.

@@ -21,3 +21,5 @@
 .ev-schema-signals{display:flex;flex-wrap:wrap;gap:8px;padding:14px 20px 0}.ev-schema-signals>span{display:inline-flex;align-items:center;flex-wrap:wrap;gap:6px;border:1px solid var(--line);border-radius:7px;padding:7px 9px;color:var(--muted);font-size:10px;line-height:1.5}.ev-schema-signals strong{color:var(--fg);font-weight:550}.ev-schema-signals i{display:block;flex:none;width:6px;height:6px;border-radius:50%}.engineering-lab .ev-schema-svg .ev-schema-feed-detail{font:10.5px var(--font-ui);fill:var(--muted)}
 @media(max-width:950px){.ev-schema-signals{padding:12px 12px 0}}
 @media(max-width:950px){.ev-schema-explanation{padding:12px 12px 0}}
+
+.ev-schema-waiting{opacity:.62}.ev-schema-waiting .ev-schema-allocated{fill:var(--muted)}

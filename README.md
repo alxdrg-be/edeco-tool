@@ -14,7 +14,7 @@ farbige Werkzeugkacheln, Suche, Kategorien und Hell-/Dunkelmodus.
 | PDF-Werkstatt | Stirling Core mit vollständig mitgelieferter Windows-Offline-Laufzeit | Rosé |
 | Projektzentrale | Nutzbar, Work in progress | Petrol |
 | Planlieferungs-Assistent | Nutzbar, Work in progress; ZIP, Planlisten und Projektverlauf | Grün |
-| Berechnungen | 25 native Schweizer Rechenhilfen und Vorprüfungen | Blau |
+| Berechnungen | 26 native Schweizer Rechenhilfen inklusive Netzplaner (Beta) | Blau |
 | ↳ Blitzschutz | Trennungsabstand; fachliche Freigabe offen | Orange |
 | Änderungsbericht | Geplant | Orange |
 | Leistungsbilanz | Geplant | Violett |
@@ -65,24 +65,53 @@ werden serverseitig nicht dauerhaft gespeichert; nur ihre Metadaten und Prüfsum
 Ein vorbereitetes Paket ist kein Versand. Erst die ausdrückliche Bestätigung
 „Als versendet bestätigen“ protokolliert den Versand; das Tool sendet keine E-Mails.
 
-Unter **Berechnungen** liegen 25 native Rechenhilfen: die 24 Themen der Schweizer
-Referenz und zusätzlich Blitzschutz. Die Werkzeuge sind eigene Modellrechnungen
-und Vorprüfungen. Normtabellenwerte, Herstellergrenzen und Korrekturfaktoren sind
-teilweise ausdrücklich manuell einzutragen; eine vollständige Gleichwertigkeit
-mit den Fachkatalogen der Referenz wird nicht behauptet. Umfang je Rechner:
-[Rechner und Grenzen](docs/RECHNER_UMFANG.md). Formeln und ausgewählte
-Zahlenfälle sind zusätzlich gegen sichtbare Clientlogik geprüft:
-[Quellenabgleich](docs/RECHNER_QUELLENABGLEICH.md). Leistungsbilanz bleibt zusätzlich
-geplant. Die gemeinsame Ablage
-speichert Rechenstände und Notizen nach Berechnungstyp und Projekt in einem
-einstellbaren Serverordner, einschliesslich importierter PDF-/JSON-Exporte.
-Einrichtung, Grenzen und Zusammenarbeit: [Berechnungsablage](docs/BERECHNUNGSABLAGE.md).
-Die React-Oberfläche nutzt Tailwind mit eigenem
-`edeco:`-Präfix und Lucide-Symbole. Navigation und Projektkontext bleiben in der
-edeco Toolbox. Der Rechnerbereich hat einen lokalen Tech-Dunkelmodus und eine
-helle edeco-Ansicht; andere Werkzeuge behalten ihre Darstellung. Slider und
-Zahlenfelder aktualisieren SVG und Live-Werte sofort. Alle Parameter haben
-Info-Icons für fokussierbare, per Escape schliessbare Grundlagen-Drawer.
+Unter **Berechnungen** liegen 26 aktive eigene Modelle: die 24 regulären Themen
+der Schweizer Referenz, der zusätzlich gefundene Netzplaner (Beta) und Blitzschutz.
+Der Netzplaner hat einen hervorgehobenen Einstieg oberhalb der 26 Kacheln;
+diese enthalten die bisherigen 25 Rechner und die geplante Leistungsbilanz.
+Die gemeinsame Ablage ist kein zusätzlicher Rechner.
+
+Der Netzplaner bearbeitet ein radiales NS-Ersatznetz aus Einspeisung,
+Transformator, Verteilungen, Schutzorganen, Verbrauchern und Leitungen.
+Horizontale Anordnung, automatische Verbindung beim passenden Ablegen,
+Ausgang-/Eingang-Verbindungen und explizite Abschnittsdaten sind vorhanden.
+**Berechnen & prüfen** erzeugt einen Prüfstand; spätere Änderungen machen ihn
+veraltet. PDF-Berichte beziehen sich auf den aktuellen Prüfstand. Phasenströme,
+Neutralleiter, kumulierter Spannungsfall und Schutzbedingungen werden innerhalb
+des dokumentierten Modells gerechnet, ohne vollständige NIN-Freigabe.
+
+NIN-Kabel und Strombelastbarkeit nutzen jetzt datierte veröffentlichte
+Referenztabellen samt belegten Korrekturen oder ausdrücklich manuelle Werte.
+Nicht belegte Kombinationen erzeugen keine erfundenen Ersatzwerte. Modulare
+PKW-/LKW-Ladegrids, vier Kostenmodelle, PV-/Speicheransätze und segmentierte
+PoE-Vorprüfungen ergänzen die bisherigen Grundrechner. SIA 2056 trennt in der
+manuellen Verbraucherbilanz Leistungskorrektur und Jahresgleichzeitigkeit;
+automatische Nutzungsprofile bleiben mangels vollständig belegtem Datensatz
+gesperrt.
+
+Die Programme sind eigene Modellrechnungen und Vorprüfungen. Ein publizierter
+Tabellenwert oder übereinstimmender Zahlenfall bestätigt weder die gesamte
+Referenzfunktion noch die normative Zuordnung. Aktueller Umfang und offene
+Funktionen: [Rechnerinventar](docs/RECHNER_INVENTAR.md),
+[Rechner und Grenzen](docs/RECHNER_UMFANG.md),
+[Quellenabgleich](docs/RECHNER_QUELLENABGLEICH.md). Der angekündigte zusätzliche
+Vergleich mit den Electrosuisse-Werkzeugen steht bis zur Bereitstellung durch
+den Nutzer aus.
+
+Die gemeinsame Ablage speichert Rechenstände und Notizen nach Berechnungstyp
+und Projekt in einem einstellbaren Serverordner, einschliesslich importierter
+PDF-/JSON-Exporte. [Berechnungsablage](docs/BERECHNUNGSABLAGE.md) beschreibt
+Einrichtung und Zusammenarbeit. Die 24 regulären Referenzrechner und der
+Netzplaner besitzen einen direkten A4-PDF-Download mit Projektangaben und
+aktuellen Berechnungsdaten. Die PDF-Seiten sind gerastert; JSON bewahrt die
+strukturierten Daten. Blitzschutz behält den bisherigen Druck-/PDF-Weg.
+
+Die React-Oberfläche nutzt Tailwind mit `edeco:`-Präfix und Lucide-Symbole.
+Navigation und Projektkontext bleiben in der Toolbox. Der Rechnerbereich hat
+einen lokalen Tech-Dunkelmodus und eine helle edeco-Ansicht. Diskrete Gerätewerte
+stehen in Dropdowns; Mess- und Projektwerte bleiben frei. Schemas, Diagramme und
+Kennzahlen reagieren auf aktuelle Eingaben. Kurze Erklärungen und Legenden sind
+direkt sichtbar; Info-Drawer und aufklappbare Grundlagen ergänzen die Details.
 Blitzschutz berechnet den Trennungsabstand mit
 `s = k × (U / xₙ) / n × A`, zeigt Leitungsweg und Abstand in einer eigenen
 Gebäudezeichnung und prüft die Mindestanzahl Ableiter gesondert. Grundlage ist

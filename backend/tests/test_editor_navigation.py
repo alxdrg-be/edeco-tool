@@ -463,16 +463,38 @@ def test_every_calculator_has_review_image_without_overlapping_labels(editor, tm
         export_button = page.get_by_role("button", name="Ergebnis als JSON sichern", exact=True)
         playwright.expect(export_button).to_be_enabled()
         assert "premium" not in page.locator("body").inner_text().lower(), title
+        if title != "Blitzschutz":
+            playwright.expect(page.get_by_role("button", name="Berechnung als PDF herunterladen", exact=True)).to_be_enabled()
         if title not in native_titles:
             playwright.expect(page.locator(".wb-metric").first).to_be_visible()
-            first_number = page.locator('.wb-controls input[data-field-key][inputmode="decimal"]:visible').first
-            before = first_number.input_value()
-            assert before, title
-            first_number.fill("")
-            playwright.expect(export_button).to_be_disabled()
-            playwright.expect(page.locator('.wb-results [role="alert"]')).to_be_visible()
-            first_number.fill(before)
-            playwright.expect(export_button).to_be_enabled()
+            numbers = page.locator('.wb-controls input[data-field-key][inputmode="decimal"]:not([disabled]):not([readonly])')
+            # Only active fields are rendered. Prefer a consumed engineering value;
+            # published-table modes such as PA can legitimately contain only selects.
+            probe = None
+            for key in ["length", "voltage", "reserve", "route", "current", "power", "ib", "load", "u1", "kw", "cos", "hours"]:
+                candidate = page.locator(f'.wb-controls input[data-field-key="{key}"][inputmode="decimal"]:not([disabled]):not([readonly])')
+                if candidate.count() and candidate.first.input_value().strip():
+                    probe = candidate.first
+                    break
+            if probe is None:
+                for candidate in numbers.all():
+                    if candidate.input_value().strip():
+                        probe = candidate
+                        break
+            if probe is not None:
+                parameter_group = probe.locator("xpath=ancestor::details[1]")
+                was_open = parameter_group.get_attribute("open") is not None
+                if not was_open:
+                    parameter_group.locator("summary").first.click()
+                before = probe.input_value()
+                probe.fill("")
+                playwright.expect(export_button).to_be_disabled()
+                playwright.expect(page.get_by_role("button", name="Berechnung als PDF herunterladen", exact=True)).to_be_disabled()
+                playwright.expect(page.locator('.wb-results [role="alert"]')).to_be_visible()
+                probe.fill(before)
+                playwright.expect(export_button).to_be_enabled()
+                if not was_open:
+                    parameter_group.locator("summary").first.click()
         if title == "E-Mobilität · AC-Vorplanung":
             playwright.expect(page.get_by_test_id("ev-current")).to_have_text("11.7 A")
             page.get_by_label("Gebäudereserve (kW)", exact=True).fill("80")
@@ -1389,6 +1411,7 @@ def test_charging_schema_updates_topology_values_and_each_budget_colour(editor, 
     page.get_by_role("button", name="Berechnungen öffnen", exact=True).click()
     page.get_by_role("button", name="Ladegrid PKW öffnen", exact=True).click()
     playwright.expect(page.get_by_role("button", name="Ergebnis als JSON sichern", exact=True)).to_be_enabled()
+    page.locator('select[data-field-key="layout"]').select_option("legacy")
     feed = page.get_by_test_id("schema-grid-feed")
     playwright.expect(feed).to_have_attribute("data-state", "limited")
     assert "H" not in feed.get_attribute("d").upper(), "UV must feed directly downward without a left detour"
@@ -1437,11 +1460,16 @@ def test_electrical_ratings_use_discrete_reference_dropdowns(editor):
     grid.select_option("63")
     house.select_option("125")
     playwright.expect(page.get_by_test_id("ev-budget")).to_have_text("43.6 kW")
-    page.get_by_role("combobox", name="3~ Ladeleistung je Punkt (kW)", exact=True).select_option("22")
+    page.get_by_role("combobox", name="Ladeleistung je Punkt (kW)", exact=True).select_option("22")
     playwright.expect(page.locator(".ev-schema-rated").first).to_have_text("Nennleistung 22 kW")
     page.get_by_role("button", name="Berechnungen", exact=True).click()
     page.get_by_role("button", name="Ladegrid PKW öffnen", exact=True).click()
+    playwright.expect(page.locator('select[data-field-key="layout"]')).to_be_enabled()
+    page.locator('select[data-field-key="layout"]').select_option("legacy")
     standard = page.locator('select[data-field-key="house"]')
+    supply_group = standard.locator("xpath=ancestor::details[1]")
+    if supply_group.get_attribute("open") is None:
+        supply_group.locator("summary").first.click()
     playwright.expect(standard).to_be_enabled()
     standard.select_option("125")
     playwright.expect(page.locator('input[data-field-key="house"]')).to_have_count(0)
@@ -1455,6 +1483,20 @@ def test_electrical_ratings_use_discrete_reference_dropdowns(editor):
     playwright.expect(breaker).to_be_enabled()
     breaker.select_option("13")
     playwright.expect(page.locator('input[data-field-key="load"]')).to_be_enabled()
+    page.get_by_role("button", name="Berechnungen", exact=True).click()
+    page.get_by_role("button", name="Potenzialausgleich öffnen", exact=True).click()
+    # A published PA selection has no arbitrary numeric entry to clear.
+    playwright.expect(page.locator('.wb-controls input[data-field-key][inputmode="decimal"]')).to_have_count(0)
+    phase = page.locator('select[data-field-key="phase"]')
+    phase.select_option("4")
+    page.locator('select[data-field-key="pen"]').select_option("4")
+    playwright.expect(page.locator(".wb-metric").filter(has_text="Haupt-PA aus den Eingaben").locator("strong")).to_have_text("6 mm² Cu")
+    page.locator('select[data-field-key="paMode"]').select_option("manual")
+    page.locator('input[data-field-key="pe"]').fill("")
+    playwright.expect(page.get_by_role("button", name="Ergebnis als JSON sichern", exact=True)).to_be_disabled()
+    playwright.expect(page.locator('.wb-results [role="alert"]')).to_be_visible()
+    page.locator('select[data-field-key="paMode"]').select_option("published")
+    playwright.expect(page.get_by_role("button", name="Ergebnis als JSON sichern", exact=True)).to_be_enabled()
 
 
 def test_reference_style_graphics_and_short_explanations_are_visible(editor):
@@ -1464,13 +1506,20 @@ def test_reference_style_graphics_and_short_explanations_are_visible(editor):
     page.get_by_role("button", name="Berechnungen öffnen", exact=True).click()
     page.get_by_role("button", name="Ladeinfrastruktur-Kosten öffnen", exact=True).click()
     playwright.expect(page.get_by_role("button", name="Ergebnis als JSON sichern", exact=True)).to_be_enabled()
+    page.locator('select[data-field-key="costLayout"]').select_option("legacy")
     playwright.expect(page.get_by_role("complementary", name="Erklärung der Berechnung", exact=True)).to_be_visible()
     playwright.expect(page.locator(".reference-year-column")).to_have_count(15)
     page.locator(".reference-year-column").nth(1).focus()
     playwright.expect(page.locator(".reference-chart-readout")).to_contain_text("2027")
     assert page.locator(".wb-result-graphics").bounding_box()["x"] < page.locator(".wb-metrics").bounding_box()["x"]
-    page.locator('input[data-field-key="points"]').fill("1")
+    points = page.locator('input[data-field-key="points"]')
+    point_group = points.locator("xpath=ancestor::details[1]")
+    if point_group.get_attribute("open") is None:
+        point_group.locator("summary").first.click()
+    old_total = page.locator(".wb-metric strong").first.inner_text()
+    points.fill("1")
     playwright.expect(page.locator(".reference-year-column")).to_have_count(15)
+    playwright.expect(page.locator(".wb-metric strong").first).not_to_have_text(old_total)
     page.get_by_role("button", name="Berechnungen", exact=True).click()
     page.get_by_role("button", name="Brandmelder öffnen", exact=True).click()
     playwright.expect(page.locator(".reference-room-plan")).to_be_visible()
@@ -1482,3 +1531,167 @@ def test_reference_style_graphics_and_short_explanations_are_visible(editor):
     page.get_by_role("button", name="Ohmsches Gesetz öffnen", exact=True).click()
     playwright.expect(page.get_by_role("complementary", name="Erklärung der Berechnung", exact=True)).to_be_visible()
     playwright.expect(page.locator(".wb-result-graphics")).to_have_count(0)
+
+
+def test_reference_ev_activity_waiting_and_single_phase_warning(editor, tmp_path):
+    page, _, _, _ = editor
+    page.set_viewport_size({"width": 1600, "height": 1600})
+    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Berechnungen öffnen", exact=True).click()
+    page.get_by_role("button", name="E-Mobilität · AC-Vorplanung öffnen", exact=True).click()
+    playwright.expect(page.get_by_label("Anzahl Ladepunkte", exact=True)).to_be_enabled()
+    page.get_by_label("Anzahl Ladepunkte", exact=True).fill("3")
+    page.get_by_role("button", name="Statisch", exact=True).click()
+    factor_basis = page.get_by_role("combobox", name="Faktorgrundlage", exact=True)
+    playwright.expect(factor_basis).to_have_value("reference")
+    factor_basis.select_option("manual")
+    page.get_by_label("Gleichzeitigkeitsfaktor k (statisch)", exact=True).fill("0.5")
+    playwright.expect(page.locator('.ev-schema-point[data-active="true"]')).to_have_count(2)
+    playwright.expect(page.locator('.ev-schema-point[data-state="waiting"]')).to_have_count(1)
+    playwright.expect(page.locator('.ev-schema-point[data-state="waiting"] .ev-schema-allocated')).to_have_text("0 kW")
+    page.screenshot(path=str(tmp_path / "ev-aktiv-wartend.png"), full_page=True)
+    page.get_by_role("combobox", name="Hausanschluss (A)", exact=True).select_option("125")
+    page.get_by_role("combobox", name="Grid-Vorsicherung (A)", exact=True).select_option("63")
+    page.get_by_role("combobox", name="Ladeleistung je Punkt (kW)", exact=True).select_option("7.4")
+    page.get_by_label("Gebäudereserve (kW)", exact=True).fill("20")
+    page.get_by_label("Anzahl Ladepunkte", exact=True).fill("4")
+    page.get_by_role("button", name="Ohne LM", exact=True).click()
+    playwright.expect(page.get_by_test_id("schema-grid-feed")).to_have_attribute("data-state", "error")
+    playwright.expect(page.locator('.ev-schema-secondary').first).to_contain_text("L1")
+    page.screenshot(path=str(tmp_path / "ev-einphasig-ueberlast.png"), full_page=True)
+
+
+def test_actual_calculation_pdf_download_is_a4_and_invalid_inputs_cannot_export(editor, tmp_path):
+    import pypdfium2 as pdfium
+    from contextlib import closing
+    page, _, _, _ = editor
+    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Berechnungen öffnen", exact=True).click()
+    page.get_by_role("button", name="Kabelberechnung öffnen", exact=True).click()
+    pdf_button = page.get_by_role("button", name="Berechnung als PDF herunterladen", exact=True)
+    playwright.expect(pdf_button).to_be_enabled()
+    with page.expect_download() as pending:
+        pdf_button.click()
+    download = pending.value
+    assert download.suggested_filename.startswith("Kabel · Spannungsfall_25 m_2.5 mm² Cu")
+    path = tmp_path / download.suggested_filename
+    download.save_as(path)
+    assert path.read_bytes().startswith(b"%PDF-")
+    with pdfium.PdfDocument(path) as document:
+        assert len(document) >= 1
+        with closing(document[0]) as pdf_page:
+            width, height = pdf_page.get_size()
+            assert abs(width - 595.276) < 0.1 and abs(height - 841.89) < 0.1
+            with closing(pdf_page.render(scale=1)) as bitmap:
+                bitmap.to_pil().save(tmp_path / "kabel-pdf.png")
+    page.get_by_label("Laststrom I (A)", exact=True).fill("")
+    playwright.expect(pdf_button).to_be_disabled()
+    page.get_by_role("button", name="Berechnungen", exact=True).click()
+    page.get_by_role("button", name="Ohmsches Gesetz öffnen", exact=True).click()
+    playwright.expect(pdf_button).to_be_enabled()
+    playwright.expect(page.get_by_role("region", name="Formel mit aktuellen Werten", exact=True)).to_be_visible()
+    with page.expect_download() as second:
+        pdf_button.click()
+    with pdfium.PdfDocument(second.value.path()) as document:
+        assert len(document) >= 1
+
+
+def test_technical_diagrams_distinguish_device_states_and_cable_inventory(editor):
+    page, _, _, _ = editor
+    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Berechnungen öffnen", exact=True).click()
+    page.get_by_role("button", name="Motoranlauf öffnen", exact=True).click()
+    playwright.expect(page.locator('[data-symbol="motor"]')).to_have_count(1)
+    playwright.expect(page.locator('[data-motor-state]')).to_have_count(2)
+    page.get_by_role("button", name="Berechnungen", exact=True).click()
+    page.get_by_role("button", name="Brandlast Fluchtweg öffnen", exact=True).click()
+    inventory = page.locator(".technical-figure")
+    playwright.expect(inventory).to_contain_text("30 Kabel erfasst")
+    playwright.expect(inventory).to_contain_text("15 Kabel erfasst")
+    page.locator(".wb-position-editor > summary").filter(has_text="Kabelpositionen vorher / nachher bearbeiten").click()
+    before = page.get_by_role("region", name="Vorher im Fluchtweg", exact=True)
+    after = page.get_by_role("region", name="Nachher im Fluchtweg", exact=True)
+    playwright.expect(before).to_be_visible()
+    playwright.expect(after).to_be_visible()
+    playwright.expect(page.locator('input[data-field-key="countBefore1"]')).to_have_count(0)
+    count = before.get_by_label("Vorher · Position 1 · Anzahl", exact=True)
+    count.fill("1")
+    playwright.expect(inventory).to_contain_text("11 Kabel erfasst")
+    playwright.expect(inventory).to_contain_text("15 Kabel erfasst")
+    export_button = page.get_by_role("button", name="Ergebnis als JSON sichern", exact=True)
+    before.get_by_role("button", name="Kabelposition hinzufügen", exact=True).click()
+    playwright.expect(export_button).to_be_disabled()
+    new_position = before.locator(".fireload-card").nth(2)
+    new_position.locator("summary").click()
+    before.get_by_label("Vorher · Position 3 · Brandlast je Kabel (MJ/m)", exact=True).fill("0.5")
+    before.get_by_label("Vorher · Position 3 · Anzahl", exact=True).fill("2")
+    playwright.expect(export_button).to_be_enabled()
+    playwright.expect(inventory).to_contain_text("13 Kabel erfasst")
+    playwright.expect(inventory).to_contain_text("15 Kabel erfasst")
+    before.get_by_role("button", name="Vorher · Kabelposition 3 entfernen", exact=True).click()
+    playwright.expect(before.locator(".fireload-card")).to_have_count(2)
+    playwright.expect(inventory).to_contain_text("11 Kabel erfasst")
+    count.fill("")
+    playwright.expect(export_button).to_be_disabled()
+    playwright.expect(page.locator('.wb-results [role="alert"]')).to_be_visible()
+    count.fill("1")
+    playwright.expect(export_button).to_be_enabled()
+    playwright.expect(inventory).to_contain_text("11 Kabel erfasst")
+
+
+def test_sia_keyboard_entry_preserves_decimal_zeros_and_invalid_fields(editor):
+    import json
+    page, _, _, _ = editor
+    page.set_viewport_size({"width": 1600, "height": 1300})
+    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Berechnungen öffnen", exact=True).click()
+    page.get_by_role("button", name="SIA 2056 · Zonenbilanz öffnen", exact=True).click()
+    export_button = page.get_by_role("button", name="Ergebnis als JSON sichern", exact=True)
+    playwright.expect(export_button).to_be_enabled()
+    editor_section = page.locator(".wb-position-editor")
+    editor_section.locator("summary").first.click()
+    page.get_by_label("Zone 1 · Bezeichnung", exact=True).fill("Tastaturtest")
+
+    def enter(field, text):
+        field.fill("")
+        field.press_sequentially(text)
+        playwright.expect(field).to_have_value(text)
+        playwright.expect(field).to_be_focused()
+        playwright.expect(editor_section).to_have_attribute("open", "")
+
+    power = page.get_by_label("Tastaturtest · Geräte · Rohleistung (W/m²)", exact=True)
+    energy = page.get_by_label("Tastaturtest · Geräte · Rohenergie (kWh/m² pro Jahr)", exact=True)
+    kcor = page.get_by_label("Tastaturtest · Kcor Leistung", exact=True)
+    year = page.get_by_label("Tastaturtest · Jahresgleichzeitigkeit Energie", exact=True)
+    enter(power, "0.05")
+    enter(power, "20.0500")
+    enter(energy, "30.0500")
+    enter(kcor, "0.0500")
+    enter(year, "0,5000")
+    playwright.expect(export_button).to_be_enabled()
+    page.locator(".sia-zone-targets > summary").click()
+    target = page.get_by_label("Tastaturtest · Ziel Leistung (W/m²)", exact=True)
+    enter(target, "0.0000")
+    playwright.expect(page.locator(".wb-status")).to_contain_text("überschreitet")
+    target.fill("")
+    playwright.expect(export_button).to_be_enabled()
+    energy.fill("")
+    playwright.expect(export_button).to_be_disabled()
+    playwright.expect(page.get_by_role("button", name="Berechnung als PDF herunterladen", exact=True)).to_be_disabled()
+    playwright.expect(page.locator('.wb-results [role="alert"]')).to_be_visible()
+    playwright.expect(energy).to_be_focused()
+    energy.press_sequentially("30.0500")
+    playwright.expect(energy).to_have_value("30.0500")
+    playwright.expect(energy).to_be_focused()
+    playwright.expect(export_button).to_be_enabled()
+    with page.expect_download() as pending:
+        export_button.click()
+    document = json.loads(Path(pending.value.path()).read_text())
+    zone = json.loads(document["input"]["siaZones"])[0]
+    assert zone["kcor"] == "0.0500"
+    assert zone["yearGlz"] == "0,5000"
+    assert zone["consumers"][0]["powerDensity"] == "20.0500"
+    assert zone["consumers"][0]["energyDensity"] == "30.0500"
+    assert "powerTarget" not in zone
+    assert document["result"]["siaBreakdown"]["powerKW"] == pytest.approx(0.10025)
+    assert document["result"]["siaBreakdown"]["energyKWh"] == pytest.approx(1502.5)

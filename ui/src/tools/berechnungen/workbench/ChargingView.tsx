@@ -1,3 +1,4 @@
+import MixedChargingView, { DepotView } from "./MixedChargingView";
 import { useState } from "react";
 import EVSchema from "../EVSchema";
 import { schemaState } from "../EVSchemaState";
@@ -5,6 +6,11 @@ import { Segments } from "../LabUI";
 import type { CalculationResult } from "./types";
 
 export default function ChargingView({ result }: { result: CalculationResult }) {
+  if(result.chargingNetwork)return <MixedChargingView data={result.chargingNetwork}/>;
+  if(result.depotNetwork)return <DepotView data={result.depotNetwork}/>;
+  return <LegacyChargingView result={result}/>;
+}
+function LegacyChargingView({ result }: { result: CalculationResult }) {
   const [selected, setSelected] = useState("0");
   const data = result.charging!;
   const active = data.grids.map((grid, i) => ({ grid, key: String(i) })).filter(item => item.grid.count > 0);

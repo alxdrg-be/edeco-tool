@@ -18,7 +18,7 @@ export const WORKBENCH_CATALOG = [
   ["premium-lkw", "Ladegrid E-LKW", "Ladeinfrastruktur", "AC-Einspeisung, Wirkungsgrad und DC-Ladeleistung verknüpfen."],
   ["premium-brandmelder", "Brandmelder", "Grundlagen & Räume", "Raumraster mit dokumentierten Flächen- und Abstandsvorgaben vorplanen."],
   ["premium-selektivitaet", "Selektivität", "Leitungen & Schutz", "Schutzorganpaare gegen dokumentierte Herstellergrenzen vergleichen."],
-  ["premium-ladekosten", "Ladeinfrastruktur-Kosten", "Ladeinfrastruktur", "Investitionen und jährliche Betriebskosten über 15 Jahre vergleichen."],
+  ["premium-ladekosten", "Ladeinfrastruktur-Kosten", "Ladeinfrastruktur", "Investitionen und Betrieb über eine wählbare Dauer vergleichen; Jahreszahlungen und Mittelwert getrennt."],
   ["premium-sia2056", "SIA 2056 · Zonenbilanz", "Leistung & Energie", "Leistungs- und Energiebilanz mit dokumentierten Zonenkennwerten aufbauen."],
   ["premium-poe", "PoE-Streckenplaner", "Leitungen & Schutz", "Mehrere Leitungssegmente mit expliziten Längenfaktoren bewerten."],
   ["premium-brandlast", "Brandlast Fluchtweg", "Grundlagen & Räume", "Ist-Zustand und Sanierungsannahme für die Kabel-Brandlast vergleichen."],
