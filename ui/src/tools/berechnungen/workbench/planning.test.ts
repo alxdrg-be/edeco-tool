@@ -4,7 +4,7 @@ import { PLANNING, roomGrid, spacingRoomGrid, sharePower } from "./planning.ts";
 import { defaults, type Inputs } from "./types.ts";
 
 const definition = (id: string) => { const value = PLANNING.find(c => c.id === id); assert.ok(value, id); return value; };
-const run = (id: string, patch: Inputs = {}) => { const d = definition(id); return d.calculate({ ...defaults(d), ...(id === "premium-pkw" ? { layout: "legacy" } : id === "premium-lkw" ? { depotLayout: "legacy" } : id === "premium-ladekosten" ? { costLayout: "legacy" } : id === "premium-sia2056" ? { siaMode: "legacy" } : id === "premium-poe" ? { poeRouteMode: "legacy" } : {}), ...patch }); };
+const run = (id: string, patch: Inputs = {}) => { const d = definition(id); return d.calculate({ ...defaults(d), ...(id === "premium-pkw" ? { layout: "legacy" } : id === "premium-lkw" ? { depotLayout: "legacy" } : id === "premium-ladekosten" ? { costLayout: "legacy" } : id === "premium-sia2056" ? { siaMode: "legacy" } : id === "premium-poe" ? { poeRouteMode: "legacy" } : id === "premium-brandmelder" ? { detectorBasis: "manual" } : id === "premium-selektivitaet" ? { selectivityMode: "legacy" } : {}), ...patch }); };
 const close = (actual: number | string, expected: number) => { assert.equal(typeof actual, "number"); assert.ok(Math.abs(Number(actual) - expected) <= Math.max(1, Math.abs(expected)) * 1e-9, `${actual} != ${expected}`); };
 
 test("all eight planning tools have functional finite default calculations and source/scope", () => {

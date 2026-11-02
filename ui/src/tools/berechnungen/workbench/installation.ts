@@ -1,5 +1,6 @@
 import { number, integer, type CalculatorDefinition, type Field, type Inputs } from "./types.ts";
-import { lookupPublishedIz, publishedAreas, publishedTemperatureFactor, publishedGroupingFactor, lookupPublishedTrayIz, publishedTrayGroupingFactor, type PublishedIzConfig, type PublishedTrayType, POE_CABLE_REFERENCES, PV_BUY_TARIFFS, PV_FEED_TARIFFS, PV_DIRECTIONS, PV_TILTS, PV_MODULES, publishedMinimumFeedRp, publishedPvGrant } from "./referenceInstallationData.ts";
+import { lookupPublishedIz, publishedAreas, publishedTemperatureFactor, publishedGroupingFactor, lookupPublishedTrayIz, publishedTrayGroupingFactor, publishedHagerBackup, HAGER_BACKUP_REFERENCE, type PublishedHagerFamily, type PublishedIzConfig, type PublishedTrayType, POE_CABLE_REFERENCES, PV_BUY_TARIFFS, PV_FEED_TARIFFS, PV_DIRECTIONS, PV_TILTS, PV_MODULES, publishedMinimumFeedRp, publishedPvGrant } from "./referenceInstallationData.ts";
+import { fireCprState, fireCableFact } from "./fireCableData.ts";
 
 const source = (file: string) => `https://www.elektro-rechner.ch/Rechner/${file}`;
 const n = (key: string, label: string, value: string, unit: string, help: string, group?: string): Field => ({ key, label, default: value, unit, help, group });
@@ -134,14 +135,15 @@ const breaker: CalculatorDefinition = {
     n("rated","LS-Nennstrom Iₙ","16","A","Nennstrom des LS-Schalters."),n("load","Betriebsstrom Iᵦ","13","A","Maximaler Betriebsstrom des Stromkreises."),n("iz","Korrigierte Strombelastbarkeit Iz","20","A","Bereits inklusive aller Korrekturfaktoren ermittelter Wert."),
     n("icn","Ausschaltvermögen Icn","6","kA","Gerätewert; eine Backup-Erweiterung setzt dokumentierte Koordinationsdaten voraus."),n("ikMax","Max. Kurzschlussstrom","5","kA","Prospektiver Strom an der Einbaustelle."),n("ikMin","Min. Fehlerstrom am Leitungsende","120","A","Projektbezogen belegter Mindestfehlerstrom."),n("i2factor","Prüfstromfaktor I₂/Iₙ","1.45","","Wert des konkreten Geräts."),
     select("circuitType","Stromkreisart","socket",[["socket","Endstromkreis mit Steckdosen"],["fixed","Nur fest angeschlossene Verbraucher"],["distribution","Verteilungsstromkreis"]],"Publizierter TN-Schnellansatz: 0.4 s für Steckdosen bis 63 A beziehungsweise feste Verbraucher bis 32 A, sonst 5 s. Verbindliche Abschaltzeit und Kennlinie am Projekt bestätigen."),
-    select("backupMode","Hersteller-Backup-Daten","none",[["none","Keine belegte Koordination"],["documented","Dokumentierte NH-/LS-Koordination eingeben"]],"Es gibt keine universelle Backup-Formel. Einzutragen ist die Grenze für genau die gewählte Hersteller-/Baureihen-/Icn-Kombination."),
+    select("backupMode","Hersteller-Backup-Daten","none",[["none","Keine belegte Koordination"],["reference","Publizierten Hager-Referenzwert vergleichen"],["documented","Dokumentierte NH-/LS-Koordination eingeben"]],"Der Hager-Referenzvergleich ist auf benannte Gerätefamilien beschränkt und bleibt ohne Originalnachweis unverifiziert. Eine manuelle Koordination muss genau zu den Geräten passen."),
+    {...select("backupFamily","Hager-Gerätefamilie · Referenzvergleich","standard6",[["standard6","MBN/MCN · B/C · 6 kA"],["high10","NBN/NCN/NDN · B/C/D · 10–25 kA"]],"Nur die ausdrücklich gewählte Familie, Kennlinie, Icn-Klasse und LS bis 63 A. Die Veröffentlichung des Anbieters ersetzt keine passende Original-Herstellerkoordination."),visibleWhen:[{key:"backupMode",values:["reference"]}]},
     {...n("backupLimit","Dokumentierte Backup-Grenze","25","kA","Nachgewiesene Koordinationsgrenze für die eingegebenen Geräte."),visibleWhen:[{key:"backupMode",values:["documented"]}]},
     {...{key:"backupReference",label:"Hersteller / Baureihe / Fundstelle",default:"",kind:"text" as const,help:"Die dokumentierte Kombination und Gültigkeitsbedingungen vollständig benennen."},visibleWhen:[{key:"backupMode",values:["documented"]}]},
   ],
   calculate(input) {
     const curve=choice(input,"curve",["B","C","D","K","Z"]),ranges:Record<string,[number,number]>={B:[3,5],C:[5,10],D:[10,20],K:[8,14],Z:[2,3]},[low,high]=ranges[curve];
     const rated=number(input,"rated","LS-Nennstrom",0,2000),load=number(input,"load","Betriebsstrom",0,10000),iz=number(input,"iz","Strombelastbarkeit",0,20000),icn=number(input,"icn","Ausschaltvermögen",0,200),max=number(input,"ikMax","Maximaler Kurzschlussstrom",0,200),min=number(input,"ikMin","Minimaler Fehlerstrom",0,200000),i2factor=number(input,"i2factor","Prüfstromfaktor",0,10);
-    const upstreamType=choice(input,"upstreamType",["nh","ls"]),upstream=number(input,"upstream","Vorsicherung",0,2000),circuit=choice(input,"circuitType",["socket","fixed","distribution"]),documented=choice(input,"backupMode",["none","documented"])==="documented";
+    const upstreamType=choice(input,"upstreamType",["nh","ls"]),upstream=number(input,"upstream","Vorsicherung",0,2000),circuit=choice(input,"circuitType",["socket","fixed","distribution"]),backupMode=choice(input,"backupMode",["none","reference","documented"]),documented=backupMode==="documented";
     if(min>max*1000)throw new Error("Minimaler Fehlerstrom darf den maximalen Kurzschlussstrom nicht überschreiten.");
     let backup:number|null=null;
     if(documented) {
@@ -149,17 +151,23 @@ const breaker: CalculatorDefinition = {
       backup=number(input,"backupLimit","Dokumentierte Backup-Grenze",0,200);
       if(!(input.backupReference??"").trim())throw new Error("Hersteller, Baureihe und Fundstelle der Koordination eingeben.");
     }
+    if(backupMode==="reference") {
+      const family=choice(input,"backupFamily",["standard6","high10"]) as PublishedHagerFamily;
+      if(upstreamType!=="nh")throw new Error("Der publizierte Hager-Backup-Vergleich benötigt eine NH-gG-Vorsicherung.");
+      backup=publishedHagerBackup(family,curve,rated,upstream,icn);
+      if(backup===null)throw new Error("Kein publizierter Backup-Wert für diese Gerätefamilie, Kennlinie, LS-Grösse, Icn-Klasse oder NH-Grösse. Keine Ersatzgrenze berechnet.");
+    }
     const overload=lte(load,rated)&&lte(rated,iz)&&lte(i2factor*rated,1.45*iz),effectiveCapacity=Math.max(icn,backup??0),breaking=lte(max,effectiveCapacity);
     const magneticPossible=lte(rated*low,min),magneticFast=lte(rated*high,min),fastRequired=circuit==="socket"&&rated<=63||circuit==="fixed"&&rated<=32,period=fastRequired?.4:5;
     const okay=overload&&breaking&&magneticFast,conditionalBackup=icn<max&&backup!==null,kz=["K","Z"].includes(curve);
-    const tone=!overload||!breaking?"error":!magneticFast||conditionalBackup||kz?"warning":"ok";
+    const tone=!overload||!breaking?"error":!magneticFast||conditionalBackup||kz||backupMode==="reference"?"warning":"ok";
     return {
       metrics:[{label:"Magnetischer Auslösebereich",value:`${fmt(low*rated,1)}–${fmt(high*rated,1)}`,unit:"A"},{label:"Ausschaltreserve",value:effectiveCapacity-max,unit:"kA",digits:2,tone:breaking?"ok":"error"},{label:"Reserve zum oberen Magnetauslöser",value:min-high*rated,unit:"A",digits:1,tone:magneticFast?"ok":"warning"}],
-      rows:[{label:"Vorsicherung",value:`${upstreamType==="nh"?"NH gG":"LS B"} ${fmt(upstream)} A`},{label:"NH-Backup",value:backup===null?"Kein belegter Backup-Wert":`${fmt(backup)} kA · ${input.backupReference.trim()}`},{label:"LS–LS",value:"Ohne Herstellerkennlinie nicht nachgewiesen"},{label:"Überlastbedingungen",value:overload?"erfüllt":"nicht erfüllt"},{label:"Ausschaltvermögen / dokumentiertes Backup",value:breaking?"Zahlenbedingung erfüllt":"nicht erfüllt"},{label:"Magnetisches Ansprechen möglich",value:magneticPossible?`ab ${fmt(low*rated)} A erreicht`:`${fmt(low*rated)} A nicht erreicht`},{label:"Abschaltzeit · TN-Planungsansatz",value:`${fmt(period)} s · ${fastRequired?"oberer Magnetauslöser erforderlich":"Herstellerkennlinie für 5-s-Aussage erforderlich"}`},{label:"Ik,min ≥ oberer Magnetauslöser",value:magneticFast?"erfüllt":"nicht erfüllt"}],
-      status:{tone,text:kz&&overload&&breaking?"K/Z-Auslösebereich als Herstellerannahme; Kennlinie am konkreten Gerät bestätigen.":conditionalBackup&&overload?"Ausschaltbedingung verwendet die manuell dokumentierte NH-/LS-Koordination; Gültigkeit der Herstellerdaten bestätigen.":okay?"Die geprüften Zahlenbedingungen sind erfüllt; Selektivität und vollständiges Schutzkonzept separat beurteilen.":"Mindestens eine Vorprüfung ist nicht erfüllt oder benötigt die konkrete Herstellerkennlinie."},
-      formula:`Iᵦ ≤ Iₙ ≤ Iz: ${fmt(load)} ≤ ${fmt(rated)} ≤ ${fmt(iz)} A; I₂ = ${fmt(i2factor)} × ${fmt(rated)} = ${fmt(i2factor*rated)} A ≤ ${fmt(1.45*iz)} A; Icn${backup!==null?" / dokumentiertes Backup":""} ≥ Ik,max: ${fmt(effectiveCapacity)} ≥ ${fmt(max)} kA; ${curve}: ${low}–${high} × ${fmt(rated)} = ${fmt(low*rated)}–${fmt(high*rated)} A; TN-Zeitansatz ${fmt(period)} s`,
-      diagram:{kind:"chain",nodes:[{label:"Netz",value:`${fmt(max)} kA`,detail:"Ik,max"},{label:`Vorsicherung ${upstreamType==="nh"?"NH gG":"LS B"}`,value:`${fmt(upstream)} A`,detail:backup===null?"Koordination unbelegt":`${fmt(backup)} kA dokumentiert`},{label:`LS ${curve}${fmt(rated)}`,value:`${fmt(icn)} kA`,detail:"Geräte-Ausschaltvermögen",tone:breaking?"ok":"error"},{label:"Leitungsende",value:`${fmt(min)} A`,detail:`TN-Zeitansatz ${fmt(period)} s`,tone:magneticFast?"ok":"warning"}]},
-      limitations:["Auslösebereiche und Zeitansatz sind eine TN-Vorprüfung. Ein Strom über der unteren magnetischen Grenze garantiert keine konkrete Abschaltzeit; dafür sind Netzsystem, Stromkreis und Herstellerkennlinie massgebend.","Kein Selektivitätsnachweis aus Nennstromstaffelung. Ohne dokumentierte Herstellerkoordination wird kein NH-Backup angesetzt. K/Z-Werte und eingegebene Backup-Grenzen sind gerätebezogene Annahmen beziehungsweise Benutzerdaten."],
+      rows:[{label:"Vorsicherung",value:`${upstreamType==="nh"?"NH gG":"LS B"} ${fmt(upstream)} A`},{label:"NH-Backup",value:backup===null?"Kein belegter Backup-Wert":`${fmt(backup)} kA · ${backupMode==="reference"?`${input.backupFamily} · ${HAGER_BACKUP_REFERENCE.attribution}`:input.backupReference.trim()}`},{label:"LS–LS",value:"Ohne Herstellerkennlinie nicht nachgewiesen"},{label:"Überlastbedingungen",value:overload?"erfüllt":"nicht erfüllt"},{label:backupMode==="reference"?"Ausschaltvermögen / Referenz-Backup":"Ausschaltvermögen / dokumentiertes Backup",value:breaking?"Zahlenbedingung erfüllt":"nicht erfüllt"},{label:"Magnetisches Ansprechen möglich",value:magneticPossible?`ab ${fmt(low*rated)} A erreicht`:`${fmt(low*rated)} A nicht erreicht`},{label:"Abschaltzeit · TN-Planungsansatz",value:`${fmt(period)} s · ${fastRequired?"oberer Magnetauslöser erforderlich":"Herstellerkennlinie für 5-s-Aussage erforderlich"}`},{label:"Ik,min ≥ oberer Magnetauslöser",value:magneticFast?"erfüllt":"nicht erfüllt"}],
+      status:{tone,text:backupMode==="reference"&&overload&&breaking?"Zahlenvergleich mit publiziertem Hager-Referenzwert; Original-Herstellerkoordination und konkrete Gerätezuordnung bleiben zu bestätigen.":kz&&overload&&breaking?"K/Z-Auslösebereich als Herstellerannahme; Kennlinie am konkreten Gerät bestätigen.":conditionalBackup&&overload?"Ausschaltbedingung verwendet die manuell dokumentierte NH-/LS-Koordination; Gültigkeit der Herstellerdaten bestätigen.":okay?"Die geprüften Zahlenbedingungen sind erfüllt; Selektivität und vollständiges Schutzkonzept separat beurteilen.":"Mindestens eine Vorprüfung ist nicht erfüllt oder benötigt die konkrete Herstellerkennlinie."},
+      formula:`Iᵦ ≤ Iₙ ≤ Iz: ${fmt(load)} ≤ ${fmt(rated)} ≤ ${fmt(iz)} A; I₂ = ${fmt(i2factor)} × ${fmt(rated)} = ${fmt(i2factor*rated)} A ≤ ${fmt(1.45*iz)} A; Icn${backup!==null?(backupMode==="reference"?" / Referenz-Backup":" / dokumentiertes Backup"):""} ≥ Ik,max: ${fmt(effectiveCapacity)} ≥ ${fmt(max)} kA; ${curve}: ${low}–${high} × ${fmt(rated)} = ${fmt(low*rated)}–${fmt(high*rated)} A; TN-Zeitansatz ${fmt(period)} s`,
+      diagram:{kind:"chain",nodes:[{label:"Netz",value:`${fmt(max)} kA`,detail:"Ik,max"},{label:`Vorsicherung ${upstreamType==="nh"?"NH gG":"LS B"}`,value:`${fmt(upstream)} A`,detail:backup===null?"Koordination unbelegt":`${fmt(backup)} kA ${backupMode==="reference"?"Referenzwert":"dokumentiert"}`},{label:`LS ${curve}${fmt(rated)}`,value:`${fmt(icn)} kA`,detail:"Geräte-Ausschaltvermögen",tone:breaking?"ok":"error"},{label:"Leitungsende",value:`${fmt(min)} A`,detail:`TN-Zeitansatz ${fmt(period)} s`,tone:magneticFast?"ok":"warning"}]},
+      limitations:["Auslösebereiche und Zeitansatz sind eine TN-Vorprüfung. Ein Strom über der unteren magnetischen Grenze garantiert keine konkrete Abschaltzeit; dafür sind Netzsystem, Stromkreis und Herstellerkennlinie massgebend.","Kein Selektivitätsnachweis aus Nennstromstaffelung. Ein Hager-Referenzwert ist eine publizierte Anbietertranskription, kein unabhängig geprüfter Originalnachweis. Der Referenzmodus bleibt als Vorvergleich gekennzeichnet und extrapoliert weder über LS 63 A noch auf andere Gerätefamilien. K/Z-Werte und manuell eingegebene Backup-Grenzen sind gerätebezogene Annahmen beziehungsweise Benutzerdaten."],
     };
   },
 };
@@ -341,10 +349,10 @@ export function calculateFireLoadPositions(positions: readonly FireLoadPosition[
     metrics:[{label:"Brandlast bezogen auf Fluchtweg",value:density,unit:"MJ/m",digits:1,tone},{label:"Brandlast total",value:total,unit:"MJ",digits:1},{label:"Kabel total",value:cables,unit:"Stk."}],rows,status:{tone,text},
     formula:`Q_total = Σ(q_i × Anzahl_i × Kabellänge_i) = ${rows.length?rows.map(row=>`${fmt(Number(row.value))} MJ`).join(" + "):"0 MJ"} = ${fmt(total)} MJ; q_Fluchtweg = ${fmt(total)} / ${fmt(length)} = ${fmt(density)} MJ/m${route==="vertical"?"; vertikal ohne pauschalen 200-MJ/m-Vergleich":`; Vergleich ${fmt(limit)} MJ/m`}`,
     series:route==="horizontal"?[{label:"Berechnete Brandlast",value:density},{label:"Vergleichsgrenze",value:limit}]:[{label:"Berechnete Brandlast",value:density}],seriesLabel:route==="horizontal"?"Horizontaler Vergleich":"Vertikale Mengenbilanz",seriesUnit:"MJ/m",
-    limitations:["Kabelwerte und Nachweisstatus sind Benutzerdaten, keine kopierte Herstellerdatenbank. VKF BSR 14-15 Ziffer 5.2.1 / NIN 4.2.2.2.7 am Projekt prüfen. 200 MJ/m ist der horizontale Referenzvergleich, keine pauschale vertikale Freigabe.","Ein Mittelwert über die Bezugsstrecke bewertet keine lokalen Kabelhäufungen. CPR, kritisches Brandverhalten, Funktionserhalt und Ausführung sind getrennte Nachweise."],
+      limitations:["Kabelwerte stammen aus manuellen Projektangaben oder dem datierten Referenzkatalog. Die dort publizierten Lieferanten-/CPR-Daten und ca.-Richtwerte sind keine unabhängig bestätigten Herstellerbelege; passende Leistungserklärung und Projektzuordnung prüfen. VKF BSR 14-15 Ziffer 5.2.1 / NIN 4.2.2.2.7 am Projekt prüfen. 200 MJ/m ist der horizontale Referenzvergleich, keine pauschale vertikale Freigabe.","Ein Mittelwert über die Bezugsstrecke bewertet keine lokalen Kabelhäufungen. CPR, kritisches Brandverhalten, Funktionserhalt und Ausführung sind getrennte Nachweise."],
   };
 }
-export interface FireLoadRow { id:string; name:string; mjPerMeter:string; quantity:string; length:string; evidence:"open"|"documented"|"critical" }
+export interface FireLoadRow { id:string; name:string; mjPerMeter:string; quantity:string; length:string; evidence:"open"|"documented"|"critical"; catalogId?:string; supplier?:string; cpr?:string }
 export const FIRE_LOAD_DEFAULT_ROWS: readonly FireLoadRow[] = [
   {id:"fire-example-1",name:"Beispiel Kabelposition 1",mjPerMeter:"3",quantity:"10",length:"10",evidence:"open"},
   {id:"fire-example-2",name:"Beispiel Kabelposition 2",mjPerMeter:"0.5",quantity:"5",length:"6",evidence:"open"},
@@ -358,26 +366,38 @@ export function parseFireLoadRows(raw:string,editing=false):FireLoadRow[] {
   let parsed:unknown;
   try {parsed=JSON.parse(raw);} catch {throw new Error("Kabelpositionsliste konnte nicht gelesen werden.");}
   if(!Array.isArray(parsed)||parsed.length>1000)throw new Error("Höchstens 1000 Kabelpositionen eingeben.");
-  const ids=new Set<string>(),keys=["id","name","mjPerMeter","quantity","length","evidence"];
+  const ids=new Set<string>(),keys=["id","name","mjPerMeter","quantity","length","evidence"],optionalKeys=["catalogId","supplier","cpr"];
   return parsed.map((value:unknown,index)=>{
-    if(!value||typeof value!=="object"||Array.isArray(value)||Object.keys(value).some(key=>!keys.includes(key)))throw new Error(`Position ${index+1}: ungültige Zeilenstruktur.`);
+    if(!value||typeof value!=="object"||Array.isArray(value)||Object.keys(value).some(key=>!keys.includes(key)&&!optionalKeys.includes(key)))throw new Error(`Position ${index+1}: ungültige Zeilenstruktur.`);
     const row=value as Record<string,unknown>;
     if(keys.some(key=>typeof row[key]!=="string"))throw new Error(`Position ${index+1}: alle Werte als Textfelder eingeben.`);
+    if(optionalKeys.some(key=>row[key]!==undefined&&(typeof row[key]!=="string"||(row[key] as string).length>180)))throw new Error(`Position ${index+1}: Katalog-/CPR-Daten prüfen.`);
     const id=row.id as string,name=row.name as string,mjPerMeter=row.mjPerMeter as string,quantity=row.quantity as string,length=row.length as string,evidence=row.evidence as FireLoadRow["evidence"];
     if(!id.trim()||id.length>120||ids.has(id))throw new Error(`Position ${index+1}: fehlende oder doppelte Zeilenkennung.`);
     if(name.length>180||[mjPerMeter,quantity,length].some(field=>field.length>24)||!["open","documented","critical"].includes(evidence))throw new Error(`Position ${index+1}: Bezeichnung, Zahlenfeldlänge oder Nachweisstatus prüfen.`);
     ids.add(id);
+    const catalogId=row.catalogId as string|undefined,supplier=row.supplier as string|undefined,cpr=row.cpr as string|undefined;
+    if(catalogId) {
+      const fact=fireCableFact(catalogId);
+      if(supplier&&!fact.suppliers.some(item=>item.supplier===supplier))throw new Error(`Position ${index+1}: Lieferant hat keinen plausiblen Katalogwert.`);
+    }
     if(!editing) {
       const input={q:mjPerMeter,n:quantity,l:length};
       const q=number(input,"q",`Brandlast Position ${index+1}`,0,100000,true),n=integer(input,"n",`Anzahl Position ${index+1}`,0,100000,true),l=number(input,"l",`Länge Position ${index+1}`,0,100000,true);
       if(n>0&&(q===0||l===0))throw new Error(`Position ${index+1}: vorhandene Kabel benötigen positive Brandlast und Länge.`);
     }
-    return {id,name,mjPerMeter,quantity,length,evidence};
+    return {id,name,mjPerMeter,quantity,length,evidence,...(catalogId!==undefined?{catalogId}:{}),...(supplier!==undefined?{supplier}:{}),...(cpr!==undefined?{cpr}:{})};
   });
 }
 export function fireLoadRowsToPositions(rows: readonly FireLoadRow[]):FireLoadPosition[] {
   const validated=parseFireLoadRows(JSON.stringify(rows));
-  return validated.map(row=>({name:row.name,mjPerMeter:Number(row.mjPerMeter.replace(",",".")),quantity:Number(row.quantity.replace(",",".")),length:Number(row.length.replace(",",".")),evidence:row.evidence}));
+  return validated.map(row=>{
+    const catalogCpr=row.catalogId?fireCableFact(row.catalogId).cpr:undefined,cpr=fireCprState(row.cpr??catalogCpr??"");
+    // Explicit critical CPR cannot be cleared by a generic confirmation checkbox.
+    // Existing manual records without a CPR field retain their evidence status.
+    const evidence=row.evidence==="critical"||cpr==="critical"||fireCprState(catalogCpr??"")==="critical"?"critical":(row.cpr||catalogCpr)&&cpr==="open"?"open":row.evidence;
+    return {name:row.name,mjPerMeter:Number(row.mjPerMeter.replace(",",".")),quantity:Number(row.quantity.replace(",",".")),length:Number(row.length.replace(",",".")),evidence};
+  });
 }
 for(const field of fireFields) {
   if(field.key==="proof"||/^[qnl][123]$/.test(field.key))field.visibleWhen=[{key:"fireloadMode",values:["legacy"]}];

@@ -25,7 +25,7 @@ export function EVPowerFlow({ result, reserve }: { result: Result | null; reserv
     <div className="ev-balance-legend"><span><i className="ev-reserved" />Gebäude</span><span><i className="ev-charging" />Laden</span><span><i className="ev-unused" />Unverplant {value(result ? unused : undefined)}</span></div>
     {result && result.allocated > result.available + 1e-9 && <div className="ev-overload" role="status">Ladebedarf über Budget: {value(result.allocated - result.available)}</div>}
     {result && !result.phaseCapacityOK && result.allocated <= result.available + 1e-9 && <div className="ev-overload" role="status">Aussenleiterbudget überschritten: Grid {value(result.strongestGridPhaseCurrent, "A")} / Haus {value(result.strongestHousePhaseCurrent, "A")} (Betrag, einschliesslich Rückspeisung).</div>}
-    <div className="ev-distribution-label"><PlugZap size={16} />Ladeverteiler → Ladepunkte<span>{result ? `${result.activeCount} aktiv · ${result.waitingCount} wartend · ${result.phases === 1 ? "1~ mit Phasenrotation" : "3~"}` : "Eingaben prüfen"}</span></div>
+    <div className="ev-distribution-label"><PlugZap size={16} />Ladeverteiler → Ladepunkte<span>{result ? `${result.activeCount} aktiv · ${result.waitingCount} wartend · ${result.chargerKind === "dc" ? "DC · AC-Ersatzansatz" : result.phases === 1 ? "1~ mit Phasenrotation" : "3~"}` : "Eingaben prüfen"}</span></div>
   </div>;
 }
 
@@ -37,7 +37,7 @@ export function EVDetails({ result, count }: { result: Result | null; count: str
   return <dl className="ev-details">
     <div><dt>Ladebedarf im Modell</dt><dd>{value(result?.requested)}</dd></div>
     <div><dt>{result && result.allocated > result.available + 1e-9 ? "Ladebedarf ohne Begrenzung" : "Zuteilung gesamt"}</dt><dd>{value(result?.allocated)}</dd></div>
-    <div><dt>Strom je aktivem Punkt · {result?.phases === 1 ? "1~" : "3~"}</dt><dd data-testid="ev-current">{value(result?.perPointCurrent, "A")}</dd></div>
+    <div><dt>Strom je aktivem Punkt{result ? ` · ${result.chargerKind === "dc" ? "AC-Ersatz 3~" : result.phases === 1 ? "1~" : "3~"}` : ""}</dt><dd data-testid="ev-current">{value(result?.perPointCurrent, "A")}</dd></div>
     <div><dt>Aktive / installierte Ladepunkte</dt><dd data-testid="ev-active">{result ? `${result.activeCount} / ${count} · ${result.waitingCount} warten` : "–"}</dd></div>
     <div><dt>Strom L1 / L2 / L3 · Laden</dt><dd data-testid="ev-phases">{result ? result.phaseCurrents.map(v => value(v, "A")).join(" / ") : "–"}</dd></div>
     <div><dt>Stärkster Aussenleiter · Laden</dt><dd data-testid="ev-strongest-phase">{value(result?.strongestPhaseCurrent, "A")}</dd></div>
@@ -47,5 +47,5 @@ export function EVDetails({ result, count }: { result: Result | null; count: str
 }
 
 export function EVEnergy({ result }: { result: Result | null }) {
-  return <section className="ev-energy" aria-label="Ladeenergie und Reichweite"><h2>Energie & Reichweite · Daueraufnahme</h2><div className="ev-energy-values"><div><span>Ladeenergie gesamt</span><strong data-testid="ev-energy-total">{value(result?.energyPerDay, "kWh/Tag")}</strong></div><div><span>Je aktivem Ladepunkt</span><strong>{value(result?.energyPerActive, "kWh/Tag")}</strong></div><div><span>Reichweite je aktivem Punkt</span><strong data-testid="ev-range">{value(result?.kmPerActive, "km/Tag")}</strong></div></div>{result && <p>{value(result.allocated)} × {result.hours.toLocaleString("de-CH")} h = {value(result.energyPerDay, "kWh/Tag")}. Reichweite mit {result.consumption.toLocaleString("de-CH")} kWh/100 km, ohne zusätzliche Ladeverluste. Die aktive Beispielgruppe wird über die ganze Betriebszeit angesetzt.</p>}</section>;
+  return <section className="ev-energy" aria-label="Ladeenergie und Reichweite"><h2>Energie & Reichweite · Daueraufnahme</h2><div className="ev-energy-values"><div><span>Ladeenergie gesamt</span><strong data-testid="ev-energy-total">{value(result?.energyPerDay, "kWh/Tag")}</strong></div><div><span>Je aktivem Ladepunkt</span><strong>{value(result?.energyPerActive, "kWh/Tag")}</strong></div><div><span>Reichweite je aktivem Punkt</span><strong data-testid="ev-range">{value(result?.kmPerActive, "km/Tag")}</strong></div></div>{result && <details><summary>Berechnung & Annahmen</summary><p>{value(result.allocated)} × {result.hours.toLocaleString("de-CH")} h = {value(result.energyPerDay, "kWh/Tag")}. Reichweite mit {result.consumption.toLocaleString("de-CH")} kWh/100 km, ohne zusätzliche Ladeverluste. Die aktive Beispielgruppe wird über die ganze Betriebszeit angesetzt.</p></details>}</section>;
 }

@@ -1,5 +1,6 @@
 import { useId, useState } from "react";
 import type { CalculationResult, SeriesItem } from "./types";
+import { useAnimatedGeometry } from "../useAnimatedGeometry";
 import "./reference-charts.css";
 
 const amount = (value: number, digits = 0) => value.toLocaleString("de-CH", { maximumFractionDigits: digits });
@@ -21,6 +22,7 @@ export function AnnualCostChart({ series, title, labels }: { series: SeriesItem[
   const ceiling = chartCeiling(Math.max(0, ...series.map(row => row.value + (row.secondary ?? 0))));
   const slot = (right - left) / Math.max(1, series.length), barWidth = Math.min(40, slot * .64);
   const height = (value: number) => (bottom - top) * Math.max(0, value) / ceiling;
+  const geometry = useAnimatedGeometry(Object.fromEntries(series.flatMap((row, index) => [[`first-${index}`, height(row.value)], [`second-${index}`, height(row.secondary ?? 0)]])));
   const labelEvery = series.length > 18 ? 2 : 1;
   return <figure className="reference-cost-chart" aria-label={title}>
     <div className="reference-chart-heading"><h2>{title}</h2><span>CHF / Jahr</span></div>
@@ -34,7 +36,7 @@ export function AnnualCostChart({ series, title, labels }: { series: SeriesItem[
         })}
         <path d={`M${left} ${top}V${bottom}H${right}`} stroke="var(--line-strong)" fill="none" />
         {series.map((row, index) => {
-          const x = left + slot * (index + .5), firstHeight = height(row.value), secondHeight = height(row.secondary ?? 0);
+          const x = left + slot * (index + .5), firstHeight = geometry[`first-${index}`], secondHeight = geometry[`second-${index}`];
           return <g key={`${row.label}-${index}`} tabIndex={0} role="img" aria-label={`${row.label}: ${labels[0]} ${amount(row.value)} CHF, ${labels[1]} ${amount(row.secondary ?? 0)} CHF, Total ${amount(row.value + (row.secondary ?? 0))} CHF`} onMouseEnter={() => setActive(index)} onFocus={() => setActive(index)} className="reference-year-column" data-active={index === selected}>
             <rect className="reference-column-hit" x={left + slot * index + 2} y={top} width={Math.max(1, slot - 4)} height={bottom - top} rx="5" fill="transparent" />
             <rect x={x - barWidth / 2} y={bottom - firstHeight} width={barWidth} height={firstHeight} fill="var(--accent)" opacity={index === selected ? 1 : .75} />
@@ -46,7 +48,7 @@ export function AnnualCostChart({ series, title, labels }: { series: SeriesItem[
     </div>
     <div className="reference-chart-legend"><span><i className="reference-primary-key" />{labels[0]}</span><span><i className="reference-secondary-key" />{labels[1]}</span></div>
     {item && <div className="reference-chart-readout" role="status" aria-live="polite"><strong>{item.label}</strong><span>{labels[0]}<b>{amount(item.value, 2)} CHF</b></span><span>{labels[1]}<b>{amount(item.secondary ?? 0, 2)} CHF</b></span><span>Total<b>{amount(item.value + (item.secondary ?? 0), 2)} CHF</b></span></div>}
-    <figcaption>Die Säulen zeigen die jährlichen Kosten. Erlöse werden separat ausgewiesen und sind hier nicht abgezogen.</figcaption>
+    <figcaption><details><summary>Diagramm erklären</summary><p>Die Säulen zeigen die jährlichen Kosten. Erlöse werden separat ausgewiesen und sind hier nicht abgezogen.</p></details></figcaption>
   </figure>;
 }
 
@@ -56,8 +58,9 @@ type Room = Extract<NonNullable<CalculationResult["diagram"]>, { kind: "room" }>
 export function MeasuredRoomPlan({ room }: { room: Room }) {
   const id = useId();
   const scale = Math.min(690 / room.length, 320 / room.width);
-  const width = room.length * scale, height = room.width * scale;
-  const x = (900 - width) / 2, y = 275 - height / 2;
+  const targetWidth = room.length * scale, targetHeight = room.width * scale;
+  const geometry = useAnimatedGeometry({ width: targetWidth, height: targetHeight, x: (900 - targetWidth) / 2, y: 275 - targetHeight / 2 });
+  const { width, height, x, y } = geometry;
   const cells = room.columns * room.rows;
   const total = room.count ?? cells, shown = Math.min(144, total);
   const cellWidth = width / room.columns, cellHeight = height / room.rows;
@@ -90,7 +93,7 @@ export function MeasuredRoomPlan({ room }: { room: Room }) {
         })}
       </svg>
     </div>
-    <figcaption><span><i className="reference-position-key" />{showNumbers ? "Nummern kennzeichnen die Rasterpositionen." : "Cyan kennzeichnet die Rasterpositionen; Nummern sind bei dichtem Raster ausgeblendet."}</span>{total > shown && <span>{shown} von {amount(total)} Positionen dargestellt.</span>}<span>Masslinien zeigen die Raumabmessungen{showSpacing ? "; unten stehen Wand- und Rasterabstand in Längsrichtung" : ""}. Hindernisse, reale Erfassungsbereiche und Lichtverteilung bleiben ungeprüft.</span></figcaption>
+    <figcaption>{total > shown && <span>{shown} von {amount(total)} Positionen dargestellt.</span>}<details><summary>Raster & Grenzen erklären</summary><p><i className="reference-position-key" />{showNumbers ? "Nummern kennzeichnen die Rasterpositionen." : "Cyan kennzeichnet die Rasterpositionen; Nummern sind bei dichtem Raster ausgeblendet."}</p><p>Masslinien zeigen die Raumabmessungen{showSpacing ? "; unten stehen Wand- und Rasterabstand in Längsrichtung" : ""}. Hindernisse, reale Erfassungsbereiche und Lichtverteilung bleiben ungeprüft.</p></details></figcaption>
   </figure>;
 }
 
@@ -103,6 +106,7 @@ export function TargetComparisonChart({ comparison }: { comparison: Comparison }
   const axisY = top + comparison.items.length * rowHeight + 12;
   const maximum = chartCeiling(Math.max(1, ...comparison.items.flatMap(item => [item.actual, item.target])));
   const x = (value: number) => left + Math.max(0, value) / maximum * (right - left);
+  const geometry = useAnimatedGeometry(Object.fromEntries(comparison.items.flatMap((item, index) => [[`actual-${index}`, Math.max(0, x(item.actual) - left)], [`target-${index}`, Math.max(0, x(item.target) - left)]])));
   return <figure className="reference-comparison-chart" aria-label={`${comparison.title} · Ist und Ziel`}>
     <div className="reference-chart-heading"><h2>{comparison.title}</h2><span>{comparison.unit}</span></div>
     <div className="reference-chart-scroll" role="region" tabIndex={0} aria-label={`${comparison.title}, bei Bedarf horizontal verschieben`}>
@@ -115,11 +119,11 @@ export function TargetComparisonChart({ comparison }: { comparison: Comparison }
         {comparison.items.map((item, index) => {
           const y = top + index * rowHeight;
           const tone = item.actual > item.target + 1e-9 ? "var(--danger)" : item.target > 0 && item.actual >= .9 * item.target ? "var(--wire)" : "var(--ok)";
-          return <g key={`${item.label}-${index}`}><text x="20" y={y + 30} className="reference-zone-label">{item.label}</text><rect x={left} y={y + 10} width={Math.max(0, x(item.actual) - left)} height="15" rx="3" fill={tone} /><rect x={left} y={y + 37} width={Math.max(0, x(item.target) - left)} height="15" rx="3" fill="var(--line-strong)" /><text x="760" y={y + 22} className="reference-comparison-value">{amount(item.actual, 2)} · Ist</text><text x="760" y={y + 49} className="reference-comparison-value">{amount(item.target, 2)} · Ziel</text></g>;
+          return <g key={`${item.label}-${index}`}><text x="20" y={y + 30} className="reference-zone-label">{item.label}</text><rect x={left} y={y + 10} width={geometry[`actual-${index}`]} height="15" rx="3" fill={tone} /><rect x={left} y={y + 37} width={geometry[`target-${index}`]} height="15" rx="3" fill="var(--line-strong)" /><text x="760" y={y + 22} className="reference-comparison-value">{amount(item.actual, 2)} · Ist</text><text x="760" y={y + 49} className="reference-comparison-value">{amount(item.target, 2)} · Ziel</text></g>;
         })}
         <path d={`M${left} ${axisY}H${right}`} stroke="var(--line-strong)" />
       </svg>
     </div>
-    <figcaption>Je Position stehen Ist und eingegebener Zielwert in derselben Einheit auf einer gemeinsamen Skala. Grün: darunter · Gelb: ab 90 % · Rot: überschritten. Vergleichswerte werden nebeneinander beurteilt, nicht addiert.</figcaption>
+    <figcaption><details><summary>Vergleich erklären</summary><p>Je Position stehen Ist und eingegebener Zielwert in derselben Einheit auf einer gemeinsamen Skala. Grün: darunter · Gelb: ab 90 % · Rot: überschritten. Vergleichswerte werden nebeneinander beurteilt, nicht addiert.</p></details></figcaption>
   </figure>;
 }

@@ -89,15 +89,16 @@ test("SIA parser accepts decimal comma edits but never converts blank required c
 });
 
 const legacy: CalculatorDefinition = { id: "premium-sia2056", title: "Legacy", description: "", source: "", scope: "", fields: [{ key: "old", label: "Alte Eingabe", default: "12", help: "alt" }], calculate: i => ({ metrics: [{ label: "Alter Wert", value: Number(i.old) }], formula: "Alte Formel", limitations: [], status: { tone: "neutral", text: "Altes Ergebnis" } }) };
-test("SIA definition keeps legacy calculation explicit and blocks absent automatic profiles", () => {
+test("SIA definition keeps manual and legacy calculations explicit alongside dated profiles", () => {
   const definition = createSIADefinition(legacy), initial = defaults(definition);
   const manual = validateResult(definition.calculate(initial));
   assert.equal(initial.siaMode, "manual"); assert.ok(manual.siaBreakdown);
   assert.equal(definition.calculate({ ...initial, siaMode: "legacy", old: "42" }).metrics[0].value, 42);
-  assert.equal(SIA_AUTOMATIC_DATASET, null);
+  assert.equal(SIA_AUTOMATIC_DATASET.devices["Büro"].p.m,5.303);
+  assert.equal(requireSIAAutomaticDataset(),SIA_AUTOMATIC_DATASET);
   assert.equal(SIA_BUILDING_TYPES.length, 17); assert.equal(SIA_GROUPS.length, 7);
-  assert.throws(requireSIAAutomaticDataset, /Datensatzes fehlen/);
-  assert.throws(() => definition.calculate({ ...initial, siaMode: "automatic", siaBuilding: "office" }), /keine Ersatzwerte/);
+
+  close(Number(definition.calculate({ ...initial, siaMode: "automatic", siaBuilding: "office" }).metrics[0].value), 32.3239);
 });
 
 test("SIA report flattens seven raw groups and independent factors without hiding data in JSON", () => {

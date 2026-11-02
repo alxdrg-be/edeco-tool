@@ -1,0 +1,6 @@
+/* A schematic moving pattern, not instantaneous AC current or a speed scale. */
+.engineering-lab .lab-current-flow{stroke-dasharray:8 7;animation:lab-current-forward 1.25s linear infinite}
+.engineering-lab .lab-current-flow-reverse{animation-direction:reverse}
+@keyframes lab-current-forward{to{stroke-dashoffset:-30}}
+@media(prefers-reduced-motion:reduce){.engineering-lab .lab-current-flow{animation:none!important}}
+@media print{.engineering-lab .lab-current-flow{animation:none!important;stroke-dasharray:none}}

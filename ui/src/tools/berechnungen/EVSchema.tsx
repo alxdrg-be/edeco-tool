@@ -1,9 +1,12 @@
 import { useId } from "react";
 import type { calculateEV, EVInput } from "./ev-model.ts";
 import { schemaState, signalColour, type EVSchemaState } from "./EVSchemaState.ts";
+import { currentFlowClass } from "./currentFlow";
+import { CurrentBus, CurrentTrunk } from "./CurrentFlowLines";
+import "./current-flow.css";
 import "./ev-schema.css";
 
-type Result = Pick<ReturnType<typeof calculateEV>, "houseKW" | "gridKW" | "perPoint" | "reserveExceeded" | "capacityOK"> & Partial<Pick<ReturnType<typeof calculateEV>, "allocated" | "activeCount" | "waitingCount" | "pointPowers" | "pointPhases" | "phases" | "strongestPhaseCurrent" | "reserveCurrent" | "chargerKind" | "pvKWp" | "pvKW" | "batteryKWh" | "batteryKW" | "generationKW" | "sourceConnection" | "strongestGridPhaseCurrent" | "strongestHousePhaseCurrent">>;
+type Result = Pick<ReturnType<typeof calculateEV>, "houseKW" | "gridKW" | "perPoint" | "reserveExceeded" | "capacityOK"> & Partial<Pick<ReturnType<typeof calculateEV>, "allocated" | "activeCount" | "waitingCount" | "pointPowers" | "pointPhases" | "phases" | "strongestPhaseCurrent" | "reserveCurrent" | "chargerKind" | "pvKWp" | "pvKW" | "batteryKWh" | "batteryKW" | "generationKW" | "sourceConnection" | "strongestGridPhaseCurrent" | "strongestHousePhaseCurrent" | "gridImportKW" | "gridExportKW">>;
 
 function decimal(value: string) {
   return /^\d+(?:[.,]\d+)?$/.test(value.trim()) ? Number(value.trim().replace(",", ".")) : NaN;
@@ -35,6 +38,12 @@ export default function EVSchema({ input, result, signals }: { input: EVInput; r
   const nominal = result ? decimal(input.power) : undefined;
   const hasActivity = result?.activeCount !== undefined;
   const hasMore = count > shown;
+  const assignedTotal = result ? result.allocated ?? result.perPoint * count : undefined;
+  const gridNet = result ? result.gridImportKW !== undefined && result.gridExportKW !== undefined
+    ? result.gridImportKW - result.gridExportKW
+    : (assignedTotal ?? 0) - (result.sourceConnection === "grid" ? result.generationKW ?? 0 : 0) : undefined;
+  const pointPower = (index: number) => result && !(result.activeCount !== undefined && index >= result.activeCount) ? result.pointPowers?.[index] ?? result.perPoint : 0;
+  const rowPowers = Array.from({ length: rows }, (_, row) => Array.from({ length: Math.min(columns, shown - row * columns) }, (_, column) => pointPower(row * columns + column)).reduce((sum, power) => sum + power, 0));
 
   return <figure className="ev-schema" aria-label="Elektrisches Ladegrid-Schema">
     <div className="ev-schema-caption">
@@ -42,7 +51,7 @@ export default function EVSchema({ input, result, signals }: { input: EVInput; r
       <span>{shown ? `${shown} von ${count} Ladepunkten` : "Eingaben prüfen"}</span>
       <span className="ev-schema-mobile-hint">↔ Schema horizontal verschieben</span>
     </div>
-    <p className="ev-schema-explanation">Der Hausanschluss speist die Unterverteilung und die Sammelschiene. {hasActivity ? `${result!.activeCount} Ladepunkte aktiv, ${result!.waitingCount ?? 0} wartend. Die Darstellung ist eine Modellaufnahme; Ladezeiten und Fahrzeugzustände werden nicht simuliert.` : "Pro Punkt stehen Nennleistung und gleichmässige Modellzuteilung getrennt; aktive und wartende Ladepunkte werden nicht simuliert."}</p>
+    <details className="ev-schema-explanation"><summary>Wie lese ich das Stromschema?</summary><p>Der Hausanschluss speist die Unterverteilung und die Sammelschiene. {hasActivity ? `${result!.activeCount} Ladepunkte aktiv, ${result!.waitingCount ?? 0} wartend. Die Darstellung ist eine Modellaufnahme; Ladezeiten und Fahrzeugzustände werden nicht simuliert.` : "Pro Punkt stehen Nennleistung und gleichmässige Modellzuteilung getrennt; aktive und wartende Ladepunkte werden nicht simuliert."}</p><p>Bewegte Linien markieren einen berechneten Leistungsfluss. Wartende Punkte und Abschnitte ohne Leistung bleiben statisch. Eine bekannte Rückspeisung läuft entgegengesetzt. Die Bewegung zeigt weder die momentane Wechselstromrichtung noch eine massstäbliche Stromgeschwindigkeit.</p></details>
     <div className="ev-schema-signals" aria-label="Status der Leistungsabschnitte">
       {([{ key: "house", label: "Haus" }, { key: "grid", label: "Grid" }, { key: "points", label: "Ladepunkte" }] as const).map(item => <span key={item.key} data-state={state[item.key].tone} style={{ borderColor: signalColour(state[item.key].tone) }}><i style={{ background: signalColour(state[item.key].tone) }} /><strong>{item.label}</strong>{state[item.key].label}</span>)}
     </div>
@@ -51,14 +60,14 @@ export default function EVSchema({ input, result, signals }: { input: EVInput; r
         <title id={`${id}-title`}>Hausanschluss, Unterverteiler und Ladepunkte</title>
         <desc id={`${id}-description`}>Der Hausanschluss speist den Grid-Unterverteiler. Von dort führt eine Sammelschiene über schematische Schutzorgane zu den Ladepunkten und Fahrzeugen. Jeder Ladepunkt zeigt konfigurierte Nennleistung und rechnerische Zuteilung getrennt. Die Schutzorgane sind nicht dimensioniert. {hasMore ? `${count - shown} weitere Ladepunkte werden nicht einzeln gezeichnet.` : ""}</desc>
 
-        {sources.length > 0 && <g className="ev-schema-local-sources"><path d={`M${result?.sourceConnection === "grid" ? 405 : 129} 40V14H${700 + (sources.length - 1) * 250}`} stroke="var(--ok)" strokeWidth="2" fill="none" />{sources.map((source, index) => <g key={source.id} data-testid={`schema-${source.id}-source`}><path d={`M${700 + index * 250} 14V40`} stroke="var(--ok)" strokeWidth="2" /><rect x={590 + index * 250} y="40" width="220" height="140" rx="12" fill="var(--panel)" stroke="var(--ok)" strokeWidth="2" /><text x={700 + index * 250} y="73" textAnchor="middle" className="ev-schema-title">{source.label}</text><text x={700 + index * 250} y="116" textAnchor="middle" className="ev-schema-ampere">{format(source.power, "kW")}</text><text x={700 + index * 250} y="152" textAnchor="middle" className="ev-schema-power">{source.detail}</text></g>)}</g>}
+        {sources.length > 0 && <g className="ev-schema-local-sources"><path className={currentFlowClass(-(result?.generationKW ?? sources.reduce((sum,source)=>sum+source.power,0)))} d={`M${result?.sourceConnection === "grid" ? 405 : 129} 40V14H${700 + (sources.length - 1) * 250}`} stroke="var(--ok)" strokeWidth="2" fill="none" />{sources.map((source, index) => <g key={source.id} data-testid={`schema-${source.id}-source`}><path className={currentFlowClass(-source.power)} d={`M${700 + index * 250} 14V40`} stroke="var(--ok)" strokeWidth="2" /><rect x={590 + index * 250} y="40" width="220" height="140" rx="12" fill="var(--panel)" stroke="var(--ok)" strokeWidth="2" /><text x={700 + index * 250} y="73" textAnchor="middle" className="ev-schema-title">{source.label}</text><text x={700 + index * 250} y="116" textAnchor="middle" className="ev-schema-ampere">{format(source.power, "kW")}</text><text x={700 + index * 250} y="152" textAnchor="middle" className="ev-schema-power">{source.detail}</text></g>)}</g>}
         <g className="ev-schema-supply">
           <rect x="24" y="40" width="210" height="140" rx="12" fill="var(--panel)" stroke={houseColour} strokeWidth="2" />
           <text x="129" y="73" textAnchor="middle" className="ev-schema-title">Hausanschluss</text>
           <text x="129" y="116" textAnchor="middle" className="ev-schema-ampere">{format(result ? decimal(input.house) : undefined, "A")}</text>
           <text x="129" y="152" textAnchor="middle" className="ev-schema-power">{format(result?.houseKW, "kW")}</text>
-          <path data-testid="schema-house-feed" data-state={state.house.tone} d="M234 110H300" stroke={houseColour} strokeWidth="3" fill="none" />
-          <path d="M283 104l10 6-10 6" stroke={houseColour} strokeWidth="2" fill="none" />
+          <path className={currentFlowClass(gridNet)} data-testid="schema-house-feed" data-state={state.house.tone} d="M234 110H300" stroke={houseColour} strokeWidth="3" fill="none" />
+          <path d={gridNet !== undefined && gridNet < 0 ? "M251 104l-10 6 10 6" : "M283 104l10 6-10 6"} stroke={houseColour} strokeWidth="2" fill="none" />
           <text x="267" y="143" textAnchor="middle" className="ev-schema-feed-detail">400 V · 3~</text>
           <rect x="300" y="40" width="210" height="140" rx="12" fill="var(--panel)" stroke={gridColour} strokeWidth="2" />
           <text x="405" y="73" textAnchor="middle" className="ev-schema-title">Grid / Unterverteiler</text>
@@ -66,21 +75,22 @@ export default function EVSchema({ input, result, signals }: { input: EVInput; r
           <text x="405" y="152" textAnchor="middle" className="ev-schema-power">{format(result?.gridKW, "kW")}</text>
         </g>
 
-        {shown > 0 && <path data-testid="schema-grid-feed" data-state={state.grid.tone} d={`M${trunkX} 180V${272 + (rows - 1) * 400}`} stroke={gridColour} strokeWidth="3" fill="none" />}
+        {shown > 0 && <CurrentTrunk x={trunkX} startY={180} firstY={272} spacing={400} rowPowers={rowPowers} colour={gridColour} testId="schema-grid-feed" state={state.grid.tone} />}
         {Array.from({ length: rows }, (_, row) => {
           const length = Math.min(columns, shown - row * columns), busY = 272 + row * 400;
-          return <g key={`bus-${row}`}><path data-testid="schema-grid-bus" data-state={state.grid.tone} d={`M${trunkX} ${busY}H${firstX + (length - 1) * 180}`} stroke={gridColour} strokeWidth="4" fill="none" /><circle cx={trunkX} cy={busY} r="4" fill={gridColour} /></g>;
+          const powers = Array.from({ length }, (_, column) => pointPower(row * columns + column));
+          return <g key={`bus-${row}`}><CurrentBus x={trunkX} y={busY} firstX={firstX} powers={powers} colour={gridColour} width={4} testId="schema-grid-bus" state={state.grid.tone} /><circle cx={trunkX} cy={busY} r="4" fill={gridColour} /></g>;
         })}
         {Array.from({ length: shown }, (_, index) => {
           const x = firstX + (index % columns) * 180, busY = 272 + Math.floor(index / columns) * 400;
           const assigned = result?.pointPowers?.[index] ?? result?.perPoint;
           const waiting = hasActivity && index >= result!.activeCount!;
           const pointColour = waiting ? "var(--muted)" : signalColour(state.points.tone);
-          const phaseLabel = result?.phases === 1 ? `L${result.pointPhases?.[index] ?? index % 3 + 1}` : "3~";
+          const phaseLabel = result?.chargerKind === "dc" ? "DC" : result?.phases === 1 ? `L${result.pointPhases?.[index] ?? index % 3 + 1}` : "3~";
           return <g className={`ev-schema-point${waiting ? " ev-schema-waiting" : ""}`} data-index={index + 1} data-state={waiting ? "waiting" : state.points.tone} data-active={hasActivity ? !waiting : undefined} key={index}>
             <rect x={x - 24} y={busY - 38} width="48" height="24" rx="5" fill="var(--accent-soft)" stroke={pointColour} />
-            <text x={x} y={busY - 21} textAnchor="middle" className="ev-schema-ac">{result?.chargerKind === "dc" ? "DC" : "AC"}</text>
-            <path d={`M${x} ${busY}V${busY + 88}`} stroke={pointColour} strokeWidth="2.5" fill="none" />
+            <text x={x} y={busY - 21} textAnchor="middle" className="ev-schema-ac">{result ? result.chargerKind === "dc" ? "DC" : "AC" : "–"}</text>
+            <path className={currentFlowClass(assigned,Boolean(result)&&!waiting)} d={`M${x} ${busY}V${busY + 88}`} stroke={pointColour} strokeWidth="2.5" fill="none" />
             <rect x={x - 11} y={busY + 40} width="22" height="26" rx="3" fill="var(--panel)" stroke="var(--muted)" strokeWidth="1.5" />
             <path d={`M${x - 5} ${busY + 59}l10-13`} stroke="var(--muted)" strokeWidth="1.5" />
 
@@ -90,7 +100,7 @@ export default function EVSchema({ input, result, signals }: { input: EVInput; r
             <circle cx={x} cy={busY + 154} r="9" fill="var(--canvas)" stroke={pointColour} strokeWidth="1.7" />
             <circle cx={x - 3} cy={busY + 152} r="1.5" fill={pointColour} /><circle cx={x + 3} cy={busY + 152} r="1.5" fill={pointColour} /><circle cx={x} cy={busY + 157} r="1.5" fill={pointColour} />
             <path d={`M${x + 35} ${busY + 133}q13 0 13 15v22q0 13-13 13`} stroke={pointColour} strokeWidth="2" fill="none" />
-            <path d={`M${x} ${busY + 198}V${busY + 221}`} stroke={pointColour} strokeWidth="2" strokeDasharray="4 4" />
+            <path className={currentFlowClass(assigned,Boolean(result)&&!waiting)} d={`M${x} ${busY + 198}V${busY + 221}`} stroke={pointColour} strokeWidth="2" strokeDasharray="4 4" />
 
             <path d={`M${x - 46} ${busY + 245}q0-12 13-12h7l12-15h27l13 15h7q13 0 13 12v16h-92Z`} fill="var(--panel-2)" stroke={pointColour} strokeWidth="1.8" />
             <path d={`M${x - 17} ${busY + 233}l7-10h18l8 10Z`} fill="var(--canvas)" />

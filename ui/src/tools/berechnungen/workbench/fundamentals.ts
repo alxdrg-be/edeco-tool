@@ -15,10 +15,10 @@ function choice(input: Inputs, key: string, allowed: string[]): string {
   if (!allowed.includes(value)) throw new Error(`${key}: eine gültige Option wählen.`);
   return value;
 }
-function materialArea(input: Inputs) {
+function materialArea(input: Inputs, allowLossCu300 = false) {
   const material = choice(input, "material", ["cu", "al"]) as "cu" | "al";
-  const area = number(input, "area", "Querschnitt", 0, 240);
-  const r20 = RESISTANCE_20[material][String(area)];
+  const area = number(input, "area", "Querschnitt", 0, allowLossCu300 ? 300 : 240);
+  const r20 = RESISTANCE_20[material][String(area)] ?? (allowLossCu300 && material === "cu" && area === 300 ? .0601 : undefined);
   if (r20 === undefined) throw new Error("Tabellierten Querschnitt wählen; Aluminium wird ab 10 mm² unterstützt.");
   return { material, area, r20, alpha: material === "cu" ? .00393 : .00403, x: REACTANCE[String(area)] };
 }
@@ -146,24 +146,28 @@ export function calculateLoss(input: Inputs): CalculationResult {
   const days = durationMode === "calendar" ? integer(input, "days", "Betriebstage pro Jahr", 0, 365) : null;
   const hours = dailyHours === null ? number(input, "hours", "Jahresbetriebsstunden", 0, 8760, true) : dailyHours * days!;
   const cos = system === "dc" ? 1 : number(input, "cos", "Leistungsfaktor cos φ", 0, 1);
-  const { material, area, r20, alpha, x } = materialArea(input), r = r20 * (1 + alpha * (temperature - 20)) * length / 1000 / parallel;
-  const reactance = system === "dc" ? 0 : x * length / 1000 / parallel, sin = Math.sqrt(Math.max(0, 1 - cos ** 2));
+  const { material, area, r20, alpha, x } = materialArea(input, true), r = r20 * (1 + alpha * (temperature - 20)) * length / 1000 / parallel;
+  const sin = Math.sqrt(Math.max(0, 1 - cos ** 2)), needsX = system !== "dc" && sin > 0;
+  if (needsX && x === undefined) throw new Error("Für 300 mm² ist kein Reaktanz-Richtwert belegt. Dieser Querschnitt wird nur bei DC oder cos φ = 1 gerechnet; für andere AC-Lasten ist ein belegter X′-Wert erforderlich.");
+  const reactance = system === "dc" || x === undefined ? 0 : x * length / 1000 / parallel;
   const legs = system === "3" ? 3 : 2, voltageFactor = system === "3" ? Math.sqrt(3) : 2;
   const watts = legs * current ** 2 * r, delta = voltageFactor * current * (r * cos + reactance * sin), percent = delta / voltage * 100;
   if (delta >= voltage) throw new Error("Modellgrenze: Spannungsfall erreicht die Nennspannung. Eingaben prüfen.");
   const kwh = watts * hours / 1000, totalHours = hours * years, totalKwh = kwh * years, good = percent <= budget + 1e-12;
   const parallelWarning = parallel > 1 && material === "cu" && area < 70;
-  const recommended = Object.keys(RESISTANCE_20[material]).map(Number).sort((a,b) => a-b).find(area => {
-    const rCandidate = RESISTANCE_20[material][String(area)] * (1 + alpha * (temperature - 20)) * length / 1000 / parallel;
-    const xCandidate = system === "dc" ? 0 : REACTANCE[String(area)] * length / 1000 / parallel;
+  const lossR20 = material === "cu" ? { ...RESISTANCE_20.cu, "300": .0601 } : RESISTANCE_20.al;
+  const recommended = Object.keys(lossR20).map(Number).sort((a,b) => a-b).find(area => {
+    const rCandidate = lossR20[String(area)] * (1 + alpha * (temperature - 20)) * length / 1000 / parallel;
+    if (needsX && REACTANCE[String(area)] === undefined) return false;
+    const xCandidate = needsX ? REACTANCE[String(area)] * length / 1000 / parallel : 0;
     return voltageFactor * current * (rCandidate * cos + xCandidate * sin) <= voltage * budget / 100 + 1e-12;
   }) ?? null;
   return {
     metrics: [{ label: "Ohmsche Verlustleistung", value: watts, unit: "W", digits: 1 }, { label: cos === 1 ? "Spannungsfall · cos φ = 1" : "Spannungsfall · R/X und cos φ", value: percent, unit: "%", digits: 2, tone: good ? percent >= .9 * budget ? "warning" : "ok" : "error" }, { label: "Kosten der Verluste", value: kwh * price, unit: "CHF/Jahr", digits: 0 }, { label: "Gesamtkosten im Zeitraum", value: totalKwh * price, unit: "CHF", digits: 2 }],
     status: { tone: !good ? "error" : percent >= .9 * budget || parallelWarning ? "warning" : "ok", text: (!good ? "Spannungsfall überschreitet das eingegebene Budget." : percent >= .9 * budget ? "Spannungsfall liegt nahe an der eingegebenen Grenze." : "Spannungsfall liegt innerhalb des eingegebenen Budgets.") + (parallelWarning ? " Parallelleiter Cu unter 70 mm²: Anordnung nach NIN 5.2.3.7 prüfen; nicht verseilte Ausführung ist damit nicht freigegeben." : "") },
     formula: `P_V = c · I² · R_Phase; ΔU = f · I · (R_Phase · cos φ + X_Phase · sin φ).\nR_Phase = R′₂₀ · [1 + α · (T − 20)] · L / (1000 · n) = ${fix(r, 6)} Ω. P_V = ${legs} × ${fix(current)}² × ${fix(r, 6)} = ${fix(watts, 2)} W. ΔU = ${system === "3" ? "√3" : "2"} × ${fix(current)} × (${fix(r, 6)} × ${fix(cos, 3)} + ${fix(reactance, 6)} × ${fix(sin, 4)}) = ${fix(delta, 3)} V = ${fix(percent, 3)} %. h_gesamt = ${dailyHours === null ? `${fix(hours)} h/Jahr` : `${fix(dailyHours)} h/Tag × ${days} Tage/Jahr`} × ${fix(years, 2)} Jahre = ${fix(totalHours)} h. E_V = ${fix(watts, 2)} × ${fix(totalHours)} / 1000 = ${fix(totalKwh, 3)} kWh; Kosten = ${fix(totalKwh, 3)} × ${fix(price, 4)} = ${fix(totalKwh * price, 2)} CHF.`,
-    limitations: ["Der AC-Spannungsfall berücksichtigt R · cos φ + X · sin φ bei induktiver sinusförmiger Last. X′ ist ein publizierter Richtwert, kein installationsspezifischer Normwert. Bei DC wird nur der ohmsche Anteil gerechnet.", "Die Leitertemperatur ist eine vorgegebene Annahme, kein thermischer Berechnungsnachweis. Bei Parallelleitern wird gleiche Stromaufteilung vorausgesetzt; Oberschwingungen, Unsymmetrie und Skineffekt bleiben unberücksichtigt.", "Der 4-%-Ansatz bezieht sich auf NIN 5.2.5.1 und die gesamte relevante Strecke; andere Budgets sind Projektwerte. Querschnittsempfehlung nur für das Spannungsfallbudget und belegte R/X-Paare bis 240 mm². Cu 300 mm² bleibt ohne belegtes X′ gesperrt. Keine Strombelastbarkeits-, Verlegeart- oder Schutzorganfreigabe."],
-    rows: [{ label: "Widerstand je Aussenleiterpfad", value: r, unit: "Ω" }, { label: "Widerstand des Spannungsfallpfads", value: system === "3" ? r : 2 * r, unit: "Ω" }, { label: "R′ bei Leitertemperatur", value: r20 * (1 + alpha * (temperature - 20)), unit: "Ω/km" }, { label: "Effektiver Leiterquerschnitt je Phase", value: area * parallel, unit: "mm²" }, { label: "Reaktanz je Aussenleiterpfad · Richtwert", value: reactance, unit: "Ω" }, { label: "Leistungsfaktor cos φ", value: cos }, { label: "Spannungsfall", value: delta, unit: "V" }, { label: "Energieverluste", value: kwh, unit: "kWh/Jahr" }, { label: "Betrachtungsdauer", value: years, unit: "Jahre" }, { label: "Betriebsstunden total", value: totalHours, unit: "h" }, { label: "Energieverluste total", value: totalKwh, unit: "kWh" }, { label: "Kleinster Querschnitt für das Spannungsfallbudget", value: recommended === null ? "keiner bis 240 mm²" : recommended, unit: recommended === null ? undefined : "mm²" }, { label: "Maximale einfache Länge aus Budget", value: length * budget / percent, unit: "m" }, { label: "Spannungsfallbudget", value: budget, unit: "%" }],
+    limitations: ["Der AC-Spannungsfall berücksichtigt R · cos φ + X · sin φ bei induktiver sinusförmiger Last. X′ ist ein publizierter Richtwert, kein installationsspezifischer Normwert. Bei DC und cos φ = 1 wird X′ nicht benötigt; Cu 300 mm² verwendet den publizierten R′₂₀-Wert 0.0601 Ω/km.", "Die Leitertemperatur ist eine vorgegebene Annahme, kein thermischer Berechnungsnachweis. Bei Parallelleitern wird gleiche Stromaufteilung vorausgesetzt; Oberschwingungen, Unsymmetrie und Skineffekt bleiben unberücksichtigt.", "Der 4-%-Ansatz bezieht sich auf NIN 5.2.5.1 und die gesamte relevante Strecke; andere Budgets sind Projektwerte. Querschnittsempfehlung nur für das Spannungsfallbudget: belegte R/X-Paare bis 240 mm², Cu 300 mm² zusätzlich nur ohne benötigten X′-Anteil. Keine Strombelastbarkeits-, Verlegeart- oder Schutzorganfreigabe."],
+    rows: [{ label: "Widerstand je Aussenleiterpfad", value: r, unit: "Ω" }, { label: "Widerstand des Spannungsfallpfads", value: system === "3" ? r : 2 * r, unit: "Ω" }, { label: "R′ bei Leitertemperatur", value: r20 * (1 + alpha * (temperature - 20)), unit: "Ω/km" }, { label: "Effektiver Leiterquerschnitt je Phase", value: area * parallel, unit: "mm²" }, { label: "Reaktanz je Aussenleiterpfad · Richtwert", value: reactance, unit: "Ω" }, { label: "Leistungsfaktor cos φ", value: cos }, { label: "Spannungsfall", value: delta, unit: "V" }, { label: "Energieverluste", value: kwh, unit: "kWh/Jahr" }, { label: "Betrachtungsdauer", value: years, unit: "Jahre" }, { label: "Betriebsstunden total", value: totalHours, unit: "h" }, { label: "Energieverluste total", value: totalKwh, unit: "kWh" }, { label: "Kleinster Querschnitt für das Spannungsfallbudget", value: recommended === null ? `keiner bis ${material === "cu" && !needsX ? 300 : 240} mm²` : recommended, unit: recommended === null ? undefined : "mm²" }, { label: "Maximale einfache Länge aus Budget", value: length * budget / percent, unit: "m" }, { label: "Spannungsfallbudget", value: budget, unit: "%" }],
     comparisons: [{ title: budget === 4 ? "Spannungsfall · 4 % nach NIN 5.2.5.1" : "Spannungsfall · Projektbudget", unit: "%", items: [{ label: "Spannungsfall", actual: percent, target: budget }] }],
   };
 }
@@ -280,6 +284,7 @@ for (const field of FUNDAMENTALS.find(item => item.id === "transformator")!.fiel
   if (field.key === "ukManual") field.visibleWhen = [{ key: "ukMode", values: ["manual"] }];
 }
 for (const field of FUNDAMENTALS.find(item => item.id === "verlustleistung")!.fields) {
+  if (field.key === "area") field.options = [...(field.options ?? []), { value: "300", label: "300 mm² Cu · DC / cos φ = 1" }];
   if (field.key === "hours") field.visibleWhen = [{ key: "durationMode", values: ["annual"] }];
   if (field.key === "dailyHours" || field.key === "days") field.visibleWhen = [{ key: "durationMode", values: ["calendar"] }];
 }

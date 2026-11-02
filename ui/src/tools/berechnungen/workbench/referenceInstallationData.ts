@@ -107,6 +107,23 @@ export const TRAY_REFERENCE = {
   cfwGroupingSha256: "f91e0c12d34ab135ed79cd65f4bb9c8c80debcd20dc2c708ee50e871de27ba49",
 } as const;
 
+/** Published provider transcription of Hager handbook p.54; not independently
+ * checked manufacturer coordination. Never extrapolate to another device series. */
+export const HAGER_BACKUP_REFERENCE = {
+  url:"https://www.elektro-rechner.ch/Rechner/ls-schalter.html",observed:"2026-11-02",
+  sha256:"fa5893414f1231d3497536807bc9543fc0cfc35f6153b6de1d099f8b1901a6fa",
+  attribution:"Hager-Handbuch S.54 laut veröffentlichter Referenz; Originalnachweis offen",
+} as const;
+export type PublishedHagerFamily="standard6"|"high10";
+export function publishedHagerBackup(family:PublishedHagerFamily,curve:string,rated:number,upstream:number,icnKA:number):number|null {
+  if(!Number.isFinite(rated)||rated<=0||rated>63)return null;
+  const standard:Record<number,number>={50:50,63:40,80:25,100:25,125:25};
+  const high:Record<number,number>={50:60,63:60,80:60,100:60,125:60,160:60};
+  if(family==="standard6"&&icnKA===6&&["B","C"].includes(curve))return standard[upstream]??null;
+  if(family==="high10"&&[10,15,25].includes(icnKA)&&["B","C","D"].includes(curve))return high[upstream]??null;
+  return null;
+}
+
 export interface PoeCableReference { id:string; label:string; resistance20:number; diameter:number; shielding:string; referenceLengthFactors:Readonly<Record<string,number>>; attenuationPerDegree:number; shieldCorrection:number }
 export const POE_CABLE_REFERENCES: readonly PoeCableReference[] = [
   {"id":"cat5e-u-awg24","label":"Cat5e/u (AWG24)","resistance20":9.5,"diameter":5.0,"shielding":"/u","referenceLengthFactors":{"D":1.0},"attenuationPerDegree":0.4,"shieldCorrection":0.0},

@@ -6,6 +6,7 @@ import TechnicalGraphics, { hasTechnicalGraphic } from "./TechnicalGraphics";
 import CostModelView from "./CostModelView";
 import SIABreakdownCharts from "./SIABreakdownCharts";
 import PoeRouteView from "./PoeRouteView";
+import "./result-view.css";
 
 export function metricValue(metric: Pick<Metric, "value" | "digits" | "unit">) {
   return `${typeof metric.value === "number" ? metric.value.toLocaleString("de-CH", { maximumFractionDigits: metric.digits ?? 2 }) : metric.value}${metric.unit ? ` ${metric.unit}` : ""}`;

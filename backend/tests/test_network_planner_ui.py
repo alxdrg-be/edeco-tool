@@ -389,9 +389,9 @@ def test_two_floor_distributions_have_independent_branches_and_shared_trunk(edit
     assert edges["feed-uv-1"]["values"]["length"]=="15"
     assert edges["feed-uv-2"]["values"]["length"]=="25"
     page.locator('[data-edge-id="feed-uv-1"] .np-edge-label').click()
-    playwright.expect(page.locator('[data-network-field="area"]')).to_have_value("10")
+    playwright.expect(page.locator('[data-network-field="area"] select')).to_have_value("10")
     page.locator('[data-edge-id="ls-load-1"] .np-edge-label').click()
-    playwright.expect(page.locator('[data-network-field="area"]')).to_have_value("2.5")
+    playwright.expect(page.locator('[data-network-field="area"] select')).to_have_value("2.5")
     page.locator('[data-node-id="load-1"]').click()
     page.locator('[data-network-field="power"]').fill("13.8")
     after=snapshot()
@@ -440,4 +440,4 @@ def test_deleting_a_node_during_wire_drag_keeps_editor_usable_and_undoable(edito
     playwright.expect(page.locator(".np-node")).to_have_count(4)
     playwright.expect(page.locator(".np-edge")).to_have_count(3)
     page.locator('[data-node-id="source"]').click()
-    playwright.expect(page.locator('[data-network-field="maxCurrent"]')).to_have_value("160")
+    playwright.expect(page.locator('[data-network-field="maxCurrent"] select')).to_have_value("160")

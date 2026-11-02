@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { INSTALLATION, calculateFireLoadPositions, createFireLoadRow, parseFireLoadRows, type FireLoadPosition } from "./installation.ts";
-import { lookupPublishedIz, publishedAreas, publishedTemperatureFactor, publishedGroupingFactor, POE_CABLE_REFERENCES, publishedMinimumFeedRp, publishedPvGrant } from "./referenceInstallationData.ts";
+import { INSTALLATION, calculateFireLoadPositions, createFireLoadRow, parseFireLoadRows, fireLoadRowsToPositions, type FireLoadPosition } from "./installation.ts";
+import { lookupPublishedIz, publishedAreas, publishedTemperatureFactor, publishedGroupingFactor, publishedHagerBackup, POE_CABLE_REFERENCES, publishedMinimumFeedRp, publishedPvGrant } from "./referenceInstallationData.ts";
+import { FIRE_CABLE_FACTS, fireCableSelection, fireCprState } from "./fireCableData.ts";
 import { defaults, type Inputs, type CalculationResult } from "./types.ts";
 const definition = (id: string) => { const found=INSTALLATION.find(d=>d.id===id);assert.ok(found);return found; };
 const calculate = (id: string, patch: Inputs={}) => { const d=definition(id);return d.calculate({...defaults(d),...(id==="strombelastbarkeit"&&patch.tableMode==="manual"?{circuits:"2"}:{}),...patch}); };
@@ -12,6 +13,46 @@ const near=(actual:unknown,expected:number,tolerance=1e-9)=>{assert.equal(typeof
 test("installation catalogue has seven functional independent definitions and finite default results",()=>{
   assert.equal(INSTALLATION.length,7);assert.equal(new Set(INSTALLATION.map(d=>d.id)).size,7);
   for(const d of INSTALLATION){const r=d.calculate(defaults(d));assert.ok(r.metrics.length>=3,d.id);assert.ok(r.formula&&r.limitations.length,d.id);assert.ok(d.source.startsWith("https://www.elektro-rechner.ch/"));for(const m of r.metrics)if(typeof m.value==="number")assert.ok(Number.isFinite(m.value),`${d.id}: ${m.label}`);assert.throws(()=>d.calculate({...defaults(d),[d.fields[0].key]:""}),d.id);}
+});
+
+test("observed Hager backup values remain bound to the named family and never extrapolate",()=>{
+  // Browser observation 2026-11-02, source ls-schalter.html hash fa589341…:
+  // B16 / NH125 / 6kA ->25kA; B16 / NH160 /10kA ->60kA; 3kA has no row.
+  assert.equal(publishedHagerBackup("standard6","B",16,125,6),25);
+  assert.equal(publishedHagerBackup("high10","B",16,160,10),60);
+  for(const args of [["standard6","B",16,125,3],["standard6","B",16,160,6],["standard6","B",80,125,6],["standard6","D",16,125,6],["high10","K",16,160,10]] as const)
+    assert.equal(publishedHagerBackup(...args),null);
+  const reference=calculate("ls-schalter",{backupMode:"reference",backupFamily:"standard6",ikMax:"10"});
+  near(metric(reference,"Ausschaltreserve"),15);
+  assert.equal(reference.status.tone,"warning");
+  assert.match(reference.status.text,/Original-Herstellerkoordination/);
+  assert.throws(()=>calculate("ls-schalter",{backupMode:"reference",backupFamily:"standard6",icn:"3"}),/Kein publizierter/);
+  assert.throws(()=>calculate("ls-schalter",{backupMode:"reference",upstreamType:"ls"}),/NH-gG/);
+});
+
+test("467 published cable facts retain supplier values and never turn a selected source into project evidence",()=>{
+  // Actual browser/data observation 2026-11-02, kabel_brandlast.json v2.1.0,
+  // source SHA-256 226a941d…; only plausible supplier rows were retained.
+  assert.equal(FIRE_CABLE_FACTS.length,467);
+  assert.equal(new Set(FIRE_CABLE_FACTS.map(c=>c.id)).size,467);
+  const id="fe05c-2x1.5-cca-s1-d1-a1", highest=fireCableSelection(id),kablan=fireCableSelection(id,"Kablan");
+  assert.equal(highest.mjPerMeter,"1.48");assert.equal(kablan.mjPerMeter,"0.57");
+  assert.equal(highest.cpr,"Cca-s1,d1,a1");assert.equal(highest.evidence,"open");
+  assert.throws(()=>fireCableSelection(id,"Nicht vorhandener Lieferant"),/Lieferanten/);
+  const approximate=fireCableSelection("bio-st-2x1.5-dca-s2-d2-a2");
+  assert.equal(approximate.mjPerMeter,"1.25");assert.equal(approximate.evidence,"critical");assert.match(approximate.name,/Richtwert/);
+  assert.equal(fireCprState("Cca-s1,d1,a1"),"recorded");
+  assert.equal(fireCprState("Cca"),"open");
+  assert.equal(fireCprState("B2ca-s1,d2,a1"),"critical");
+  assert.equal(fireCprState("Eca"),"critical");
+  const row={...createFireLoadRow("source-row"),...approximate,quantity:"1",length:"10",evidence:"documented" as const};
+  const parsed=parseFireLoadRows(JSON.stringify([row]));
+  assert.equal(parsed[0].catalogId,row.catalogId);
+  assert.equal(fireLoadRowsToPositions(parsed)[0].evidence,"critical");
+  const result=calculateFireLoadPositions(fireLoadRowsToPositions(parsed),10,"horizontal");
+  assert.equal(result.status.tone,"error");
+  // A forged 'Aca' field cannot clear the known critical class of a retained catalogue record.
+  assert.equal(fireLoadRowsToPositions([{...row,cpr:"Aca"}])[0].evidence,"critical");
 });
 
 test("NIN table calculation applies correction factors and checks both overload inequalities",()=>{

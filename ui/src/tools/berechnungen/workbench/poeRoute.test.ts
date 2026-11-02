@@ -17,6 +17,27 @@ const run = (patch: Inputs = {}) => calculatePoeRoute({ ...base, ...patch });
 const segments = (...rows: Partial<PoeRouteSegmentInput>[]) => JSON.stringify(rows.map((row, index) => ({ ...defaultPoeRouteSegment(`s-${index + 1}`), label: `Abschnitt ${index + 1}`, ...row })));
 const close = (actual: number, expected: number, tolerance = 1e-9) => assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} ≠ ${expected}`);
 
+test('authenticated three-segment planner cases match displayed source engine',()=>{
+  // Actual /premium/poe-streckenplaner.php buildChannel() + PE.linkLength()
+  // captured 2026-11-02: three Cat7A/s AWG22 sections, 40/30/20 m.
+  const cable=POE_CABLE_REFERENCES.find(c=>c.label==='Cat7A/s (AWG22)')!;
+  assert.ok(cable);
+  const rows=()=>segments(
+    {cableType:cable.id,numCables:'200',width:'200',ambient:'25',installCondition:'EF',length:'40'},
+    {cableType:cable.id,numCables:'75',width:'100',ambient:'25',installCondition:'C',length:'30'},
+    {cableType:cable.id,numCables:'24',width:'50',ambient:'25',installCondition:'B',length:'20'},
+  );
+  const common={poeClass:'D',poeRpCategory:'RP3',poeSegments:rows()};
+  const standard=run(common);
+  close(standard.physicalChannel,100);close(standard.electricalLength20,95.67798794025754);
+  close(standard.weightedTemperature,33.173884193192904);close(standard.allowedLengthApprox,101.25983208781588);
+  const cold=run({...common,poeRpCategory:'RP1',poeSegments:JSON.stringify(JSON.parse(rows()).map((row:PoeRouteSegmentInput)=>({...row,ambient:'10'})))});
+  close(cold.electricalLength20,93.41086956521741);close(cold.weightedTemperature,11.5);close(cold.allowedLengthApprox,104);
+  const hotRows=JSON.parse(rows());hotRows[0].ambient='40';
+  const hot=run({...common,poeConnectors:'4',poePatchFactor:'2',poePatchShielding:'/u',poeSegments:JSON.stringify(hotRows)});
+  close(hot.electricalLength20,102.60104580613216);close(hot.weightedTemperature,39.64874967937349);close(hot.referenceReserve,2.398954193867837);
+});
+
 test("PoE route default thermal, patch and electrical-length values match the public engine", () => {
   const r = run();
   close(r.physicalChannel, 90);

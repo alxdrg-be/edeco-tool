@@ -6,6 +6,8 @@ export type NetworkSelection = { kind: "node" | "edge"; id: string } | null;
 export interface PaletteItem { kind: NetworkNodeKind; device?: string; label: string }
 import { routeNetworkEdge, NETWORK_NODE_WIDTH as NODE_WIDTH, NETWORK_NODE_HEIGHT as NODE_HEIGHT } from "./networkRouting";
 import { NETWORK_COORDINATE_LIMIT, findAttachmentParent } from "./networkEditor";
+import { currentFlowClass } from "./currentFlow";
+import "./current-flow.css";
 const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
 const signal = (tone: NetworkTone = "neutral") => tone === "error" ? "var(--danger)" : tone === "warning" ? "var(--wire)" : tone === "ok" ? "var(--ok)" : "var(--accent)";
 const number = (n: number, digits = 1) => Math.abs(n)>=1e6 ? n.toExponential(2) : n.toLocaleString("de-CH", { maximumFractionDigits: digits });
@@ -163,7 +165,7 @@ export default function NetworkCanvas({ document, result, selection, connectFrom
           return <g key={edge.id} className={`np-edge${selected ? " np-selected" : ""}`} data-edge-id={edge.id} data-state={tone} data-routing={line.blocked ? "blocked" : "clear"} role="button" tabIndex={0} aria-label={`Leitung ${nodes.get(edge.from)?.label} nach ${nodes.get(edge.to)?.label}`} onPointerDown={event => event.stopPropagation()} onClick={event => { event.stopPropagation(); onSelect({ kind: "edge", id: edge.id }); }} onKeyDown={event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); onSelect({ kind: "edge", id: edge.id }); } }}>
             {selected && !line.blocked && <path d={line.path} fill="none" stroke="var(--accent-soft)" strokeWidth="13" />}
             <path d={line.path} fill="none" stroke="transparent" strokeWidth="17" className="np-edge-hit" />
-            <path d={line.path} fill="none" stroke={colour} strokeWidth={selected ? 3.5 : 2.5} markerEnd={`url(#${unique}-arrow-${tone})`} />
+            <path className={currentFlowClass(calculation?.current,result.valid && Boolean(calculation && calculation.powerKW > 0))} d={line.path} fill="none" stroke={colour} strokeWidth={selected ? 3.5 : 2.5} markerEnd={`url(#${unique}-arrow-${tone})`} />
             <g className="np-edge-label" transform={`translate(${line.labelX} ${line.labelY})`}><rect x="-5" y="-16" width="168" height="45" rx="5" fill="var(--canvas)" stroke={selected ? colour : "var(--line)"} /><text y="1" fill={colour}>{line.blocked ? "Weg überlagert" : calculation ? `${number(calculation.current)} A` : `${edge.values.length || "–"} m · ${edge.values.area || "–"} mm²`.slice(0, 18)}</text><text y="21" fill="var(--muted)">{line.blocked ? "Bitte anordnen" : calculation ? `Σ ΔU ${number(calculation.cumulativeDropPercent, 2)} %` : "Eingaben prüfen"}</text></g>
           </g>;
         })}
@@ -192,6 +194,6 @@ export default function NetworkCanvas({ document, result, selection, connectFrom
       {blockedRoutes>0 && <div className="np-routing-hint" role="status">{blockedRoutes} Leitungsweg{blockedRoutes>1?"e":""} durch überlagerte Bauteile blockiert. „Anordnen“ oder Bauteile verschieben.</div>}
       {connectMode && <div className="np-connect-hint" role="status">{connectFrom ? "Ziel-Eingang oder Zielbauteil wählen" : "Ausgang eines Bauteils wählen"}</div>}
     </div>
-    <div className="np-canvas-legend"><span><i style={{ background: "var(--accent)" }} />Schema / Live-Modell</span><span><i style={{ background: "var(--ok)" }} />Berechnete Bedingungen erfüllt</span><span><i style={{ background: "var(--wire)" }} />Prüfung offen / nahe Grenze</span><span><i style={{ background: "var(--danger)" }} />Grenze überschritten / ungültig</span><span className="np-pan-hint">Ausgang → Eingang ziehen: verbinden · Bauteil ziehen: verschieben · Mausrad: zoomen</span></div>
+    <div className="np-canvas-legend"><span><i style={{ background: "var(--accent)" }} />Schema / Live-Modell</span><span><i style={{ background: "var(--ok)" }} />Berechnete Bedingungen erfüllt</span><span><i style={{ background: "var(--wire)" }} />Prüfung offen / nahe Grenze</span><span><i style={{ background: "var(--danger)" }} />Grenze überschritten / ungültig</span><span>Bewegte Linie: berechnete Last &gt; 0 · symbolischer Leistungsfluss</span><span className="np-pan-hint">Ausgang → Eingang ziehen: verbinden · Bauteil ziehen: verschieben · Mausrad: zoomen</span></div>
   </div>;
 }

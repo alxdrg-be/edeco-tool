@@ -1,5 +1,12 @@
 # Abgleich mit sichtbaren Referenzen
 
+> Aktualisierung 02.11.2026: Der direkte authentifizierte Abgleich und die neuen
+> UI-/Funktionsprüfungen stehen im [Gesamtaudit](RECHNER_AUDIT_20261102.md),
+> [öffentlichen Audit](PUBLIC_AUDIT_20261102.md), [Premium-Audit](PREMIUM_AUDIT_20261102.md)
+> und [Grafik-Audit](VISUAL_AUDIT_20261102.md). Die unten dokumentierten früheren
+> Beschränkungen (etwa gesperrte SIA-Profile oder reine Dropdowns) beschreiben den
+> Stand vor dieser Überarbeitung. Nicht belegte Einzelfälle bleiben eingeschränkt.
+
 Stand: 2. November 2026. edeco enthält 26 aktive eigene Modelle: 24 reguläre
 Themen von elektro-rechner.ch, dessen Netzplaner (Beta) und Arthur-Flury-Blitzschutz.
 [Inventar](RECHNER_INVENTAR.md), [Umfang](RECHNER_UMFANG.md) und
@@ -47,7 +54,7 @@ Wichtige Herkunftsdateien: `reference-ev-cable.test.ts`,
 `fundamentalsData.ts` und `referenceInstallationData.ts`. Tests eigener
 Modellfunktionen werden nicht als zusätzliche unabhängige Anbieterbelege gezählt.
 
-## Angemeldete Themen: belastbare Fälle und offene Profile
+## Angemeldete Themen: aktueller direkter Browserabgleich
 
 Frühere automatisierte Berichte mischten teilweise gewünschte Eingaben mit
 Ergebnissen vorheriger Standardzustände. Diese Berichte zählen weiterhin nicht
@@ -59,14 +66,14 @@ verlässlich extrahieren konnte. Das ist eine Grenze der Methode.
 
 | Thema | Aktueller Nachweisstand |
 | --- | --- |
-| Ladegrid PKW | Modulare gemischte Punkte mit Phasen, Mindestleistungen und Aktiv/Warten sind eigene Budgetlogik. Nicht sämtliche geschützten Referenzkonfigurationen numerisch abgeglichen. |
-| Ladegrid E-LKW | Modulare PUs/Leistungsmodule und zugeordnete DC-Punkte sind nativ. Wirkungsgrade, Topologie und Regelzustände nicht vollständig gegen den Anbieter geprüft. |
-| Brandmelder | Manuelle geometrische Regeln; automatische SES-Klassen, Raum-/Decken-/Höhenzuordnung und weitere Anbieterbereiche bleiben offen. |
-| Selektivität | Hinweise oder dokumentierte Benutzer-Paargrenzen; keine vollständigen Gerätekennlinien-/Koordinationstabellen eingebettet. |
-| Ladekosten | **Ein zuordenbarer Basic-AC-Fall ist abgeglichen**, siehe unten. DC, Detailkosten und alle übrigen Vertragszustände sind davon nicht abgedeckt. |
-| SIA 2056 | Getrennte Anwendung von Kcor auf Rohleistung und Jahresgleichzeitigkeit auf Rohenergie ist beobachtet und im neuen manuellen Modell berücksichtigt. **Automatische Profile bleiben gesperrt**, weil die vollständigen Rohkoeffizienten fehlen. |
-| PoE-Strecke | Segment-/Patchmodell und veröffentlichte thermische/RP-Ansätze sind nativ, mit manueller Temperatur-Alternative. Koordinierte vollständige Anbieterfälle und normative Tragfähigkeit sind nicht bestätigt. |
-| Brandlastvergleich | Unabhängige manuelle Vorher-/Nachher-Positionslisten. Keine vollständige numerische Referenzprüfung realer belegter Kabelpläne oder automatischer CPR-Zuordnung. |
+| Ladegrid PKW | Individuelle Grid-Modi/Faktoren, gemischte Punkte, Erzeugungsanschluss, Brutto-/Nettowerte und Phase. Reale Einzelgridfälle und neue Bilanztests; Anbieter-Summenwiderspruch wird nicht übernommen. Details: [Premium-Audit](PREMIUM_AUDIT_20261102.md). |
+| Ladegrid E-LKW | Modulare PUs mit AC-/DC-Leistungsbezug, individuelle Grid-Modi und Aktiv/Wartend mit Mindestleistung; tatsächlicher Referenzdefault und Bilanztests. Details: [Premium-Audit](PREMIUM_AUDIT_20261102.md). |
+| Brandmelder | Neun Raumtypen, Höhe/Neigung, Rauch/Wärme, Alarmierung, Gruppen und Materialkosten. Fünf tatsächliche unabhängige Browserfälle stimmen; kein akustischer oder SES-Normnachweis. Details: [Premium-Audit](PREMIUM_AUDIT_20261102.md). |
+| Selektivität | Eine bis sechs Schutzstufen mit Kabelpfad und FI/MCCB-Varianten; kalte Modellströme gegen tatsächlichen Browserstand geprüft. Keine pauschale volle Selektivitätsfreigabe. Details: [Premium-Audit](PREMIUM_AUDIT_20261102.md). |
+| Ladekosten | Fünf reale Zustände mit V1–V4, Basic/Advanced, Klassen und Ausbaujahren. Referenzmodus neben dem unverändert interpretierbaren Projektmodell. Details: [Premium-Audit](PREMIUM_AUDIT_20261102.md). |
+| SIA 2056 | Vollständige veröffentlichte Rohprofile nun direkt zugänglich; sechs unabhängige Browserzustände für vier Zonen, p/e/Standby und Faktoren geprüft. Fehlendes Food/L bleibt gesperrt. Details: [Premium-Audit](PREMIUM_AUDIT_20261102.md). |
+| PoE-Strecke | Drei zusätzlich authentifizierte Mehrsegmentfälle stimmen mit dem nativen Kern überein. Elektrische Reserve bleibt von physischer Kanallänge und Zertifizierung getrennt. Details: [Premium-Audit](PREMIUM_AUDIT_20261102.md). |
+| Brandlastvergleich | Getrennte erweiterbare Varianten, datierter 467-Kabelkatalog, CPR und Lieferantenbezug. Kritisches Brandverhalten bleibt im Nachweis und Bericht sichtbar. Details: [Premium-Audit](PREMIUM_AUDIT_20261102.md). |
 
 ### Basic-Kostenfall
 
@@ -94,8 +101,10 @@ die angezeigten 59.1 MWh nach Faktor 0.8 keine exakte ungerundete
 Energiekoeffizienten-Tabelle rekonstruieren. Daraus werden keine Profile erfunden.
 Das neue manuelle Modell verwendet explizit eingegebene W/m² und kWh/(m²·a),
 prüft die Faktoren unabhängig und bildet flächengewichtete Summen. Die sieben
-Gruppen erhalten keine automatischen Normwerte. Bis eine vollständige belegte
-und nutzbare Datenbasis vorliegt, ist der automatische Modus gesperrt. Das alte
+Gruppen erhalten keine automatischen Normwerte. Der damalige fehlende Zugriff wurde inzwischen durch einen eigenen
+angemeldeten Browser gelöst. Die vollständigen veröffentlichten Rohdaten sind
+jetzt datiert mit Quellhash eingebunden und anhand tatsächlicher Zustände
+geprüft; die in der Quelle fehlende Food/L-Klasse bleibt gesperrt. Das alte
 Faktor-/Stundenmodell bleibt als ausdrücklich anderes Bestandsmodell erhalten.
 
 ## Netzplaner und Abschlussprüfung

@@ -1,4 +1,6 @@
+import CalculatorIcon, { CALCULATOR_ICONS } from "../tools/berechnungen/CalculatorIcon";
 export default function ToolIcon({ id }: { id: string }) {
+  if (CALCULATOR_ICONS[id]) return <CalculatorIcon id={id} size={48} />;
   const paths: Record<string, React.ReactNode> = {
     berechnungen: <><rect x="10" y="4" width="28" height="40" rx="4"/><path d="M16 11h16v8H16ZM16 27h4m-2-2v4m9-2h5m-16 9h4m7-2 5 5m0-5-5 5"/></>,
     blitzschutz: <><path d="M28 3 10 27h13l-3 18 19-27H26Z"/></>,

@@ -1,5 +1,12 @@
 # Visueller Vergleich mit elektro-rechner.ch
 
+> Aktualisierung 02.11.2026: Der direkte authentifizierte Abgleich und die neuen
+> UI-/Funktionsprüfungen stehen im [Gesamtaudit](RECHNER_AUDIT_20261102.md),
+> [öffentlichen Audit](PUBLIC_AUDIT_20261102.md), [Premium-Audit](PREMIUM_AUDIT_20261102.md)
+> und [Grafik-Audit](VISUAL_AUDIT_20261102.md). Die unten dokumentierten früheren
+> Beschränkungen (etwa gesperrte SIA-Profile oder reine Dropdowns) beschreiben den
+> Stand vor dieser Überarbeitung. Nicht belegte Einzelfälle bleiben eingeschränkt.
+
 Stand: 2. November 2026. Erfasst sind die 24 regulären Themen und der zusätzlich
 gefundene Netzplaner (Beta), insgesamt 25 Referenzeinstiege. edeco enthält diese
 Themen als eigene Modelle sowie Arthur-Flury-Blitzschutz: 26 aktive Werkzeuge.
@@ -50,8 +57,8 @@ Grosse technische Grafiken bleiben ausdrücklich erwünscht. Messwerte gehören
 zum beschrifteten Abschnitt; Legenden, kurze Lesehilfen und Statusbegründungen
 stehen ausserhalb der Zeichnung. Diagramme passen sich Eingaben an. Farben
 stehen zusammen mit Text: Überschreitung betrifft die konkret geprüfte Bedingung
-und ist keine automatische Kabel-/Normfreigabe. Diskrete Gerätenennwerte
-verwenden Dropdowns, kontinuierliche Mess-/Projektwerte bleiben numerisch.
+und ist keine automatische Kabel-/Normfreigabe. Diskrete Gerätenennwerte verwenden jetzt Auswahlkacheln; kontinuierliche
+Mess-/Projektwerte bleiben direkt editierbar.
 
 Der Netzplaner zeigt „noch nicht geprüft“, „Prüfbericht aktuell“ oder
 „Prüfbericht veraltet“. **Berechnen & prüfen** erzeugt den Bericht; Änderungen

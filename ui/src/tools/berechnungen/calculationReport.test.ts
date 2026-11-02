@@ -1,8 +1,26 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { workbenchReport, CALCULATION_NORMS } from "./calculationReport.ts";
+import { workbenchReport, CALCULATION_NORMS, calculationNorm } from "./calculationReport.ts";
 import { CALCULATORS } from "./workbench/definitions.ts";
 import { defaults } from "./workbench/types.ts";
+
+test('new reference modes are labelled by source scope, without mislabelling them as manual or certified',()=>{
+  const sia=calculationNorm('premium-sia2056',{siaMode:'automatic'});
+  assert.match(sia,/Referenzprofile/);assert.doesNotMatch(sia,/manuelle/);
+  assert.match(calculationNorm('premium-brandmelder',{detectorBasis:'reference'}),/Mengen.*Material/);
+  assert.match(calculationNorm('premium-ladekosten',{costAccounting:'reference'}),/Klassenansatz/);
+  assert.match(calculationNorm('premium-selektivitaet',{selectivityMode:'stages'}),/Kabelpfad/);
+});
+import { fireCableSelection } from "./workbench/fireCableData.ts";
+
+test('variable selectivity reports name each actual device and cable without raw JSON',()=>{
+  const definition=CALCULATORS.find(item=>item.id==='premium-selektivitaet')!;
+  const input=defaults(definition);
+  const report=workbenchReport(definition,input,definition.calculate(input));
+  assert.ok(report.inputs.some(row=>row.label.includes('Hausanschluss-Sicherung')&&row.value.includes('250 A')));
+  assert.ok(report.inputs.some(row=>row.label==='Stufe 3 · Zuleitung'&&row.value.includes('40 m')&&row.value.includes('2.5 mm²')&&row.value.includes('230 V')));
+  assert.ok(report.inputs.every(row=>!row.value.startsWith('[{')));
+});
 
 test("a calculation report contains the current result and only applicable mode inputs", () => {
   const definition = CALCULATORS.find(item => item.id === "ohmsches-gesetz")!;
@@ -33,4 +51,17 @@ test("dynamic fire comparison reports both actual cable lists with distinct befo
   assert.ok(report.inputs.some(row => row.label === "Nachher · Kabel X · Bestand" && row.value === "3 × 10 m · 1 MJ/m"));
   assert.ok(report.inputs.every(row => !row.value.startsWith("[{")));
   assert.ok(report.results.some(row => row.label === "Kabel vorher" && row.value === "7 Stk."));
+});
+
+test("fire report preserves selected supplier/CPR provenance and effective critical status", () => {
+  const definition=CALCULATORS.find(item=>item.id==="brandlast")!;
+  const critical={id:"catalogue-critical",...fireCableSelection("bio-st-2x1.5-dca-s2-d2-a2"),quantity:"1",length:"10",evidence:"documented"};
+  const supplier={id:"catalogue-supplier",...fireCableSelection("fe05c-2x1.5-cca-s1-d1-a1","Kablan"),quantity:"2",length:"10"};
+  const input={...defaults(definition),fireloadRows:JSON.stringify([critical,supplier])};
+  const report=workbenchReport(definition,input,definition.calculate(input));
+  assert.ok(report.inputs.some(row=>row.label.includes("CPR")&&row.value==="Dca-s2,d2,a2"));
+  assert.ok(report.inputs.some(row=>row.label.includes(critical.name)&&row.label.includes("Nachweisstatus")&&row.value==="Kritisches Brandverhalten"));
+  assert.ok(report.inputs.some(row=>row.label.includes("Datenquelle")&&row.value.includes("ca.-Richtwert")));
+  assert.ok(report.inputs.some(row=>row.label.includes("Lieferant")&&row.value.includes("Kablan · Artikel 109010202Cca")));
+  assert.ok(report.inputs.some(row=>row.label.includes("Bestand")&&row.value.includes("0.57 MJ/m")));
 });

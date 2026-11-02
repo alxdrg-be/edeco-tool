@@ -1,3 +1,15 @@
+## Rechner, Wissens-Hub und flüssige Darstellung · 2. November 2026
+
+- Alle 26 Rechenmodelle auf Basis des aktuellen Hauptzweigs geprüft; direkte angemeldete Referenzprüfung ohne externen Browserdienst. Zahlenabgleich und offene Norm-/Herstellerfreigaben stehen im neuen Gesamtaudit.
+- Kompakte Dropdowns für lange Listen, Nennströme, Icn und Querschnitte. B/C/D/K/Z als kurze Auswahlzeile mit passender Beschreibung darunter; Phasen und Material bleiben direkt auswählbar.
+- Wissens-Hub mit elf Themen im Kopf der Toolbox und der Rechner sowie kontextuellen Links aus Info-Drawern. Ausführliche Erklärungen und Formeln starten geschlossen. Eingaben bleiben beim Wechsel erhalten.
+- Ruhige Rechnerkacheln mit unterschiedlichen Symbolen und lokal eingebundener Inter-Schrift. Weiche Geometrieübergänge, abbrechbare Animationen und Unterstützung für reduzierte Bewegung.
+- Stromfluss in gültigen EV-/Ladegrid-/Depot- und Netzplanerabschnitten; wartende Punkte und stromlose Leitungsenden bleiben statisch. Bekannte Rückspeisung bewegt sich in Gegenrichtung.
+- SIA-Referenzprofile für 16 Nutzungen und vier Zonen, erweiterte Brandmelderplanung, bis sechs Schutzstufen mit Kabelpfad, 467 Kabel-Faktenwerte mit CPR-/Lieferantenbezug und genauerer Ladekostenvergleich ergänzt.
+- PKW-/LKW-Grid-Einstellungen, AC-/DC-Bezug, Mindestleistungen und Aktiv/Wartend erweitert; PV/Speicher mit explizitem Anschlussort und getrennten Brutto-/Nettowerten. Gespeicherte Altmodelle behalten ihre Bedeutung.
+- Grafikfehler bei ungültigen Kabelwerten und beim Blitzschutz-Leitungsweg korrigiert. Keine erfundene Netzspannung oder Gebäudehöhe als Ersatz für Eingabedaten.
+- Vor dem Build lokal geprüft: 308 Rechen-/Quellen-/Regressionstests, 74 bestandene Browser-/Ablageprüfungen und alle 26 Modelle in Desktop-/Mobilansicht. Der Windows-Build prüft die vollständige Offline-PDF-Laufzeit zusätzlich.
+
 ## Neue Projekt- und Rechenwerkzeuge
 
 - 26 aktive lokale Rechenmodelle: 24 reguläre Schweizer Referenzthemen, Netzplaner (Beta) und Arthur-Flury-Blitzschutz. Leistungsbilanz bleibt geplant; Umfang und verbleibende Unterschiede stehen im Rechnerinventar.
@@ -6,10 +18,10 @@
 - Potenzialausgleich mit eingegrenzter publizierter Cu-Zuordnung; Motor mit Typenschildstrom, IE3-Beispielen und Kabel-Grundwertsuche. Beleuchtung mit Leuchtenbeispielen und gekennzeichneter empirischer Raumableitung.
 - AC-Vorplanung mit Aktiv-/Wartezuständen, 1~-Phasenprüfung, Energie/Reichweite sowie PV-/Speicheranschluss am Haus oder Grid. Veröffentlichte SIA-2060-Referenzkurven sind als solche gekennzeichnet.
 - Modulare Ladegrids mit gemischten AC-/DC-Punktgruppen; LKW-Depot mit Power Units, Leistungsmodulen und zugeordneten Abgabepunkten. Farben zeigen Budget- und Phasenzustände; die Modelle sind keine Fahrzeugsimulation oder Schutzauslegung.
-- Vier Ladeinfrastruktur-Kostenmodelle mit eigenem Betrieb beziehungsweise Contracting, Jahreszahlungen, Ersatzzyklen und Ausbaujahrgängen. Ein gemeinsamer Basic-AC-Fall ist numerisch abgeglichen; DC- und Detailvarianten bleiben davon getrennte Modellannahmen.
-- SIA-2056-Verbraucherbilanz mit sieben Gruppen je Zone: Kcor wirkt nur auf Leistung, Jahresgleichzeitigkeit nur auf Energie. Zwei getrennte Diagramme und manuelle Ziele. Automatische Nutzungsprofile bleiben ohne vollständig belegten Datensatz gesperrt; Altstände behalten ihr bisheriges Modell.
+- Vier Ladeinfrastruktur-Kostenmodelle mit eigenem Betrieb beziehungsweise Contracting, Jahreszahlungen, Ersatzzyklen und Ausbaujahrgängen. Fünf tatsächliche Referenzzustände mit allen vier Vertragsmodellen, einschliesslich DC- und Detailvarianten, sind numerisch abgeglichen; Preise bleiben Projektannahmen.
+- SIA-2056-Verbraucherbilanz mit sieben Gruppen je Zone: Kcor wirkt nur auf Leistung, Jahresgleichzeitigkeit nur auf Energie. Zwei getrennte Diagramme und manuelle Ziele. Automatische datierte Referenzprofile sind ergänzt; die in der Quelle fehlende Food/L-Klasse bleibt gesperrt. Altstände behalten ihr bisheriges Modell.
 - PV mit Dach-/Modulansätzen, Bestand, datierten Tarif-/Förderreferenzen und separatem Speicheransatz. PoE-Streckenmodell mit Kabelabschnitten, Patchseiten und gekennzeichneten thermischen Referenzannahmen; keine bestätigte RP-/Normfreigabe.
-- Eigene technische Schemas, Raumpläne, Jahresdiagramme und direkt sichtbare Lesehilfen. Dropdowns für diskrete Gerätenennwerte; gespeicherte Sonderwerte werden nicht still gerundet. Fremde SVGs werden nicht als geprüfte eigene Berechnung ausgegeben.
+- Eigene technische Schemas, Raumpläne und Jahresdiagramme mit kompakten, aufklappbaren Lesehilfen. Dropdowns für diskrete Gerätenennwerte; gespeicherte Sonderwerte werden nicht still gerundet. Fremde SVGs werden nicht als geprüfte eigene Berechnung ausgegeben.
 - Direkter A4-PDF-Download mit edeco-Logo, Schweizer Datum, aktuellen Eingaben/Ergebnissen und Projektangaben für die 24 regulären Referenzthemen und den Netzplaner. Gerasterte PDF-Seiten; strukturierte JSON-Daten bleiben zusätzlich verfügbar. Blitzschutz behält seinen bisherigen Druck-/PDF-Weg.
 - Quellenabgleich unterscheidet nachgerechnete Zahlenfälle, veröffentlichte Datenstände und offene Norm-/Herstellerzuordnungen. Vollständige Gleichwertigkeit aller geschützten Rechner wird nicht behauptet. Der angekündigte Electrosuisse-Vergleich steht noch aus.
 - Gemeinsame Serverablage: Ordner einrichten, Rechenstände nach Berechnung und Projekt speichern, Notizen ergänzen und Eingaben neu berechnen. PDF-/JSON-Exporte können zusätzlich importiert werden. Kein SQLite auf dem Netzlaufwerk.

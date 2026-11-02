@@ -4,6 +4,15 @@ import { CALCULATORS } from "./definitions.ts";
 import { defaults } from "./types.ts";
 import { migrateWorkbenchInputs } from "./migrateInputs.ts";
 
+test('saved detector and selectivity calculations retain their existing manual interpretation',()=>{
+  const detector=migrateWorkbenchInputs('premium-brandmelder',{detectorBasis:'reference',gridRule:'spacing',radius:'5'},{radius:'4'});
+  assert.equal(detector.detectorBasis,'manual');assert.equal(detector.gridRule,'radius');assert.equal(detector.radius,'4');
+  const selectivity=migrateWorkbenchInputs('premium-selektivitaet',{selectivityMode:'stages',checkMode:'hint'},{checkMode:'manufacturer'});
+  assert.equal(selectivity.selectivityMode,'legacy');assert.equal(selectivity.checkMode,'manufacturer');
+  const explicit=migrateWorkbenchInputs('premium-brandmelder',{detectorBasis:'reference'},{detectorBasis:'reference'});
+  assert.equal(explicit.detectorBasis,'reference');
+});
+
 const migrated = (id: string, saved: Record<string, unknown>) => {
   const definition = CALCULATORS.find(item => item.id === id)!;
   return { definition, input: migrateWorkbenchInputs(id, defaults(definition), saved) };

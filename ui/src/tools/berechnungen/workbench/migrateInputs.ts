@@ -16,7 +16,8 @@ export function migrateWorkbenchInputs(id: string, currentDefaults: Inputs, save
   if (id === "verlustleistung") missing("durationMode", "annual");
   if (id === "transformator") missing("ukMode", "preset");
   if (id === "kurzschlussstrom") missing("sourceMode", "nameplate");
-  if (id === "premium-brandmelder") missing("gridRule", "radius");
+  if (id === "premium-selektivitaet") missing("selectivityMode", "legacy");
+  if (id === "premium-brandmelder") { missing("gridRule", "radius"); missing("detectorBasis", "manual"); }
   if (id === "premium-pkw") missing("layout", "legacy");
   if (id === "premium-lkw") missing("depotLayout", "legacy");
   if (id === "premium-ladekosten") missing("costLayout", "legacy");

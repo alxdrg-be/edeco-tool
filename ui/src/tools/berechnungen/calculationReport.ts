@@ -4,6 +4,7 @@ import { planningReportInputs } from "./workbench/chargingGrid.ts";
 import { siaReportInputs } from "./workbench/siaDefinition.ts";
 import { poeRouteReportInputs } from "./workbench/poeRoute.ts";
 import { fireloadReportInputs } from "./workbench/fireloadReport.ts";
+import { selectivityReportInputs } from "./workbench/selectivityStages.ts";
 
 /** The reference identifies the subject; it does not expand the implemented proof. */
 export const CALCULATION_NORMS: Record<string, string> = {
@@ -32,6 +33,11 @@ export const CALCULATION_NORMS: Record<string, string> = {
 };
 
 export function calculationNorm(id: string, input: Inputs): string {
+  if (id === 'premium-lkw' && input.depotAllocation === 'reference') return 'NIN 7.22-Bezug · stationäre AC/DC-Vorplanung mit expliziter Mindestleistung / Aktiv-Wartend';
+  if (id === 'premium-sia2056' && input.siaMode === 'automatic') return 'SIA 2056-Bezug · veröffentlichte Referenzprofile 02.11.2026 · keine unabhängige Normfreigabe';
+  if (id === 'premium-brandmelder' && input.detectorBasis === 'reference') return 'SES-Bezug 01.07.2021 · veröffentlichter Mengen-/Materialansatz 02.11.2026 · fachliche Freigabe offen';
+  if (id === 'premium-ladekosten' && input.costAccounting === 'reference') return 'Kostenplanung in CHF · veröffentlichter Klassenansatz 02.11.2026 · editierbare Projektpreise';
+  if (id === 'premium-selektivitaet' && input.selectivityMode === 'stages') return 'NIN 5.3 / 5.3.6 · Schutzstufen mit Kabelpfad-Modell · Hersteller-Nachweis offen';
   if (["nin-kabelrechner", "strombelastbarkeit"].includes(id)) return `NIN 2025 · 5.2.3 · ${input.tableMode === "published" ? "veröffentlichter Cu-Referenzdatensatz" : "manuelle Tabellenwertprüfung"}`;
   if (id === "potenzialausgleich") return `NIN 2025 · 5.4.3 / 5.4.4 · ${input.paMode === "published" ? "veröffentlichte Cu-Zuordnung" : "manuelle Tabellenwerte"}`;
   if (id === "premium-poe" && input.poeRouteMode === "published") return "EN 50173 / ISO/IEC 11801 · thermischer Referenzansatz, keine automatische Normfreigabe";
@@ -43,11 +49,11 @@ export function workbenchReport(definition: CalculatorDefinition, input: Inputs,
   return {
     title: definition.title,
     norm: calculationNorm(definition.id, input),
-    inputs: [...definition.fields.filter(field => !["grids", "depotUnits", "depotPoints", "costRows", "siaZones", "poeSegments", "fireloadRows", "fireloadRowsAfter"].includes(field.key) && (!field.visibleWhen || field.visibleWhen.every(condition => condition.values.includes(input[condition.key])))).map(field => {
+    inputs: [...definition.fields.filter(field => !["grids", "depotUnits", "depotPoints", "costRows", "siaZones", "poeSegments", "fireloadRows", "fireloadRowsAfter", "chargingSourceConnection", "selectivityStages"].includes(field.key) && (!field.visibleWhen || field.visibleWhen.every(condition => condition.values.includes(input[condition.key])))).map(field => {
       const options = field.options ?? fieldOptions(definition.id, field.key);
       const option = options?.find(option => option.value === input[field.key]);
       return { label: field.label, value: option?.label ?? format(input[field.key], field.unit) };
-    }), ...planningReportInputs(definition.id, input), ...(definition.id === "premium-sia2056" ? siaReportInputs(input) : []), ...(definition.id === "premium-poe" ? poeRouteReportInputs(input) : []), ...(["brandlast", "premium-brandlast"].includes(definition.id) ? fireloadReportInputs(input) : []), ...(project ? [{ label: "Projekt", value: `${project.number} · ${project.name}` }] : [])],
+    }), ...planningReportInputs(definition.id, input), ...(definition.id === "premium-selektivitaet" ? selectivityReportInputs(input) : []), ...(definition.id === "premium-sia2056" ? siaReportInputs(input) : []), ...(definition.id === "premium-poe" ? poeRouteReportInputs(input) : []), ...(["brandlast", "premium-brandlast"].includes(definition.id) ? fireloadReportInputs(input) : []), ...(project ? [{ label: "Projekt", value: `${project.number} · ${project.name}` }] : [])],
     results: [...result.metrics.map(metric => ({ label: metric.label, value: format(metric.value, metric.unit, metric.digits ?? 3) })), ...(result.rows ?? []).map(row => ({ label: row.label, value: format(row.value, row.unit) }))],
     formula: result.formula,
     status: result.status.text,

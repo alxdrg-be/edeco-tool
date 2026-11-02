@@ -1,5 +1,12 @@
 # Native Rechner: Umfang und Grenzen
 
+> Aktualisierung 02.11.2026: Der direkte authentifizierte Abgleich und die neuen
+> UI-/Funktionsprüfungen stehen im [Gesamtaudit](RECHNER_AUDIT_20261102.md),
+> [öffentlichen Audit](PUBLIC_AUDIT_20261102.md), [Premium-Audit](PREMIUM_AUDIT_20261102.md)
+> und [Grafik-Audit](VISUAL_AUDIT_20261102.md). Die unten dokumentierten früheren
+> Beschränkungen (etwa gesperrte SIA-Profile oder reine Dropdowns) beschreiben den
+> Stand vor dieser Überarbeitung. Nicht belegte Einzelfälle bleiben eingeschränkt.
+
 Stand: 2. November 2026. edeco enthält **26 aktive eigene Rechenmodelle**:
 24 reguläre Themen von elektro-rechner.ch, dessen zusätzlich gefundenen
 Netzplaner (Beta) und Arthur-Flury-Blitzschutz. Der Netzplaner startet über einen
@@ -30,9 +37,9 @@ aktuellen expliziten Prüfstand voraus.
 | Beleuchtung | Leuchtenbeispiele, Reflexion, empirische Raumableitung oder manuelles η, Mindestanzahl/volle Reihen und bemasster Plan | Keine photometrische Simulation, freigegebene Produktdatenbank oder automatische Norm-Raumnutzung. |
 | PV | Ganze Module, Direktleistung/Flächenansatz/Bestand, Dach-/Lagefaktoren, datierte Tarif-/Förderwerte, Wirtschaftlichkeit und separater Speicher-/LCOS-Ansatz | Keine Live-Dienste oder stündliche Last-/Speicherrechnung; Förderfähigkeit und Tarife bestätigen. PV-Hauptkennzahlen enthalten den separat ausgewiesenen Speicher nicht. |
 | Einfache EV-Vorplanung | Haus/Grid, Phasen, Aktiv/Warten, publizierte SIA-2060-Kurven, Energie/Reichweite, PV-/Speicheranschluss | Kurven-/Erzeugungsannahmen sind keine vollständige Normtabelle oder zeitliche Ladesimulation. DC als einfaches AC-Ersatzmodell mit η = 1. |
-| Modulare PKW-/LKW-Grids | Gemischte AC-/DC-Punkte je Grid, Phasen-/Budgetgrenzen, Mindestleistung und Aktiv/Warten; LKW-PUs/Module mit zugeordneten Punkten und η | Eigene stationäre Zuteilung, keine bestätigte Anbieter-Regelung oder Fahrzeug-/SoC-Fahrplanung. Mehrgrid-PV/Speicher fehlen. |
+| Modulare PKW-/LKW-Grids | Gemischte AC-/DC-Punkte je Grid, Phasen-/Budgetgrenzen, Mindestleistung und Aktiv/Warten; LKW-PUs/Module mit zugeordneten Punkten und η | Eigene stationäre Zuteilung, keine bestätigte Anbieter-Regelung oder Fahrzeug-/SoC-Fahrplanung. Mehrgrid-PV/Speicher sind mit explizitem Anschlussort und stationären Modellgrenzen ergänzt. |
 | Vier Ladekostenmodelle | Eigentum/Betrieb bis Vollcontracting, gemischte Kostenpositionen, Ersatz, Kohorten und Jahreszahlungen | Basic-AC-Fall abgeglichen; DC-/Detailvarianten und Vertragsbedingungen nicht vollständig gegen den Anbieter geprüft. |
-| SIA 2056 | Sieben Gruppen je Zone, rohe W/m² und kWh/(m²·a), getrennte Faktoren, gewichtete Summen, manuelle Ziele und begrenzter PV-Abzug | Automatische Profile gesperrt: vollständige belegte und nutzbare Verbraucherkoeffizienten fehlen. 17 Nutzungsnamen/Klassencodes sind nur Metadaten. |
+| SIA 2056 | Vier Zonen, 16 Nutzungen, sieben veröffentlichte p/e/Standby-Gruppen und Klassen, Klima/PV plus manuelle Rohwerte | Datierter Anbieterstand, keine unabhängige Normfreigabe. Die in der Quelle fehlende Food/L-Klasse bleibt gesperrt. |
 | Brandmelder | Rechteckraster aus manuellen Flächen-, Achs-/Wand- oder Radiusannahmen | Keine automatische SES-/Decken-/Höhenzuordnung, Alarmhorn-/Akustik- oder Kostenplanung. |
 | PoE | Kabelreferenzen, Typ-/PD-Budget; segmentierter Kanal mit Patchseiten, Bündel-/RP-/Temperaturannahmen und manuellen Temperaturen | Publizierte thermische Kurven sind kein bestätigter RP-/Normnachweis. Physischer Kanal höchstens 100 m; internes Budget bis 109 m ist keine zusätzliche physische Länge. |
 | Brandlast | Eigene erweiterbare Kabelpositionen; unabhängige Vorher-/Nachher-Bilanzen, horizontal/vertikal und Nachweisstatus | Keine Hersteller-/CPR-Datenbank oder lokale Häufungs-/Ausführungsprüfung. 200-MJ/m-Bezug nur horizontal bei bestätigter Anwendbarkeit. |
@@ -63,7 +70,8 @@ Unklare oder fehlerhafte gespeicherte Daten werden zur Korrektur angezeigt.
 
 ## Bedienung und Prüfstand
 
-Diskrete Gerätenennwerte verwenden Dropdowns; Mess-/Projektwerte bleiben frei.
+Lange Listen und Nennwerte verwenden kompakte Dropdowns; kurze Entscheidungen
+verwenden Kacheln. Mess-/Projektwerte bleiben frei.
 Schemas und Diagramme entstehen aus dem aktuellen Modellzustand. Kurze
 Erklärungen, Einheiten und Legenden bleiben sichtbar, detaillierte Grundlagen
 zusätzlich erreichbar. Grosse Pläne verschieben sich bei Bedarf innerhalb ihres

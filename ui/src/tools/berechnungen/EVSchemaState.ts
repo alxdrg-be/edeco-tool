@@ -27,5 +27,5 @@ export function schemaState(input: EVSchemaBudget | null): EVSchemaState {
 }
 
 export function signalColour(tone: SchemaTone): string {
-  return tone === "error" ? "var(--alert)" : tone === "limited" ? "var(--wire)" : tone === "unknown" ? "var(--line-strong)" : "var(--accent)";
+  return tone === "error" ? "var(--alert)" : tone === "limited" ? "var(--wire)" : tone === "unknown" ? "var(--line-strong)" : "var(--ok)";
 }

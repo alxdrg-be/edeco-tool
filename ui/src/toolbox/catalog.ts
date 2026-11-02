@@ -13,6 +13,8 @@ export interface ToolInfo {
 
 /** Planned tools need metadata only; register a loader when their implementation is ready. */
 export const TOOLS: readonly ToolInfo[] = [
+  { id: "wissens-hub", title: "Wissens-Hub", category: "Berechnungen", parentId: "berechnungen", symbol: "W", color: "petrol",
+    description: "Grundlagen, Formeln und Quellen für die Schweizer Elektroplanung mit direkten Verbindungen zu den Rechnern.", status: "available" },
   { id: "netzplaner", title: "Netzplaner · NIN (Beta)", category: "Berechnungen", symbol: "NET", color: "blue", parentId: "berechnungen",
     description: "Modulare Einlinienschemas mit Einspeisung, Verteilung, Schutzorganen, Lasten und abschnittsbezogenen Modellprüfungen.", status: "available", developmentStatus: "in-progress" },
   { id: "nova-legenden", title: "NOVA-Legenden", category: "Elektroplanung", symbol: "NL", color: "petrol",

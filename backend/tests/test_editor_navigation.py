@@ -60,6 +60,40 @@ def open_app(page, port):
     raise last
 
 
+
+def expand_card_options(root):
+    """Use the visible disclosure, keeping keyboard/button semantics under test."""
+    playwright.expect(root).to_be_attached()
+    for summary in root.locator("xpath=ancestor::details[not(@open)]/summary").all():
+        summary.click()
+    more = root.locator('.lab-choice-expand[aria-expanded="false"]')
+    if more.count():
+        more.click()
+
+
+def choose_card(root, value):
+    expand_card_options(root)
+    if root.evaluate("el => el.tagName") == "SELECT":
+        root.select_option(value)
+        playwright.expect(root).to_have_value(value)
+        return
+    if root.get_attribute("role") == "group":
+        root = root.locator("xpath=..")
+        expand_card_options(root)
+    option = root.locator(f'button[data-choice-value="{value}"]')
+    option.click()
+    playwright.expect(option).to_have_attribute("aria-pressed", "true")
+
+
+def choose_field(page, key, value):
+    choose_card(page.locator(f'[data-field-key="{key}"]'), value)
+
+
+def named_cards(page, label):
+    return page.get_by_role("group", name=label, exact=True).or_(
+        page.get_by_role("combobox", name=label, exact=True))
+
+
 @pytest.fixture()
 def editor(env):
     client, tmp = env
@@ -279,8 +313,8 @@ def test_calculations_hub_and_lightning_visualisation_validate_and_restore_input
     playwright.expect(page.locator(".calc-tile")).to_have_count(26)
     playwright.expect(page.get_by_role("button", name="Demnächst")).to_have_count(1)
     page.get_by_role("button", name="Blitzschutz öffnen", exact=True).click()
-    playwright.expect(page.get_by_label("Blitzschutzklasse", exact=True)).to_be_enabled()
-    page.get_by_label("Blitzschutzklasse", exact=True).select_option("I")
+    playwright.expect(named_cards(page, "Blitzschutzklasse")).to_be_enabled()
+    choose_card(named_cards(page, "Blitzschutzklasse"), "I")
     page.get_by_label("Gebäudeumfang U (m)", exact=True).fill("20")
     page.get_by_label("Leitungsweg A (m)", exact=True).fill("3")
     page.get_by_label("Vorhandene Ableiter n", exact=True).fill("2")
@@ -311,7 +345,7 @@ def test_calculations_hub_and_lightning_visualisation_validate_and_restore_input
     old_y = object_control.bounding_box()["y"]
     page.get_by_role("slider", name="Leitungsweg A (m) Slider", exact=True).focus()
     page.keyboard.press("End")
-    assert object_control.bounding_box()["y"] < old_y
+    assert abs(object_control.bounding_box()["y"] - old_y) < 1, "A is a conductor path, not building height"
     page.get_by_label("Leitungsweg A (m)", exact=True).fill("3")
     page.get_by_label("Vorhandener Abstand (m, optional)", exact=True).fill("0.24")
     page.get_by_label("Berechnungsbemerkung", exact=True).fill("Dachaufbau prüfen")
@@ -380,7 +414,7 @@ def test_swiss_cable_live_controls_recommendation_drawer_and_export(editor, tmp_
     page.get_by_role("button", name="Aluminium", exact=True).click()
     playwright.expect(page.get_by_label("Leiterquerschnitt", exact=True)).to_have_value("10")
     page.get_by_role("button", name="3~ · 400 V", exact=True).click()
-    playwright.expect(page.get_by_label("Bemessungsspannung Uₙ (V)", exact=True)).to_have_value("400")
+    playwright.expect(named_cards(page, "Bemessungsspannung Uₙ (V)").locator('button[data-choice-value="400"]')).to_have_attribute("aria-pressed", "true")
     page.set_viewport_size({"width": 390, "height": 844})
     assert page.locator(".engineering-lab").evaluate("el => el.scrollWidth <= el.clientWidth")
 
@@ -448,7 +482,7 @@ def test_every_calculator_has_review_image_without_overlapping_labels(editor, tm
     page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
     page.get_by_role("button", name="Berechnungen öffnen", exact=True).click()
     playwright.expect(page.locator(".calc-tile")).to_have_count(26)
-    launchers = page.locator(".calc-tile button:not([disabled])").all_text_contents()
+    launchers = page.locator(".calc-tile button:not([disabled])").evaluate_all("nodes => nodes.map(node => node.getAttribute('aria-label'))")
     assert len(launchers) == 25
     assert "premium" not in page.locator("body").inner_text().lower()
     page.screenshot(path=str(tmp_path / "00-berechnungen.png"), full_page=True)
@@ -557,11 +591,11 @@ def test_native_workbench_calculation_can_be_saved_and_restored_with_project_not
     current.fill("2")
     playwright.expect(page.locator('input[data-field-key="impedance"]')).to_have_count(0)
     playwright.expect(page.locator('input[data-field-key="cos"]')).to_have_count(0)
-    page.locator('select[data-field-key="known"]').select_option("ur")
+    choose_field(page, "known", "ur")
     playwright.expect(page.locator('input[data-field-key="current"]')).to_have_count(0)
     page.locator('input[data-field-key="impedance"]').fill("24")
     playwright.expect(page.locator(".wb-metric").filter(has_text="Wirkleistung").locator("strong")).to_have_text("96 W")
-    page.locator('select[data-field-key="known"]').select_option("ui")
+    choose_field(page, "known", "ui")
     playwright.expect(page.locator('input[data-field-key="current"]')).to_have_value("2")
     page.get_by_label("Berechnungsnotizen", exact=True).fill("48-V-Netzteil; rein ohmsche Beispielbelastung")
     playwright.expect(page.locator(".wb-metric").filter(has_text="Wirkleistung").locator("strong")).to_have_text("96 W")
@@ -1411,7 +1445,7 @@ def test_charging_schema_updates_topology_values_and_each_budget_colour(editor, 
     page.get_by_role("button", name="Berechnungen öffnen", exact=True).click()
     page.get_by_role("button", name="Ladegrid PKW öffnen", exact=True).click()
     playwright.expect(page.get_by_role("button", name="Ergebnis als JSON sichern", exact=True)).to_be_enabled()
-    page.locator('select[data-field-key="layout"]').select_option("legacy")
+    choose_field(page, "layout", "legacy")
     feed = page.get_by_test_id("schema-grid-feed")
     playwright.expect(feed).to_have_attribute("data-state", "limited")
     assert "H" not in feed.get_attribute("d").upper(), "UV must feed directly downward without a left detour"
@@ -1419,7 +1453,7 @@ def test_charging_schema_updates_topology_values_and_each_budget_colour(editor, 
     playwright.expect(page.locator(".ev-schema-point")).to_have_count(6)
     playwright.expect(page.locator(".ev-schema-allocated").first).to_have_text("6.7 kW")
     page.locator(".wb-field-group").filter(has=page.get_by_text("Steuerung", exact=True)).locator("summary").click()
-    page.locator('select[data-field-key="mode"]').select_option("none")
+    choose_field(page, "mode", "none")
     playwright.expect(page.get_by_test_id("schema-house-feed")).to_have_attribute("data-state", "error")
     playwright.expect(feed).to_have_attribute("data-state", "error")
     playwright.expect(page.locator(".ev-schema-allocated").first).to_have_text("11 kW")
@@ -1441,61 +1475,62 @@ def test_charging_schema_updates_topology_values_and_each_budget_colour(editor, 
     page.get_by_role("group", name="Ladegrid auswählen", exact=True).get_by_role("button", name="Grid 1", exact=True).click()
     page.locator(".engineering-lab").evaluate("el=>el.scrollTop=0")
     page.screenshot(path=str(tmp_path / "ladegrid-grid-ueberlast.png"), full_page=True)
-    page.locator('select[data-field-key="mode"]').select_option("dynamic")
+    choose_field(page, "mode", "dynamic")
     playwright.expect(feed).to_have_attribute("data-state", "limited")
     page.locator(".engineering-lab").evaluate("el=>el.scrollTop=0")
     page.screenshot(path=str(tmp_path / "ladegrid-lastmanagement.png"), full_page=True)
 
 
-def test_electrical_ratings_use_discrete_reference_dropdowns(editor):
+def test_electrical_ratings_use_compact_dropdowns_and_short_cards(editor):
     page, _, _, _ = editor
     page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
     page.get_by_role("button", name="Berechnungen öffnen", exact=True).click()
     page.get_by_role("button", name="E-Mobilität · AC-Vorplanung öffnen", exact=True).click()
-    house = page.get_by_role("combobox", name="Hausanschluss (A)", exact=True)
-    grid = page.get_by_role("combobox", name="Grid-Vorsicherung (A)", exact=True)
+    house = named_cards(page, "Hausanschluss (A)")
+    grid = named_cards(page, "Grid-Vorsicherung (A)")
     playwright.expect(house).to_be_enabled()
+    expand_card_options(house)
     assert house.locator("option").evaluate_all("els=>els.map(el=>el.value)") == ["63","80","100","125","160","200","250","315","400","500","630","800"]
     playwright.expect(page.get_by_role("slider", name="Hausanschluss (A) Slider", exact=True)).to_have_count(0)
-    grid.select_option("63")
-    house.select_option("125")
+    choose_card(grid, "63")
+    choose_card(house, "125")
     playwright.expect(page.get_by_test_id("ev-budget")).to_have_text("43.6 kW")
-    page.get_by_role("combobox", name="Ladeleistung je Punkt (kW)", exact=True).select_option("22")
+    choose_card(named_cards(page, "Ladeleistung je Punkt (kW)"), "22")
     playwright.expect(page.locator(".ev-schema-rated").first).to_have_text("Nennleistung 22 kW")
     page.get_by_role("button", name="Berechnungen", exact=True).click()
     page.get_by_role("button", name="Ladegrid PKW öffnen", exact=True).click()
-    playwright.expect(page.locator('select[data-field-key="layout"]')).to_be_enabled()
-    page.locator('select[data-field-key="layout"]').select_option("legacy")
-    standard = page.locator('select[data-field-key="house"]')
+    playwright.expect(page.locator('[data-field-key="layout"]')).to_be_enabled()
+    choose_field(page, "layout", "legacy")
+    standard = page.locator('[data-field-key="house"]')
     supply_group = standard.locator("xpath=ancestor::details[1]")
     if supply_group.get_attribute("open") is None:
         supply_group.locator("summary").first.click()
     playwright.expect(standard).to_be_enabled()
-    standard.select_option("125")
+    choose_card(standard, "125")
     playwright.expect(page.locator('input[data-field-key="house"]')).to_have_count(0)
     page.locator(".wb-field-group").filter(has=page.get_by_text("Grid 1", exact=True)).locator("summary").click()
-    page.locator('select[data-field-key="grid1"]').select_option("50")
-    page.locator('select[data-field-key="power1"]').select_option("22")
+    choose_field(page, "grid1", "50")
+    choose_field(page, "power1", "22")
     playwright.expect(page.get_by_role("button", name="Ergebnis als JSON sichern", exact=True)).to_be_enabled()
     page.get_by_role("button", name="Berechnungen", exact=True).click()
     page.get_by_role("button", name="LS-Schalter öffnen", exact=True).click()
-    breaker = page.locator('select[data-field-key="rated"]')
+    breaker = page.locator('[data-field-key="rated"]')
     playwright.expect(breaker).to_be_enabled()
-    breaker.select_option("13")
+    choose_card(breaker, "13")
     playwright.expect(page.locator('input[data-field-key="load"]')).to_be_enabled()
     page.get_by_role("button", name="Berechnungen", exact=True).click()
     page.get_by_role("button", name="Potenzialausgleich öffnen", exact=True).click()
     # A published PA selection has no arbitrary numeric entry to clear.
     playwright.expect(page.locator('.wb-controls input[data-field-key][inputmode="decimal"]')).to_have_count(0)
-    phase = page.locator('select[data-field-key="phase"]')
-    phase.select_option("4")
-    page.locator('select[data-field-key="pen"]').select_option("4")
+    phase = page.locator('[data-field-key="phase"]')
+    choose_card(phase, "4")
+    choose_field(page, "pen", "4")
     playwright.expect(page.locator(".wb-metric").filter(has_text="Haupt-PA aus den Eingaben").locator("strong")).to_have_text("6 mm² Cu")
-    page.locator('select[data-field-key="paMode"]').select_option("manual")
+    choose_field(page, "paMode", "manual")
     page.locator('input[data-field-key="pe"]').fill("")
     playwright.expect(page.get_by_role("button", name="Ergebnis als JSON sichern", exact=True)).to_be_disabled()
     playwright.expect(page.locator('.wb-results [role="alert"]')).to_be_visible()
-    page.locator('select[data-field-key="paMode"]').select_option("published")
+    choose_field(page, "paMode", "published")
     playwright.expect(page.get_by_role("button", name="Ergebnis als JSON sichern", exact=True)).to_be_enabled()
 
 
@@ -1506,8 +1541,11 @@ def test_reference_style_graphics_and_short_explanations_are_visible(editor):
     page.get_by_role("button", name="Berechnungen öffnen", exact=True).click()
     page.get_by_role("button", name="Ladeinfrastruktur-Kosten öffnen", exact=True).click()
     playwright.expect(page.get_by_role("button", name="Ergebnis als JSON sichern", exact=True)).to_be_enabled()
-    page.locator('select[data-field-key="costLayout"]').select_option("legacy")
-    playwright.expect(page.get_by_role("complementary", name="Erklärung der Berechnung", exact=True)).to_be_visible()
+    choose_field(page, "costLayout", "legacy")
+    guide = page.locator(".wb-reading-guide")
+    assert guide.get_attribute("open") is None
+    guide.locator("summary").click()
+    playwright.expect(guide.locator(".lab-prose")).to_be_visible()
     playwright.expect(page.locator(".reference-year-column")).to_have_count(15)
     page.locator(".reference-year-column").nth(1).focus()
     playwright.expect(page.locator(".reference-chart-readout")).to_contain_text("2027")
@@ -1525,11 +1563,17 @@ def test_reference_style_graphics_and_short_explanations_are_visible(editor):
     playwright.expect(page.locator(".reference-room-plan")).to_be_visible()
     playwright.expect(page.locator(".reference-dimension-label")).to_have_count(2)
     playwright.expect(page.locator(".reference-dimension-label").first).to_have_text("10 m")
-    page.locator('input[data-field-key="length"]').fill("12")
+    length = page.locator('input[data-field-key="length"]')
+    for summary in length.locator("xpath=ancestor::details[not(@open)]/summary").all():
+        summary.click()
+    length.fill("12")
     playwright.expect(page.locator(".reference-dimension-label").first).to_have_text("12 m")
     page.get_by_role("button", name="Berechnungen", exact=True).click()
     page.get_by_role("button", name="Ohmsches Gesetz öffnen", exact=True).click()
-    playwright.expect(page.get_by_role("complementary", name="Erklärung der Berechnung", exact=True)).to_be_visible()
+    guide = page.locator(".wb-reading-guide")
+    assert guide.get_attribute("open") is None
+    guide.locator("summary").click()
+    playwright.expect(guide.locator(".lab-prose")).to_be_visible()
     playwright.expect(page.locator(".wb-result-graphics")).to_have_count(0)
 
 
@@ -1542,17 +1586,17 @@ def test_reference_ev_activity_waiting_and_single_phase_warning(editor, tmp_path
     playwright.expect(page.get_by_label("Anzahl Ladepunkte", exact=True)).to_be_enabled()
     page.get_by_label("Anzahl Ladepunkte", exact=True).fill("3")
     page.get_by_role("button", name="Statisch", exact=True).click()
-    factor_basis = page.get_by_role("combobox", name="Faktorgrundlage", exact=True)
-    playwright.expect(factor_basis).to_have_value("reference")
-    factor_basis.select_option("manual")
+    factor_basis = named_cards(page, "Faktorgrundlage")
+    playwright.expect(factor_basis.locator('button[data-choice-value="reference"]')).to_have_attribute("aria-pressed", "true")
+    choose_card(factor_basis, "manual")
     page.get_by_label("Gleichzeitigkeitsfaktor k (statisch)", exact=True).fill("0.5")
     playwright.expect(page.locator('.ev-schema-point[data-active="true"]')).to_have_count(2)
     playwright.expect(page.locator('.ev-schema-point[data-state="waiting"]')).to_have_count(1)
     playwright.expect(page.locator('.ev-schema-point[data-state="waiting"] .ev-schema-allocated')).to_have_text("0 kW")
     page.screenshot(path=str(tmp_path / "ev-aktiv-wartend.png"), full_page=True)
-    page.get_by_role("combobox", name="Hausanschluss (A)", exact=True).select_option("125")
-    page.get_by_role("combobox", name="Grid-Vorsicherung (A)", exact=True).select_option("63")
-    page.get_by_role("combobox", name="Ladeleistung je Punkt (kW)", exact=True).select_option("7.4")
+    choose_card(named_cards(page, "Hausanschluss (A)"), "125")
+    choose_card(named_cards(page, "Grid-Vorsicherung (A)"), "63")
+    choose_card(named_cards(page, "Ladeleistung je Punkt (kW)"), "7.4")
     page.get_by_label("Gebäudereserve (kW)", exact=True).fill("20")
     page.get_by_label("Anzahl Ladepunkte", exact=True).fill("4")
     page.get_by_role("button", name="Ohne LM", exact=True).click()
@@ -1589,7 +1633,10 @@ def test_actual_calculation_pdf_download_is_a4_and_invalid_inputs_cannot_export(
     page.get_by_role("button", name="Berechnungen", exact=True).click()
     page.get_by_role("button", name="Ohmsches Gesetz öffnen", exact=True).click()
     playwright.expect(pdf_button).to_be_enabled()
-    playwright.expect(page.get_by_role("region", name="Formel mit aktuellen Werten", exact=True)).to_be_visible()
+    formula = page.locator(".wb-foundations")
+    assert formula.get_attribute("open") is None
+    formula.locator("summary").click()
+    playwright.expect(formula.locator("code")).to_be_visible()
     with page.expect_download() as second:
         pdf_button.click()
     with pdfium.PdfDocument(second.value.path()) as document:
@@ -1622,7 +1669,7 @@ def test_technical_diagrams_distinguish_device_states_and_cable_inventory(editor
     before.get_by_role("button", name="Kabelposition hinzufügen", exact=True).click()
     playwright.expect(export_button).to_be_disabled()
     new_position = before.locator(".fireload-card").nth(2)
-    new_position.locator("summary").click()
+    new_position.locator(":scope > summary").click()
     before.get_by_label("Vorher · Position 3 · Brandlast je Kabel (MJ/m)", exact=True).fill("0.5")
     before.get_by_label("Vorher · Position 3 · Anzahl", exact=True).fill("2")
     playwright.expect(export_button).to_be_enabled()
@@ -1646,6 +1693,7 @@ def test_sia_keyboard_entry_preserves_decimal_zeros_and_invalid_fields(editor):
     page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
     page.get_by_role("button", name="Berechnungen öffnen", exact=True).click()
     page.get_by_role("button", name="SIA 2056 · Zonenbilanz öffnen", exact=True).click()
+    choose_field(page, "siaMode", "manual")
     export_button = page.get_by_role("button", name="Ergebnis als JSON sichern", exact=True)
     playwright.expect(export_button).to_be_enabled()
     editor_section = page.locator(".wb-position-editor")
@@ -1695,3 +1743,109 @@ def test_sia_keyboard_entry_preserves_decimal_zeros_and_invalid_fields(editor):
     assert "powerTarget" not in zone
     assert document["result"]["siaBreakdown"]["powerKW"] == pytest.approx(0.10025)
     assert document["result"]["siaBreakdown"]["energyKWh"] == pytest.approx(1502.5)
+
+
+def test_knowledge_roundtrip_keeps_edited_calculator_and_browser_back(editor):
+    page, _, _, _ = editor
+    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.evaluate("location.hash='toolbox'")
+    page.get_by_role("button", name="Berechnungen öffnen", exact=True).click()
+    page.get_by_role("button", name="LS-Schalter öffnen", exact=True).click()
+    choose_field(page, "curve", "C")
+    load = page.locator('input[data-field-key="load"]')
+    for summary in load.locator("xpath=ancestor::details[not(@open)]/summary").all():
+        summary.click()
+    load.fill("11")
+    page.get_by_role("button", name="Info: Berechnungsgrundlagen", exact=True).click()
+    drawer = page.get_by_role("dialog", name="Berechnungsgrundlagen", exact=True)
+    drawer.get_by_role("link", name="Im Wissens-Hub weiterlesen", exact=False).click()
+    playwright.expect(page.locator(".knowledge-article")).to_be_visible()
+    assert page.url.endswith("#wissen/schutz-selektivitaet")
+    assert page.locator(".knowledge-section[open]").count() == 0
+    page.go_back()
+    playwright.expect(page.locator('input[data-field-key="load"]')).to_have_value("11")
+    playwright.expect(page.locator('[data-field-key="curve"] button[data-choice-value="C"]')).to_have_attribute("aria-pressed", "true")
+
+
+def test_variable_selectivity_adds_real_stages_and_rejects_invalid_topology(editor):
+    page, _, _, _ = editor
+    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Berechnungen öffnen", exact=True).click()
+    page.get_by_role("button", name="Selektivität öffnen", exact=True).click()
+    choose_field(page, "selectivityMode", "stages")
+    page.locator(".wb-position-editor > summary").click()
+    playwright.expect(page.locator(".sel-stage-card")).to_have_count(3)
+    page.get_by_role("button", name="Stufe hinzufügen", exact=True).click()
+    playwright.expect(page.locator(".sel-stage-card")).to_have_count(4)
+    playwright.expect(page.locator(".wb-metric").filter(has_text="Erfasste Schutzstufen").locator("strong")).to_have_text("4")
+    page.locator(".sel-stage-card").nth(3).locator("summary").first.click()
+    choose_card(named_cards(page, "Stufe 4 · Schutzorgan"), "mccb")
+    choose_card(named_cards(page, "Stufe 4 · Kabeltyp"), "CFW")
+    playwright.expect(page.locator('.wb-results [role="alert"]')).to_contain_text("Kein belegtes R/X-Paar")
+    playwright.expect(page.locator(".wb-result-graphics")).to_have_count(0)
+    choose_card(named_cards(page, "Stufe 4 · Querschnitt"), "50")
+    playwright.expect(page.get_by_role("button", name="Ergebnis als JSON sichern", exact=True)).to_be_enabled()
+    choose_card(named_cards(page, "Stufe 4 · Leitersystem"), "5p")
+    playwright.expect(page.locator('.wb-results [role="alert"]')).to_contain_text("dreiphasiger Abschnitt")
+    choose_card(named_cards(page, "Stufe 4 · Leitersystem"), "3p")
+    page.get_by_role("button", name="Stufe hinzufügen", exact=True).click()
+    page.get_by_role("button", name="Stufe hinzufügen", exact=True).click()
+    playwright.expect(page.locator(".sel-stage-card")).to_have_count(6)
+    playwright.expect(page.get_by_role("button", name="Stufe hinzufügen", exact=True)).to_be_disabled()
+    page.locator(".sel-stage-card").nth(5).locator("summary").first.click()
+    page.get_by_role("button", name="Stufe 6 entfernen", exact=True).click()
+    playwright.expect(page.locator(".sel-stage-card")).to_have_count(5)
+    playwright.expect(page.get_by_role("button", name="Stufe hinzufügen", exact=True)).to_be_enabled()
+
+
+def test_hash_navigation_cannot_discard_an_open_noncalculator_editor(editor):
+    page, field, _, _ = editor
+    field.fill("Diesen Entwurf behalten")
+    for fragment in ("rechner/ls-schalter", "wissen/spannungsfall", "toolbox"):
+        page.evaluate("fragment => { location.hash=fragment; }", fragment)
+        page.wait_for_timeout(80)
+        playwright.expect(field).to_have_value("Diesen Entwurf behalten")
+        playwright.expect(page.locator(".engineering-lab")).to_have_count(0)
+    page.go_back()
+    playwright.expect(field).to_have_value("Diesen Entwurf behalten")
+
+
+def test_mixed_grid_generation_and_depot_waiting_are_integrated(editor):
+    import json
+    page, _, _, _ = editor
+    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Berechnungen öffnen", exact=True).click()
+    page.get_by_role("button", name="Ladegrid PKW öffnen", exact=True).click()
+    choose_field(page, "layout", "modular")
+    for key, value in (("chargingPV", "10"), ("chargingBattery", "20")):
+        field = page.locator(f'input[data-field-key="{key}"]')
+        playwright.expect(field).to_be_attached()
+        for summary in field.locator("xpath=ancestor::details[not(@open)]/summary").all():
+            summary.click()
+        field.fill(value)
+    page.locator(".wb-position-editor > summary").click()
+    choose_card(named_cards(page, "PV / Speicher angeschlossen am"), "grid-1")
+    with page.expect_download() as pending:
+        page.get_by_role("button", name="Ergebnis als JSON sichern", exact=True).click()
+    document = json.loads(pending.value.path().read_text())
+    model = document["result"]["chargingNetwork"]
+    assert model["sourceKW"] == pytest.approx(9)
+    assert model["netHouseACKW"] == pytest.approx(model["grossHouseACKW"] - 9)
+    assert model["grids"][0]["netInputKW"] == pytest.approx(model["grids"][0]["acInputKW"] - 9)
+    assert model["deliveredEnergyKWh"] == pytest.approx(model["assignedKW"] * 10)
+    assert page.locator('input[data-field-key="chargingSourceConnection"]').count() == 0
+    page.get_by_role("button", name="Berechnungen", exact=True).click()
+    page.get_by_role("button", name="Ladegrid E-LKW öffnen", exact=True).click()
+    choose_field(page, "depotAllocation", "reference")
+    choose_field(page, "feed", "100")
+    reserve = page.locator('input[data-field-key="reserve"]')
+    for summary in reserve.locator("xpath=ancestor::details[not(@open)]/summary").all():
+        summary.click()
+    reserve.fill("50")
+    with page.expect_download() as pending:
+        page.get_by_role("button", name="Ergebnis als JSON sichern", exact=True).click()
+    model = json.loads(pending.value.path().read_text())["result"]["depotNetwork"]
+    assert model["activeCount"] == 0
+    assert model["waitingCount"] == 6
+    assert model["assignedDC"] == 0
+    playwright.expect(page.locator('[data-testid="mixed-charging-point"][data-state="waiting"]')).to_have_count(2)

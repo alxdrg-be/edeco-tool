@@ -254,7 +254,21 @@ test("loss calendar duration multiplies exactly and zero operating hours remain 
   assert.throws(() => calculate("verlustleistung", { durationMode: "calendar", dailyHours: "25" }));
   assert.throws(() => calculate("verlustleistung", { durationMode: "calendar", days: "0" }));
   assert.throws(() => calculate("verlustleistung", { years: "0" }));
-  assert.throws(() => calculate("verlustleistung", { area: "300" }));
+  assert.throws(() => calculate("verlustleistung", { area: "300", cos: "0.9" }), /Reaktanz/);
+});
+
+test("observed 300 square millimetres Cu loss case works without inventing reactance", () => {
+  // Actual source browser, 2026-11-02: Verlustleistung.html hash e6c8ed8e…,
+  // 300mm², 200A, 100m, 400V, 55°C, 8h/day, 250days/year, 3years, CHF.25:
+  // 820.40W /2.368V /.59% /CHF1230.60. The reference is purely resistive.
+  const r=calculate("verlustleistung",{area:"300",current:"200",length:"100",cos:"1",durationMode:"calendar",dailyHours:"8",days:"250",years:"3",price:"0.25",voltage:"400",temperature:"55",parallel:"1"});
+  assert.equal(metric(r,"Ohmsche Verlustleistung").toFixed(2),"820.40");
+  assert.equal(row(r,"Spannungsfall").toFixed(3),"2.368");
+  assert.equal(metric(r,"Spannungsfall · cos φ = 1").toFixed(2),"0.59");
+  assert.equal(metric(r,"Gesamtkosten im Zeitraum").toFixed(2),"1230.60");
+  assert.equal(row(calculate("verlustleistung",{area:"300",current:"1300",length:"100",budget:"4"}),"Kleinster Querschnitt für das Spannungsfallbudget"),300);
+  assert.throws(()=>calculate("verlustleistung",{area:"300",cos:"0.95"}),/Reaktanz/);
+  assert.throws(()=>calculate("verlustleistung",{area:"300",material:"al"}));
 });
 
 test("short source modes and additional stress indicators do not turn model assumptions into proofs", () => {

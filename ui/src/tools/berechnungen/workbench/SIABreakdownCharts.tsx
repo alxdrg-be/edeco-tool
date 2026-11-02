@@ -1,6 +1,7 @@
 import { useId, useState } from "react";
 import { SIA_GROUPS } from "./siaData";
 import type { SIABalance, SIAGroupBalance } from "./siaModel";
+import { useAnimatedGeometry } from "../useAnimatedGeometry";
 import "./sia-breakdown-charts.css";
 
 const fmt = (value: number, digits = 2) => value.toLocaleString("de-CH", { maximumFractionDigits: digits });
@@ -27,6 +28,19 @@ function BreakdownChart({ balance, kind }: { balance: SIABalance; kind: "power" 
   const rowValue = (row: Row) => row.groups.reduce((sum, group) => sum + value(group), 0);
   const maximum = niceMaximum(Math.max(0, ...rows.flatMap(row => [rowValue(row), row.target ?? 0])));
   const left = 245, right = 895, barWidth = right - left;
+  const geometryTarget: Record<string, number> = {};
+  for (const row of rows) {
+    let start = left;
+    for (const meta of SIA_GROUPS) {
+      const group = row.groups.find(group => group.groupId === meta.id)!;
+      const width = barWidth * value(group) / maximum;
+      geometryTarget[`${row.id}/${meta.id}/x`] = start;
+      geometryTarget[`${row.id}/${meta.id}/width`] = width;
+      start += width;
+    }
+    geometryTarget[`${row.id}/target`] = left + barWidth * (row.target ?? 0) / maximum;
+  }
+  const geometry = useAnimatedGeometry(geometryTarget);
   let top = 32;
   const positions = rows.map(row => {
     const lines = wrapped(row.label), height = Math.max(68, lines.length * 17 + 21), y = top;
@@ -47,21 +61,20 @@ function BreakdownChart({ balance, kind }: { balance: SIABalance; kind: "power" 
           return <g key={index}><path d={`M${x} 20V${axisY}`} stroke="var(--line)" /><text x={x} y={axisY + 25} textAnchor="middle" className="sia-axis-label">{fmt(tick, maximum < 10 ? 2 : 0)}</text></g>;
         })}
         {positions.map(({ row, lines, y, height: rowHeight }, rowIndex) => {
-          let start = left;
           const total = rowValue(row), yCentre = y + rowHeight / 2 - 4;
           return <g key={row.id} data-sia-zone={row.id} className={rowIndex === rows.length - 1 ? "sia-total-row" : ""}>
             {rowIndex === rows.length - 1 && <path d={`M18 ${y - 5}H1080`} stroke="var(--line-strong)" />}
             <text x="20" y={yCentre - (lines.length - 1) * 8.5} className="sia-zone-label">{lines.map((line, index) => <tspan key={index} x="20" dy={index ? 17 : 0}>{line}</tspan>)}</text>
             <rect x={left} y={yCentre - 13} width={barWidth} height="25" rx="3" fill="var(--panel-2)" />
             {SIA_GROUPS.map(meta => {
-              const group = row.groups.find(group => group.groupId === meta.id)!, number = value(group), width = barWidth * number / maximum, x = start;
-              start += width;
-              if (number <= 0) return null;
+              const group = row.groups.find(group => group.groupId === meta.id)!, number = value(group);
+              const width = geometry[`${row.id}/${meta.id}/width`], x = geometry[`${row.id}/${meta.id}/x`];
+              if (number <= 0 && width <= .01) return null;
               return <g key={meta.id} tabIndex={0} role="img" aria-label={`${row.label} · ${meta.label}: ${fmt(number, 4)} ${unit}`} className="sia-chart-segment" onMouseEnter={() => setSelected({ row: row.id, group: meta.id })} onFocus={() => setSelected({ row: row.id, group: meta.id })}>
                 <rect x={x} y={yCentre - 13} width={width} height="25" fill={meta.color} opacity={selectedRow?.id === row.id && selectedGroup?.groupId === meta.id ? 1 : .83} />
               </g>;
             })}
-            {row.target !== undefined && <path d={`M${left + barWidth * row.target / maximum} ${yCentre - 20}v39`} stroke="var(--fg)" strokeWidth="2" strokeDasharray="4 3" />}
+            {row.target !== undefined && <path d={`M${geometry[`${row.id}/target`]} ${yCentre - 20}v39`} stroke="var(--fg)" strokeWidth="2" strokeDasharray="4 3" />}
             <text x="925" y={yCentre + 3} className="sia-chart-value">{fmt(total, 3)}</text>
             {row.target !== undefined && <text x="925" y={yCentre + 23} className="sia-axis-label">Ziel {fmt(row.target, 3)}</text>}
           </g>;

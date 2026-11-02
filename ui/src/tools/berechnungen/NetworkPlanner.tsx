@@ -3,7 +3,7 @@ import { ArrowDownToLine, ArrowUpFromLine, CheckCircle2, CircleAlert, GitBranch,
 import type { ToolProps } from "../../toolbox/modules";
 import { useProjectHub } from "../projektzentrale/projectHubState";
 import { downloadBlob } from "../planlieferung/DeliveryHistory";
-import { LabShell, type Help } from "./LabUI";
+import { ChoiceCards, LabShell, type Help } from "./LabUI";
 import { useDialogFocus } from "../../useDialogFocus";
 import { consumeRestore, type ArchiveProject } from "./ablage/api";
 import { optionsWithProjectValue } from "./electricalOptions";
@@ -34,7 +34,7 @@ function Fields({ fields, values, onChange }: { fields: Field[]; values: Record<
   const shown = visible(fields, values), groups = Array.from(new Set(shown.map(field => field.group ?? "Bemessungswerte")));
   return <>{groups.map(group => <fieldset className="np-fieldset" key={group}><legend>{group}</legend>{shown.filter(field => (field.group ?? "Bemessungswerte") === group).map(field => <div className="np-field" key={field.key}>
     <label htmlFor={`np-property-${field.key}`}>{field.label}{field.unit ? ` (${field.unit})` : ""}</label>
-    {field.options ? <select id={`np-property-${field.key}`} data-network-field={field.key} value={values[field.key] ?? ""} onChange={event => onChange(field.key, event.target.value)}>{optionsWithProjectValue(field.options, values[field.key] ?? "").map(option => <option key={option.value} value={option.value}>{option.label}</option>)}</select> : <input id={`np-property-${field.key}`} data-network-field={field.key} value={values[field.key] ?? ""} inputMode={field.kind === "text" ? "text" : "decimal"} autoComplete="off" maxLength={field.kind === "text" ? 120 : 40} onChange={event => onChange(field.key, event.target.value)} />}
+    {field.options ? <div data-network-field={field.key}><ChoiceCards id={`np-property-${field.key}`} fieldKey={field.key} label={field.label} options={optionsWithProjectValue(field.options, values[field.key] ?? "")} value={values[field.key] ?? ""} onChange={value => onChange(field.key, value)} /></div> : <input id={`np-property-${field.key}`} data-network-field={field.key} value={values[field.key] ?? ""} inputMode={field.kind === "text" ? "text" : "decimal"} autoComplete="off" maxLength={field.kind === "text" ? 120 : 40} onChange={event => onChange(field.key, event.target.value)} />}
     {field.help && <details className="np-field-help"><summary>ⓘ Erklärung</summary><p>{field.help}</p></details>}
   </div>)}</fieldset>)}</>;
 }
@@ -219,7 +219,7 @@ export default function NetworkPlanner(props: ToolProps) {
     return network.nodes.find(node=>node.id===issue.nodeId)?.label ?? "Netz / Eingaben";
   }
   function issueSelect(issue: NetworkIssue) { if (issue.edgeId) select({ kind: "edge", id: issue.edgeId }); else if (issue.nodeId) select({ kind: "node", id: issue.nodeId }); }
-  return <LabShell {...props} title="Netzplaner · NIN (Beta)" subtitle={`${NORM}${project ? ` · ${project.number} · ${project.name}` : ""}`} help={help} setHelp={setHelp} canExport={ready && currentReview} canArchive={ready} archive={{ toolId: "netzplaner", project, notes, document: archiveDocument }} pdfReport={pdfReport} exportData={exportDraft} reviewLabel="Radiales Modell · Fachprüfung offen">
+  return <LabShell {...props} knowledgeId="netzplaner" title="Netzplaner · NIN (Beta)" subtitle={`${NORM}${project ? ` · ${project.number} · ${project.name}` : ""}`} help={help} setHelp={setHelp} canExport={ready && currentReview} canArchive={ready} archive={{ toolId: "netzplaner", project, notes, document: archiveDocument }} pdfReport={pdfReport} exportData={exportDraft} reviewLabel="Radiales Modell · Fachprüfung offen">
     <div className="np-project-bar"><label>Netz / Projektname<input aria-label="Name des Netzplans" maxLength={120} value={document.name} disabled={!ready} onChange={event => commit({ ...document, name: event.target.value })} /></label><div className="np-project-context">{project ? <><strong>{project.number}</strong><span>{project.name}</span></> : <><strong>Ohne Projektzuordnung</strong><span>Entwurf wird lokal gespeichert</span></>}{props.onOpenTool && <button className="lab-open" onClick={() => props.onOpenTool?.("projektzentrale")}>Projektzentrale</button>}</div></div>
     <div className="np-editor-toolbar" role="toolbar" aria-label="Netzplan bearbeiten">
       <div className="np-toolbar-group"><button disabled={!ready} aria-pressed={!connectMode} onClick={() => { setConnectMode(false); setConnectFrom(null); }}><MousePointer2 size={16} />Auswählen</button><button disabled={!ready} aria-pressed={connectMode} onClick={() => { setConnectMode(old => !old); setConnectFrom(null); }} aria-label="Leitungen verbinden"><Link2 size={16} />Verbinden</button></div>

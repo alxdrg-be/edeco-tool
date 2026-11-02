@@ -1,5 +1,7 @@
 import { useId } from "react";
 import type { Inputs } from "./types";
+import { ChoiceCards } from "../LabUI";
+import { optionsWithProjectValue } from "../electricalOptions";
 import { POE_CABLE_REFERENCES } from "./referenceInstallationData";
 import { defaultPoeRouteSegment, parsePoeSegments, POE_INSTALLATIONS, POE_ROUTE_QUALIFICATION, POE_ROUTE_TYPES, type PoeRouteSegmentInput } from "./poeRoute";
 import "./poe-route.css";
@@ -7,7 +9,7 @@ import "./poe-route.css";
 type Props = { input: Inputs; onChange: (key: string, value: string) => void; disabled?: boolean };
 function Entry({ label, value, onChange, options, disabled, text = false }: { label: string; value: string; onChange: (value: string) => void; options?: readonly { value: string; label: string }[]; disabled?: boolean; text?: boolean }) {
   const id = useId();
-  return <label className="poe-route-entry" data-wide={text || Boolean(options) ? true : undefined} htmlFor={id}><span>{label.replace(/^Abschnitt \d+ · /, "").replace("Dokumentierte Leitertemperatur", "Leitertemperatur")}</span>{options ? <select id={id} aria-label={label} disabled={disabled} value={value} onChange={event => onChange(event.target.value)}>{!options.some(option => option.value === value) && <option value={value}>{value || "Bitte wählen …"} · Projektwert</option>}{options.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}</select> : <input id={id} aria-label={label} disabled={disabled} value={value} maxLength={text ? 180 : 24} inputMode={text ? "text" : "decimal"} onChange={event => onChange(event.target.value)} />}</label>;
+  return <div className="poe-route-entry" data-wide={text || Boolean(options) ? true : undefined}><label htmlFor={options ? undefined : id}>{label.replace(/^Abschnitt \d+ · /, "").replace("Dokumentierte Leitertemperatur", "Leitertemperatur")}</label>{options ? <ChoiceCards id={id} label={label} disabled={disabled} value={value} onChange={onChange} options={optionsWithProjectValue(options, value)} /> : <input id={id} aria-label={label} disabled={disabled} value={value} maxLength={text ? 180 : 24} inputMode={text ? "text" : "decimal"} onChange={event => onChange(event.target.value)} />}</div>;
 }
 export default function PoeRouteControls({ input, onChange, disabled }: Props) {
   if (input.poeRouteMode !== "published") return null;

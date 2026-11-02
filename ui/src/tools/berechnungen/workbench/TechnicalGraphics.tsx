@@ -1,5 +1,6 @@
 import { useId, type ReactNode } from "react";
 import type { CalculationResult, DiagramNode, Inputs, Metric, Tone } from "./types";
+import { useAnimatedGeometry } from "../useAnimatedGeometry";
 import "./technical-graphics.css";
 
 type SymbolKind = "source" | "transformer" | "cable" | "fault" | "breaker" | "bond" | "pse" | "pd" | "converter" | "charger" | "motor" | "roof";
@@ -7,7 +8,7 @@ const colour = (tone: Tone = "neutral") => tone === "error" ? "var(--danger)" : 
 const display = (metric: Pick<Metric, "value" | "unit" | "digits">) => `${typeof metric.value === "number" ? metric.value.toLocaleString("de-CH", { maximumFractionDigits: metric.digits ?? 2 }) : metric.value}${metric.unit ? ` ${metric.unit}` : ""}`;
 const wrap = (text: string, width = 25) => {
   const lines: string[] = [];
-  for (const word of text.split(/\s+/)) {
+  for (const word of text.split(/\s+/).flatMap(word => word.match(new RegExp(`.{1,${width}}`, "g")) ?? [])) {
     if (lines.length && `${lines[lines.length - 1]} ${word}`.length <= width) lines[lines.length - 1] += ` ${word}`;
     else lines.push(word);
   }
@@ -39,7 +40,7 @@ function Symbol({ kind, x, y, stroke }: { kind: SymbolKind; x: number; y: number
 
 function Figure({ title, description, children, caption }: { title: string; description: string; children: (id: string) => ReactNode; caption: string }) {
   const id = useId();
-  return <figure className="technical-figure" aria-label={title}><header><h2>{title}</h2><span>Schema</span></header><div className="technical-scroll" role="region" tabIndex={0} aria-label={`${title}, bei Bedarf horizontal verschieben`}>{children(id)}</div><figcaption>{description && <span>{description}</span>}<span>{caption}</span></figcaption></figure>;
+  return <figure className="technical-figure" aria-label={title}><header><h2>{title}</h2><span title="Bei Bedarf innerhalb des Schemas horizontal verschieben">Schema · ↔</span></header><div className="technical-scroll" role="region" tabIndex={0} aria-label={`${title}, bei Bedarf horizontal verschieben`}>{children(id)}</div><figcaption><details><summary>Darstellung & Grenzen</summary>{description && <p>{description}</p>}<p>{caption}</p></details></figcaption></figure>;
 }
 
 function symbolsFor(calculatorId: string, length: number): SymbolKind[] {
@@ -53,25 +54,36 @@ function symbolsFor(calculatorId: string, length: number): SymbolKind[] {
 }
 
 function Circuit({ calculatorId, nodes }: { calculatorId: string; nodes: DiagramNode[] }) {
-  const slot = 270, width = Math.max(810, nodes.length * slot), centreY = 137;
+  const slot = 270, width = Math.max(810, nodes.length * slot);
+  const maxLabelLines = Math.max(1, ...nodes.map(node => wrap(node.label, 28).length));
+  const centreY = Math.max(137, 34 + maxLabelLines * 18 + 65), valueY = centreY + 73;
   const maxValueLines = Math.max(1, ...nodes.map(node => wrap(node.value, 23).length));
-  const detailY = 210 + maxValueLines * 24, maxDetailLines = Math.max(1, ...nodes.map(node => wrap(node.detail ?? "", 28).length));
+  const detailY = valueY + maxValueLines * 24, maxDetailLines = Math.max(1, ...nodes.map(node => wrap(node.detail ?? "", 28).length));
   const height = detailY + maxDetailLines * 18 + 30;
   const symbols = symbolsFor(calculatorId, nodes.length);
   const caption = calculatorId === "pva-rechner" ? "Jahresbilanz aus den eingegebenen Projektannahmen. Die Generatorleistung in kWp und die Jahresenergie in kWh sind unterschiedliche Grössen; Ausrichtung, Verluste und Eigenverbrauch sind keine zeitaufgelöste Simulation." : calculatorId === "poe" || calculatorId === "premium-poe" ? "Verbindung: Speisegerät → Kabelstrecke → Endgerät. Spannung, Leistung und Längen sind berechnete Werte; eine Datenübertragungsfreigabe ist damit nicht belegt." : calculatorId === "potenzialausgleich" ? "Die drei Querschnitte gehören zu unterschiedlichen Leiterfunktionen; sie sind kein serieller Strompfad." : "Linien zeigen die technische Verbindung. Symbole und Leitungslängen sind schematisch; Geräte- und Schutzauslegung separat prüfen.";
   return <Figure title={calculatorId === "premium-lkw" ? "Leistungsweg · AC zu DC" : calculatorId === "potenzialausgleich" ? "Schutz- und Potenzialausgleichsleiter" : calculatorId === "pva-rechner" ? "PV-Generator und Jahresenergie" : "Technisches Einlinienschema"} description="" caption={caption}>{id => <svg className="lab-svg technical-svg" viewBox={`0 0 ${width} ${height}`} style={{ minWidth: Math.min(width, 900) }} role="img" aria-labelledby={`${id}-title`}><title id={`${id}-title`}>{nodes.map(node => `${node.label}: ${node.value}`).join("; ")}</title>
     {nodes.map((node, index) => {
       const x = slot * (index + .5), stroke = colour(node.tone);
-      return <g key={`${node.label}-${index}`}><Lines text={node.label} x={x} y={34} className="technical-node-label" width={28} lineHeight={18} /><Symbol kind={symbols[index]} x={x} y={centreY} stroke={stroke} />{index < nodes.length - 1 && calculatorId !== "potenzialausgleich" && <g stroke={stroke} fill="none" strokeWidth="2.5"><path d={`M${x + 60} ${centreY}H${x + slot - 60}`} /><path d={`M${x + slot - 77} ${centreY - 6}l10 6-10 6`} /></g>}<Lines text={node.value} x={x} y={210} className="technical-node-value" width={23} lineHeight={24} />{node.detail && <Lines text={node.detail} x={x} y={detailY} className="technical-node-detail" width={28} lineHeight={18} />}</g>;
+      return <g key={`${node.label}-${index}`}><Lines text={node.label} x={x} y={34} className="technical-node-label" width={28} lineHeight={18} /><Symbol kind={symbols[index]} x={x} y={centreY} stroke={stroke} />{index < nodes.length - 1 && calculatorId !== "potenzialausgleich" && <g stroke={stroke} fill="none" strokeWidth="2.5"><path d={`M${x + 60} ${centreY}H${x + slot - 60}`} /><path d={`M${x + slot - 77} ${centreY - 6}l10 6-10 6`} /></g>}<Lines text={node.value} x={x} y={valueY} className="technical-node-value" width={23} lineHeight={24} />{node.detail && <Lines text={node.detail} x={x} y={detailY} className="technical-node-detail" width={28} lineHeight={18} />}</g>;
     })}
   </svg>}</Figure>;
 }
 
 function Cascade({ nodes }: { nodes: DiagramNode[] }) {
-  const step = 174, height = nodes.length * step + 30;
-  return <Figure title="Schutzorgankaskade" description="Jede Stufe zeigt ihren Nennstrom und den Kurzschlusswert an ihrem Einbauort." caption="LS–LS ist ohne Herstellerkennlinie nicht nachgewiesen. Farben betreffen ausschliesslich den eingetragenen Zahlenvergleich.">{id => <svg className="lab-svg technical-svg technical-cascade-svg" viewBox={`0 0 760 ${height}`} role="img" aria-labelledby={`${id}-title`}><title id={`${id}-title`}>Senkrechte Kaskade der Schutzorgane</title>{nodes.map((node, index) => {
-    const y = 85 + index * step, stroke = colour(node.tone);
-    return <g key={index}><Symbol kind="breaker" x={150} y={y} stroke={stroke} />{index < nodes.length - 1 && <path d={`M150 ${y + 57}V${y + step - 57}`} stroke={stroke} fill="none" strokeWidth="2.5" />}<Lines text={node.label} x={455} y={y - 30} className="technical-node-label" width={38} /><Lines text={node.value} x={455} y={y + 3} className="technical-node-value" width={30} /><Lines text={node.detail ?? ""} x={455} y={y + 37} className="technical-node-detail" width={38} /></g>;
+  let top = 15;
+  const blocks = nodes.map(node => {
+    const labelHeight = Math.max(1, wrap(node.label, 38).length) * 18;
+    const valueHeight = Math.max(1, wrap(node.value, 30).length) * 24;
+    const detailHeight = Math.max(1, wrap(node.detail ?? "", 38).length) * 18;
+    const height = Math.max(154, labelHeight + valueHeight + detailHeight + 54);
+    const block = { node, centreY: top + height / 2, labelY: top + 24, valueY: top + 36 + labelHeight, detailY: top + 48 + labelHeight + valueHeight };
+    top += height + 20;
+    return block;
+  });
+  return <Figure title="Schutzorgankaskade" description="Jede Stufe zeigt ihren Nennstrom und den Kurzschlusswert an ihrem Einbauort." caption="LS–LS ist ohne Herstellerkennlinie nicht nachgewiesen. Farben betreffen ausschliesslich den eingetragenen Zahlenvergleich.">{id => <svg className="lab-svg technical-svg technical-cascade-svg" viewBox={`0 0 760 ${top}`} role="img" aria-labelledby={`${id}-title`}><title id={`${id}-title`}>Senkrechte Kaskade der Schutzorgane</title>{blocks.map(({node, centreY, labelY, valueY, detailY}, index) => {
+    const stroke = colour(node.tone);
+    return <g key={index}><Symbol kind="breaker" x={150} y={centreY} stroke={stroke} />{index < blocks.length - 1 && <path d={`M150 ${centreY + 57}V${blocks[index+1].centreY - 57}`} stroke={stroke} fill="none" strokeWidth="2.5" />}<Lines text={node.label} x={455} y={labelY} className="technical-node-label" width={38} lineHeight={18} /><Lines text={node.value} x={455} y={valueY} className="technical-node-value" width={30} lineHeight={24} /><Lines text={node.detail ?? ""} x={455} y={detailY} className="technical-node-detail" width={38} lineHeight={18} /></g>;
   })}</svg>}</Figure>;
 }
 
@@ -97,7 +109,8 @@ function Corridor({ result, input }: { result: CalculationResult; input?: Inputs
 
 function CableTray({ input, result }: { input?: Inputs; result: CalculationResult }) {
   const count = Number(input?.circuits ?? 1), shown = Math.min(12, Math.max(1, Number.isFinite(count) ? count : 1));
-  return <Figure title="Parallele Zuleitungen" description="Jeder gezeichnete Kreis steht für einen vollständigen Stromkreis, nicht für eine einzelne Ader." caption="Gleiche Stromaufteilung und identische Stromkreise sind vorausgesetzt. Die angegebene Häufung bleibt eine eigene Projekteingabe.">{id => <svg className="lab-svg technical-svg" viewBox="0 0 810 235" role="img" aria-labelledby={`${id}-title`}><title id={`${id}-title`}>Kabeltrasse mit {count} parallelen Stromkreisen</title><path d="M60 100v65H750V100M83 177v22M727 177v22" fill="none" stroke="var(--line-strong)" strokeWidth="7" />{Array.from({ length: shown }, (_, index) => <circle key={index} cx={405 - (shown - 1) * 23 + index * 46} cy="138" r="18" fill="var(--panel-2)" stroke={colour(result.status.tone)} strokeWidth="3" />)}<text x="405" y="45" textAnchor="middle" className="technical-node-label">{count} parallele Stromkreise{count > shown ? ` · ${shown} dargestellt` : ""}</text><text x="405" y="81" textAnchor="middle" className="technical-node-value">{display(result.metrics[0])}</text></svg>}</Figure>;
+  const geometry = useAnimatedGeometry(Object.fromEntries(Array.from({ length: shown }, (_, index) => [`x-${index}`, 405 - (shown - 1) * 23 + index * 46])));
+  return <Figure title="Parallele Zuleitungen" description="Jeder gezeichnete Kreis steht für einen vollständigen Stromkreis, nicht für eine einzelne Ader." caption="Gleiche Stromaufteilung und identische Stromkreise sind vorausgesetzt. Die angegebene Häufung bleibt eine eigene Projekteingabe.">{id => <svg className="lab-svg technical-svg" viewBox="0 0 810 235" role="img" aria-labelledby={`${id}-title`}><title id={`${id}-title`}>Kabeltrasse mit {count} parallelen Stromkreisen</title><path d="M60 100v65H750V100M83 177v22M727 177v22" fill="none" stroke="var(--line-strong)" strokeWidth="7" />{Array.from({ length: shown }, (_, index) => <circle key={index} cx={geometry[`x-${index}`]} cy="138" r="18" fill="var(--panel-2)" stroke={colour(result.status.tone)} strokeWidth="3" />)}<text x="405" y="45" textAnchor="middle" className="technical-node-label">{count} parallele Stromkreise{count > shown ? ` · ${shown} dargestellt` : ""}</text><text x="405" y="81" textAnchor="middle" className="technical-node-value">{display(result.metrics[0])}</text></svg>}</Figure>;
 }
 
 function LoadedCores({ input, result }: { input?: Inputs; result: CalculationResult }) {

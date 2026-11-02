@@ -85,9 +85,9 @@ Referenztabellen samt belegten Korrekturen oder ausdrücklich manuelle Werte.
 Nicht belegte Kombinationen erzeugen keine erfundenen Ersatzwerte. Modulare
 PKW-/LKW-Ladegrids, vier Kostenmodelle, PV-/Speicheransätze und segmentierte
 PoE-Vorprüfungen ergänzen die bisherigen Grundrechner. SIA 2056 trennt in der
-manuellen Verbraucherbilanz Leistungskorrektur und Jahresgleichzeitigkeit;
-automatische Nutzungsprofile bleiben mangels vollständig belegtem Datensatz
-gesperrt.
+manuellen Verbraucherbilanz Leistungskorrektur und Jahresgleichzeitigkeit.
+Ein datierter Referenzmodus ergänzt 16 Nutzungen, sieben Verbrauchergruppen
+und vier Zonen; die in der Quelle fehlende Food/L-Klasse bleibt gesperrt.
 
 Die Programme sind eigene Modellrechnungen und Vorprüfungen. Ein publizierter
 Tabellenwert oder übereinstimmender Zahlenfall bestätigt weder die gesamte
@@ -108,18 +108,21 @@ strukturierten Daten. Blitzschutz behält den bisherigen Druck-/PDF-Weg.
 
 Die React-Oberfläche nutzt Tailwind mit `edeco:`-Präfix und Lucide-Symbole.
 Navigation und Projektkontext bleiben in der Toolbox. Der Rechnerbereich hat
-einen lokalen Tech-Dunkelmodus und eine helle edeco-Ansicht. Diskrete Gerätewerte
-stehen in Dropdowns; Mess- und Projektwerte bleiben frei. Schemas, Diagramme und
-Kennzahlen reagieren auf aktuelle Eingaben. Kurze Erklärungen und Legenden sind
-direkt sichtbar; Info-Drawer und aufklappbare Grundlagen ergänzen die Details.
+einen lokalen Tech-Dunkelmodus und eine helle edeco-Ansicht. Lange Listen und
+Gerätenennwerte stehen in Dropdowns; kurze Entscheidungen wie B/C/D/K/Z bleiben
+direkt sichtbar. Mess- und Projektwerte bleiben frei. Geometrieänderungen laufen
+weich; Stromfluss bewegt sich nur auf tatsächlich aktiven Modellabschnitten.
+Ausführliche Erklärungen und Formeln starten geschlossen. Der Wissens-Hub ist
+im Kopf und aus Info-Drawern erreichbar. Der aktuelle Prüfstand steht im
+[Gesamtaudit](docs/RECHNER_AUDIT_20261102.md).
 Blitzschutz berechnet den Trennungsabstand mit
 `s = k × (U / xₙ) / n × A`, zeigt Leitungsweg und Abstand in einer eigenen
 Gebäudezeichnung und prüft die Mindestanzahl Ableiter gesondert. Grundlage ist
 das [veröffentlichte Schweizer Verfahren von Arthur Flury](https://www.aflury.ch/de/fachwissen/trennungsabstand-rechner/)
 mit Bezug auf SN 414022:2024, Seite 38. Klassen I–III, Einheiten, Faktoren,
-Aufrundung und Grenzen stehen im Info-Drawer und im Druckbericht. Das Dachmodell
-reagiert schematisch auf A, ein Dachobjekt lässt sich mit Maus oder Tastatur
-verschieben. Die Zone wechselt bei unterschrittenem Abstand auf Rot; sie zeigt
+Aufrundung und Grenzen stehen im Info-Drawer und im Druckbericht. Das Gebäude bleibt
+schematisch; A ist der Leitungsweg und keine Gebäudehöhe. Ein Dachobjekt lässt
+sich mit Maus oder Tastatur verschieben. Die Zone wechselt bei unterschrittenem Abstand auf Rot; sie zeigt
 keinen Fangschutzbereich. Fünf Zahlenfälle sind gegen die Referenz
 geprüft; eine fachliche Freigabe am Objekt ist noch offen. Entwürfe werden lokal
 im Browserprofil pro ausgewähltem Projekt gespeichert. JSON-Export und
