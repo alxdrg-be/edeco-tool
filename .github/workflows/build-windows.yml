@@ -122,8 +122,9 @@ jobs:
           '@ | python -
             if ($LASTEXITCODE -ne 0) { throw 'PDF-Testdatei konnte nicht erstellt werden' }
             $docRoot = 'http://127.0.0.1:8799/api/tools/dokumenten-assistent'
+            $toolboxSession = Invoke-RestMethod 'http://127.0.0.1:8799/api/toolbox/session'
             $docState = Invoke-RestMethod ($docRoot + '/state')
-            $docHeaders = @{ 'X-Edeco-Documents' = $docState.session_key }
+            $docHeaders = @{ 'X-Edeco-Documents' = $docState.session_key; 'X-Edeco-Session' = $toolboxSession.session_key }
             $uploaded = Invoke-RestMethod ($docRoot + '/documents') -Method Post -Headers $docHeaders -Form @{ file = Get-Item $env:DOC_SMOKE_FILE; edition = 'Synthetischer Buildtest' }
             $question = @{ question = 'Schutzleiter'; document_ids = @($uploaded.document.id); use_ai = $false } | ConvertTo-Json -Compress
             $answer = Invoke-RestMethod ($docRoot + '/ask') -Method Post -Headers $docHeaders -ContentType 'application/json' -Body $question

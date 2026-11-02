@@ -19,7 +19,7 @@ export function siaReportInputs(input: Inputs): SIAReportRow[] {
   if (input.siaMode === "legacy") return [];
   if (input.siaMode === "automatic") {
     const data=calculateSIAReference(input);
-    return [{label:"Bilanzmodus",value:"Veröffentlichte Referenzprofile · 02.11.2026"},{label:"Datenquelle",value:SIA_REFERENCE_SOURCE.url},{label:"Klimaregion",value:input.siaClimate},...data.zones.flatMap((zone,index)=>[
+    return [{label:"Bilanzmodus",value:"Veröffentlichte Referenzprofile · 02.11.2026"},{label:"Datenstand",value:`Referenzprofile · ${SIA_REFERENCE_SOURCE.captured}`},{label:"Klimaregion",value:input.siaClimate},...data.zones.flatMap((zone,index)=>[
       {label:zone.label,value:`${format(zone.area)} m² · Kcor ${format(zone.kcor)} · Jahresgleichzeitigkeit ${format(zone.yearGlz)}`},
       ...zone.consumers.map(c=>({label:`${zone.label} · ${SIA_GROUPS.find(g=>g.id===c.groupId)!.label}`,value:`${format(c.powerDensity)} W/m² roh; ${format(c.energyDensity)} kWh/(m²·a) roh`})),
       {label:`${zone.label} · PV`,value:`${format(data.metadata[index].pvKWp)} kWp · ${format(data.metadata[index].pvYearKWh)} kWh/a`},
@@ -109,7 +109,7 @@ export function siaReferenceResult(input:Inputs):CalculationResult & {siaBreakdo
     {label:'PV-Leistung',value:data.pvKWp,unit:'kWp',digits:2},
   ],status:{tone:'warning',text:'Datierter Anbieter-Referenzstand berechnet. Kennwert- und Normzuordnung sind projektspezifisch zu prüfen.'},
   formula:`Je Zone: P = A × Σp_roh × Kcor / 1000; E = A × Σe_roh × Jahresgleichzeitigkeit. ${b.zones.map(z=>`${z.label}: P = ${format(z.rawPowerKW)} × ${format(z.kcor)} = ${format(z.powerKW)} kW; E = ${format(z.rawEnergyKWh)} × ${format(z.yearGlz)} = ${format(z.energyKWh)} kWh/a`).join('; ')}. PV = A_PV × 0.20 × G_Klima × f_Ausrichtung × f_Verschattung × 0.80 = ${format(data.pvYearKWh)} kWh/a.`,
-  rows:[{label:'Datenstand',value:`${SIA_REFERENCE_SOURCE.captured} · ${SIA_REFERENCE_SOURCE.url}`},{label:'Rohleistung vor Kcor',value:b.rawPowerKW,unit:'kW'},{label:'Rohenergie vor Jahresgleichzeitigkeit',value:b.rawEnergyKWh,unit:'kWh/a'},{label:'Kcor · flächengewichtet',value:data.kcorAverage},{label:'Jahresgleichzeitigkeit · flächengewichtet',value:data.yearGlzAverage},...data.metadata.flatMap(z=>[{label:`${z.name} · Standby`,value:z.standbyKW,unit:'kW'},{label:`${z.name} · PV-Produktion`,value:z.pvYearKWh,unit:'kWh/a'}])],
+  rows:[{label:'Datenstand',value:`Referenzprofile · ${SIA_REFERENCE_SOURCE.captured}`},{label:'Rohleistung vor Kcor',value:b.rawPowerKW,unit:'kW'},{label:'Rohenergie vor Jahresgleichzeitigkeit',value:b.rawEnergyKWh,unit:'kWh/a'},{label:'Kcor · flächengewichtet',value:data.kcorAverage},{label:'Jahresgleichzeitigkeit · flächengewichtet',value:data.yearGlzAverage},...data.metadata.flatMap(z=>[{label:`${z.name} · Standby`,value:z.standbyKW,unit:'kW'},{label:`${z.name} · PV-Produktion`,value:z.pvYearKWh,unit:'kWh/a'}])],
   limitations:[
     `Veröffentlichte Tabellenwerte vom ${SIA_REFERENCE_SOURCE.captured}; keine unabhängige Bestätigung der Normausgabe, Quellenlizenzen oder Zuordnung jeder Nutzungs-/Verbraucherklasse. Eine belegte Anbieterrechnung ist kein SIA-Konformitätsnachweis.`,
     'Die Geräteklasse L bei Verkauf (Food) ist in der Quelle ausdrücklich ohne Kennwert und bleibt gesperrt. Es wird weder interpoliert noch ein Nullwert eingesetzt.',

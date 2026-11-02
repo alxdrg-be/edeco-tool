@@ -1,4 +1,5 @@
 import { RESISTANCE_20, REACTANCE, numeric } from "./engineering.ts";
+import { LEGACY_VOLTAGE_WARNING, shortCircuitVoltageFactors, VOLTAGE_TOLERANCE_HELP, VOLTAGE_TOLERANCE_OPTIONS } from "./voltageFactors.ts";
 import type { Field } from "./workbench/types.ts";
 import type { NetworkDocument, NetworkEdge, NetworkEdgeResult, NetworkIssue, NetworkNode, NetworkNodeKind, NetworkNodeResult, NetworkResult, NetworkTone } from "./networkTypes.ts";
 
@@ -12,6 +13,7 @@ export const NETWORK_NODE_FIELDS: Record<NetworkNodeKind, Field[]> = {
   source: [
     s("phases", "Netzsystem", "3", [["3", "3~ 400/230 V"], ["1", "1~ 230 V"]]),
     s("voltage", "Bemessungsspannung", "400", [["400", "400 V · Aussenleiter"], ["230", "230 V · L–N"]]),
+    s("voltageTolerance", "Spannungstoleranz für Ik,max", "plus10", VOLTAGE_TOLERANCE_OPTIONS, VOLTAGE_TOLERANCE_HELP),
     s("maxCurrent", "Verfügbarer Anschlussstrom", "160", ratings, "Stromgrenze je Aussenleiter; keine automatische Netzbetreiberfreigabe."),
     s("sourceMode", "Vorgelagerte Quelle", "impedance", [["impedance", "R und X vorgegeben"], ["ik", "Ik,max am Einspeisepunkt"], ["ideal", "Ideal · Vorimpedanz 0"]], "Alle Quellwerte auf die Niederspannungsseite beziehen. Das Ik-Modell nimmt für den unbekannten R/X-Anteil reine Reaktanz an."),
     visible(n("r", "Quellwiderstand R", "0.01", "Ω"), "sourceMode", ["impedance"]),
@@ -156,17 +158,20 @@ function calculateNetworkModel(document: NetworkDocument): NetworkResult {
   const source = sources[0];
   let activeInputContext: { nodeId?: string; edgeId?: string } = { nodeId: source.id };
   const invalidAtCurrentObject = (error: unknown) => invalid([{ tone: "error", text: error instanceof Error ? error.message : "Ungültige Netzparameter.", ...activeInputContext }]);
-  let system: string, nominalVoltage: number, maxCurrent: number, budget: number, sourceZ: Complex, sourceLoop: number | null;
+  let system: string, nominalVoltage: number, cMax: number, voltageTolerance: string, maxCurrent: number, budget: number, sourceZ: Complex, sourceLoop: number | null;
   const demands = new Map<string, Demand>(), wires = new Map<string, Wire>();
   const rated = new Map<string, number>(), device = new Map<string, string>(), transformer = new Map<string, { x: number; kva: number; rated: number }>();
   try {
     system = choice(source.values, "phases", ["1", "3"], "Netzsystem");
     nominalVoltage = read(source.values, "voltage", "Bemessungsspannung", 1000);
     if (nominalVoltage !== (system === "3" ? 400 : 230)) throw new Error("Das NS-Modell verwendet 400 V für 3~ beziehungsweise 230 V für 1~.");
+    const voltageFactors = shortCircuitVoltageFactors(source.values.voltageTolerance);
+    cMax = voltageFactors.cMax; voltageTolerance = voltageFactors.label;
+    if (voltageFactors.legacy) issues.push({ tone: "warning", nodeId: source.id, text: LEGACY_VOLTAGE_WARNING });
     maxCurrent = read(source.values, "maxCurrent", "Anschlussstrom", 10000);
     budget = read(source.values, "limit", "Gesamtes Spannungsfallbudget", 20);
     const mode = choice(source.values, "sourceMode", ["impedance", "ik", "ideal"], "Quellenmodell");
-    sourceZ = mode === "ideal" ? c() : mode === "ik" ? c(0, 1.05 * nominalVoltage / ((system === "3" ? Math.sqrt(3) : 1) * read(source.values, "ik", "Maximaler Ik der Einspeisung", 1000) * 1000)) : c(read(source.values, "r", "Quellwiderstand", 1000, true), read(source.values, "x", "Quellreaktanz", 1000, true));
+    sourceZ = mode === "ideal" ? c() : mode === "ik" ? c(0, cMax * nominalVoltage / ((system === "3" ? Math.sqrt(3) : 1) * read(source.values, "ik", "Maximaler Ik der Einspeisung", 1000) * 1000)) : c(read(source.values, "r", "Quellwiderstand", 1000, true), read(source.values, "x", "Quellreaktanz", 1000, true));
     sourceLoop = choice(source.values, "loopKnown", ["yes", "no"], "L–PE-Quelldaten") === "yes" ? read(source.values, "loopImpedance", "L–PE-Quellenimpedanz", 1000, true) : null;
     for (const node of document.nodes) {
       activeInputContext = { nodeId: node.id };
@@ -261,7 +266,7 @@ function calculateNetworkModel(document: NetworkDocument): NetworkResult {
     const type = device.get(node.id);
     if (type) {
       if (["LS", "RCBO", "MCCB"].includes(type)) {
-        const icn = read(node.values, "icn", "Ausschaltvermögen", 1000), z = magnitude(local.cold), prospective = shortCircuitKA(nominalVoltage!, system === "3" ? Math.sqrt(3) : 1, z);
+        const icn = read(node.values, "icn", "Ausschaltvermögen", 1000), z = magnitude(local.cold), prospective = shortCircuitKA(nominalVoltage!, system === "3" ? Math.sqrt(3) : 1, z, cMax!);
         if (prospective === null) record("warning", "Ausschaltvermögen nicht geprüft: keine endliche Quellenimpedanz am Gerät.", node.id);
         else if (icn < prospective - tol) record("error", `Ausschaltvermögen am Gerät zu klein: ${fmt(icn)} kA < ${fmt(prospective)} kA.`, node.id);
         else result.checks.push(`Icn ${fmt(icn)} kA ≥ Ik,max ${fmt(prospective)} kA am Einbauort.`);
@@ -290,7 +295,7 @@ function calculateNetworkModel(document: NetworkDocument): NetworkResult {
       const percent = volts / reference * 100, totalPercent = totalVolts / reference * 100;
       const minProjectedVoltage = Math.min(...connectedPhases.map(phase => projection(cumulative[phase], phase)));
       const cold = add(local.cold, wire.zCold), loopWires = add(local.loopWires, wire.zLoop), zCold = magnitude(cold);
-      const ikMax = shortCircuitKA(nominalVoltage!, system === "3" ? Math.sqrt(3) : 1, zCold);
+      const ikMax = shortCircuitKA(nominalVoltage!, system === "3" ? Math.sqrt(3) : 1, zCold, cMax!);
       const loopZ = sourceLoop! === null ? null : computedFinite(sourceLoop! + local.transformerX + magnitude(loopWires), "L–PE-Schleifenimpedanz");
       const ikMin = loopZ !== null && loopZ > 0 ? computedFinite(.95 * 230 / loopZ / 1000, "Ik,min-Modell") : null;
       let tone: NetworkTone = "ok"; const checks: string[] = [];
@@ -320,7 +325,7 @@ function calculateNetworkModel(document: NetworkDocument): NetworkResult {
         if (ikMin * 1000 < upper - tol) check("error", `Oberer Magnetauslöser ${fmt(upper)} A wird vom Ik,min-Modell ${fmt(ikMin * 1000)} A nicht erreicht.`);
         else checks.push(`Ik,min-Modell ${fmt(ikMin * 1000)} A ≥ oberer Magnetauslöser ${fmt(upper)} A; verbindliche Abschaltzeit separat prüfen.`);
       }
-      const formula = `I_L1/L2/L3 = ${currents.map(value => fmt(value)).join(" / ")} A; I_N = ${fmt(magnitude(neutral))} A. Z_Leiter,${fmt(wire.temperature, 0)}°C = ${fmt(wire.zDrop.re, 6)} + j${fmt(wire.zDrop.im, 6)} Ω. ΔU_L–N = Projektion(Z_L · I_L + Z_N · ΣI_L) = ${fmt(volts)} V = ${fmt(percent)} %. Pfad bis hier: ${fmt(totalPercent)} % (Budget ${fmt(budget!)} %). ${ikMax === null ? "Ik,max nicht bestimmt." : `Ik,max,Modell = 1.05 · U / (f · |Z_Quelle + ΣZ_Leitung + ΣZ_Trafo|) = ${fmt(ikMax)} kA.`} ${ikMin === null ? "Ik,min mangels L–PE-Quelldaten nicht bestimmt." : `Ik,min,Modell = 0.95 × 230 / (${fmt(sourceLoop!, 6)} + ${fmt(local.transformerX, 6)} + ${fmt(magnitude(loopWires), 6)}) / 1000 = ${fmt(ikMin)} kA.`}`;
+      const formula = `I_L1/L2/L3 = ${currents.map(value => fmt(value)).join(" / ")} A; I_N = ${fmt(magnitude(neutral))} A. Z_Leiter,${fmt(wire.temperature, 0)}°C = ${fmt(wire.zDrop.re, 6)} + j${fmt(wire.zDrop.im, 6)} Ω. ΔU_L–N = Projektion(Z_L · I_L + Z_N · ΣI_L) = ${fmt(volts)} V = ${fmt(percent)} %. Pfad bis hier: ${fmt(totalPercent)} % (Budget ${fmt(budget!)} %). ${ikMax === null ? "Ik,max nicht bestimmt." : `Ik,max,Modell = ${cMax!.toFixed(2)} · U / (f · |Z_Quelle + ΣZ_Leitung + ΣZ_Trafo|) = ${fmt(ikMax)} kA.`} ${ikMin === null ? "Ik,min mangels L–PE-Quelldaten nicht bestimmt." : `Ik,min,Modell = 0.95 × 230 / (${fmt(sourceLoop!, 6)} + ${fmt(local.transformerX, 6)} + ${fmt(magnitude(loopWires), 6)}) / 1000 = ${fmt(ikMin)} kA.`}`;
       edges.push({ id: edge.id, currents, current: amperes, neutralCurrent: magnitude(neutral) <= amperes * 1e-12 ? 0 : magnitude(neutral), powerKW: downstream.powerKW, dropVolts: volts, dropPercent: percent, cumulativeDropPercent: totalPercent, iz: wire.iz, ikMaxKA: ikMax, ikMinKA: ikMin, tone, checks, formula });
       walk(nodeById.get(edge.to)!, { ...local, cold, loopWires, drop: cumulative });
     }
@@ -343,17 +348,17 @@ function calculateNetworkModel(document: NetworkDocument): NetworkResult {
       "3~ bei 400 V, 1~ bei 230 V; induktive sinusförmige Lasten mit Stromansatz an der Bemessungsspannung. Leistungsangaben sind Verbraucherlasten; Leitungsverluste werden nicht auf die Betriebsströme zurückgeführt. Keine iterative Lastflussrechnung oder Oberschwingungen.",
       "Spannungsfall als Längsprojektion der komplexen Leiter- und Neutralleiterspannung; sämtliche vorgeschalteten Abschnitte werden mitgeführt. Die Spannung am Einspeisepunkt ist vorgegeben; die vorgelagerte Quellenimpedanz wird nur für Kurzschlusswerte verwendet.",
       "SN-EN-60228-bezogene veröffentlichte R′₂₀-Werte; Cu α = 0.00393/K, Al α = 0.00403/K. X′ ist ein Richtwert. Aussenleiter, N und PE haben innerhalb einer Leitung dasselbe Material. Parallele Leiter werden als identisch und gleichmässig belastet betrachtet.",
-      "Ik,max mit kaltem Leiter und c = 1.05. Ik,min-Modell mit 80 °C, c = 0.95 und vorgegebener L–PE-Quelle. Trafo als reine NS-bezogene Reaktanz; keine Nullsystem-/Schaltgruppenstudie, keine garantierte Schranke oder vollständige IEC-60909-Studie.",
+      `Ik,max mit kaltem Leiter und cmax = ${cMax!.toFixed(2)} für ${voltageTolerance!}. Ein eingegebener maximaler Quellenstrom wird mit demselben Faktor in die Quellenimpedanz zurückgerechnet, ohne zweiten Aufschlag. Ik,min-Modell mit 80 °C, cmin = 0.95 und vorgegebener L–PE-Quelle. Trafo als reine NS-bezogene Reaktanz; keine Nullsystem-/Schaltgruppenstudie, keine garantierte Schranke oder vollständige IEC-60909-Studie.`,
       "Iz, Prüfstromfaktoren und Gerätewerte sind dokumentierte Projekteingaben. Herstellerkennlinien, verbindliche Abschaltzeiten, Selektivität, RCD-Erdungsbedingungen und vollständige NIN-Anwendbarkeit bleiben separat zu prüfen.",
     ],
   };
 }
 
 
-function shortCircuitKA(voltage: number, systemFactor: number, impedance: number): number | null {
+function shortCircuitKA(voltage: number, systemFactor: number, impedance: number, cMax: number): number | null {
   if (impedance === 0) return null;
   const denominator = computedPositive(systemFactor * impedance, "Kurzschlussimpedanz");
-  return computedFinite(1.05 * voltage / denominator / 1000, "Ik,max-Modell");
+  return computedFinite(cMax * voltage / denominator / 1000, "Ik,max-Modell");
 }
 function checkResultNumbers(value: unknown): void {
   if (typeof value === "number") computedFinite(value);

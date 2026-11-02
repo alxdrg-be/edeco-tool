@@ -1,0 +1,6 @@
+# Critical Python errors first; formatting and unused-import cleanup are separate work.
+target-version = "py311"
+extend-exclude = [".venv", "ui/node_modules", "packaging/pdf-runtime", "packaging/pdf-runtime-cache"]
+
+[lint]
+select = ["E9", "F63", "F7", "F82"]

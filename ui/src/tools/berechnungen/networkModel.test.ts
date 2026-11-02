@@ -148,7 +148,7 @@ test("Ik,max uses cold cumulative impedance while warm L–PE min stays distinct
   const doc = oneLoad("1", { power: "3.68", cosPhi: "1" }, { length: "25", area: "2.5" });
   const first = calculateNetwork(doc), e = first.edges[0];
   const coldLoop = 2 * 7.41 * 25 / 1000, reactanceLoop = 2 * .110 * 25 / 1000;
-  near(e.ikMaxKA!, 1.05 * 230 / Math.hypot(coldLoop, reactanceLoop) / 1000);
+  near(e.ikMaxKA!, 1.10 * 230 / Math.hypot(coldLoop, reactanceLoop) / 1000);
   const warmLoop = Math.hypot(coldLoop * (1 + .00393 * 60), reactanceLoop);
   near(e.ikMinKA!, .95 * 230 / (.04 + warmLoop) / 1000);
   doc.nodes[0].values.loopImpedance = "0.2";
@@ -161,7 +161,7 @@ test("source-mode Ik is converted at the feed and includes every following secti
   const doc = oneLoad("3", { power: "10", cosPhi: "1" }, { length: "1", area: "240" });
   Object.assign(doc.nodes[0].values, { sourceMode: "ik", ik: "10" });
   const first = calculateNetwork(doc).edges[0].ikMaxKA!;
-  assert.ok(first < 10 && first > 9.9, "entered Ik,max must not receive a second 1.05 multiplier");
+  assert.ok(first < 10 && first > 9.9, "entered Ik,max must not receive a second voltage multiplier");
   doc.edges[0].values.length = "100";
   assert.ok(calculateNetwork(doc).edges[0].ikMaxKA! < first);
 });
@@ -199,7 +199,7 @@ test("transformer adds LV-referred impedance and flags winding overload without 
   const output = createNetworkEdge("tx-output", tx.id, "l"); Object.assign(output.values, { length: "0.01", area: "240", iz: "100" }); doc.edges.push(output);
   const result = calculateNetwork(doc), end = result.edges.find(edge => edge.id === "tx-output")!;
   const x = .04 * 400 ** 2 / 250000 + 2 * .075 * .01 / 1000, r = 2 * .0754 * .01 / 1000;
-  near(end.ikMaxKA!, 1.05 * 400 / (Math.sqrt(3) * Math.hypot(r, x)) / 1000);
+  near(end.ikMaxKA!, 1.10 * 400 / (Math.sqrt(3) * Math.hypot(r, x)) / 1000);
   doc.nodes.find(node => node.id === "l")!.values.power = "300";
   assert.ok(calculateNetwork(doc).issues.some(issue => issue.nodeId === "tx" && issue.text.includes("Trafo-Nennstrom")));
 });
@@ -458,4 +458,56 @@ test("the editor floor example has two reachable protected branches and its phas
   near(result.edges.find(edge => edge.id === "feed-uv-2")!.current, 6.639528095680697);
   assert.ok(document.nodes.some(node => node.label === "UV 1. OG"));
   assert.ok(document.nodes.some(node => node.label === "UV 2. OG"));
+});
+
+
+test("voltage tolerance changes fixed-impedance Ik and the actual breaker threshold together", () => {
+  const doc = oneLoad("3", { power: "5", cosPhi: "1" }, { area: "240", length: "0.01" });
+  const source = doc.nodes[0], breaker = added(doc, "protection", "b");
+  Object.assign(source.values, { sourceMode: "impedance", r: "0.04", x: "0", voltageTolerance: "plus6" });
+  breaker.values.icn = "6.2"; doc.edges[0].to = breaker.id;
+  doc.edges.push(createNetworkEdge("after", breaker.id, "l"));
+  const six = calculateNetwork(doc);
+  assert.ok(!six.issues.some(issue => issue.nodeId === "b" && issue.text.includes("Ausschaltvermögen")));
+  source.values.voltageTolerance = "plus10";
+  const ten = calculateNetwork(doc);
+  near(ten.edges[0].ikMaxKA!, six.edges[0].ikMaxKA! * 1.10 / 1.05);
+  near(ten.edges[0].ikMinKA!, six.edges[0].ikMinKA!);
+  assert.ok(ten.issues.some(issue => issue.tone === "error" && issue.nodeId === "b" && issue.text.includes("Ausschaltvermögen")));
+  assert.match(ten.edges[0].formula, /1.10 · U/);
+  assert.ok(ten.assumptions.some(text => text.includes("+10 %") && text.includes("1.10")));
+});
+
+test("known maximum source current receives no second factor for either voltage tolerance", () => {
+  for (const voltageTolerance of ["plus10", "plus6", "legacy"]) {
+    const doc = oneLoad("3", {}, { area: "240", length: "0.000001" });
+    Object.assign(doc.nodes[0].values, { sourceMode: "ik", ik: "10", voltageTolerance });
+    const result = calculateNetwork(doc);
+    assert.equal(result.valid, true);
+    near(result.edges[0].ikMaxKA!, 10, 1e-6);
+  }
+});
+
+test("old networks preserve cmax 1.05 explicitly and unsupported tolerance never falls back", () => {
+  const doc = oneLoad(), fresh = calculateNetwork(doc);
+  assert.equal(doc.nodes[0].values.voltageTolerance, "plus10");
+  delete doc.nodes[0].values.voltageTolerance;
+  const old = calculateNetwork(doc);
+  near(old.edges[0].ikMaxKA!, fresh.edges[0].ikMaxKA! * 1.05 / 1.10);
+  assert.ok(old.issues.some(issue => issue.nodeId === "s" && issue.tone === "warning" && issue.text.includes("Altstand")));
+  assert.equal(Object.hasOwn(doc.nodes[0].values, "voltageTolerance"), false, "calculation does not mutate the saved project");
+  doc.nodes[0].values.voltageTolerance = "";
+  assert.equal(calculateNetwork(doc).valid, false);
+  doc.nodes[0].values.voltageTolerance = "plus20";
+  assert.equal(calculateNetwork(doc).valid, false);
+});
+
+test("the voltage-factor selector does not extend the supported 400/230 V network scope", () => {
+  const single = oneLoad("1"), three = oneLoad("3");
+  assert.equal(calculateNetwork(single).valid, true);
+  assert.equal(calculateNetwork(three).valid, true);
+  single.nodes[0].values.voltage = "400";
+  three.nodes[0].values.voltage = "690";
+  assert.equal(calculateNetwork(single).valid, false);
+  assert.equal(calculateNetwork(three).valid, false);
 });

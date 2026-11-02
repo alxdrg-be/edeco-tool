@@ -61,6 +61,9 @@
 .knowledge-section code{display:block;padding:17px;border:1px solid var(--line);border-radius:10px;background:var(--panel);font:13px/1.8 ui-monospace,monospace;overflow-wrap:anywhere}
 .knowledge-section ul{display:grid;gap:13px;padding:0;margin:20px 0 0;list-style:none}
 .knowledge-section a{display:inline-flex;align-items:center;gap:7px;color:var(--accent);font-size:13px;line-height:1.7;text-decoration:underline;text-underline-offset:3px;overflow-wrap:anywhere}
+.knowledge-source-group{margin-top:24px}
+.knowledge-source-group h3{margin:0;font-size:13px;font-weight:600;line-height:1.6}
+.knowledge-source-group ul{margin-top:12px}
 .knowledge-related{padding:22px;border:1px solid var(--line);border-radius:15px;background:var(--panel)}
 .knowledge-related h3{font-size:13px;font-weight:500;color:var(--muted);margin:0 0 16px}
 .knowledge-related button{display:flex;align-items:center;gap:11px;width:100%;min-height:48px;border:0;border-top:1px solid var(--line);background:transparent;padding:14px 0;color:var(--fg);text-align:left;font:inherit;font-size:13px;line-height:1.5}

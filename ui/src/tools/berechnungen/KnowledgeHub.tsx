@@ -29,6 +29,10 @@ export default function KnowledgeHub({ onHome, onOpenTool }: ToolProps) {
   const returnTitle = TOOLS.find(tool => tool.id === returnId)?.title ?? "Berechnungen";
   const words = query.toLocaleLowerCase("de-CH").trim().split(/\s+/).filter(Boolean);
   const topics = KNOWLEDGE_TOPICS.filter(item => words.every(word => `${item.title} ${item.description} ${item.sections.map(section => `${section.title} ${section.text}`).join(" ")}`.toLocaleLowerCase("de-CH").includes(word)));
+  const sourceGroups = topic ? [
+    { title: "Normen & Fachquellen", sources: topic.sources.filter(source => !source.href.startsWith("https://www.elektro-rechner.ch/")) },
+    { title: "Vergleichsdaten · elektro-rechner.ch", sources: topic.sources.filter(source => source.href.startsWith("https://www.elektro-rechner.ch/")) },
+  ] : [];
 
   return <LabShell onHome={onHome} onOpenTool={onOpenTool} title="Wissens-Hub" subtitle="Grundlagen für die Schweizer Elektroplanung" help={null} setHelp={() => undefined}>
     <div className="knowledge-hub">
@@ -40,7 +44,7 @@ export default function KnowledgeHub({ onHome, onOpenTool }: ToolProps) {
         <header><span className="knowledge-article-icon"><BookOpen size={25} strokeWidth={1.6} /></span><h2 ref={articleHeading} tabIndex={-1}>{topic.title}</h2><p>{topic.description}</p></header>
         <div className="knowledge-article-layout"><div>
           {topic.sections.map(section => <details className="knowledge-section" key={section.title}><summary>{section.title}<ChevronDown size={18} aria-hidden="true" /></summary><div><p>{section.text}</p>{section.formula && <code>{section.formula}</code>}</div></details>)}
-          <details className="knowledge-section"><summary>Quellen & Geltungsbereich<ChevronDown size={18} aria-hidden="true" /></summary><div><p>Die genannten Quellen erklären die verwendeten Grundlagen. Normausgabe, Anwendungsbedingungen und Herstellerfreigaben müssen zum konkreten Projekt passen. Die vollständigen Normtexte sind hier nicht eingebettet; ein Quellenverweis ist keine Konformitätsbestätigung.</p><ul>{topic.sources.map(source => <li key={source.href}><a href={source.href} target="_blank" rel="noreferrer">{source.label}<ArrowUpRight size={14} /></a></li>)}</ul></div></details>
+          <details className="knowledge-section knowledge-sources"><summary>Quellen & Geltungsbereich<ChevronDown size={18} aria-hidden="true" /></summary><div><p>Normausgabe, Anwendungsbedingungen und Herstellerfreigaben müssen zum Projekt passen. Vergleichsdaten dokumentieren die Herkunft datierter Rechenannahmen; sie sind kein unabhängig bestätigter Normnachweis. Vollständige Normtexte sind hier nicht eingebettet.</p>{sourceGroups.filter(group => group.sources.length > 0).map(group => <div className="knowledge-source-group" key={group.title}><h3>{group.title}</h3><ul>{group.sources.map(source => <li key={source.href}><a href={source.href} target="_blank" rel="noreferrer">{source.label}<ArrowUpRight size={14} /></a></li>)}</ul></div>)}</div></details>
         </div><aside className="knowledge-related"><h3>Passende Rechner</h3>{topic.calculatorIds.map(id => {
           const tool = TOOLS.find(item => item.id === id);
           return tool && <button key={id} type="button" onClick={() => onOpenTool?.(id)}><CalculatorIcon id={id} size={20} /><span>{tool.title}</span><ArrowUpRight size={15} /></button>;

@@ -30,7 +30,7 @@ export default function Cable(props: ToolProps) {
   const { result, error } = useMemo(() => { try { return { result: calculateCable(input), error: "" }; } catch (e) { return { result: null, error: (e as Error).message }; } }, [input]);
   function edit<K extends keyof CableInput>(name: K, value: CableInput[K]) { setInput(old => ({ ...old, [name]: value })); }
   const foundation: ReactNode = <>
-    <p>Schweizer Vorprüfung auf Basis des veröffentlichten <a href={CABLE_SOURCE} target="_blank" rel="noreferrer">Spannungsfall-Rechners von elektro-rechner.ch</a>. Schweizer Normenrahmen: <a href={NIN_SOURCE} target="_blank" rel="noreferrer">Electrosuisse · NIN 2025 / SN 411000:2025</a>. Abruf: 01.11.2026.</p>
+    <p>Spannungsfall-Vorprüfung mit datierten Leiterwerten. Schweizer Normenrahmen: <a href={NIN_SOURCE} target="_blank" rel="noreferrer">Electrosuisse · NIN 2025 / SN 411000:2025</a>. Datenstand und Vergleichsquellen sind im Wissens-Hub dokumentiert.</p>
     <code>R′₅₅ = R′₂₀ × [1 + α × (55 − 20)]<br/>ΔU₁~ = 2 × L × I × (R′₅₅ × cos φ + X′ × sin φ) / 1000<br/>ΔU₃~ = √3 × L × I × (R′₅₅ × cos φ + X′ × sin φ) / 1000<br/>ΔU% = ΔU / Uₙ × 100</code>
     <p>R′ und X′ in Ω/km, L als einfache Leitungslänge in m. R′₂₀: veröffentlichte Leiterwiderstände mit Bezug auf SN EN 60228; 55 °C gemäss Schweizer Referenz mit Bezug auf NIN 6.1.3 Figur 3. α: Cu 0.00393/K, Al 0.00403/K. X′ ist ausdrücklich ein Richtwert der Schweizer Referenz, kein NIN-Normwert.</p>
     {result && <p>Aktuell: R′₂₀ = {format(result.r20, 4)} Ω/km, R′₅₅ = {format(result.r55, 4)} Ω/km, X′ = {format(result.x, 3)} Ω/km. ΔU = {format(result.deltaU, 4)} V = {format(result.percent, 4)} %.</p>}

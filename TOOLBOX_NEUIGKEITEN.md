@@ -1,3 +1,14 @@
+## Lokale Absicherung und geprüfte Rechenfaktoren · 2. November 2026
+
+- 26 Rechner mit Wissens-Hub, kompakten Dropdowns und direkt wählbaren LS-Charakteristiken. Ausführliche Erklärungen bleiben aufklappbar.
+- Gemeinsame Absicherung der lokalen API: Host, Herkunft und Sitzung werden auch für eingebettete Werkzeuge geprüft.
+- DWG-Import und -Export starten nur einen geprüften lokalen ODA-Converter aus dem vorgesehenen Installationsverzeichnis.
+- Kurzschlussrechner und Netzplaner verwenden für neue Fälle +10 % Spannungstoleranz mit cmax 1.10. Altstände bleiben mit ihrem bisherigen Faktor ausdrücklich gekennzeichnet.
+- Quellen gesammelt im Wissens-Hub; wiederholte Anbieterlinks aus den Rechneransichten entfernt. Normbezüge und Datenstände bleiben nachvollziehbar.
+- Weiche Diagrammübergänge und Stromflussdarstellung in berechneten, belasteten Leitungsabschnitten.
+- Updatefenster zeigt die Änderungen der angebotenen Version direkt; weitere Punkte und vollständige Notizen sind aufklappbar und per Tastatur erreichbar.
+- Automatische Testerkennung sowie zusätzliche Linux-Prüfungen für Pull Requests und main, einschliesslich Lint-, Rechen- und Browsertests.
+
 ## Rechner, Wissens-Hub und flüssige Darstellung · 2. November 2026
 
 - Updatefenster mit direkt sichtbarer Änderungsliste zur angebotenen Version; weitere Punkte und der vollständige Release-Text sind aufklappbar. Fehlende Änderungsnotizen werden ausdrücklich angezeigt.

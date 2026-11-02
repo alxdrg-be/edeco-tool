@@ -103,13 +103,13 @@ function UpdateDialog({ state, busy, error, run, close }: {
           {changes.points.length > 0 ? <>
             <ul>{changes.points.slice(0, 5).map((point, index) => <li key={index}>{point}</li>)}</ul>
             {changes.points.length > 5 && <details className="toolbox-update-more">
-              <summary>Weitere Änderungen ({changes.points.length - 5})</summary>
+              <summary tabIndex={0}>Weitere Änderungen ({changes.points.length - 5})</summary>
               <ul>{changes.points.slice(5).map((point, index) => <li key={index}>{point}</li>)}</ul>
             </details>}
           </> : <p className="toolbox-update-notes-missing">Für diese Version wurden keine Änderungsnotizen mitgeliefert. Weitere Informationen findest du unter «Releases öffnen».</p>}
         </section>}
         {state.notes?.trim() && <details className="toolbox-update-full-notes">
-          <summary>Vollständige Release-Notizen</summary>
+          <summary tabIndex={0}>Vollständige Release-Notizen</summary>
           <pre className="toolbox-update-notes">{state.notes}</pre>
         </details>}
         <label className="toolbox-update-preference">

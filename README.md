@@ -185,15 +185,40 @@ Arbeitslisten im Einzelprogramm als JSON sichern und in der Toolbox laden.
 Die gemeinsame Toolbox-Oberfläche startet mit `python -m edeco_toolbox`
 (bei gesetztem `PYTHONPATH=backend`).
 
+Die Toolbox prüft lokale Hosts, Herkunft und Sitzung zentral, auch für die
+eingebetteten Werkzeuge. Der Browser erhält beim Laden automatisch ein
+portbezogenes Sitzungscookie. Eigene API-Clients laden zuerst
+`GET /api/toolbox/session` und behalten das Cookie oder senden den erhaltenen
+Schlüssel bei Schreibzugriffen als `X-Edeco-Session`; zusätzliche Werkzeugschlüssel
+bleiben erforderlich. Schlüssel gelten nur bis zum nächsten Serverstart.
+
+DWG-Import und -Export verwenden nur den ODA File Converter in einer lokalen
+Standardinstallation unter `Program Files/ODA/ODAFileConverter…`.
+Netzwerkpfade und beliebige eigene EXE-Pfade werden abgewiesen; unsichere
+Altpfade werden ignoriert. DXF bleibt ohne Converter nutzbar.
+
+Neue Kurzschlussberechnungen verwenden standardmässig +10 % Spannungstoleranz
+und `cmax = 1.10`; +6 % mit `1.05` ist wählbar. Gespeicherte Altstände behalten
+`1.05` mit ausdrücklichem Hinweis, bis die Netzannahme bestätigt wird.
+Ein vorgegebener maximaler Quellenstrom wird nicht nochmals erhöht.
+Details: [Absicherung und Rechenfaktoren](docs/ABSICHERUNG_20261102.md).
+
 ## Entwicklung und Tests
 
 ```sh
-.venv/bin/python -m pytest backend/tests -q
+.venv/bin/python -m ruff check backend
+PYTHONPATH=backend .venv/bin/python -m pytest backend/tests -q
 (cd backend/bim2steiger && ../../.venv/bin/python -m unittest discover -s tests -q)
 cd ui
+npm run lint
 npm test
 npm run build
 ```
+
+Ruff wird mit `backend/requirements-quality.txt` installiert. `npm test` findet
+alle verschachtelten `.test.ts` automatisch. Der Linux-Workflow prüft Pull
+Requests und `main`; die vollständigen Windows-/Offline-PDF- und
+Installerprüfungen bleiben im Windows-Build.
 
 Browser-Tests benötigen zusätzlich `backend/requirements-browser-tests.txt` und
 Chromium (`python -m playwright install chromium` oder `NOVA_TEST_CHROMIUM`

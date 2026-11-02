@@ -174,10 +174,11 @@ def register(app):
             raise HTTPException(400, "Ungültiger Dienstpfad.")
         target = config.url + ROOT + "/" + path
         headers = {key: value for key, value in request.headers.items()
-                   if key.lower() not in HOP_HEADERS | {"origin", "referer", "accept-encoding", "cookie"}}
+                   if key.lower() not in HOP_HEADERS | {"origin", "referer", "accept-encoding", "cookie"}
+                   and not key.lower().startswith("x-edeco-")}
         # The local Toolbox session must never be forwarded to the service.
         remote_cookies = "; ".join(part.strip() for part in request.headers.get("cookie", "").split(";")
-                                   if part.strip() and not part.strip().startswith("edeco_pdf_session_"))
+                                   if part.strip() and not part.strip().split("=", 1)[0].lower().startswith("edeco_"))
         headers["cookie"] = remote_cookies
         headers["accept-encoding"] = "identity"
         headers["origin"] = config.url

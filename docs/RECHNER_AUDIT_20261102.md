@@ -1,5 +1,9 @@
 # Rechnerüberarbeitung und direkter Quellenabgleich
 
+Nachtrag: Die anschliessenden Änderungen an Serverabsicherung,
+Kurzschlussfaktoren, Quellenanzeige und CI sind unter
+[Absicherung und Rechenfaktoren](ABSICHERUNG_20261102.md) dokumentiert.
+
 Stand: 2. November 2026. Grundlage ist der aktuelle `main`-Stand `8b2128aa`.
 Die bestehenden Rechner, Projektstände, internen IDs, Berechnungsablage und
 PDF-/JSON-Wege wurden weiterverwendet. Der frühere separate 17-Rechner-Entwurf

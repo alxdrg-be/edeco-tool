@@ -53,3 +53,14 @@ test("explicit new modes stay selected and malformed stored values never become 
   assert.equal(migrated("motoranlauf", { kw: "" }).input.kw, "");
   assert.throws(() => migrated("motoranlauf", { kw: 7.5 }), /Zeichenfolge/);
 });
+
+
+test("saved short-circuit inputs retain cmax 1.05 until their voltage tolerance is confirmed", () => {
+  const { definition, input } = migrated("kurzschlussstrom", { kva: "630", uk: "4" });
+  assert.equal(input.voltageTolerance, "legacy");
+  assert.match(definition.calculate(input).status.text, /Altstand/);
+  assert.equal(defaults(definition).voltageTolerance, "plus10");
+  assert.equal(migrated("kurzschlussstrom", { voltageTolerance: "plus10" }).input.voltageTolerance, "plus10");
+  assert.equal(migrated("kurzschlussstrom", { voltageTolerance: "" }).input.voltageTolerance, "");
+  assert.throws(() => migrated("kurzschlussstrom", { voltageTolerance: 1.1 }), /Zeichenfolge/);
+});

@@ -22,6 +22,8 @@ export const REFERENCE_PROVENANCE = {
   kurzschlussstrom: { url: "https://www.elektro-rechner.ch/Rechner/kurzschlussstrom.html", sha256: "2d7b87c24dfc5d700dc362dfbbf61cf73fba67dfaab14860d9b68abd9eab838f" },
 };
 const MANUAL_FIXTURE_MODES: Record<string, Record<string, string>> = {
+  // Captured provider cases use its historical 1.05 factor, not the new +10 % default.
+  kurzschlussstrom: { voltageTolerance: "legacy" },
   motoranlauf: { inputMode: "power", efficiencyMode: "manual", checkIz: "off" },
   verlustleistung: { durationMode: "annual" },
   beleuchtung: { luxMode: "manual", luminaire: "manual", etaMode: "manual" },

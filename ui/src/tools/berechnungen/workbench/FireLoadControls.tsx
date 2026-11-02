@@ -1,6 +1,7 @@
 import { useId, useState } from "react";
 import type { Inputs } from "./types";
 import { ChoiceCards } from "../LabUI";
+import { KnowledgeLink } from "../KnowledgeLink";
 import { createFireLoadRow, parseFireLoadRows, type FireLoadRow } from "./installation";
 import { FIRE_CABLE_FACTS, FIRE_CABLE_FAMILIES, FIRE_CABLE_REFERENCE, fireCableSelection } from "./fireCableData";
 import "./fireload-controls.css";
@@ -30,7 +31,7 @@ function CatalogChoice({ row, label, onChange, disabled }: { row: CatalogRow; la
         {fact.suppliers.length > 0 && <ChoiceCards label={`${label} · Lieferant`} value={row.supplier || ""} disabled={disabled} onChange={supplier => choose(fact.id, supplier)} options={[{ value: "", label: `Referenz-Grundwert · ${fact.mj} MJ/m` }, ...fact.suppliers.map(supplier => ({ value: supplier.supplier, label: `${supplier.supplier} · ${supplier.article} · ${supplier.mj} MJ/m` }))]} />}
         {fact.replacement && <button type="button" className="lab-open" disabled={disabled} onClick={() => choose(fact.replacement!)}>Publizierte Ersatzvariante einsetzen</button>}
       </>}
-      <details className="fireload-catalog-source"><summary>Quelle und Geltungsbereich</summary><p className="lab-note">Datierter Referenzkatalog mit {FIRE_CABLE_FACTS.length} Einträgen, Stand {FIRE_CABLE_REFERENCE.sourceUpdated}. Werte und CPR-Klassifikation vor der Projektverwendung mit dem tatsächlichen Produkt und Herstellerbeleg abgleichen. Ein Katalogeintrag allein ist keine Fluchtwegfreigabe.</p><a href={FIRE_CABLE_REFERENCE.url} target="_blank" rel="noreferrer">Referenzdaten öffnen</a></details>
+      <details className="fireload-catalog-source"><summary>Quelle und Geltungsbereich</summary><p className="lab-note">Datierter Referenzkatalog mit {FIRE_CABLE_FACTS.length} Einträgen, Stand {FIRE_CABLE_REFERENCE.sourceUpdated}. Werte und CPR-Klassifikation vor der Projektverwendung mit dem tatsächlichen Produkt und Herstellerbeleg abgleichen. Ein Katalogeintrag allein ist keine Fluchtwegfreigabe.</p><KnowledgeLink calculatorId="brandlast">Datenherkunft im Wissens-Hub</KnowledgeLink></details>
     </div>
   </details>;
 }
