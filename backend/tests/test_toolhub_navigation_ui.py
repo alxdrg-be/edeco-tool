@@ -73,6 +73,8 @@ def test_global_switcher_obeys_bim_open_dialog_guard(editor):
     switch_tool(page, "Berechnungen")
     playwright.expect(bim.locator("#toast")).to_contain_text("offenen Dialog")
     bim.get_by_role("button", name="Suche schliessen", exact=True).click()
+    child = next(frame for frame in page.frames if "/tools/bim2steiger/" in frame.url)
+    child.wait_for_function("pendingToolRequests === 0")
     switch_tool(page, "Berechnungen")
     playwright.expect(page.get_by_role("heading", name="Berechnungen", exact=True)).to_be_visible()
 
