@@ -9,7 +9,7 @@
 - Rechnerhinweise erklären Ursache, Istwert, erforderliche Bedingung und nächste Schritte. Verknüpfungen öffnen die betroffene Eingabe beziehungsweise die genaue Zeile; Werte werden dabei nicht verändert.
 - Netzplaner mit gezielter Fehlerhilfe auch bei gleich benannten Bauteilen. Erklärungen folgen den aktuellen Werten und berücksichtigen kombinierte Schutzbedingungen. Fehlende Hersteller- und Projektgrundlagen bleiben als offene Nachweise erkennbar.
 - Strg-Zoom verändert Dokumentansichten statt der gesamten Programmoberfläche. Die lokalen PDF-Einstellungen sind über ein Zahnrad erreichbar; ein lokales Benutzerkonto ist nicht nötig.
-- Rechneraktionen bleiben beim Wechsel auf ein schmales Fenster zuverlässig im kompakten Menü. Ein früher Fensterwechsel während des Ladens wird ebenfalls berücksichtigt.
+- Rechneraktionen bleiben beim Wechsel auf ein schmales Fenster zuverlässig im kompakten Menü. Frühe Fensterwechsel während des Ladens und das Schliessen mit Escape werden auch bei verzögerten Browserereignissen berücksichtigt.
 
 ## Qwen lokal einrichten · 2. November 2026
 

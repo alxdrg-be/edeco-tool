@@ -127,3 +127,45 @@ def test_calculator_actions_catch_resize_between_snapshot_and_subscription(edito
     playwright.expect(export).to_be_visible()
     page.set_viewport_size({"width": 375, "height": 844})
     playwright.expect(actions).not_to_have_attribute("open", "")
+
+
+def test_calculator_actions_close_before_native_toggle_is_handled(editor):
+    """Escape/outside close must work before the browser's queued toggle is handled."""
+    page, _, _, _ = editor
+    switch_tool(page, "Berechnungen")
+    switch_calculator(page, "LS-Schalter")
+    page.set_viewport_size({"width": 375, "height": 844})
+    actions = page.locator(".lab-export-actions")
+    playwright.expect(actions).not_to_have_attribute("open", "")
+    page.evaluate("""() => {
+      window.__blockedCalculatorToggleEvents = 0;
+      // Keep React from receiving the queued native event. A user's next
+      // interaction can arrive first; it must not depend on that event.
+      window.addEventListener('toggle', event => {
+        if (event.target instanceof HTMLDetailsElement &&
+            event.target.classList.contains('lab-export-actions')) {
+          window.__blockedCalculatorToggleEvents += 1;
+          event.stopImmediatePropagation();
+        }
+      }, true);
+    }""")
+    summary = actions.locator("summary")
+    export = page.get_by_role("button", name="Ergebnis als JSON sichern", exact=True)
+    for activation in ("Enter", "Space", "click"):
+        for close in ("Escape", "outside"):
+            before = page.evaluate("window.__blockedCalculatorToggleEvents")
+            if activation == "click":
+                summary.click()
+            else:
+                summary.focus()
+                page.keyboard.press(activation)
+            playwright.expect(export).to_be_visible()
+            page.wait_for_function("before => window.__blockedCalculatorToggleEvents > before", arg=before)
+            if close == "Escape":
+                page.keyboard.press("Escape")
+                playwright.expect(summary).to_be_focused()
+            else:
+                # The floating panel can cover the heading on a narrow screen.
+                page.mouse.click(8, page.viewport_size["height"] - 8)
+            playwright.expect(actions).not_to_have_attribute("open", "")
+            playwright.expect(export).not_to_be_visible()

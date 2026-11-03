@@ -91,9 +91,12 @@ function CalculatorActions({ children }: { children: ReactNode }) {
     return () => document.removeEventListener("pointerdown", closeOutside);
   }, [small, open]);
   return <details ref={ref} className="lab-export-actions" open={!small || open}
-    onToggle={event => { if (small) setOpen(event.currentTarget.open); }}
     onKeyDown={event => { if (small && event.key === "Escape") { event.preventDefault(); setOpen(false); ref.current?.querySelector("summary")?.focus(); } }}>
-    <summary aria-label="Berechnungsaktionen" title="Speichern und exportieren"><MoreHorizontal size={18} aria-hidden="true" /><span>Aktionen</span></summary>
+    <summary aria-label="Berechnungsaktionen" title="Speichern und exportieren" onClick={event => {
+      // Keep one owner of the state: delayed native toggle events must not undo Escape.
+      event.preventDefault();
+      if (small) setOpen(value => !value);
+    }}><MoreHorizontal size={18} aria-hidden="true" /><span>Aktionen</span></summary>
     <div className="lab-extra-panel">{children}</div>
   </details>;
 }
