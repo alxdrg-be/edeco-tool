@@ -28,8 +28,15 @@ export interface CalculationResult {
   seriesLabel?: string;
   seriesUnit?: string;
   seriesLabels?: [string, string];
-  diagram?: { kind: "chain"; nodes: DiagramNode[] } | { kind: "room"; length: number; width: number; columns: number; rows: number; radius?: number };
+  comparisons?: { title: string; unit: string; items: { label: string; actual: number; target: number }[] }[];
+  diagram?: { kind: "chain"; nodes: DiagramNode[] } | { kind: "room"; length: number; width: number; columns: number; rows: number; count?: number; radius?: number };
   charging?: { houseAmps: number; houseKW: number; reserveKW: number; totalAssignedKW: number; mode: "none" | "dynamic" | "static"; grids: { label: string; amps: number; assigned: number; count: number; power: number }[] };
+  chargingNetwork?: import("./chargingGrid.ts").ChargingNetworkResult;
+  depotNetwork?: import("./chargingGrid.ts").DepotNetworkResult;
+  costModels?: import("./chargingCosts.ts").CostBusinessResult[];
+  siaBreakdown?: import("./siaModel.ts").SIABalance;
+  poeRoute?: import("./poeRoute.ts").PoeRouteResult;
+  pvAnalysis?: import("./pvAnalysis.ts").PVAnalysis;
 }
 export interface CalculatorDefinition {
   id: string;
@@ -41,16 +48,27 @@ export interface CalculatorDefinition {
   calculate: (input: Inputs) => CalculationResult;
 }
 
+/** Identifies the real input without extracting a translated label from text. */
+export class InputError extends Error {
+  readonly field: string;
+  readonly required: string;
+  readonly actual: string;
+  constructor(field: string, message: string, required: string, actual = "") {
+    super(message); this.name = "InputError"; this.field = field; this.required = required; this.actual = actual;
+  }
+}
+
 export function number(input: Inputs, key: string, label: string, min = 0, max = 1e9, allowZero = false): number {
   const raw = (input[key] ?? "").trim();
-  if (!/^\d+(?:[.,]\d+)?$/.test(raw)) throw new Error(`${label}: gültige Zahl eingeben.`);
+  const required = `${allowZero ? "Mindestens" : "Grösser als"} ${min.toLocaleString("de-CH")}, höchstens ${max.toLocaleString("de-CH")}. Dezimalkomma oder Dezimalpunkt sind möglich.`;
+  if (!/^\d+(?:[.,]\d+)?$/.test(raw)) throw new InputError(key, `${label}: gültige Zahl eingeben.`, required, raw || "leer");
   const value = Number(raw.replace(",", "."));
-  if (!Number.isFinite(value) || (allowZero ? value < min : value <= min) || value > max) throw new Error(`${label}: ${allowZero ? "mindestens" : "grösser als"} ${min}, höchstens ${max}.`);
+  if (!Number.isFinite(value) || (allowZero ? value < min : value <= min) || value > max) throw new InputError(key, `${label}: ${allowZero ? "mindestens" : "grösser als"} ${min}, höchstens ${max}.`, required, raw);
   return value;
 }
 export function integer(input: Inputs, key: string, label: string, min = 0, max = 10000, allowZero = false): number {
   const n = number(input, key, label, min, max, allowZero);
-  if (!Number.isInteger(n)) throw new Error(`${label}: ganze Zahl eingeben.`);
+  if (!Number.isInteger(n)) throw new InputError(key, `${label}: ganze Zahl eingeben.`, `Ganze Zahl ${allowZero ? "ab" : "grösser als"} ${min} bis ${max}.`, input[key]);
   return n;
 }
 export function defaults(definition: CalculatorDefinition): Inputs {

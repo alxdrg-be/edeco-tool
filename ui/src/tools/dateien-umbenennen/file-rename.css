@@ -1,6 +1,4 @@
 .rename-tool { height: 100%; overflow: auto; background: var(--bg); color: var(--fg); }
-.rename-tool .bim-toolbox-header { flex-wrap: wrap; }
-.rename-tool header span { color: var(--muted); font-size: 12px; margin-left: auto; }
 .rename-main { max-width: 1440px; margin: auto; padding: 24px clamp(16px, 3vw, 44px) 48px; }
 .rename-main h1 { font-size: 30px; letter-spacing: -.8px; margin: 8px 0; }
 .rename-main h2 { font-size: 18px; margin: 0; }
@@ -40,3 +38,5 @@
 .delivery-record { margin: 14px 0; border: 1px solid var(--line); border-radius: 10px; padding: 16px; background: var(--panel); overflow-wrap: anywhere; }
 .delivery-sent { color: var(--ok); }
 @media(max-width: 600px) { .rename-template, .rename-preview { padding: 15px; } .rename-main h1 { font-size: 24px; } }
+
+.tool-workflow{display:flex;flex-wrap:wrap;gap:10px 24px;list-style:none;margin:22px 0 6px;padding:0;counter-reset:flow-step;color:var(--muted);font-size:12px}.tool-workflow li{display:flex;align-items:center;gap:9px;counter-increment:flow-step}.tool-workflow li::before{content:counter(flow-step);display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-weight:600}.rename-naming{padding:0}.rename-naming>summary{display:flex;align-items:center;justify-content:space-between;gap:16px;list-style:none;cursor:pointer;padding:18px 22px}.rename-naming>summary::-webkit-details-marker{display:none}.rename-naming>summary strong{font-size:14px;font-weight:600}.rename-naming>summary small{display:block;margin-top:5px;overflow-wrap:anywhere}.rename-naming>summary svg{color:var(--muted);flex:none;transition:transform .16s}.rename-naming[open]>summary svg{transform:rotate(180deg)}.rename-naming-fields{padding:0 22px 20px;border-top:1px solid var(--line)}.rename-naming-fields>p{color:var(--muted)}

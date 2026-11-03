@@ -794,9 +794,14 @@ def _mm(p) -> tuple[float, float]:
 def dxf_to_dwg(dxf: Path, oda_exe: str | None, out_dir: Path) -> Path:
     """Convert with the ODA File Converter. Same message as the import when it is missing."""
     from ..importer.dwg import ConverterMissing, MISSING_MESSAGE
+    from .. import config
 
-    if not oda_exe or not Path(oda_exe).exists():
+    if not oda_exe:
         raise ConverterMissing(MISSING_MESSAGE)
+    try:
+        oda_exe = config.validate_oda_converter(oda_exe)
+    except config.InvalidODAPath as exc:
+        raise ConverterMissing(str(exc)) from None
     in_dir = Path(tempfile.mkdtemp(prefix="nl_dxf_in_"))
     try:
         shutil.copy2(dxf, in_dir / dxf.name)

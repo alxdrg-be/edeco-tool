@@ -27,7 +27,7 @@ export default function DeliveryHistory({ projectId }: { projectId: string }) {
     finally { setBusy(""); }
   }
   return <section className="delivery-history" aria-label="Planlieferungen"><h2>Planlieferungen</h2>
-    <p>Vorbereitete Pakete und bestätigte Versände. Es werden die letzten 200 Lieferungen der Toolbox berücksichtigt.</p>
+    <p>Vorbereitete Pakete und bestätigte Versände. Es werden die letzten 200 Lieferungen des Toolhubs berücksichtigt.</p>
     {(error || loadError) && <p role="alert" className="rename-error">{error || loadError}</p>}
     {!records.length && <p>Noch keine Lieferung für dieses Projekt vorbereitet.</p>}
     {records.map(record => <article key={record.id} className="delivery-record"><div className="rename-actions"><strong>{record.title}</strong><span className={record.sent_at ? "delivery-sent" : ""}>{record.sent_at ? "Versand bestätigt" : "Vorbereitet · noch kein Versand bestätigt"}</span></div>

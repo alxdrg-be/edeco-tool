@@ -3,9 +3,14 @@ import test from "node:test";
 import { defaults, type CalculationResult, type Inputs } from "./types.ts";
 import { FUNDAMENTALS } from "./fundamentals.ts";
 
+const MANUAL_FIXTURE_MODES: Record<string, Record<string, string>> = {
+  motoranlauf: { inputMode: "power", efficiencyMode: "manual", checkIz: "off" },
+  verlustleistung: { durationMode: "annual" },
+  beleuchtung: { luxMode: "manual", luminaire: "manual", etaMode: "manual" },
+};
 function calculate(id: string, patch: Inputs = {}) {
   const definition = FUNDAMENTALS.find(item => item.id === id)!;
-  return definition.calculate({ ...defaults(definition), ...patch });
+  return definition.calculate({ ...defaults(definition), ...MANUAL_FIXTURE_MODES[id], ...patch });
 }
 function metric(result: CalculationResult, label: string): number {
   const value = result.metrics.find(item => item.label === label)?.value;
@@ -93,7 +98,7 @@ test("line losses use phase conductor count and parallel paths while conserving 
   const dc = calculate("verlustleistung", { ...patch, system: "dc", voltage: "230" });
   close(metric(dc, "Ohmsche Verlustleistung"), 148.2);
   close(row(dc, "Spannungsfall"), 14.82);
-  assert.equal(dc.status.tone, "warning");
+  assert.equal(dc.status.tone, "error");
 });
 
 test("Ohm's law pairs produce one consistent DC solution and balanced AC uses line voltage", () => {
@@ -109,16 +114,20 @@ test("Ohm's law pairs produce one consistent DC solution and balanced AC uses li
   close(metric(fromZ, "Strom"), Math.sqrt(10));
 });
 
-test("lighting rounds up a consistent grid and never presents less light than the target in its lumen model", () => {
+test("lighting uses exactly ceil for its minimum and only fills whole rows when explicitly selected", () => {
   const r = calculate("beleuchtung");
-  const n = metric(r, "Leuchten im rechteckigen Raster"), diagram = r.diagram;
+  const n = metric(r, "Leuchtenanzahl"), diagram = r.diagram;
   assert.ok(diagram?.kind === "room");
-  assert.equal(n, diagram.columns * diagram.rows);
-  assert.ok(n >= row(r, "Leuchten rechnerisch, aufgerundet"));
+  assert.equal(n, diagram.count);
+  assert.ok(n <= diagram.columns * diagram.rows);
+  assert.equal(n, row(r, "Leuchten rechnerisch, aufgerundet"));
+  const full = calculate("beleuchtung", { layout: "full" });
+  assert.equal(metric(full, "Leuchtenanzahl"), row(r, "Vollständiges Raster · optional"));
+  assert.equal(metric(full, "Installierte Leistung"), row(r, "Vollständiges Raster · optional") * 40);
   close(metric(r, "Installierte Leistung"), n * 40);
   assert.ok(metric(r, "Mittlere Beleuchtungsstärke · Modell") >= 500);
   const narrow = calculate("beleuchtung", { length: "30", width: "1", lux: "1", lumen: "100000" });
-  assert.equal(metric(narrow, "Leuchten im rechteckigen Raster"), 1);
+  assert.equal(metric(narrow, "Leuchtenanzahl"), 1);
   assert.throws(() => calculate("beleuchtung", { height: "0.8", plane: "0.8" }));
   assert.throws(() => calculate("beleuchtung", { maintenance: "0" }));
 });
@@ -128,4 +137,188 @@ test("empty, negative and non-finite required engineering values are rejected", 
   for (const definition of FUNDAMENTALS) for (const bad of ["", "-1", "NaN", "Infinity"]) {
     assert.throws(() => calculate(definition.id, { [keys[definition.id]]: bad }), `${definition.id} accepts ${bad}`);
   }
+});
+
+
+test("AC loss voltage drop includes cos phi and reactance while the thermal loss stays I squared R", () => {
+  const patch = { system: "3", material: "cu", area: "10", current: "32", length: "80", parallel: "1", temperature: "55", voltage: "400", cos: "0.85" };
+  const r = calculate("verlustleistung", patch);
+  close(row(r, "Spannungsfall"), Math.sqrt(3) * 32 * (.16653732 * .85 + .008 * Math.sqrt(1 - .85 ** 2)));
+  close(metric(r, "Ohmsche Verlustleistung"), 3 * 32 ** 2 * .16653732);
+  const unity = calculate("verlustleistung", { ...patch, cos: "1" });
+  close(metric(r, "Ohmsche Verlustleistung"), metric(unity, "Ohmsche Verlustleistung"));
+  assert.notEqual(row(r, "Spannungsfall"), row(unity, "Spannungsfall"));
+  assert.match(r.formula, /0.85/);
+  assert.match(r.limitations.join(" "), /X′.*Richtwert/);
+  assert.throws(() => calculate("verlustleistung", { cos: "" }));
+  assert.throws(() => calculate("verlustleistung", { cos: "1.01" }));
+  assert.doesNotThrow(() => calculate("verlustleistung", { system: "dc", cos: "" }));
+  const budget = FUNDAMENTALS.find(item => item.id === "verlustleistung")!.fields.find(item => item.key === "budget")!;
+  assert.match(budget.options!.find(item => item.value === "4")!.label, /NIN 5.2.5.1/);
+  assert.match(budget.options!.find(item => item.value === "3")!.label, /Projektwert/);
+});
+
+test("short-circuit c factors and conservative warm magnitude sum remain explicit model assumptions", () => {
+  const r = calculate("kurzschlussstrom");
+  close(row(r, "Spannungsfaktor c_max · Modell"), 1.10);
+  close(row(r, "Spannungsfaktor c_min · Modell"), .95);
+  close(metric(r, "3~-Kurzschluss · Modell"), 7.729090730864311 * 1.10 / 1.05);
+  close(metric(r, "L–PE-Schleife · Modell"), 2.6849624032193047);
+  close(row(r, "Schleifenimpedanz im Modell"), row(r, "Quellenimpedanz · Betrag") + row(r, "Warme L–PE-Schleife · Betrag"));
+  assert.match(r.status.text, /keine garantierte Schranke/);
+  assert.match(r.limitations.join(" "), /keine garantierte Untergrenze/);
+  assert.match(r.formula, /1.10 × 400/);
+  assert.throws(() => calculate("kurzschlussstrom", { temperature: "" }));
+  const single = calculate("kurzschlussstrom", { voltage: "230", kva: "250" });
+  const expectedR = 2 * 1.15 * 25 / 1000, expectedX = .04 * 230 ** 2 / 250000 + 2 * .096 * 25 / 1000;
+  close(metric(single, "L–N-Kurzschluss · Modell"), 1.10 * 230 / Math.hypot(expectedR, expectedX) / 1000);
+});
+
+test("motor standard choices and additional start models keep assumptions and manual Iz evidence explicit", () => {
+  const def = FUNDAMENTALS.find(item => item.id === "motoranlauf")!;
+  assert.equal(def.fields.find(item => item.key === "kw")!.kind, "select");
+  assert.ok(def.fields.find(item => item.key === "kw")!.options!.some(item => item.value === "7.5"));
+  const direct = calculate("motoranlauf"), nominal = metric(direct, "Motor-Nennstrom");
+  const soft = calculate("motoranlauf", { method: "soft", multiplier: "" });
+  const vfd = calculate("motoranlauf", { method: "vfd", multiplier: "" });
+  close(metric(soft, "Anlaufstrom · Annahme"), 3 * nominal);
+  close(metric(vfd, "Anlaufstrom · Annahme"), 1.2 * nominal);
+  assert.match(def.fields.find(item => item.key === "method")!.options!.find(item => item.value === "vfd")!.label, /Annahme/);
+  assert.throws(() => calculate("motoranlauf", { checkIz: "on", iz: "" }));
+  assert.equal(calculate("motoranlauf", { checkIz: "on", iz: "1" }).status.tone, "error");
+  assert.match(calculate("motoranlauf", { checkIz: "on", iz: "20" }).status.text, /Iz ≥ I_N erfüllt/);
+  assert.match(direct.status.text, /nicht geprüft/);
+});
+
+test("lighting's simplified eta is labelled and invalid assumptions never produce a substitute count", () => {
+  const def = FUNDAMENTALS.find(item => item.id === "beleuchtung")!;
+  assert.match(def.fields.find(item => item.key === "utilisation")!.label, /Vereinfachter Raumwirkungsgrad/);
+  const r = calculate("beleuchtung");
+  assert.match(r.limitations.join(" "), /kein LiTG-/);
+  assert.match(r.formula, /ceil\(500 × 80/);
+  assert.throws(() => calculate("beleuchtung", { utilisation: "" }));
+  assert.throws(() => calculate("beleuchtung", { utilisation: "1.1" }));
+  assert.throws(() => calculate("beleuchtung", { layout: "unknown" }));
+});
+
+test("motor presets, direct-current mode, MSS overflow and automatic cable choice stay explicit", () => {
+  const preset = calculate("motoranlauf", { efficiencyMode: "preset", checkIz: "auto", kw: "75", method: "vfd", isolation: "xlpe", methodIz: "E", efficiency: "" });
+  close(row(preset, "Verwendeter Wirkungsgrad"), .95);
+  assert.equal(row(preset, "Automatisch gewählter Querschnitt"), 35);
+  close(row(preset, "Iz des gewählten Querschnitts"), 158);
+  assert.equal(preset.rows!.find(item => item.label === "MSS-Grössenempfehlung")!.value, "keine bis 125 A");
+  assert.match(preset.status.text, /über.*125 A/);
+  const manual = calculate("motoranlauf", { inputMode: "current", nominalCurrent: "100", kw: "", efficiency: "", checkIz: "auto", isolation: "pvc", methodIz: "B2", method: "star" });
+  close(metric(manual, "Motor-Nennstrom"), 100);
+  close(metric(manual, "Anlaufstrom · Annahme"), 200);
+  close(row(manual, "Automatisch gewählter Querschnitt"), 50);
+  close(row(manual, "Iz des gewählten Querschnitts"), 118);
+  close(row(manual, "MSS-Grössenempfehlung"), 100);
+  const overflow = calculate("motoranlauf", { inputMode: "current", nominalCurrent: "1000", checkIz: "auto" });
+  assert.equal(overflow.status.tone, "error");
+  assert.equal(overflow.rows!.find(item => item.label === "Automatisch gewählter Querschnitt")!.value, "keiner bis 300 mm²");
+  assert.throws(() => calculate("motoranlauf", { efficiencyMode: "preset", kw: "9" }));
+  assert.throws(() => calculate("motoranlauf", { inputMode: "current", nominalCurrent: "" }));
+  assert.throws(() => calculate("motoranlauf", { checkIz: "auto", isolation: "invalid" }));
+});
+
+test("lighting catalogue and empirical room mode never masquerade as a LiTG table", () => {
+  const def = FUNDAMENTALS.find(item => item.id === "beleuchtung")!;
+  assert.equal(def.fields.find(item => item.key === "luminaire")!.options!.length, 20);
+  const defaultsResult = def.calculate(defaults(def));
+  close(metric(defaultsResult, "Leuchtenanzahl"), 18);
+  close(metric(defaultsResult, "Installierte Leistung"), 648);
+  close(row(defaultsResult, "Verwendeter Raumwirkungsgrad η · vereinfacht"), .6585858585858586);
+  close(row(defaultsResult, "Betriebsstrom bei 230 V"), 648 / 230);
+  assert.match(defaultsResult.limitations.join(" "), /kein LiTG-/);
+  for (const preset of def.fields.find(item => item.key === "luminaire")!.options!.filter(item => item.value !== "manual")) {
+    const r = calculate("beleuchtung", { luminaire: preset.value, etaMode: "room", luxMode: "500", lumen: "", watts: "", utilisation: "" });
+    assert.ok(metric(r, "Leuchtenanzahl") > 0);
+    assert.equal(r.diagram?.kind === "room" && r.diagram.count, metric(r, "Leuchtenanzahl"));
+  }
+  assert.throws(() => calculate("beleuchtung", { luminaire: "unknown" }));
+  assert.throws(() => calculate("beleuchtung", { etaMode: "room", reflectance: "" }));
+  assert.throws(() => calculate("beleuchtung", { etaMode: "room", reflectance: "1.01" }));
+  assert.throws(() => calculate("beleuchtung", { luxMode: "invalid" }));
+});
+
+test("loss calendar duration multiplies exactly and zero operating hours remain zero", () => {
+  const r = calculate("verlustleistung", { durationMode: "calendar", dailyHours: "8", days: "250", years: "3", hours: "" });
+  close(row(r, "Betriebsstunden total"), 6000);
+  close(row(r, "Energieverluste total"), 971.0490816);
+  close(metric(r, "Gesamtkosten im Zeitraum"), 242.7622704);
+  close(row(r, "Kleinster Querschnitt für das Spannungsfallbudget"), 1.5);
+  const zero = calculate("verlustleistung", { durationMode: "calendar", dailyHours: "0", days: "250", years: "3" });
+  close(metric(zero, "Gesamtkosten im Zeitraum"), 0);
+  assert.throws(() => calculate("verlustleistung", { durationMode: "calendar", dailyHours: "" }));
+  assert.throws(() => calculate("verlustleistung", { durationMode: "calendar", dailyHours: "25" }));
+  assert.throws(() => calculate("verlustleistung", { durationMode: "calendar", days: "0" }));
+  assert.throws(() => calculate("verlustleistung", { years: "0" }));
+  assert.throws(() => calculate("verlustleistung", { area: "300", cos: "0.9" }), /Reaktanz/);
+});
+
+test("observed 300 square millimetres Cu loss case works without inventing reactance", () => {
+  // Actual source browser, 2026-11-02: Verlustleistung.html hash e6c8ed8e…,
+  // 300mm², 200A, 100m, 400V, 55°C, 8h/day, 250days/year, 3years, CHF.25:
+  // 820.40W /2.368V /.59% /CHF1230.60. The reference is purely resistive.
+  const r=calculate("verlustleistung",{area:"300",current:"200",length:"100",cos:"1",durationMode:"calendar",dailyHours:"8",days:"250",years:"3",price:"0.25",voltage:"400",temperature:"55",parallel:"1"});
+  assert.equal(metric(r,"Ohmsche Verlustleistung").toFixed(2),"820.40");
+  assert.equal(row(r,"Spannungsfall").toFixed(3),"2.368");
+  assert.equal(metric(r,"Spannungsfall · cos φ = 1").toFixed(2),"0.59");
+  assert.equal(metric(r,"Gesamtkosten im Zeitraum").toFixed(2),"1230.60");
+  assert.equal(row(calculate("verlustleistung",{area:"300",current:"1300",length:"100",budget:"4"}),"Kleinster Querschnitt für das Spannungsfallbudget"),300);
+  assert.throws(()=>calculate("verlustleistung",{area:"300",cos:"0.95"}),/Reaktanz/);
+  assert.throws(()=>calculate("verlustleistung",{area:"300",material:"al"}));
+});
+
+test("historical short source modes and stress indicators retain their numbers without claiming proofs", () => {
+  const direct = calculate("kurzschlussstrom", { voltageTolerance: "legacy", sourceMode: "impedance", sourceImpedance: "25.6", kva: "", uk: "", trafos: "" });
+  assert.equal(metric(direct, "3~-Kurzschluss · Modell").toFixed(3), "6.042");
+  assert.equal(row(direct, "Stossstrom · Näherung").toFixed(2), "9.10");
+  assert.equal(row(direct, "Thermischer I√t-Ansatz · 0.1 s").toFixed(3), "1.911");
+  assert.match(direct.limitations.join(" "), /Näherungswerte/);
+  const preset = calculate("kurzschlussstrom", { sourceMode: "preset", sourcePreset: "800", uk: "", kva: "", trafos: "2" });
+  close(row(preset, "Trafo-Reaktanz im Modell"), 6);
+  assert.throws(() => calculate("kurzschlussstrom", { sourceMode: "impedance", sourceImpedance: "" }));
+  assert.throws(() => calculate("kurzschlussstrom", { sourceMode: "preset", sourcePreset: "999" }));
+});
+
+test("transformer nameplate uk override, AC phase angle and compensation placement preserve the equations", () => {
+  const t = calculate("transformator", { ukMode: "manual", ukManual: "5.5", uk: "" });
+  assert.equal(metric(t, "Kurzschluss · starres Netz").toFixed(3), "6.561");
+  close(row(t, "Kurzschlussspannung bezogen auf U₂"), 22);
+  assert.throws(() => calculate("transformator", { ukMode: "manual", ukManual: "" }));
+  const reactive = calculate("ohmsches-gesetz", { system: "3", known: "ui", voltage: "400", current: "16", cos: "0" });
+  close(row(reactive, "Phasenwinkel φ"), 90);
+  close(metric(reactive, "Wirkleistung"), 0);
+  close(row(reactive, "Blindleistung · Betrag"), Math.sqrt(3) * 400 * 16);
+  assert.throws(() => calculate("ohmsches-gesetz", { system: "3", known: "pu", cos: "0" }));
+  const a = calculate("blindleistung", { compensationLocation: "individual" }), b = calculate("blindleistung", { compensationLocation: "central" });
+  close(metric(a, "Erforderliche Kompensation"), metric(b, "Erforderliche Kompensation"));
+  assert.notEqual(a.rows![0].value, b.rows![0].value);
+  assert.throws(() => calculate("blindleistung", { compensationLocation: "invalid" }));
+});
+
+test("parallel loss paths preserve the entered section and show the installation caveat below 70 square millimetres Cu", () => {
+  const r = calculate("verlustleistung", { material: "cu", area: "16", parallel: "2", current: "16" });
+  assert.equal(r.status.tone, "warning");
+  assert.match(r.status.text, /NIN 5.2.3.7/);
+  close(row(r, "Effektiver Leiterquerschnitt je Phase"), 32);
+  close(row(r, "Widerstand je Aussenleiterpfad"), 1.15 * (1 + .00393 * 35) * .025 / 2);
+});
+
+
+test("short-circuit voltage tolerances share cmax rules and preserve cmin", () => {
+  const ten = calculate("kurzschlussstrom"), six = calculate("kurzschlussstrom", { voltageTolerance: "plus6" });
+  close(metric(ten, "3~-Kurzschluss · Modell"), metric(six, "3~-Kurzschluss · Modell") * 1.10 / 1.05);
+  close(metric(ten, "L–PE-Schleife · Modell"), metric(six, "L–PE-Schleife · Modell"));
+  close(row(six, "Spannungsfaktor c_max · Modell"), 1.05);
+  assert.equal(six.rows!.find(item => item.label === "Gewählte Netz-Spannungstoleranz")!.value, "+6 %");
+  assert.match(ten.limitations.join(" "), /IEC 60909-0/);
+  const legacy = calculate("kurzschlussstrom", { voltageTolerance: "legacy" });
+  close(metric(legacy, "3~-Kurzschluss · Modell"), metric(six, "3~-Kurzschluss · Modell"));
+  assert.match(legacy.status.text, /Altstand/);
+  assert.throws(() => calculate("kurzschlussstrom", { voltageTolerance: "" }), /Spannungstoleranz/);
+  assert.throws(() => calculate("kurzschlussstrom", { voltageTolerance: "plus20" }), /Spannungstoleranz/);
+  assert.throws(() => calculate("kurzschlussstrom", { voltage: "690" }), /voltage/);
 });

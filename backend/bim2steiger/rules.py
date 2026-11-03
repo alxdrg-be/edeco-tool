@@ -100,6 +100,8 @@ def match_assignments(elements,rules,catalogue=None):
             found=cache[key]
             if found.get('error'):match['catalogue_error']=found['error']
             else:
-                match['description']=found['name'];match['recipe_id']=found.get('recipe_id');match['catalogue_year']=found['year']
+                match['description']=found['name']
+                match['recipe_id']=found.get('recipe_id')
+                match['catalogue_year']=found['year']
         matches.append(match)
     return {'matches':matches,'errors':errors}

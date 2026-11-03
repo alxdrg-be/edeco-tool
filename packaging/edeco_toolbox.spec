@@ -22,7 +22,7 @@ a = Analysis(
            (str(root / "backend" / "edeco_toolbox" / "pdf_workshop" / "assets"), "edeco_toolbox/pdf_workshop/assets"),
            (str(root / "packaging" / "toolbox.ico"), "packaging")]
           + collect_data_files("ezdxf") + collect_data_files("pypdfium2")
-          + collect_data_files("pypdfium2_raw") + copy_metadata("pypdfium2"),
+          + collect_data_files("pypdfium2_raw") + copy_metadata("pypdfium2") + copy_metadata("pypdf"),
     hiddenimports=(collect_submodules("edeco_toolbox") + collect_submodules("nova_legend") + collect_submodules("uvicorn")
                    + collect_submodules("ezdxf.addons.drawing") + ["ezdxf.addons.importer"]
                    + collect_submodules("python_multipart") + ["multipart", "webview"]),

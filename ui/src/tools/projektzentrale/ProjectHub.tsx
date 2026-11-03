@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import type { ToolProps } from "../../toolbox/modules";
+import ToolHeader from "../../toolbox/ToolHeader";
 import { useDialogFocus } from "../../useDialogFocus";
 import { dataOf, EMPTY_PROJECT, projectAction, useProjectHub, type Project, type ProjectData } from "./projectHubState";
 import "./project-hub.css";
@@ -66,7 +67,7 @@ export default function ProjectHub({ onHome, onOpenTool }: ToolProps) {
     setBusy(true); setError("");
     try {
       await projectAction("/selection", hub.session_key, { project_id: saved.id });
-      setNotice("Projekt ist für die Toolbox ausgewählt.");
+      setNotice("Projekt ist für den Toolhub ausgewählt.");
       if (toolId) onOpenTool?.(toolId);
     } catch (e) { setError((e as Error).message); }
     finally { setBusy(false); }
@@ -93,7 +94,7 @@ export default function ProjectHub({ onHome, onOpenTool }: ToolProps) {
   }
   const projects = (hub?.projects ?? []).filter(project => project.archived === archive && `${project.number} ${project.name} ${project.address}`.toLocaleLowerCase().includes(query.toLocaleLowerCase()));
   return <div className="project-hub">
-    <header className="bim-toolbox-header"><button className="btn" disabled={busy} onClick={() => navigate(onHome)}>← Zur Toolbox</button><strong>Projektzentrale</strong><span>{active ? `Aktiv: ${active.number} · ${active.name}` : "Kein aktives Projekt"}</span></header>
+    <ToolHeader title="Projektzentrale" onHome={() => navigate(onHome)} onOpenTool={onOpenTool ? id => navigate(() => onOpenTool(id)) : undefined} disabled={busy}><span className="tool-header-context" aria-label="Aktives Projekt">{active ? `Aktiv: ${active.number} · ${active.name}` : "Kein aktives Projekt"}</span></ToolHeader>
     <main className="project-main">
       <div className="project-heading"><div><h1>Deine Projekte im Überblick.</h1><p>Projektdaten, Kontakte und Dokumentverweise an einem Ort.</p></div><button className="btn primary" disabled={!hub || busy} onClick={() => navigate(() => choose(null))}>Neues Projekt</button></div>
       {(error || loadError) && <p className="project-error" role="alert">{error || loadError}</p>}

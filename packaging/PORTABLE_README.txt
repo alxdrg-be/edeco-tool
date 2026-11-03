@@ -1,4 +1,4 @@
-edeco Toolbox - Windows x64
+edeco Toolhub - Windows x64
 
 Zum Starten edeco-Toolbox.exe ausfuehren. Den gesamten Ordner zusammenhalten.
 PDF-Verarbeitung und Programmfenster enthalten ihre Laufzeiten und benoetigen

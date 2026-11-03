@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from "react";
-import ToolHeader from "../../toolbox/ToolHeader";
+import ToolhubHeader from "../../toolbox/ToolhubHeader";
 import type { ToolProps } from "../../toolbox/modules";
 import {
   CHARGE_OPTIONS,
@@ -602,13 +602,13 @@ function LightingPanel() {
   </Panel>;
 }
 
-export default function Berechnungen({ onHome }: ToolProps) {
+export default function Berechnungen({ onHome, onOpenTool, onBack }: ToolProps & { onBack: () => void }) {
   const [tab, setTab] = useState<Tab>("spannungsfall");
   const printedAt = new Date().toLocaleString("de-CH", { timeZone: "Europe/Zurich", dateStyle: "medium", timeStyle: "short" });
   return <div className="calc-tool">
-    <ToolHeader title="Formelrechner" onHome={onHome} homeLabel="← Zu den Berechnungen">
+    <ToolhubHeader title="Formelrechner" onHome={onHome} onOpenTool={onOpenTool} parent={{ label: "Berechnungen", onClick: onBack }}>
       <button type="button" className="btn" onClick={() => window.print()}>PDF</button>
-    </ToolHeader>
+    </ToolhubHeader>
     <div className="calc-body">
       <p className="calc-print-only">edeco ag · {printedAt}</p>
       <div className="calc-layout">

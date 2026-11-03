@@ -49,13 +49,17 @@ def test_proxy_preserves_stirling_page_and_streams_files_without_forwarding_loca
     calls = []
     async def handler(request):
         calls.append(request.url.path)
-        assert "edeco_pdf_session" not in request.headers.get("Cookie", "")
+        assert "edeco_" not in request.headers.get("Cookie", "")
+        assert "JSESSIONID=remote-session" in request.headers.get("Cookie", "")
+        assert not any(key.lower().startswith("x-edeco-") for key in request.headers)
         assert request.url.path.startswith(ROOT + "/")
         if request.url.path.endswith("test.pdf"):
             return httpx.Response(200, headers={"Content-Type": "application/pdf", "Content-Disposition": 'attachment; filename="test.pdf"'}, stream=httpx.ByteStream(sample_pdf()))
         return httpx.Response(200, text='<html><head><title>Stirling</title></head><body>Original Stirling UI</body></html>', headers={"Content-Type": "text/html"})
     app.state.pdf_proxy_transport = httpx.MockTransport(handler)
-    page = client.get(ROOT + "/")
+    client.cookies.set("edeco_toolbox_session_80", "local-toolbox-only")
+    client.cookies.set("JSESSIONID", "remote-session")
+    page = client.get(ROOT + "/", headers={"X-Edeco-Session": "local-toolbox-only", "X-Edeco-Projects": "local-projects-only"})
     assert page.status_code == 200 and "Original Stirling UI" in page.text
     assert "edeco PDF-Werkstatt" in page.text and "/edeco/bridge.js" in page.text and "/edeco/theme.css" in page.text
     pdf = client.get(ROOT + "/test.pdf")

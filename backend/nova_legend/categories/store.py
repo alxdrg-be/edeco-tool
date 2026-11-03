@@ -58,7 +58,7 @@ DEFAULT_OPTIONS = {
 LEGEND_DEFAULTS = {
     "legend_general_path": "",     # DXF, DWG or template project folder on the server
     "legend_admins": [],           # Windows user names allowed to change these settings
-    "legend_text_size": 2.5,       # mm, one size for all legend texts
+    "legend_text_size": 2.8,       # mm, one size for all legend texts
     "legend_symbol_scale": 1.0,    # one scale for all symbols
     "legend_hatch_off": False,     # new legends: no hatches and light areas in symbols
     "legend_fill_off": False,      # new legends: no solid fills in symbols

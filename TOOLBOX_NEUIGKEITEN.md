@@ -1,18 +1,77 @@
+## Kompakte Legenden, PDF-Werkzeuge und gezielte Fehlerhilfe · 3. November 2026
+
+- Formelrechner in den Berechnungen: Spannungsfall, Verluste, Kurzschluss-Schranken, Transformator, Blindleistung, Ohm, Potenzialausgleich, Motoranlauf, E-Mobilität und Beleuchtung. Die Norm steht in der Überschrift, die lange Erklärung bleibt zugeklappt.
+- NOVA-Legenden mit klarem Rückweg zu den Projekten, grossem Editor innerhalb des Toolhubs, Dokumentzoom am Mauszeiger und Handmodus. Ausführliche Hinweise bleiben hinter Info- und Aufklappfeldern.
+- Neues kompaktes Vorlagenlayout: Allgemeinteil in zwei Spalten, Farbcodes direkt darunter und Apparate in fortlaufenden Spalten mit schmalen Farbmarkierungen. Die Höhe folgt dem Inhalt. Gespeicherte klassische Layouts bleiben erhalten; das Vorlagenlayout ist bewusst wählbar.
+- Ursprüngliche Layerfarben bleiben unabhängig von der Abschnittszuordnung erhalten. Mehrere Farbvarianten werden vollständig dargestellt und im Editor orange markiert. Kombinationslogik und UP/AP-Symbolbedeutung bleiben bestehen.
+- Die Firmen-DXF wird zuverlässiger gelesen: Farbcode-Überschriften, kleine Farbflächen, gebogene Leitungsmuster und verschachtelte Objektfarben werden richtig zugeordnet. Linien und Doppelsymbole bleiben in der Ausgabe erkennbar.
+- PDF-Werkstatt mit Werkzeugauswahl vor dem Import: alle 57 Stirling-Core-Einträge, Suche, Kategorien und zuletzt verwendete Werkzeuge. Im lokalen Paket sind 49 auswählbar; acht nicht verfügbare Funktionen bleiben mit Begründung sichtbar. Geöffnete Dateien bleiben beim Werkzeugwechsel erhalten.
+- Grosses PDF-Zuschneiden direkt auf der Seite mit acht Griffen, Rändern, Seitenwahl, Zoom, Handmodus und Touch-Pinch. Der Export erhält Text und Vektoren; Originaldateien werden nicht überschrieben.
+- Rechnerhinweise erklären Ursache, Istwert, erforderliche Bedingung und nächste Schritte. Verknüpfungen öffnen die betroffene Eingabe beziehungsweise die genaue Zeile; Werte werden dabei nicht verändert.
+- Netzplaner mit gezielter Fehlerhilfe auch bei gleich benannten Bauteilen. Erklärungen folgen den aktuellen Werten und berücksichtigen kombinierte Schutzbedingungen. Fehlende Hersteller- und Projektgrundlagen bleiben als offene Nachweise erkennbar.
+- Strg-Zoom verändert Dokumentansichten statt der gesamten Programmoberfläche. Die lokalen PDF-Einstellungen sind über ein Zahnrad erreichbar; ein lokales Benutzerkonto ist nicht nötig.
+- Rechneraktionen bleiben beim Wechsel auf ein schmales Fenster zuverlässig im kompakten Menü. Frühe Fensterwechsel während des Ladens und das Schliessen mit Escape werden auch bei verzögerten Browserereignissen berücksichtigt.
+
+## Qwen lokal einrichten · 2. November 2026
+
+- Dokumenten-Assistent mit aufklappbarer Anleitung für Qwen/Ollama auf dem eigenen PC: Windows-Download, PowerShell-Befehl, lokale Adresse, Modellname und Verbindungsprüfung.
+- Gemeinsamer Firmenserver bleibt als Alternative erklärt. Die Beschriftungen unterscheiden lokalen Betrieb und Firmenserver; bestehende Verbindungsdaten werden beim Lesen der Anleitung nicht geändert.
+
+## edeco Toolhub · gemeinsame Oberfläche und Rechnerergänzungen · 2. November 2026
+
+- Neuer Name und neues Hub-Logo. Gemeinsame Kopfzeile, Schrift und Farbgrundlagen in allen Werkzeugen; „EDECO Engineering“ entfernt.
+- Sichtbarer Button „Zum Toolhub“ und direkter Werkzeug-/Rechnerwechsel mit Suche. Bestehende Speicher- und Rückfragedialoge bleiben wirksam.
+- Eigene Bezeichnungen und Bearbeiternamen beim Speichern bleiben auch bei einer langsamen Antwort der gemeinsamen Ablage erhalten.
+- Projektauswahl und Kopfzeilenbuttons gleich hoch; Suche und Kategorien zusammengefasst. Acht verfügbare Hauptwerkzeuge haben eigene Akzentfarben.
+- NIN-Kabelvorprüfung mit Einadrig-/Mehradrig-Führung und verständlichen Verlegearten. Selektivitätskette mit wählbarer Spannungstoleranz und gekennzeichneten Altständen.
+- Eigene kW-Werte direkt in Ladegrids, Power Units und Abgabepunkten eingebbar. Kostenplaner auf 64 Positionen erweitert; die 60 Ausbaukohorten der Referenz passen hinein.
+- PV mit aufklappbarer Sensitivität, Ertrags- und Tarifhistoriengrafik sowie optionalem CO₂-Projektvergleich. Brandlast-Variante B ist optional; bestehende Vergleiche bleiben erhalten.
+- Planlieferung mit klarer Schrittfolge und eingeklappter Namensvorlage. Mobile Export- und Speicheraktionen liegen in einem kompakten Aktionsmenü.
+- Frischer Quellenabgleich mit geöffneten Auswahlfeldern, FAQ und Erweiterungen dokumentiert. Netzplaner weiterhin vereinfachtes TN-Modell; zusätzliche Netzformen und Verbrauchervorgaben der Quelle bleiben als Unterschiede ausgewiesen.
+
+## Lokale Absicherung und geprüfte Rechenfaktoren · 2. November 2026
+
+- 26 Rechner mit Wissens-Hub, kompakten Dropdowns und direkt wählbaren LS-Charakteristiken. Ausführliche Erklärungen bleiben aufklappbar.
+- Gemeinsame Absicherung der lokalen API: Host, Herkunft und Sitzung werden auch für eingebettete Werkzeuge geprüft.
+- DWG-Import und -Export starten nur einen geprüften lokalen ODA-Converter aus dem vorgesehenen Installationsverzeichnis.
+- Kurzschlussrechner und Netzplaner verwenden für neue Fälle +10 % Spannungstoleranz mit cmax 1.10. Altstände bleiben mit ihrem bisherigen Faktor ausdrücklich gekennzeichnet.
+- Quellen gesammelt im Wissens-Hub; wiederholte Anbieterlinks aus den Rechneransichten entfernt. Normbezüge und Datenstände bleiben nachvollziehbar.
+- Weiche Diagrammübergänge und Stromflussdarstellung in berechneten, belasteten Leitungsabschnitten.
+- Updatefenster zeigt die Änderungen der angebotenen Version direkt; weitere Punkte und vollständige Notizen sind aufklappbar und per Tastatur erreichbar.
+- Startseite mit stabilen Kachelhöhen auch bei breiteren Systemschriften; alle zehn Werkzeuge passen ins vorgesehene Desktopfenster.
+- Automatische Testerkennung sowie zusätzliche Linux-Prüfungen für Pull Requests und main, einschliesslich Lint-, Rechen- und Browsertests.
+
+## Rechner, Wissens-Hub und flüssige Darstellung · 2. November 2026
+
+- Updatefenster mit direkt sichtbarer Änderungsliste zur angebotenen Version; weitere Punkte und der vollständige Release-Text sind aufklappbar. Fehlende Änderungsnotizen werden ausdrücklich angezeigt.
+- Alle 26 Rechenmodelle auf Basis des aktuellen Hauptzweigs geprüft; direkte angemeldete Referenzprüfung ohne externen Browserdienst. Zahlenabgleich und offene Norm-/Herstellerfreigaben stehen im neuen Gesamtaudit.
+- Kompakte Dropdowns für lange Listen, Nennströme, Icn und Querschnitte. B/C/D/K/Z als kurze Auswahlzeile mit passender Beschreibung darunter; Phasen und Material bleiben direkt auswählbar.
+- Wissens-Hub mit elf Themen im Kopf der Toolbox und der Rechner sowie kontextuellen Links aus Info-Drawern. Ausführliche Erklärungen und Formeln starten geschlossen. Eingaben bleiben beim Wechsel erhalten.
+- Ruhige Rechnerkacheln mit unterschiedlichen Symbolen und lokal eingebundener Inter-Schrift. Weiche Geometrieübergänge, abbrechbare Animationen und Unterstützung für reduzierte Bewegung.
+- Stromfluss in gültigen EV-/Ladegrid-/Depot- und Netzplanerabschnitten; wartende Punkte und stromlose Leitungsenden bleiben statisch. Bekannte Rückspeisung bewegt sich in Gegenrichtung.
+- SIA-Referenzprofile für 16 Nutzungen und vier Zonen, erweiterte Brandmelderplanung, bis sechs Schutzstufen mit Kabelpfad, 467 Kabel-Faktenwerte mit CPR-/Lieferantenbezug und genauerer Ladekostenvergleich ergänzt.
+- PKW-/LKW-Grid-Einstellungen, AC-/DC-Bezug, Mindestleistungen und Aktiv/Wartend erweitert; PV/Speicher mit explizitem Anschlussort und getrennten Brutto-/Nettowerten. Gespeicherte Altmodelle behalten ihre Bedeutung.
+- Grafikfehler bei ungültigen Kabelwerten und beim Blitzschutz-Leitungsweg korrigiert. Keine erfundene Netzspannung oder Gebäudehöhe als Ersatz für Eingabedaten.
+- Vor dem Build lokal geprüft: 315 Rechen-/Quellen-/UI-Regressionstests, Browser-/Ablageprüfungen und alle 26 Modelle in Desktop-/Mobilansicht. Auch Änderungsanzeige und Installationsbestätigung sind im Browser geprüft. Der Windows-Build prüft die vollständige Offline-PDF-Laufzeit zusätzlich.
+
 ## Neue Projekt- und Rechenwerkzeuge
 
-- Anschluss-/Vorsicherungswerte und weitere Gerätenennwerte als Dropdowns aus der Schweizer Referenzauswahl; kontinuierliche Messwerte bleiben frei. Abweichende gespeicherte Projektwerte bleiben erhalten.
-- Referenznähere Darstellung mit direkt sichtbaren Schemas, bemassten Raumplänen, jährlichen Kostensäulen, zugeordneten Kennzahlen und kurzen Lesehilfen. Formeln und geprüfte Zahlenfälle sind im Quellenabgleich dokumentiert; das ersetzt keine Normfreigabe.
-- Berechnungsverhalten für bereits erreichten Leistungsfaktor und ausgeblendete statische Ladefaktoren korrigiert. Modelldateien zur Vermeidung von Windows-Importkollisionen eindeutig benannt.
-
-- 25 native Rechenhilfen: eigene Vorprüfungen für die 24 Schweizer Referenzthemen plus Blitzschutz. Die bisherigen acht Entwurfskacheln rechnen jetzt; Umfang und Grenzen sind pro Rechner dokumentiert. Normtabellenwerte und Herstellergrenzen werden teilweise manuell eingetragen und nicht als automatische Fachkataloge ausgegeben.
-- Ladegrids mit reaktivem Schema: Hausanschluss, Unterverteiler, gerade Sammelschiene, Ladepunkte und Fahrzeuge. Cyan zeigt eingehaltene Leistungsbudgets, Gelb begrenzte Zuteilung, Rot die Überschreitung am jeweiligen Abschnitt. Die Kabel-/Schutzauslegung bleibt ungeprüft.
+- 26 aktive lokale Rechenmodelle: 24 reguläre Schweizer Referenzthemen, Netzplaner (Beta) und Arthur-Flury-Blitzschutz. Leistungsbilanz bleibt geplant; Umfang und verbleibende Unterschiede stehen im Rechnerinventar.
+- Netzplaner mit horizontalem Netzeditor, Verbindungsgriffen, automatischem Anschluss beim passenden Ablegen und bearbeitbaren Geräte-/Leitungsdaten. Explizite Prüfung erzeugt einen Bericht; Änderungen kennzeichnen ihn als veraltet. Ein aktueller Prüfstand kann als A4-PDF exportiert werden. Radiale Modellvorprüfung, keine vollständige NIN-Freigabe.
+- Publizierte Cu-Referenztabellen, Temperatur-/Häufungsfaktoren und Querschnittssuche für NIN-Kabel; PVC-/XLPE-/CFW-Ansätze für parallele Zuleitungen. Manuelle Projektwerte bleiben möglich, unbelegte Kombinationen gesperrt.
+- Potenzialausgleich mit eingegrenzter publizierter Cu-Zuordnung; Motor mit Typenschildstrom, IE3-Beispielen und Kabel-Grundwertsuche. Beleuchtung mit Leuchtenbeispielen und gekennzeichneter empirischer Raumableitung.
+- AC-Vorplanung mit Aktiv-/Wartezuständen, 1~-Phasenprüfung, Energie/Reichweite sowie PV-/Speicheranschluss am Haus oder Grid. Veröffentlichte SIA-2060-Referenzkurven sind als solche gekennzeichnet.
+- Modulare Ladegrids mit gemischten AC-/DC-Punktgruppen; LKW-Depot mit Power Units, Leistungsmodulen und zugeordneten Abgabepunkten. Farben zeigen Budget- und Phasenzustände; die Modelle sind keine Fahrzeugsimulation oder Schutzauslegung.
+- Vier Ladeinfrastruktur-Kostenmodelle mit eigenem Betrieb beziehungsweise Contracting, Jahreszahlungen, Ersatzzyklen und Ausbaujahrgängen. Fünf tatsächliche Referenzzustände mit allen vier Vertragsmodellen, einschliesslich DC- und Detailvarianten, sind numerisch abgeglichen; Preise bleiben Projektannahmen.
+- SIA-2056-Verbraucherbilanz mit sieben Gruppen je Zone: Kcor wirkt nur auf Leistung, Jahresgleichzeitigkeit nur auf Energie. Zwei getrennte Diagramme und manuelle Ziele. Automatische datierte Referenzprofile sind ergänzt; die in der Quelle fehlende Food/L-Klasse bleibt gesperrt. Altstände behalten ihr bisheriges Modell.
+- PV mit Dach-/Modulansätzen, Bestand, datierten Tarif-/Förderreferenzen und separatem Speicheransatz. PoE-Streckenmodell mit Kabelabschnitten, Patchseiten und gekennzeichneten thermischen Referenzannahmen; keine bestätigte RP-/Normfreigabe.
+- Eigene technische Schemas, Raumpläne und Jahresdiagramme mit kompakten, aufklappbaren Lesehilfen. Dropdowns für diskrete Gerätenennwerte; gespeicherte Sonderwerte werden nicht still gerundet. Fremde SVGs werden nicht als geprüfte eigene Berechnung ausgegeben.
+- Direkter A4-PDF-Download mit edeco-Logo, Schweizer Datum, aktuellen Eingaben/Ergebnissen und Projektangaben für die 24 regulären Referenzthemen und den Netzplaner. Gerasterte PDF-Seiten; strukturierte JSON-Daten bleiben zusätzlich verfügbar. Blitzschutz behält seinen bisherigen Druck-/PDF-Weg.
+- Quellenabgleich unterscheidet nachgerechnete Zahlenfälle, veröffentlichte Datenstände und offene Norm-/Herstellerzuordnungen. Vollständige Gleichwertigkeit aller geschützten Rechner wird nicht behauptet. Der angekündigte Electrosuisse-Vergleich steht noch aus.
 - Gemeinsame Serverablage: Ordner einrichten, Rechenstände nach Berechnung und Projekt speichern, Notizen ergänzen und Eingaben neu berechnen. PDF-/JSON-Exporte können zusätzlich importiert werden. Kein SQLite auf dem Netzlaufwerk.
-
-- Rechner-Prototyp im edeco Rahmen: 65/35-Ansicht, synchronisierte Slider und Zahlenfelder, Tech-Dunkel-/Hellmodus, Lucide-Symbole und Info-Drawer für Formeln, Schweizer Quellen und Grenzen. Tailwind ohne globale Rücksetzung und mit eigenem Präfix.
 - Blitzschutz: interaktives Gebäude mit verschiebbarem Dachobjekt, schematischer Abstandszone und Warnfarben; Schweizer SN-414022-Verfahren bleibt erhalten.
-- Kabel-Spannungsfall: Schweizer Referenzmodell bei 55 °C, Wechsel-/Drehstrom, Cu/Al, Spannungsverlauf und Querschnitt allein nach Spannungsfall. Reaktanz als Richtwert markiert; Strombelastbarkeit und Schutzmassnahmen nicht geprüft. Nur Schweizer fachliche Quellen.
+- Kabel-Spannungsfall: Schweizer Referenzmodell bei 55 °C, Wechsel-/Drehstrom, Cu/Al, Spannungsverlauf und Querschnitt allein nach Spannungsfall. Reaktanz als Richtwert markiert; Strombelastbarkeit und Schutzmassnahmen nicht geprüft.
 - Planlieferungs-Assistent: Projekt, Empfänger und Lieferdatum wählen, PDFs mit Geschoss, Planart, Index und Massstab prüfen und als ZIP mit CSV-, Druck- und JSON-Planliste herunterladen. Unveränderlicher Projektverlauf mit Prüfsummen; Versand nur nach gesonderter Bestätigung protokollieren.
-- Bereich Berechnungen mit 25 nativen Rechenhilfen und zusätzlich geplanter Leistungsbilanz. Blitzschutz-Rechenhilfe mit eigener Gebäudevisualisierung, sichtbaren Faktoren und Rechenschritten, Abstandsvergleich und JSON-/Druckexport. Zahlenvergleich gegen die veröffentlichte Arthur-Flury-Referenz; fachliche Freigabe offen.
 - Projektzentrale: Projektnummer, Name, Adresse, Ablageordner, Notizen, Kontakte und Dokumentverweise lokal verwalten. Suche, Archivierung und dauerhafte aktive Projektauswahl in der Toolbox ergänzt.
 - Aktive Projektnummer an „Dateien umbenennen“ übergeben, inklusive direktem Werkzeugwechsel. Offene Namensvorlagen bleiben bei einem externen Projektwechsel erhalten; neue Nummer bewusst übernehmen.
 - Schutz vor ungespeicherten Eingaben und konkurrierenden Projektänderungen. Projektordner im Dateimanager öffnen, Dokumentpfade kopieren. Keine automatische Verlagerung von Dateien oder Zusammenführung mit bestehenden NOVA-Projekten.

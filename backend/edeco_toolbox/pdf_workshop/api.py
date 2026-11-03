@@ -20,6 +20,7 @@ from pydantic import BaseModel, Field
 from . import API, ROOT
 from .client import PdfFile, StirlingClient
 from .config import Configuration
+from .crop import register_crop
 from .runtime import PdfRuntime, runtime_root
 
 ASSETS = Path(__file__).parent / "assets"
@@ -77,6 +78,8 @@ def register(app):
         value = request.headers.get("X-Edeco-Pdf", "") if key else request.cookies.get(cookie_name(request), "")
         if not valid or ((key or cookie) and not hmac.compare_digest(value.encode(), session_key.encode())):
             raise HTTPException(403, "Die PDF-Werkstatt bitte direkt in der Toolbox öffnen.")
+
+    register_crop(app, authorize)
 
     @app.get(API + "/state")
     def state(request: Request):
@@ -174,10 +177,11 @@ def register(app):
             raise HTTPException(400, "Ungültiger Dienstpfad.")
         target = config.url + ROOT + "/" + path
         headers = {key: value for key, value in request.headers.items()
-                   if key.lower() not in HOP_HEADERS | {"origin", "referer", "accept-encoding", "cookie"}}
+                   if key.lower() not in HOP_HEADERS | {"origin", "referer", "accept-encoding", "cookie"}
+                   and not key.lower().startswith("x-edeco-")}
         # The local Toolbox session must never be forwarded to the service.
         remote_cookies = "; ".join(part.strip() for part in request.headers.get("cookie", "").split(";")
-                                   if part.strip() and not part.strip().startswith("edeco_pdf_session_"))
+                                   if part.strip() and not part.strip().split("=", 1)[0].lower().startswith("edeco_"))
         headers["cookie"] = remote_cookies
         headers["accept-encoding"] = "identity"
         headers["origin"] = config.url

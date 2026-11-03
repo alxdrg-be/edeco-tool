@@ -47,7 +47,7 @@
 }
 @media print {
   .calc-print-only { display: block; margin: 0 auto 12px; max-width: 1100px; font-size: 12px; }
-  .calc-nav, .tool-header-actions { display: none !important; }
+  .calc-nav, .toolhub-header-actions { display: none !important; }
   .calc-layout { display: block; max-width: none; }
   .calc-tool, .calc-body { height: auto !important; overflow: visible !important; background: #fff; color: #111; }
 }

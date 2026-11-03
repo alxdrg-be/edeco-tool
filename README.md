@@ -1,7 +1,8 @@
-# edeco Toolbox
+# edeco Toolhub
 
-Gemeinsame, erweiterbare Desktopanwendung für die Elektroplanung: edeco-Logo,
-farbige Werkzeugkacheln, Suche, Kategorien und Hell-/Dunkelmodus.
+Gemeinsame Desktopanwendung für die Elektroplanung mit einheitlichem Logo,
+Kopfleiste, Schrift und Hell-/Dunkelmodus. Werkzeuge und Rechner lassen sich
+direkt über die Kopfzeile wechseln; „Zum Toolhub“ führt zur Übersicht zurück.
 
 ## Werkzeuge
 
@@ -12,9 +13,9 @@ farbige Werkzeugkacheln, Suche, Kategorien und Hell-/Dunkelmodus.
 | Dokumenten-Assistent | Nutzbar, Work in progress; lokale Suche, KI über gemeinsamen Server | Violett |
 | Dateien umbenennen | Nutzbar, Work in progress | Grün |
 | PDF-Werkstatt | Stirling Core mit vollständig mitgelieferter Windows-Offline-Laufzeit | Rosé |
-| Projektzentrale | Nutzbar, Work in progress | Petrol |
-| Planlieferungs-Assistent | Nutzbar, Work in progress; ZIP, Planlisten und Projektverlauf | Grün |
-| Berechnungen | 25 native Schweizer Rechenhilfen und Vorprüfungen | Blau |
+| Projektzentrale | Nutzbar, Work in progress | Gold |
+| Planlieferungs-Assistent | Nutzbar, Work in progress; ZIP, Planlisten und Projektverlauf | Koralle |
+| Berechnungen | 26 native Schweizer Rechenhilfen inklusive Netzplaner (Beta) | Orange |
 | ↳ Blitzschutz | Trennungsabstand; fachliche Freigabe offen | Orange |
 | Änderungsbericht | Geplant | Orange |
 | Leistungsbilanz | Geplant | Violett |
@@ -29,6 +30,21 @@ vorbereitet; Leistungsbilanz liegt im Bereich Berechnungen.
 Alle zehn Hauptkacheln sind im normalen Desktopfenster (1400 × 900)
 ohne Scrollen sichtbar; kleinere Fenster können scrollen. Umfang und Reihenfolge
 der Erweiterungen stehen im [Ausbauplan](docs/TOOLBOX_AUSBAUPLAN.md).
+
+Der neue Produktname ändert keine bestehenden Datenpfade, AppId oder
+Update-Dateinamen. Installierte Vorversionen können weiter aktualisiert werden.
+Die Namensvorlage im Planlieferungs-Assistenten startet geschlossen; PDFs und
+Lieferangaben bleiben dadurch direkt erreichbar.
+
+Der erneute angemeldete Quellenabgleich vom 2. November 2026 ist getrennt für
+[Installation und Schutz](docs/REAUDIT_INSTALLATION_20261102.md),
+[Energie und Gebäude](docs/REAUDIT_ENERGIE_20261102.md) sowie
+[Ladeinfrastruktur](docs/REAUDIT_EMOBILITAET_20261102.md) dokumentiert.
+Konkrete Ergänzungen betreffen die Verlegeartführung, Selektivitätsfaktoren,
+eigene Ladeleistungen, 64 Kostenpositionen, PV-Analysen und den optionalen
+Brandlastvergleich. Der Netzplaner bleibt ein begrenztes radiales TN-Modell;
+zusätzliche Netzformen und der umfangreichere Verbraucherkatalog der Quelle
+sind damit nicht vollständig nachgebildet.
 
 **Dateien umbenennen** bereitet PDF-Namen nach einer gespeicherten Vorlage vor,
 zum Beispiel `1498_E-G-APP-OG02-C-50.pdf`. Projektnummer, Fachbereich,
@@ -65,32 +81,64 @@ werden serverseitig nicht dauerhaft gespeichert; nur ihre Metadaten und Prüfsum
 Ein vorbereitetes Paket ist kein Versand. Erst die ausdrückliche Bestätigung
 „Als versendet bestätigen“ protokolliert den Versand; das Tool sendet keine E-Mails.
 
-Unter **Berechnungen** liegen 25 native Rechenhilfen: die 24 Themen der Schweizer
-Referenz und zusätzlich Blitzschutz. Die Werkzeuge sind eigene Modellrechnungen
-und Vorprüfungen. Normtabellenwerte, Herstellergrenzen und Korrekturfaktoren sind
-teilweise ausdrücklich manuell einzutragen; eine vollständige Gleichwertigkeit
-mit den Fachkatalogen der Referenz wird nicht behauptet. Umfang je Rechner:
-[Rechner und Grenzen](docs/RECHNER_UMFANG.md). Formeln und ausgewählte
-Zahlenfälle sind zusätzlich gegen sichtbare Clientlogik geprüft:
-[Quellenabgleich](docs/RECHNER_QUELLENABGLEICH.md). Leistungsbilanz bleibt zusätzlich
-geplant. Die gemeinsame Ablage
-speichert Rechenstände und Notizen nach Berechnungstyp und Projekt in einem
-einstellbaren Serverordner, einschliesslich importierter PDF-/JSON-Exporte.
-Einrichtung, Grenzen und Zusammenarbeit: [Berechnungsablage](docs/BERECHNUNGSABLAGE.md).
-Die React-Oberfläche nutzt Tailwind mit eigenem
-`edeco:`-Präfix und Lucide-Symbole. Navigation und Projektkontext bleiben in der
-edeco Toolbox. Der Rechnerbereich hat einen lokalen Tech-Dunkelmodus und eine
-helle edeco-Ansicht; andere Werkzeuge behalten ihre Darstellung. Slider und
-Zahlenfelder aktualisieren SVG und Live-Werte sofort. Alle Parameter haben
-Info-Icons für fokussierbare, per Escape schliessbare Grundlagen-Drawer.
+Unter **Berechnungen** liegen 26 aktive eigene Modelle: die 24 regulären Themen
+der Schweizer Referenz, der zusätzlich gefundene Netzplaner (Beta) und Blitzschutz.
+Der Netzplaner hat einen hervorgehobenen Einstieg oberhalb der 26 Kacheln;
+diese enthalten die bisherigen 25 Rechner und die geplante Leistungsbilanz.
+Die gemeinsame Ablage ist kein zusätzlicher Rechner.
+
+Der Netzplaner bearbeitet ein radiales NS-Ersatznetz aus Einspeisung,
+Transformator, Verteilungen, Schutzorganen, Verbrauchern und Leitungen.
+Horizontale Anordnung, automatische Verbindung beim passenden Ablegen,
+Ausgang-/Eingang-Verbindungen und explizite Abschnittsdaten sind vorhanden.
+**Berechnen & prüfen** erzeugt einen Prüfstand; spätere Änderungen machen ihn
+veraltet. PDF-Berichte beziehen sich auf den aktuellen Prüfstand. Phasenströme,
+Neutralleiter, kumulierter Spannungsfall und Schutzbedingungen werden innerhalb
+des dokumentierten Modells gerechnet, ohne vollständige NIN-Freigabe.
+
+NIN-Kabel und Strombelastbarkeit nutzen jetzt datierte veröffentlichte
+Referenztabellen samt belegten Korrekturen oder ausdrücklich manuelle Werte.
+Nicht belegte Kombinationen erzeugen keine erfundenen Ersatzwerte. Modulare
+PKW-/LKW-Ladegrids, vier Kostenmodelle, PV-/Speicheransätze und segmentierte
+PoE-Vorprüfungen ergänzen die bisherigen Grundrechner. SIA 2056 trennt in der
+manuellen Verbraucherbilanz Leistungskorrektur und Jahresgleichzeitigkeit.
+Ein datierter Referenzmodus ergänzt 16 Nutzungen, sieben Verbrauchergruppen
+und vier Zonen; die in der Quelle fehlende Food/L-Klasse bleibt gesperrt.
+
+Die Programme sind eigene Modellrechnungen und Vorprüfungen. Ein publizierter
+Tabellenwert oder übereinstimmender Zahlenfall bestätigt weder die gesamte
+Referenzfunktion noch die normative Zuordnung. Aktueller Umfang und offene
+Funktionen: [Rechnerinventar](docs/RECHNER_INVENTAR.md),
+[Rechner und Grenzen](docs/RECHNER_UMFANG.md),
+[Quellenabgleich](docs/RECHNER_QUELLENABGLEICH.md). Der angekündigte zusätzliche
+Vergleich mit den Electrosuisse-Werkzeugen steht bis zur Bereitstellung durch
+den Nutzer aus.
+
+Die gemeinsame Ablage speichert Rechenstände und Notizen nach Berechnungstyp
+und Projekt in einem einstellbaren Serverordner, einschliesslich importierter
+PDF-/JSON-Exporte. [Berechnungsablage](docs/BERECHNUNGSABLAGE.md) beschreibt
+Einrichtung und Zusammenarbeit. Die 24 regulären Referenzrechner und der
+Netzplaner besitzen einen direkten A4-PDF-Download mit Projektangaben und
+aktuellen Berechnungsdaten. Die PDF-Seiten sind gerastert; JSON bewahrt die
+strukturierten Daten. Blitzschutz behält den bisherigen Druck-/PDF-Weg.
+
+Die React-Oberfläche nutzt Tailwind mit `edeco:`-Präfix und Lucide-Symbole.
+Navigation und Projektkontext bleiben in der Toolbox. Der Rechnerbereich hat
+einen lokalen Tech-Dunkelmodus und eine helle edeco-Ansicht. Lange Listen und
+Gerätenennwerte stehen in Dropdowns; kurze Entscheidungen wie B/C/D/K/Z bleiben
+direkt sichtbar. Mess- und Projektwerte bleiben frei. Geometrieänderungen laufen
+weich; Stromfluss bewegt sich nur auf tatsächlich aktiven Modellabschnitten.
+Ausführliche Erklärungen und Formeln starten geschlossen. Der Wissens-Hub ist
+im Kopf und aus Info-Drawern erreichbar. Der aktuelle Prüfstand steht im
+[Gesamtaudit](docs/RECHNER_AUDIT_20261102.md).
 Blitzschutz berechnet den Trennungsabstand mit
 `s = k × (U / xₙ) / n × A`, zeigt Leitungsweg und Abstand in einer eigenen
 Gebäudezeichnung und prüft die Mindestanzahl Ableiter gesondert. Grundlage ist
 das [veröffentlichte Schweizer Verfahren von Arthur Flury](https://www.aflury.ch/de/fachwissen/trennungsabstand-rechner/)
 mit Bezug auf SN 414022:2024, Seite 38. Klassen I–III, Einheiten, Faktoren,
-Aufrundung und Grenzen stehen im Info-Drawer und im Druckbericht. Das Dachmodell
-reagiert schematisch auf A, ein Dachobjekt lässt sich mit Maus oder Tastatur
-verschieben. Die Zone wechselt bei unterschrittenem Abstand auf Rot; sie zeigt
+Aufrundung und Grenzen stehen im Info-Drawer und im Druckbericht. Das Gebäude bleibt
+schematisch; A ist der Leitungsweg und keine Gebäudehöhe. Ein Dachobjekt lässt
+sich mit Maus oder Tastatur verschieben. Die Zone wechselt bei unterschrittenem Abstand auf Rot; sie zeigt
 keinen Fangschutzbereich. Fünf Zahlenfälle sind gegen die Referenz
 geprüft; eine fachliche Freigabe am Objekt ist noch offen. Entwürfe werden lokal
 im Browserprofil pro ausgewähltem Projekt gespeichert. JSON-Export und
@@ -114,19 +162,47 @@ fachliche Freigabe bleiben ausserhalb dieses Prototyps.
 Der **Dokumenten-Assistent** liest eigene PDF-, TXT- und Markdown-Dateien ein.
 Fundstellen enthalten Dokumentstand, PDF-Seite beziehungsweise Blattlabel und
 Textzeilen. Ein Klick zeigt die Stelle im Original markiert. Die Fundstellensuche
-funktioniert ohne KI-Server. Formulierte Antworten können über einen gemeinsamen
-Ollama-Server mit freiem Modell erzeugt werden: keine API-Gebühren und keine
-Modellinstallation auf den einzelnen Toolbox-PCs. Die Dokumentbibliothek bleibt
+funktioniert ohne KI-Server. Formulierte Antworten können mit Qwen/Ollama auf
+dem eigenen PC oder einem gemeinsamen Firmenserver erzeugt werden. Die
+aufklappbare Einrichtungshilfe ist direkt unter **KI-Verbindung** erreichbar.
+Bei gemeinsamem Betrieb ist keine Modellinstallation auf den einzelnen PCs
+nötig; bei lokalem Betrieb läuft das Modell auf diesem PC. Die Dokumentbibliothek bleibt
 zunächst pro PC; sie wird nicht automatisch zwischen Rechnern geteilt.
 Eine kostenpflichtige OpenAI-kompatible API ist optional. Details und Grenzen:
 [Dokumenten-Assistent](docs/DOKUMENTEN_ASSISTENT.md).
 
-Die **edeco PDF-Werkstatt** verwendet die originale kostenlose Stirling-Core-Oberfläche.
+Die **edeco PDF-Werkstatt** öffnet zuerst eine durchsuchbare Werkzeugauswahl und
+danach den Import des gewählten Werkzeugs. Die 57 Einträge entsprechen der
+Stirling-Core-Registry 3.2.2; im lokalen Paket sind 49 auswählbar und acht
+deaktivierte Funktionen mit Begründung sichtbar. Der Umfang entspricht nicht der
+gesamten PDF24-Sammlung. Geöffnete Dateien bleiben beim Werkzeugwechsel erhalten.
+Die Verarbeitung verwendet die originale kostenlose Stirling-Core-Oberfläche.
+Ein eigener grosser Zuschneideeditor bietet Griffpunkte, mm-Ränder, Seitenauswahl,
+Zoom und Verschieben; PDF-Text und Vektoren bleiben beim Export erhalten.
 Ab 0.5.0 enthalten Windows-Setup und Portable-Paket Java, Windows-PDFium, qpdf,
 Tesseract und OCR-Sprachdaten für Deutsch/Englisch. Der Dienst startet automatisch
 auf 127.0.0.1 und benötigt weder Internet noch Firmenserver, VPN, Docker oder
 zusätzliche Installationen. Lizenztexte und mitgelieferte Quellen sind unter
 **Info / Lizenzen** zugänglich. [Offline-Build, Tests und Einschränkungen](docs/PDF_OFFLINE_WINDOWS.md).
+
+Der **NOVA-Legendeneditor** bietet einen grossen Arbeitsbereich innerhalb des
+Toolhubs und einen klaren Rückweg zu den Projekten. Das kompakte Vorlagenlayout
+stellt den Allgemeinteil zweispaltig dar, die Farbcodes direkt darunter und die
+Apparate in fortlaufenden Spalten. Gespeicherte klassische Layouts bleiben
+erhalten; die kompakte Vorlage ist im Editor wählbar. Kategorien und
+Kombinationslogik bleiben bestehen. Layerfarben werden separat erhalten, auch
+an kombinierten Symbolen. Die Exporthöhe folgt dem tatsächlichen Inhalt.
+
+Die **Rechnerfehlerhilfe** erklärt Modellbedingungen anhand der aktuellen
+Eingaben und führt zur betroffenen Eingabe oder Positionszeile. Fehlende Mess-,
+Hersteller- oder Projektgrundlagen erhalten keine erfundenen Ersatzwerte und
+gelten weiterhin als offene Nachweise. Die Modellhinweise ersetzen keine
+vollständige Fachfreigabe der Anlage.
+
+Ein Commit mit **`[skip release]`** im Titel überspringt den automatischen
+Windows-Installer-/Release-Workflow bei einem reinen Code-Upload. Die normalen
+Linux-Prüfungen laufen weiterhin. Ein manueller Start des Windows-Workflows ist
+davon unabhängig.
 
 Die gemeinsame Anwendung liegt auf `main`. Die Branches `Nova-Legenden` und
 `BIM2STEIGER` enthalten die ursprünglichen Programme; `toolbox` hält den bisherigen
@@ -153,15 +229,40 @@ Arbeitslisten im Einzelprogramm als JSON sichern und in der Toolbox laden.
 Die gemeinsame Toolbox-Oberfläche startet mit `python -m edeco_toolbox`
 (bei gesetztem `PYTHONPATH=backend`).
 
+Die Toolbox prüft lokale Hosts, Herkunft und Sitzung zentral, auch für die
+eingebetteten Werkzeuge. Der Browser erhält beim Laden automatisch ein
+portbezogenes Sitzungscookie. Eigene API-Clients laden zuerst
+`GET /api/toolbox/session` und behalten das Cookie oder senden den erhaltenen
+Schlüssel bei Schreibzugriffen als `X-Edeco-Session`; zusätzliche Werkzeugschlüssel
+bleiben erforderlich. Schlüssel gelten nur bis zum nächsten Serverstart.
+
+DWG-Import und -Export verwenden nur den ODA File Converter in einer lokalen
+Standardinstallation unter `Program Files/ODA/ODAFileConverter…`.
+Netzwerkpfade und beliebige eigene EXE-Pfade werden abgewiesen; unsichere
+Altpfade werden ignoriert. DXF bleibt ohne Converter nutzbar.
+
+Neue Kurzschlussberechnungen verwenden standardmässig +10 % Spannungstoleranz
+und `cmax = 1.10`; +6 % mit `1.05` ist wählbar. Gespeicherte Altstände behalten
+`1.05` mit ausdrücklichem Hinweis, bis die Netzannahme bestätigt wird.
+Ein vorgegebener maximaler Quellenstrom wird nicht nochmals erhöht.
+Details: [Absicherung und Rechenfaktoren](docs/ABSICHERUNG_20261102.md).
+
 ## Entwicklung und Tests
 
 ```sh
-.venv/bin/python -m pytest backend/tests -q
+.venv/bin/python -m ruff check backend
+PYTHONPATH=backend .venv/bin/python -m pytest backend/tests -q
 (cd backend/bim2steiger && ../../.venv/bin/python -m unittest discover -s tests -q)
 cd ui
+npm run lint
 npm test
 npm run build
 ```
+
+Ruff wird mit `backend/requirements-quality.txt` installiert. `npm test` findet
+alle verschachtelten `.test.ts` automatisch. Der Linux-Workflow prüft Pull
+Requests und `main`; die vollständigen Windows-/Offline-PDF- und
+Installerprüfungen bleiben im Windows-Build.
 
 Browser-Tests benötigen zusätzlich `backend/requirements-browser-tests.txt` und
 Chromium (`python -m playwright install chromium` oder `NOVA_TEST_CHROMIUM`
@@ -208,6 +309,8 @@ sie sind kein Bestandteil des Quellcode-Imports.
 Im Toolbox-Startbildschirm **Nach Updates suchen** öffnen. Installierte und
 portable Windows-Versionen prüfen standardmässig beim Start nach neuen Releases;
 im Quellcode erfolgt die Prüfung manuell. Die Option lässt sich ausschalten.
+Im Updatefenster stehen die Änderungen der angebotenen Version direkt sichtbar;
+weitere Punkte und der vollständige Release-Text lassen sich aufklappen.
 Die installierte Windows-Version bietet nach Bestätigung den Download des
 Setups an, prüft Grösse und SHA-256 aus GitHub und schliesst die Toolbox.
 Ein unabhängiger Helfer wartet auf das Prozessende, installiert am bisherigen

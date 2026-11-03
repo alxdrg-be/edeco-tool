@@ -30,9 +30,13 @@ export const UPSTREAM_CURRENT_OPTIONS = currentOptions(UPSTREAM_CURRENT_VALUES);
 export const FEED_CURRENT_OPTIONS = supplyOptions(UPSTREAM_CURRENT_VALUES);
 export const DEVICE_CURRENT_OPTIONS = currentOptions([...new Set<number>([...LS_CURRENT_VALUES, ...UPSTREAM_CURRENT_VALUES])].sort((a, b) => a - b));
 export const AC_CHARGING_POWER_OPTIONS: ElectricalOption[] = [
+  { value: "3.7", label: "3.7 kW · 1~ 230 V" },
+  { value: "7.4", label: "7.4 kW · 1~ 230 V" },
   { value: "11", label: "11 kW · 3~ 400 V" },
   { value: "22", label: "22 kW · 3~ 400 V" },
 ];
+export const EV_CHARGING_POWER_OPTIONS: ElectricalOption[] = [...AC_CHARGING_POWER_OPTIONS, ...[50, 150, 350].map(value => ({ value: String(value), label: `${value} kW · DC · AC-Ersatzbedarf η = 1` }))];
+export const THREE_PHASE_CHARGING_POWER_OPTIONS = AC_CHARGING_POWER_OPTIONS.filter(option => ["11", "22"].includes(option.value));
 export const LS_BREAKING_CAPACITY_OPTIONS: ElectricalOption[] = [3, 6, 10, 15, 25].map(value => ({ value: String(value), label: `${value} kA` }));
 export const NIN_SECTION_OPTIONS: ElectricalOption[] = NIN_SECTION_VALUES.map(value => ({ value: String(value), label: `${value} mm²` }));
 
@@ -40,8 +44,8 @@ export const NIN_SECTION_OPTIONS: ElectricalOption[] = NIN_SECTION_VALUES.map(va
 export function fieldOptions(calculatorId: string, key: string): readonly ElectricalOption[] | undefined {
   if (["emobilitaet", "premium-pkw"].includes(calculatorId) && key === "house") return HOUSE_CURRENT_OPTIONS;
   if ((calculatorId === "emobilitaet" && key === "grid") || (calculatorId === "premium-pkw" && ["grid1", "grid2"].includes(key))) return GRID_CURRENT_OPTIONS;
-  if (calculatorId === "emobilitaet" && key === "power") return AC_CHARGING_POWER_OPTIONS;
-  if (calculatorId === "premium-pkw" && ["power1", "power2"].includes(key)) return AC_CHARGING_POWER_OPTIONS;
+  if (calculatorId === "emobilitaet" && key === "power") return EV_CHARGING_POWER_OPTIONS;
+  if (calculatorId === "premium-pkw" && ["power1", "power2"].includes(key)) return THREE_PHASE_CHARGING_POWER_OPTIONS;
   if (calculatorId === "premium-lkw" && key === "feed") return FEED_CURRENT_OPTIONS;
   if (calculatorId === "premium-selektivitaet" && /^rating[123]$/.test(key)) return DEVICE_CURRENT_OPTIONS;
   if (calculatorId === "ls-schalter" && key === "rated") return LS_CURRENT_OPTIONS;

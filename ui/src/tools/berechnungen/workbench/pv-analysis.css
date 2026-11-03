@@ -1,0 +1,21 @@
+.pv-analysis { border: 1px solid var(--line); border-radius: 12px; background: var(--panel); overflow: hidden; }
+.pv-analysis > summary { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 16px; padding: 17px 20px; cursor: pointer; font-size: 13px; font-weight: 600; }
+.pv-analysis > summary::before { content: "›"; color: var(--accent); font-size: 19px; line-height: 1; }
+.pv-analysis[open] > summary::before { transform: rotate(90deg); }
+.pv-analysis > summary > span { margin-left: auto; color: var(--muted); font-size: 11px; font-weight: 400; }
+.pv-analysis-content { display: grid; gap: 24px; padding: 0 20px 20px; }
+.pv-analysis-figure { min-width: 0; margin: 0; padding-top: 18px; border-top: 1px solid var(--line); }
+.pv-analysis-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+.pv-analysis-heading h3 { margin: 0; font-size: 13px; font-weight: 600; }
+.pv-analysis-heading > span, .pv-analysis-figure > p, .pv-analysis-figure > figcaption { color: var(--muted); font-size: 11px; line-height: 1.7; }
+.pv-analysis-figure > p { margin: 0 0 12px; }
+.pv-analysis-scroll { overflow-x: auto; }
+.pv-analysis-svg { display: block; width: 100%; min-width: 650px; }
+.pv-analysis-svg text { fill: var(--muted); font: 12px var(--font-ui, system-ui); }
+.pv-analysis-svg .pv-analysis-row-label { fill: var(--fg); font-weight: 600; }
+.pv-analysis-legend { display: flex; gap: 18px; flex-wrap: wrap; color: var(--muted); font-size: 11px; margin: 8px 0 12px; }
+.pv-analysis-legend > span { display: inline-flex; align-items: center; gap: 7px; }
+.pv-analysis-legend i { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); }
+.pv-analysis-legend > span + span i { background: var(--wire); }
+.pv-analysis-figure > figcaption { margin-top: 10px; }
+@media (max-width: 620px) { .pv-analysis-content { padding-inline: 12px; } .pv-analysis > summary { padding-inline: 14px; } .pv-analysis > summary > span { width: 100%; margin-left: 16px; } }

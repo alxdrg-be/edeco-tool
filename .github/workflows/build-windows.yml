@@ -1,4 +1,4 @@
-name: 'Toolbox: Windows-Setup bauen'
+name: 'Toolhub: Windows-Setup bauen'
 
 on:
   push:
@@ -14,6 +14,8 @@ concurrency:
 
 jobs:
   build:
+    # Code-only uploads can keep the regular checks without publishing an installer.
+    if: ${{ github.event_name == 'workflow_dispatch' || !contains(github.event.head_commit.message, '[skip release]') }}
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -97,14 +99,14 @@ jobs:
             for ($i = 0; $i -lt 60; $i++) {
               try {
                 $status = Invoke-RestMethod 'http://127.0.0.1:8799/api/toolbox/status'
-                $ok = $status.name -eq 'edeco Toolbox'
+                $ok = $status.name -eq 'edeco Toolhub'
                 if ($ok) { break }
               } catch { Start-Sleep 1 }
             }
             if (-not $ok) { throw 'Toolbox startet nicht' }
             if ($status.build -ne [int]$env:GITHUB_RUN_NUMBER -or $status.commit -ne $env:GITHUB_SHA) { throw 'Falsche Buildkennung in der EXE' }
             $page = Invoke-WebRequest 'http://127.0.0.1:8799/' -UseBasicParsing
-            if ($page.Content -notmatch 'edeco Toolbox') { throw 'Toolbox-Oberfläche fehlt' }
+            if ($page.Content -notmatch 'edeco Toolhub') { throw 'Toolbox-Oberfläche fehlt' }
             $nova = Invoke-RestMethod 'http://127.0.0.1:8799/api/status'
             if (-not $nova.version) { throw 'Nova-Modul nicht verfügbar' }
             $bim = Invoke-RestMethod 'http://127.0.0.1:8799/tools/bim2steiger/api/meta'
@@ -122,8 +124,9 @@ jobs:
           '@ | python -
             if ($LASTEXITCODE -ne 0) { throw 'PDF-Testdatei konnte nicht erstellt werden' }
             $docRoot = 'http://127.0.0.1:8799/api/tools/dokumenten-assistent'
+            $toolboxSession = Invoke-RestMethod 'http://127.0.0.1:8799/api/toolbox/session'
             $docState = Invoke-RestMethod ($docRoot + '/state')
-            $docHeaders = @{ 'X-Edeco-Documents' = $docState.session_key }
+            $docHeaders = @{ 'X-Edeco-Documents' = $docState.session_key; 'X-Edeco-Session' = $toolboxSession.session_key }
             $uploaded = Invoke-RestMethod ($docRoot + '/documents') -Method Post -Headers $docHeaders -Form @{ file = Get-Item $env:DOC_SMOKE_FILE; edition = 'Synthetischer Buildtest' }
             $question = @{ question = 'Schutzleiter'; document_ids = @($uploaded.document.id); use_ai = $false } | ConvertTo-Json -Compress
             $answer = Invoke-RestMethod ($docRoot + '/ask') -Method Post -Headers $docHeaders -ContentType 'application/json' -Body $question
@@ -245,7 +248,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.version.outputs.version }}-build.${{ github.run_number }}
-          name: edeco Toolbox ${{ steps.version.outputs.version }} (Build ${{ github.run_number }})
+          name: edeco Toolhub ${{ steps.version.outputs.version }} (Build ${{ github.run_number }})
           target_commitish: ${{ github.sha }}
           body_path: release-body.md
           files: dist-installer/*

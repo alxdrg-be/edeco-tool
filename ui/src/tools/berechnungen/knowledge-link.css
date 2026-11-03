@@ -1,0 +1,6 @@
+.lab-knowledge-link{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:38px;padding:8px 11px;border:1px solid var(--line);border-radius:9px;background:var(--panel);color:var(--fg);font:inherit;font-size:13px;text-decoration:none;line-height:1.4;white-space:normal}
+.lab-knowledge-link:hover{border-color:var(--accent);color:var(--accent)}
+.lab-knowledge-link:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.lab-knowledge-link svg{flex:none}
+.lab-drawer .lab-knowledge-link{margin-top:22px;width:100%}
+@media print{.lab-knowledge-link{display:none!important}}

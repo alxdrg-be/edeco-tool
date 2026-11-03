@@ -171,7 +171,7 @@ class UpdateManager:
                     and isinstance(asset.get("size"), int) and 0 < asset["size"] <= MAX_SETUP):
                 self.asset = {"name": expected_name, "url": asset["url"], "sha256": digest[1], "size": asset["size"]}
         available = latest > current
-        message = "Ein Toolbox-Update ist verfügbar." if available else "Die Toolbox ist aktuell."
+        message = "Ein Toolhub-Update ist verfügbar." if available else "Der Toolhub ist aktuell."
         if available and not self.asset:
             message = "Neue Version verfügbar. Ein eindeutig geprüftes Setup fehlt; bitte die Release-Seite öffnen."
         elif available and not self.installed:
@@ -223,7 +223,7 @@ class UpdateManager:
             with self._request(asset["url"], binary=True) as response:
                 download_verified(response, target, asset["sha256"], asset["size"])
             self.pending = (target, asset["sha256"], asset["size"])
-            self.state = {**self.state, "status": "installing", "message": "Setup geprüft. Die Toolbox schliesst sich und startet nach dem Update neu."}
+            self.state = {**self.state, "status": "installing", "message": "Setup geprüft. Der Toolhub schliesst sich und startet nach dem Update neu."}
 
             def close():
                 time.sleep(.8)  # Let the HTTP response reach the window first.
@@ -231,7 +231,7 @@ class UpdateManager:
                     shutdown()
                 except Exception:
                     self.pending = None
-                    self.state = {**self.state, "status": "unavailable", "message": "Bitte die Toolbox schliessen und das Setup über Releases starten."}
+                    self.state = {**self.state, "status": "unavailable", "message": "Bitte den Toolhub schliessen und das Setup über Releases starten."}
                     log.exception("Toolbox window could not close for update")
 
             threading.Thread(target=close, daemon=True).start()

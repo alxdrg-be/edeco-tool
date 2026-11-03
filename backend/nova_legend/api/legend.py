@@ -224,7 +224,7 @@ def register(app: FastAPI, st, project, evaluator, category_colors) -> None:
             "programm": "edeco ag - NOVA Legenden",
             "version": config.APP_VERSION,
             "benutzer": config.current_user(),
-            "oda_vorhanden": bool(st.settings.oda_path or config.find_oda_converter()),
+            "oda_vorhanden": bool(config.resolve_oda_converter(st.settings.oda_path)),
             "firmenordner": st.settings.company_folder or "",
             "firmendatei": str(st.company.db_path),
             "firmenfehler": st.company_error or "",
@@ -340,7 +340,7 @@ def register(app: FastAPI, st, project, evaluator, category_colors) -> None:
     def load_general(raw: bool = False) -> general_part.GeneralPart:
         settings = st.company.legend_settings()
         part = general_part.load(settings["legend_general_path"], MAX_SHEET_WIDTH - 2 * MARGIN,
-                                 st.settings.oda_path or config.find_oda_converter(), project_layout=template_layout)
+                                 config.resolve_oda_converter(st.settings.oda_path), project_layout=template_layout)
         if raw:
             return part
         part = general_part.apply_overrides(part, settings.get("legend_general_rows") or {},
@@ -422,7 +422,7 @@ def register(app: FastAPI, st, project, evaluator, category_colors) -> None:
                          "family_key": r.get("family_key") or "",
                          "by": o.get("by", ""), "at": o.get("at", "")})
         return {**part.info(), "file_time": stamp, "rows": rows, "company": company_legend(),
-                "oda": bool(st.settings.oda_path or config.find_oda_converter())}
+                "oda": bool(config.resolve_oda_converter(st.settings.oda_path))}
 
     @app.put("/api/company/general/row")
     def put_general_row(body: GeneralRowIn) -> dict:
@@ -504,7 +504,7 @@ def register(app: FastAPI, st, project, evaluator, category_colors) -> None:
         doc.saveas(out)
         if format.lower() == "dwg":
             try:
-                out = dxf_to_dwg(out, st.settings.oda_path or config.find_oda_converter(), tmp / "dwg")
+                out = dxf_to_dwg(out, config.resolve_oda_converter(st.settings.oda_path), tmp / "dwg")
             except Exception as exc:  # noqa: BLE001 - no converter: say so, the DXF still works
                 shutil.rmtree(tmp, ignore_errors=True)
                 raise HTTPException(400, str(exc)) from None
@@ -538,7 +538,8 @@ def register(app: FastAPI, st, project, evaluator, category_colors) -> None:
 
     def project_style_default() -> dict:
         c = company_legend()
-        return normalize_style({"text_size": c["text_size"], "symbol_scale": c["symbol_scale"]})
+        return normalize_style({"text_size": c["text_size"], "symbol_scale": c["symbol_scale"],
+                                "compact_flow": True, "columns": 3})
 
     @app.post("/api/company/general/reload")
     def reload_general() -> dict:
@@ -584,7 +585,7 @@ def register(app: FastAPI, st, project, evaluator, category_colors) -> None:
         c = company_legend()
         return normalize_style({"grid": s.get("grid", DEFAULT_GRID), "text_size": s.get("text_size", c["text_size"]),
                                 "symbol_scale": s.get("symbol_scale", c["symbol_scale"]),
-                                "columns": s.get("columns", 2),
+                                "columns": s.get("columns", 3), "compact_flow": s.get("compact_flow", True),
                                 "hatch_off": s.get("hatch_off", c["hatch_off"]),
                                 "fill_off": s.get("fill_off", c["fill_off"])})
 
@@ -868,7 +869,7 @@ def register(app: FastAPI, st, project, evaluator, category_colors) -> None:
                 "in_general": in_general,
                 "company_symbols": st.company.legend_settings().get("legend_company_symbols") or {},
                 "grids": [{"id": k, **v} for k, v in GRIDS.items()], "style": project_style(p),
-                "company": company_legend(), "oda": bool(st.settings.oda_path or config.find_oda_converter())}
+                "company": company_legend(), "oda": bool(config.resolve_oda_converter(st.settings.oda_path))}
 
     @app.put("/api/projects/{project_id}/legend")
     def put_legend(project_id: str, body: LegendIn, legend: int | None = None) -> dict:
@@ -940,7 +941,7 @@ def register(app: FastAPI, st, project, evaluator, category_colors) -> None:
         if ext == "dwg":
             from ..importer.dwg import ConverterMissing
             try:
-                out = dxf_to_dwg(dxf_path, st.settings.oda_path or config.find_oda_converter(), tmp / "dwg")
+                out = dxf_to_dwg(dxf_path, config.resolve_oda_converter(st.settings.oda_path), tmp / "dwg")
             except ConverterMissing as exc:
                 shutil.rmtree(tmp, ignore_errors=True)
                 raise HTTPException(400, str(exc)) from None

@@ -17,6 +17,7 @@ from .tools.file_rename.api import register as register_file_rename
 from .tools.projects.api import register as register_projects
 from .tools.deliveries.api import register as register_deliveries
 from .tools.calculation_archive.api import register as register_archive
+from .local_security import register as register_local_security
 
 
 def create_app(state: AppState | None = None, ui_dir: Path | None = None):
@@ -24,6 +25,7 @@ def create_app(state: AppState | None = None, ui_dir: Path | None = None):
     app = create_nova_app(state, serve_ui=False, updates_enabled=False)
     app.title = APP_NAME
     app.version = APP_VERSION
+    register_local_security(app)
     register_updates(app)
     register_documents(app)
     register_pdf_workshop(app)
@@ -44,5 +46,5 @@ def create_app(state: AppState | None = None, ui_dir: Path | None = None):
     else:
         @app.get("/", response_class=HTMLResponse)
         def missing_ui():
-            return "<h1>edeco Toolbox</h1><p>Oberfläche im Ordner ui mit npm ci und npm run build bauen.</p>"
+            return "<h1>edeco Toolhub</h1><p>Oberfläche im Ordner ui mit npm ci und npm run build bauen.</p>"
     return app

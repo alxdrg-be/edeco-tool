@@ -1,6 +1,7 @@
 import { useRef } from "react";
 import type { UpdateInfo } from "../api";
 import { useDialogFocus } from "../useDialogFocus";
+import { parseReleaseNotes } from "../releaseNotes";
 import { Icon } from "./Icons";
 
 export type UpdatePhase = "checking" | "ready" | "installing";
@@ -27,15 +28,6 @@ function formatPublished(iso: string): string {
   return new Intl.DateTimeFormat("de-CH", { dateStyle: "medium", timeZone: "Europe/Zurich" }).format(date);
 }
 
-/** What is new: the part of the release text before the rule («---»), as short points. */
-function newsPoints(raw: string): { heading: string; points: string[] } {
-  const news = raw.replace(/\r/g, "").split(/\n-{3,}\s*\n/)[0];
-  const lines = news.split("\n").map((l) => l.trim()).filter(Boolean);
-  const heading = (lines.find((l) => l.startsWith("#")) ?? "").replace(/^#+\s*/, "");
-  const points = lines.filter((l) => /^[-*•]\s+/.test(l)).map((l) => l.replace(/^[-*•]\s+/, ""));
-  return { heading, points };
-}
-
 export default function UpdateDialog({ phase, info, error, onClose, onInstall, onRetry }: Props) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const busy = phase === "checking" || phase === "installing";
@@ -43,7 +35,7 @@ export default function UpdateDialog({ phase, info, error, onClose, onInstall, o
 
   const available = Boolean(info?.available);
   const canInstall = Boolean(info?.can_install);
-  const news = newsPoints(info?.notes ?? "");
+  const news = parseReleaseNotes(info?.notes ?? "");
   const published = formatPublished(info?.published ?? "");
   const size = formatSize(info?.size ?? 0);
 

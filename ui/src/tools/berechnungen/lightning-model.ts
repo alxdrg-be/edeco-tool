@@ -2,6 +2,13 @@ export type LightningClass = "I" | "II" | "III";
 export interface LightningInput { protection: LightningClass; perimeter: string; length: string; conductors: string; clearance: string }
 export const FACTORS = { I: { hundredths: 8, spacing: 10 }, II: { hundredths: 6, spacing: 10 }, III: { hundredths: 4, spacing: 15 } };
 export const SOURCE = "https://www.aflury.ch/de/fachwissen/trennungsabstand-rechner/";
+export const LIGHTNING_REFERENCE = {
+  page: SOURCE,
+  iframe:"https://www.aflury.ch/fileadmin/Arthur_Flury_CH/Tools/Trennungsabstand-Rechner/2026_tool_trennungsabstand.html?lang=de",
+  script:"https://www.aflury.ch/fileadmin/Arthur_Flury_CH/Tools/Trennungsabstand-Rechner/2026_tool_trennungsabstand.js",
+  observed:"2026-11-02",
+  sha256:"a6e63a9557a1e453620cf3b8bc1ef0d25afad43dffcf97365131ef5e73b35989",
+} as const;
 const UNIT = 1_000_000n;
 function decimal(value: string, allowZero = false): bigint {
   const normalized = value.trim().replace(",", ".");

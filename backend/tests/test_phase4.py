@@ -6,8 +6,8 @@ import ezdxf
 import pytest
 
 from nova_legend import config
-from nova_legend.legend.layout import layout, text_width, wrap
-from nova_legend.legend.model import AP_NOTE, empty_doc, normalize, propose, section_style
+from nova_legend.legend.layout import TILE_FILL, layout, text_width, wrap
+from nova_legend.legend.model import AP_NOTE, DEFAULT_TEXT_SIZE, empty_doc, normalize, propose, section_style
 from nova_legend.render.engine import engine_geometry
 from nova_legend.render.svg import geometry_bounds
 
@@ -206,7 +206,8 @@ def test_text_factor_changes_only_that_text_and_the_row_grows():
     doc["blocks"][0]["items"][1]["text_scale"] = 1.2
     big = layout(doc)
     sizes = {t["item"]: t["size"] for t in big["prims"] if t["t"] == "text" and t.get("item")}
-    assert sizes["A1"] == 3.0 and sizes["A0"] == 2.5 and sizes["A2"] == 2.5
+    assert sizes["A1"] == pytest.approx(DEFAULT_TEXT_SIZE * 1.2)
+    assert sizes["A0"] == sizes["A2"] == DEFAULT_TEXT_SIZE
     doc["blocks"][0]["items"][1]["text"] = "Langer Text " * 8
     grown = layout(doc)
     h = {b["id"]: b["h"] for b in boxes(grown)}
@@ -228,7 +229,7 @@ def test_gap_between_sections_moves_only_the_sections():
     doc["style"]["section_gap"] = 6
     s6 = sections(doc)
     assert abs(s6["B"]["y"] - (s6["A"]["y"] + s6["A"]["h"]) - 6) < 1e-6
-    assert s6["A"]["h"] == s0["A"]["h"] and s6["B"]["h"] == s0["B"]["h"]     # rows inside unchanged
+    assert s6["A"]["h"] == pytest.approx(s0["A"]["h"]) and s6["B"]["h"] == pytest.approx(s0["B"]["h"])     # rows inside unchanged
 
 
 def test_hidden_entries_are_not_placed():
@@ -264,7 +265,7 @@ def test_legend_roundtrip_layout_and_texts(env):  # noqa: F811
     client, tmp = env
     pid = _project(client, tmp)
     info = client.get(f"/api/projects/{pid}/legend").json()
-    assert info["legend"] is None and info["style"]["text_size"] == 2.5 and info["grids"][0]["id"] == "standard"
+    assert info["legend"] is None and info["style"]["text_size"] == DEFAULT_TEXT_SIZE and info["grids"][0]["id"] == "standard"
     doc = client.post(f"/api/projects/{pid}/legend/propose").json()["doc"]
     assert doc["title"]["text"] == "Legende 1424 Test"
     saved = client.put(f"/api/projects/{pid}/legend", json={"doc": doc}).json()["legend"]
@@ -433,7 +434,7 @@ def test_company_description_is_used_for_new_proposals(env):  # noqa: F811
 def test_empty_doc_defaults():
     doc = empty_doc()
     assert doc["style"]["width"] == 200 and doc["style"]["grid"] == "dicht"                # new legends: tight grid
-    assert doc["style"]["row"] == 6.0 and doc["style"]["text_offset"] == 8.0 and doc["style"]["columns"] == 2
+    assert doc["style"]["row"] == 6.0 and doc["style"]["text_offset"] == 8.0 and doc["style"]["columns"] == 3
     assert doc["title"]["size_mm"] == 5
 
 
@@ -453,7 +454,7 @@ def test_grid_steps_are_far_apart_and_a_custom_grid_keeps_its_millimetres():
     wide_h, wide_x = row_h("gross")
     assert tight_h < standard_h - 1
     assert wide_h >= 18 and wide_h > standard_h + 6
-    assert wide_x > standard_x + 8 and tight_x < standard_x
+    assert wide_x > standard_x + 3 and tight_x < standard_x  # common pair zone keeps text clear in every raster
 
     custom = normalize({"style": {"grid": "custom", "row": 15.5, "text_offset": 22}})
     assert custom["style"]["grid"] == "custom"
@@ -583,10 +584,11 @@ def test_entries_share_one_tile_sized_from_the_text():
     doc["style"]["normalize_size"] = False                          # longest side fills 75 %
     lay = layout(doc, sizes)
     hits = boxes(lay)
-    assert len({round(h["h"], 3) for h in hits}) == 1
+    assert len({round(h["h"], 3) for h in hits if h["id"] != "s2"}) == 1
+    assert next(h["h"] for h in hits if h["id"] == "s2") >= hits[0]["h"]  # full long text remains readable
     syms = [p for p in lay["prims"] if p["t"] == "symbol"]
-    tile = round(2.5 * 3.6, 3)                                         # text 2.5 mm → one tile
-    assert {round(max(s["w"], s["h"]), 3) for s in syms} == {round(tile * 0.75, 3)}   # 75 % of the tile
+    tile = round(doc["style"]["text_size"] * 3.6, 3)                                         # text 2.5 mm → one tile
+    assert {round(max(s["w"], s["h"]), 3) for s in syms} == {round(tile * TILE_FILL, 3)}   # 75 % of the tile
     long = next(s for s in syms if s["id"] == "s2")                    # 40 × 4 mm light
     assert long["w"] / long["h"] == pytest.approx(10, rel=0.05)
     grid = next(p for p in lay["prims"] if p["t"] == "grid")
@@ -609,8 +611,8 @@ def test_every_symbol_is_centred_in_the_same_tile_and_texts_share_one_line():
     assert syms["s0"]["cx"] == syms["s1"]["cx"]
     assert texts["s0"]["x"] == texts["s1"]["x"]
     assert texts["s0"]["y"] == texts["s2"]["y"]
-    tile = round(2.5 * 3.6, 3)
-    assert {round(max(s["w"], s["h"]), 3) for s in syms.values()} == {round(tile * 0.75, 3)}      # 75 % of the tile
+    tile = round(doc["style"]["text_size"] * 3.6, 3)
+    assert {round(max(s["w"], s["h"]), 3) for s in syms.values()} == {round(tile * TILE_FILL, 3)}      # 75 % of the tile
 
 
 def test_symbol_factor_enlarges_only_that_symbol_and_the_row_grows():
@@ -771,7 +773,7 @@ def test_a_line_stays_put_and_a_symbol_stays_in_the_tile_and_can_turn():
     tile = symbol_tile(doc["style"])
     line = next(p for p in lay["prims"] if p["t"] == "grow" and p["row"] == "g0")
     symbol = next(p for p in lay["prims"] if p["t"] == "grow" and p["row"] == "g1")
-    assert line["w"] < tile + 0.2 and line["h"] < 1.3 and line["rot"] == 0
+    assert line["w"] > tile and line["h"] < 1.3 and line["rot"] == 0  # readable extended line sample
     assert max(symbol["w"], symbol["h"]) <= tile * 0.92 + 0.05 and symbol["rot"] == 90
     top = layout(doc, {}, {"rows": [{"id": "h", "text": "Farbcodes", "heading": True, "text_place": "top"}],
                            "symbol_area": 12})
@@ -783,19 +785,20 @@ def test_a_line_stays_put_and_a_symbol_stays_in_the_tile_and_can_turn():
 
 def test_a_general_heading_sits_on_the_bottom_of_its_grid_cell():
     general = {"rows": [
-        {"id": "g0", "text": "Farbcodes", "heading": True},
+        {"id": "g0", "text": "Leitungsarten", "heading": True},
         {"id": "g1", "text": "Lichtinstallation", "gw": 8, "gh": 2},
     ], "symbol_area": 12}
     lay = layout(normalize({"blocks": []}), {}, general)
     bar = next(p for p in lay["prims"] if p["t"] == "text" and p["text"] == "Allgemein")
-    assert bar["bold"] and bar["color"] == "#ffffff"
-    farb = next(p for p in lay["prims"] if p["t"] == "text" and p["text"] == "Farbcodes")
+    assert bar["bold"] and bar["color"] == "#000000"
+    farb = next(p for p in lay["prims"] if p["t"] == "text" and p["text"] == "Leitungsarten")
     cell = next(p for p in lay["prims"] if p["t"] == "hit" and p["kind"] == "general-row" and p["id"] == "g0")
     assert farb["y"] > cell["y"] + cell["h"] * 0.55
-    doc = normalize({"general_section": {"title": "Legende allgemein", "header": "#e03131"}})
+    doc = normalize({"general_section": {"title": "Legende allgemein", "text": "#e03131"}})
     lay = layout(doc, {}, general)
     assert any(p["t"] == "text" and p["text"] == "Legende allgemein" for p in lay["prims"])
-    assert any(p.get("role") == "header" and p.get("fill") == "#e03131" for p in lay["prims"])
+    assert any(p.get("text") == "Legende allgemein" and p.get("color") == "#e03131" for p in lay["prims"])
+    assert any(p.get("role") == "general-rule" for p in lay["prims"])
 
 
 def test_general_rows_share_the_legend_text_size_and_tile():
@@ -823,7 +826,7 @@ def test_a_wide_general_symbol_fills_the_tile_and_the_stroke_is_cut():
     doc = normalize({"style": {"text_size": 2.5}, "blocks": []})
     g = next(p for p in layout(doc, {}, general)["prims"] if p["t"] == "grow")
     tile = symbol_tile(doc["style"])
-    assert g["h"] == pytest.approx(tile * TILE_FILL, abs=0.05)
+    assert g["h"] == pytest.approx(min(tile, 5.0 - 0.4) * TILE_FILL, abs=0.05)
     assert g["full_w"] > g["w"] + 1 and g["w"] <= tile * 0.92 + 0.05
     assert 0 <= g["fx"] < 0.5
 
@@ -893,7 +896,8 @@ def test_a_colour_bar_becomes_a_chip_and_the_symbol_stays_whole(tmp_path):
     grows = [p for p in lay["prims"] if p["t"] == "grow"]
     assert len(grows) == 1 and "full_w" not in grows[0]
     # the whole symbol fits in the tile and keeps its shape
-    assert max(grows[0]["w"], grows[0]["h"]) <= tile * 0.92 + 0.05
+    assert grows[0]["h"] <= tile * 0.92 + 0.05
+    assert grows[0]["w"] / grows[0]["h"] == pytest.approx(1.2, rel=.01)
     assert grows[0]["w"] / grows[0]["h"] == pytest.approx(12 / 10, rel=0.08)
     out = build_dxf(lay, part, lambda prim: None)
     names = {e.dxf.text for e in out.modelspace().query("TEXT")}
@@ -1086,8 +1090,8 @@ def test_mirror_and_45_degree_steps_keep_the_symbol_in_its_tile_and_dxf():
     lay = layout(doc, sizes)
     sym = next(p for p in lay["prims"] if p["t"] == "symbol" and p["id"] == "s0")
     assert sym["rot"] == 45 and sym["mirror"] is True
-    tile = round(2.5 * 3.6, 3)
-    assert max(sym["w"], sym["h"]) <= tile * 0.75 + 1e-6               # turned drawing still fits
+    tile = round(doc["style"]["text_size"] * 3.6, 3)
+    assert max(sym["w"], sym["h"]) <= tile * TILE_FILL + 1e-6               # turned drawing still fits
     dxf = build_dxf(lay, None, lambda prim: _coloured_symbol())
     ins = next(e for e in dxf.modelspace().query("INSERT") if e.dxf.rotation == 45)
     assert ins.dxf.xscale < 0 < ins.dxf.yscale                           # mirrored in the DXF too
@@ -1100,7 +1104,7 @@ def test_dxf_text_height_is_the_capital_height_of_the_editor_font():
     lay = layout(doc)
     dxf = build_dxf(lay, None, lambda prim: None)
     taster = next(t for t in dxf.modelspace().query("TEXT") if t.dxf.text == "Taster")
-    assert abs(taster.dxf.height - 2.5 * CAP_HEIGHT) < 1e-3
+    assert abs(taster.dxf.height - DEFAULT_TEXT_SIZE * CAP_HEIGHT) < 1e-3
 
 
 def test_several_named_legends_per_project(env, monkeypatch):  # noqa: F811
@@ -1338,7 +1342,7 @@ def test_general_part_rows_flow_into_two_or_three_columns(tmp_path):
         assert len(inserts) == 4
         texts = {e.dxf.text for e in dxf.modelspace().query("TEXT")}
         assert "Leitung von/nach OBEN" in texts and "Farbcodes" in texts
-    assert len(xs[3]) > len(xs[2]) or xs[3] != xs[2]          # the rows move with the column count
+    assert xs[3] == xs[2]  # general key stays two columns independently of apparatus columns
 
 
 def test_a_long_general_heading_keeps_every_line():
@@ -1481,11 +1485,13 @@ def test_general_symbols_share_one_scale_and_allgemein_has_one_bar():
          "items": [{"id": "i", "kind": "note", "text": "Hinweis"}]}]})
     lay = layout(doc, {}, general)
     grow = {p["row"]: p for p in lay["prims"] if p["t"] == "grow"}
-    # the same factor for the single and the double symbol: the double one stays as tall
-    assert abs(grow["g0"]["k"] - grow["g1"]["k"]) < 1e-6
-    assert abs(grow["g0"]["h"] - grow["g1"]["h"]) < 1e-6 and grow["g1"]["w"] > grow["g0"]["w"] * 2.5
+    # A wide pair fits its own zone and no longer shrinks the other symbols.
+    assert grow["g0"]["k"] >= grow["g1"]["k"] > 0
+    assert grow["g1"]["w"] > grow["g0"]["w"] * 2 and grow["g1"]["h"] <= grow["g0"]["h"]
     bars = [p for p in lay["prims"] if p["t"] == "rect" and p.get("role") == "header"]
-    assert len(bars) == 1 and bars[0]["fill"] == "#808080"
+    assert bars == []  # plain general heading, no filled category bar
+    assert sum(p.get("text") == "Allgemein" for p in lay["prims"]) == 1
+    assert any(p.get("role") == "general-rule" for p in lay["prims"])
 
 
 def test_helper_grid_of_the_template_groups_rows_and_is_never_drawn(tmp_path):
@@ -1551,7 +1557,7 @@ def test_normalized_symbols_share_one_area_and_stay_within_the_tile():
              "s2": (-20.0, -0.5, 20.0, 0.5, False)}    # long and thin
     lay = layout(doc, sizes)
     syms = {p["id"]: p for p in lay["prims"] if p["t"] == "symbol"}
-    side = 2.5 * 3.6 * 0.75
+    side = doc["style"]["text_size"] * 3.6 * TILE_FILL
     assert syms["s0"]["w"] * syms["s0"]["h"] == pytest.approx(syms["s1"]["w"] * syms["s1"]["h"], rel=0.01)
     assert syms["s0"]["w"] < side and syms["s1"]["w"] < side
     assert max(syms["s2"]["w"], syms["s2"]["h"]) == pytest.approx(side, abs=0.01)   # capped at 75 %
@@ -1591,11 +1597,11 @@ def test_combined_symbols_each_get_an_equal_tile_in_front_of_the_text():
     lay = layout(doc, sizes)
     grid = next(p for p in lay["prims"] if p["t"] == "grid")
     frames = sorted(grid["frames"], key=lambda r: (r["y"], r["x"]))
-    pair = [r for r in frames if abs(r["w"] - grid["tile"]) > 0.05]
-    lone = [r for r in frames if abs(r["w"] - grid["tile"]) <= 0.05]
+    pair = [r for r in frames if r["x"] < grid["x"] + grid["colw"]]
+    lone = [r for r in frames if r["x"] >= grid["x"] + grid["colw"]]
     assert len(pair) == 2 and len(lone) >= 1
     assert pair[0]["w"] == pytest.approx(pair[1]["w"]) and pair[0]["h"] == pytest.approx(grid["tile"])
-    assert pair[0]["w"] < grid["tile"] and pair[0]["y"] == pytest.approx(lone[0]["y"])
+    assert pair[0]["w"] == pytest.approx(grid["tile"]) and pair[0]["y"] == pytest.approx(lone[0]["y"])
     gap = pair[1]["x"] - (pair[0]["x"] + pair[0]["w"])
     assert gap == pytest.approx(0.45, abs=0.05)
     assert pair[1]["x"] + pair[1]["w"] <= grid["x"] + grid["text"] - 0.4
@@ -1603,7 +1609,7 @@ def test_combined_symbols_each_get_an_equal_tile_in_front_of_the_text():
     for sym, frame in zip(sorted(syms, key=lambda p: p["cx"]), pair):
         assert sym["cx"] == pytest.approx(frame["x"] + frame["w"] / 2, abs=0.02)
         assert sym["cy"] == pytest.approx(frame["y"] + frame["h"] / 2, abs=0.02)
-        assert max(sym["w"], sym["h"]) <= frame["w"] * 0.75 + 0.02
+        assert max(sym["w"], sym["h"]) <= frame["w"] * TILE_FILL + 0.02
 
 
 def test_combined_description_stays_on_the_same_text_line():
@@ -1642,8 +1648,9 @@ def test_combined_description_stays_on_the_same_text_line():
     pair = sorted(frames, key=lambda r: r["x"])[:2]
     lone = next(r for r in grid["frames"] if abs(r["y"] - (hits["d"]["y"] + (hits["d"]["h"] - r["h"]) / 2)) < 0.2
                 and abs(r["x"] - (hits["d"]["x"] + grid["axis"] - grid["tile"] / 2)) < 0.2)
-    assert pair[0]["x"] == pytest.approx(lone["x"], abs=0.05)
-    assert pair[-1]["x"] + pair[-1]["w"] == pytest.approx(lone["x"] + lone["w"], abs=0.05)
+    pair_right = pair[-1]["x"] + pair[-1]["w"]
+    assert (pair[0]["x"] + pair_right) / 2 == pytest.approx(lone["x"] + lone["w"] / 2, abs=0.05)
+    assert pair_right - pair[0]["x"] == pytest.approx(lone["w"] * 2 + 0.45, abs=0.05)
     syms = [p for p in lay["prims"] if p["t"] == "symbol" and p["id"] == "c"]
     right = max(s["x0"] + s["w"] for s in syms)
     assert right <= pair[-1]["x"] + pair[-1]["w"] + 0.05

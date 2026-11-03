@@ -1,0 +1,3 @@
+/* Layout widths are real CSS lengths, so they can interpolate natively. */
+.engineering-lab .wb-bar-primary,.engineering-lab .wb-bar-secondary{transition:width 260ms ease-out}
+@media(prefers-reduced-motion:reduce){.engineering-lab .wb-bar-primary,.engineering-lab .wb-bar-secondary{transition:none}}

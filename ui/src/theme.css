@@ -37,7 +37,7 @@
   --space-4: 16px;
   --space-5: 24px;
   --space-6: 32px;
-  --font-ui: "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+  --font-ui: "Inter Variable", Inter, "Segoe UI", system-ui, Arial, sans-serif;
   --duration: 140ms;
   color-scheme: light;
 }

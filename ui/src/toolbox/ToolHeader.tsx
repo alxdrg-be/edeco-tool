@@ -1,41 +1,23 @@
-import { useEffect, useState, type ReactNode } from "react";
-import edecoLogo from "../assets/edeco-logo.svg?raw";
-import { applyTheme, effectiveDark, loadTheme } from "../theme";
-import { api } from "../api";
+import type { ReactNode } from "react";
+import { Moon, Sun } from "lucide-react";
+import { useToolhubTheme } from "./useToolhubTheme";
+import ToolhubHeader from "./ToolhubHeader";
 
 interface Props {
   title: string;
   onHome: () => void;
+  onOpenTool?: (id: string) => void;
+  currentToolId?: string;
   disabled?: boolean;
   onLogoClick?: () => void;
-  homeLabel?: string;
   children?: ReactNode;
 }
 
-export default function ToolHeader({ title, onHome, disabled, onLogoClick, homeLabel = "← Zur Toolbox", children }: Props) {
-  const [theme, setTheme] = useState(loadTheme);
-  useEffect(() => {
-    const sync = () => setTheme(loadTheme());
-    window.addEventListener("edeco-theme-change", sync);
-    window.addEventListener("storage", sync);
-    return () => {
-      window.removeEventListener("edeco-theme-change", sync);
-      window.removeEventListener("storage", sync);
-    };
-  }, []);
-  const dark = effectiveDark(theme);
-  return <header className="tool-header" aria-label={`${title} · Werkzeugleiste`}>
-    <span className="tool-header-logo" role="img" aria-label="edeco ag" onClick={onLogoClick}
-      dangerouslySetInnerHTML={{ __html: edecoLogo.replace(/<\?xml[^?]*\?>/, "") }} />
-    <span className="tool-header-divider" aria-hidden="true" />
-    <button type="button" className="btn tool-header-back" disabled={disabled} onClick={onHome}>{homeLabel}</button>
-    <span className="tool-header-title"><span aria-hidden="true" className="tool-header-mark" />{title}</span>
-    <div className="tool-header-actions">{children}
-      <button type="button" className="btn" aria-label={dark ? "Heller Modus" : "Dunkler Modus"} onClick={() => {
-        const next = dark ? "light" : "dark";
-        applyTheme(next);
-        api.saveTheme(next).catch(() => undefined);
-      }}>{dark ? "☀ Hell" : "☾ Dunkel"}</button>
-    </div>
-  </header>;
+export default function ToolHeader({ title, onHome, onOpenTool, currentToolId, disabled, onLogoClick, children }: Props) {
+  const { dark, toggle } = useToolhubTheme();
+  return <ToolhubHeader title={title} onHome={onHome} onOpenTool={onOpenTool} currentToolId={currentToolId}
+    disabled={disabled} onTitleActivate={onLogoClick} className="tool-header">
+    {children}
+    <button type="button" className="btn toolhub-theme" disabled={disabled} aria-label={dark ? "Heller Modus" : "Dunkler Modus"} onClick={toggle}>{dark ? <Sun size={16} aria-hidden="true" /> : <Moon size={16} aria-hidden="true" />}<span>{dark ? "Hell" : "Dunkel"}</span></button>
+  </ToolhubHeader>;
 }

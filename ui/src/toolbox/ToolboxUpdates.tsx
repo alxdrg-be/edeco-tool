@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useDialogFocus } from "../useDialogFocus";
+import { parseReleaseNotes } from "../releaseNotes";
 
 interface UpdateState {
   current: string;
@@ -85,24 +86,39 @@ function UpdateDialog({ state, busy, error, run, close }: {
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [confirm, setConfirm] = useState(false);
+  const changes = parseReleaseNotes(state?.notes ?? "");
   useDialogFocus(ref, close, Boolean(busy));
   return <div className="modal-back">
     <div ref={ref} className="modal toolbox-update-dialog" role="dialog" aria-modal="true"
       aria-labelledby="toolbox-update-title" tabIndex={-1}>
-      <h2 id="toolbox-update-title">Toolbox-Updates</h2>
+      <h2 id="toolbox-update-title">Toolhub-Updates</h2>
       <p>Ein gemeinsames Update für alle Werkzeuge.</p>
       {state && <>
         <p className="toolbox-update-version">Installierter Stand: {state.current}</p>
         {state.latest && <p>Neuester Stand: {state.latest}</p>}
         <p role="status">{busy === "check" ? "Neue Version wird gesucht …" : busy === "install" ? "Setup wird heruntergeladen und geprüft …" : state.message}</p>
+        {(state.status === "available" || changes.points.length > 0) && <section className="toolbox-update-changes" aria-labelledby="toolbox-update-changes-title">
+          <h3 id="toolbox-update-changes-title">Was sich geändert hat</h3>
+          {state.latest && <p className="toolbox-update-changes-version">In Version {state.latest}</p>}
+          {changes.points.length > 0 ? <>
+            <ul>{changes.points.slice(0, 5).map((point, index) => <li key={index}>{point}</li>)}</ul>
+            {changes.points.length > 5 && <details className="toolbox-update-more">
+              <summary tabIndex={0}>Weitere Änderungen ({changes.points.length - 5})</summary>
+              <ul>{changes.points.slice(5).map((point, index) => <li key={index}>{point}</li>)}</ul>
+            </details>}
+          </> : <p className="toolbox-update-notes-missing">Für diese Version wurden keine Änderungsnotizen mitgeliefert. Weitere Informationen findest du unter «Releases öffnen».</p>}
+        </section>}
+        {state.notes?.trim() && <details className="toolbox-update-full-notes">
+          <summary tabIndex={0}>Vollständige Release-Notizen</summary>
+          <pre className="toolbox-update-notes">{state.notes}</pre>
+        </details>}
         <label className="toolbox-update-preference">
           <input type="checkbox" checked={state.automatic} disabled={Boolean(busy)}
             onChange={e => run("preferences", { automatic: e.target.checked })} />
           Beim Programmstart nach Updates suchen
         </label>
-        {state.notes && <details><summary>Neuerungen</summary><pre className="toolbox-update-notes">{state.notes}</pre></details>}
         {confirm && <div className="toolbox-update-confirm">
-          <p>Die Toolbox schliesst sich für das Update. Danach startet sie wieder. Persönliche Daten bleiben ausserhalb des Installationsordners erhalten.</p>
+          <p>Der Toolhub schliesst sich für das Update. Danach startet er wieder. Persönliche Daten bleiben ausserhalb des Installationsordners erhalten.</p>
           <button className="btn primary" disabled={Boolean(busy)} onClick={() => run("install")}>Jetzt aktualisieren</button>
         </div>}
       </>}

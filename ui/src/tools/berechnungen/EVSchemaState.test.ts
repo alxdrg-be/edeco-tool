@@ -22,3 +22,15 @@ test("normal rated allocation and invalid inputs have distinct unambiguous state
   assert.equal(schemaState(null).grid.tone, "unknown");
   assert.equal(schemaState({ ...base, houseKW: NaN }).house.tone, "unknown");
 });
+
+test("a phase overload turns only its exceeded segment red even while aggregate kW fit", () => {
+  const r = schemaState({ ...base, totalAssignedKW: 29.6, gridAssignedKW: 29.6, nominalPerPointKW: 7.4, assignedPerPointKW: 7.4, managed: false, housePhaseCurrent: 64.35, housePhaseLimit: 125, gridPhaseCurrent: 64.35, gridPhaseLimit: 63 });
+  assert.equal(r.house.tone, "normal");
+  assert.equal(r.grid.tone, "error");
+});
+
+test("waiting stations keep the managed branch yellow even when active points receive their full rating", () => {
+  const r = schemaState({ ...base, assignedPerPointKW: 11, waitingCount: 1 });
+  assert.equal(r.grid.tone, "limited");
+  assert.equal(r.points.tone, "limited");
+});
