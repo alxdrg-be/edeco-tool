@@ -204,9 +204,9 @@
       "sha": "3916952fb9be33afe5d17ee0f2842b44081059c2",
       "reason": "Ten standalone formula calculators, pure model/data/graphics/tests and overview entry absent at checkpoint.",
       "pr": 3,
-      "status": "port_delegated_not_yet_committed_at_audit",
-      "integrationCommit": null,
-      "archiveRef": null,
+      "status": "ported_and_validated",
+      "integrationCommit": "36be2f279465987387d2e27df9cd58be294077fa",
+      "archiveRef": "refs/tags/archive/cursor-berechnungen-edeco-bca8-20261103",
       "requiredValidation": [
         "Formula models/assumptions adapted to current factors and evidence limits.",
         "Current navigation, knowledge and export retained.",
@@ -218,9 +218,9 @@
       "sha": "c7579f8b6010f5ab3a008450cc787c8f042bd9b5",
       "reason": "Document folder import/synchronisation missing; dedicated PDF page/split workflows need functional comparison.",
       "pr": 2,
-      "status": "selective_port_and_workflow_review_delegated",
-      "integrationCommit": null,
-      "archiveRef": null,
+      "status": "ported_and_validated",
+      "integrationCommit": "86f1c4c866f5e12c22fa5eb45dfc411af11de1d6",
+      "archiveRef": "refs/tags/archive/pdf-werkstatt-eigene-ui-20261103",
       "features": [
         {
           "id": "document-folders",
@@ -325,5 +325,54 @@
   ],
   "completedIntegrationCommits": [],
   "archivedRefs": [],
-  "deletionsPerformed": []
+  "deletionsPerformed": [],
+  "verifiedIntegration": {
+    "implementationCommit": "7c9d04ed821fefb2ab6c7551470241c28ddb1578",
+    "formulaHistoryMerge": "36be2f279465987387d2e27df9cd58be294077fa",
+    "pdfHistoryMerge": "86f1c4c866f5e12c22fa5eb45dfc411af11de1d6",
+    "frontendTests": 462,
+    "backendPassed": 671,
+    "backendSkipped": 29,
+    "bimTests": 76,
+    "bimSkipped": 2,
+    "sourceTreeUnchangedByHistoryMerges": true
+  },
+  "archivedBranches": [
+    {
+      "branch": "BIM2STEIGER",
+      "head": "57966d3ab15843fc99595101b32cee3032a6ec62",
+      "archiveRef": "refs/tags/archive/BIM2STEIGER-20261103"
+    },
+    {
+      "branch": "Nova-Legenden",
+      "head": "a635705b50c0fb7f051fac6cd41b6d14ed693257",
+      "archiveRef": "refs/tags/archive/Nova-Legenden-20261103"
+    },
+    {
+      "branch": "toolbox",
+      "head": "1617252874c104af994b94246c8774a0addd448e",
+      "archiveRef": "refs/tags/archive/toolbox-20261103"
+    },
+    {
+      "branch": "codex/restore-toolhub-20261103",
+      "head": "5a6bf6e6c34170a937a9e3e887e6f94048b3f88f",
+      "archiveRef": "refs/tags/archive/codex-restore-toolhub-20261103-20261103"
+    },
+    {
+      "branch": "cursor/berechnungen-edeco-bca8",
+      "head": "3916952fb9be33afe5d17ee0f2842b44081059c2",
+      "archiveRef": "refs/tags/archive/cursor-berechnungen-edeco-bca8-20261103"
+    },
+    {
+      "branch": "pdf-werkstatt-eigene-ui",
+      "head": "c7579f8b6010f5ab3a008450cc787c8f042bd9b5",
+      "archiveRef": "refs/tags/archive/pdf-werkstatt-eigene-ui-20261103"
+    },
+    {
+      "branch": "codex/presentation-review-20261103",
+      "head": "86f1c4c866f5e12c22fa5eb45dfc411af11de1d6",
+      "archiveRef": "refs/tags/archive/codex-presentation-review-20261103-20261103"
+    }
+  ],
+  "cleanupStatus": "archived; deletion follows successful main CI and release"
 }

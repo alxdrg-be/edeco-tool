@@ -15,7 +15,21 @@ Nicht per Abstammung integrierte Branch-Heads sollen zusätzlich als Archiv-Tag
 erhalten bleiben. Der Abschluss des Ports und die tatsächlichen Archiv-/Lösch-Refs
 sind vor dem Aufräumen im JSON-Journal zu ergänzen.
 
-## Übersicht
+## Geprüfte Integration
+
+Die nachstehende Tabelle dokumentiert den ursprünglichen Auditstand. Inzwischen
+sind die fehlenden Funktionen in `7c9d04ed` gezielt übernommen: PR 3 als
+Memory/Formelrechner und PR 2 als Dokumentordner sowie native PDF-Seitenabläufe.
+Die Merge-Commits `36be2f27` und `86f1c4c8` erhalten die beiden PR-Historien,
+ohne die geprüfte aktuelle Oberfläche durch alte Versionen zu ersetzen.
+
+Verifiziert: 462 Frontendtests, 671 Backend-/Browserfälle (29 übersprungen) und
+76 BIM2STEIGER-Tests (2 übersprungen). Alle sieben aufzuräumenden Branch-Heads
+sind zusätzlich unter `archive/*-20261103` auf GitHub erhalten. Die Branch-Namen
+werden nach erfolgreicher Main-Prüfung und Veröffentlichung entfernt; der
+tatsächliche Abschluss wird im JSON-Journal festgehalten.
+
+## Ursprüngliche Übersicht
 
 | Remote-Branch | geprüfter Head | eigene Commits gegenüber Checkpoint | Befund |
 | --- | --- | ---: | --- |
