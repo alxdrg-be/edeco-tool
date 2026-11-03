@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
-import { ArrowDownToLine, ArrowUpFromLine, CheckCircle2, CircleAlert, GitBranch, LayoutGrid, Link2, MousePointer2, Plus, Redo2, Trash2, Undo2, X } from "lucide-react";
+import { ArrowDownToLine, ArrowUpFromLine, CheckCircle2, ChevronDown, CircleAlert, CircleHelp, CircleX, GitBranch, LayoutGrid, Link2, MousePointer2, Plus, Redo2, Trash2, Undo2, X } from "lucide-react";
 import type { ToolProps } from "../../toolbox/modules";
 import { useProjectHub } from "../projektzentrale/projectHubState";
 import { downloadBlob } from "../planlieferung/DeliveryHistory";
@@ -16,7 +16,9 @@ import { NETWORK_COORDINATE_LIMIT, arrangeNetwork, findAttachmentParent, nextNet
 import NetworkCanvas, { NetworkSymbol, type NetworkSelection, type PaletteItem } from "./NetworkCanvas";
 import DiagnosticDetails, { type DiagnosticTarget } from "./DiagnosticDetails";
 import { buildNetworkDiagnostics, networkDiagnosticId, type NetworkDiagnostic } from "./networkDiagnostics";
+import { buildNetworkCheckpoints, summarizeNetworkCheckpoints, type NetworkCheckpoint } from "./networkCheckpoints";
 import "./network-planner.css";
+import "./network-checkpoints.css";
 
 const NORM = "NIN 2025 · 5.2.3 / 5.2.5.1 / 4.3 · radiale Niederspannungs-Vorprüfung";
 const format = (value: number | null, unit = "", digits = 2) => value === null || !Number.isFinite(value) ? "nicht ermittelt" : `${value.toLocaleString("de-CH", { maximumFractionDigits: digits })}${unit ? ` ${unit}` : ""}`;
@@ -51,6 +53,23 @@ function EdgeMetrics({ edge }: { edge: NetworkEdgeResult }) {
     <div><dt>Ik kalt · Modell</dt><dd>{format(edge.ikMaxKA, "kA", 3)}</dd></div>
     <div><dt>Ik L–PE warm · Modell</dt><dd>{format(edge.ikMinKA, "kA", 3)}</dd></div>
   </dl><details><summary>Prüfbedingungen</summary><ul className="np-checks">{edge.checks.map((check, index) => <li key={index}>{check}</li>)}</ul></details><details className="np-calculation-details"><summary>Formel mit eingesetzten Zahlen</summary><code>{edge.formula}</code></details></div>;
+}
+
+function CheckpointOverview({ checkpoints, diagnostics, onExplain }: {
+  checkpoints: NetworkCheckpoint[]; diagnostics: NetworkDiagnostic[]; onExplain: (diagnostic: NetworkDiagnostic) => void;
+}) {
+  const summary = summarizeNetworkCheckpoints(checkpoints);
+  return <section className="np-checkpoints" aria-label="Prüfübersicht mit elf Kriterien">
+    <h3>Prüfübersicht <span>11 Kriterien</span></h3>
+    <p className="np-checkpoint-counts" data-checkpoint-overall={summary.status}>{summary.passed} im Modell erfüllt · {summary.failed} fehlerhaft · {summary.open} offen</p>
+    {checkpoints.map(checkpoint => <details key={checkpoint.id} className={`np-checkpoint np-checkpoint-${checkpoint.status}`} data-network-checkpoint={checkpoint.id} data-checkpoint-status={checkpoint.status}>
+      <summary>{checkpoint.status === "passed" ? <CheckCircle2 size={16} aria-hidden="true" /> : checkpoint.status === "failed" ? <CircleX size={16} aria-hidden="true" /> : <CircleHelp size={16} aria-hidden="true" />}<span>{checkpoint.title}</span><strong>{checkpoint.status === "passed" ? "Modell erfüllt" : checkpoint.status === "failed" ? "Fehler" : "Offen"}</strong><ChevronDown size={13} aria-hidden="true" /></summary>
+      <div className="np-checkpoint-body"><p><strong>{checkpoint.summary}</strong></p><p>{checkpoint.detail}</p><p><span className="np-checkpoint-label">Grundlage / nächster Schritt</span>{checkpoint.required}</p>
+        {checkpoint.issues.map(issue => { const diagnostic = diagnostics.find(item => item.id === networkDiagnosticId(issue)); return diagnostic ? <button key={diagnostic.id} type="button" className={`np-checkpoint-issue np-tone-${issue.tone}`} onClick={() => onExplain(diagnostic)}><CircleAlert size={14} aria-hidden="true" /><span>{issue.text}<small>Erklären und zur Eingabe →</small></span></button> : null; })}
+      </div>
+    </details>)}
+    <p className="np-checkpoint-scope">Modellvorprüfung · offene Nachweise bleiben für die Fachprüfung sichtbar.</p>
+  </section>;
 }
 
 function unwrapDocument(value: unknown): NetworkDocument {
@@ -95,6 +114,9 @@ export default function NetworkPlanner(props: ToolProps) {
   const selectedEdge = selection?.kind === "edge" ? document.edges.find(edge => edge.id === selection.id) : undefined;
   const selectedEdgeResult = selectedEdge ? result.edges.find(edge => edge.id === selectedEdge.id) : undefined;
   const diagnostics = useMemo(() => buildNetworkDiagnostics(document, result), [document, result]);
+  const checkpoints = useMemo(() => buildNetworkCheckpoints(document, result), [document, result]);
+  const checkpointSummary = summarizeNetworkCheckpoints(checkpoints);
+  const displayTone = result.tone === "error" ? "error" : checkpointSummary.status === "open" ? "warning" : result.tone;
   const activeDiagnostic = explainedIssue ? diagnostics.find(item => item.id === networkDiagnosticId(explainedIssue)) : undefined;
   const selectedDiagnostics = diagnostics.filter(item => selection?.kind === "edge" ? item.issue.edgeId === selection.id : selection?.kind === "node" ? item.issue.nodeId === selection.id || item.issue.relatedNodeId === selection.id : false);
   const commit = useCallback((next: NetworkDocument) => dispatch({ type: "commit", document: next }), []);
@@ -274,6 +296,7 @@ export default function NetworkPlanner(props: ToolProps) {
     return network.nodes.find(node=>node.id===issue.nodeId)?.label ?? "Netz / Eingaben";
   }
   const reviewDiagnostics = review ? buildNetworkDiagnostics(review.document, review.result) : [];
+  const reviewCheckpoints = review ? buildNetworkCheckpoints(review.document, review.result) : [];
   return <LabShell {...props} knowledgeId="netzplaner" title="Netzplaner · NIN (Beta)" subtitle={`${NORM}${project ? ` · ${project.number} · ${project.name}` : ""}`} help={help} setHelp={setHelp} canExport={ready && currentReview} canArchive={ready} archive={{ toolId: "netzplaner", project, notes, document: archiveDocument }} pdfReport={pdfReport} exportData={exportDraft} reviewLabel="Radiales Modell · Fachprüfung offen">
     <div className="np-project-bar"><label>Netz / Projektname<input aria-label="Name des Netzplans" maxLength={120} value={document.name} disabled={!ready} onChange={event => commit({ ...document, name: event.target.value })} /></label><div className="np-project-context">{project ? <><strong>{project.number}</strong><span>{project.name}</span></> : <><strong>Ohne Projektzuordnung</strong><span>Entwurf wird lokal gespeichert</span></>}{props.onOpenTool && <button className="lab-open" onClick={() => props.onOpenTool?.("projektzentrale")}>Projektzentrale</button>}</div></div>
     <div className="np-editor-toolbar" role="toolbar" aria-label="Netzplan bearbeiten">
@@ -282,7 +305,7 @@ export default function NetworkPlanner(props: ToolProps) {
       <div className="np-toolbar-group np-files"><input type="file" ref={importInput} accept="application/json,.json" className="np-file-input" onChange={event => void importFile(event.target.files?.[0])} /><button disabled={!ready} onClick={() => importInput.current?.click()}><ArrowUpFromLine size={16} />JSON laden</button><button disabled={!ready} onClick={exportDraft} aria-label="Netzentwurf als JSON herunterladen"><ArrowDownToLine size={16} />Entwurf sichern</button><button disabled={!ready} onClick={() => loadExample(exampleNetwork(), "Verbundenes Beispielnetz geladen. Werte und offene Nachweise am Projekt prüfen.")}>Beispiel laden</button><button disabled={!ready} onClick={() => loadExample(createFloorDistributionExample(), "Zwei parallele Unterverteilungen geladen. Iz und Geräteeinstellungen sind Beispielwerte; mit Verlegeart, Leitungsdaten und Herstellerangaben des Projekts ersetzen.")}>Beispiel: 2 Unterverteilungen</button><button disabled={!ready} onClick={() => setClearOpen(true)}><Plus size={16} />Neu</button></div>
     </div>
     <div className="np-check-bar" data-network-review-state={reviewState}><div><strong>{currentReview ? "Prüfbericht aktuell" : review ? "Prüfbericht veraltet" : "Noch nicht geprüft"}</strong><span>{review ? `Prüfung ${new Date(review.checkedAt).toLocaleString("de-CH")}${currentReview ? " · aktueller Eingabestand" : " · Eingaben geändert, erneut prüfen"}` : "Live-Vorschau aktiv · Prüfbericht und PDF nach expliziter Prüfung"}</span></div><button disabled={!ready} onClick={runCheck}><CheckCircle2 size={17} />Berechnen &amp; prüfen</button></div>
-    <div className={`np-network-status np-tone-${result.tone}`} role="status">{result.tone === "error" ? <CircleAlert size={18} /> : <CheckCircle2 size={18} />}<span><small>Live-Vorschau</small>{result.status}</span><button onClick={() => { const first = diagnostics.find(item => item.tone === "error") ?? diagnostics[0]; if (first) explainDiagnostic(first); else setTab("results"); }}>{result.tone === "error" ? "Fehler anzeigen" : `${result.edges.length} Abschnitte · Details`}</button></div>
+    <div className={`np-network-status np-tone-${displayTone}`} role="status">{displayTone === "error" ? <CircleAlert size={18} /> : displayTone === "warning" ? <CircleHelp size={18} /> : <CheckCircle2 size={18} />}<span><small>Live-Vorschau</small>{result.valid && result.tone === "ok" && checkpointSummary.open ? `Rechenwerte berechnet · ${checkpointSummary.open} Prüfpunkte offen.` : result.status}</span><button onClick={() => { const first = diagnostics.find(item => item.tone === "error") ?? diagnostics[0]; if (first) explainDiagnostic(first); else setTab("results"); }}>{result.tone === "error" ? "Fehler anzeigen" : `${result.edges.length} Abschnitte · Details`}</button></div>
     <div className="np-network-summary"><div><span>Verbraucherleistung</span><strong>{result.valid ? format(result.totalPowerKW, "kW") : "–"}</strong></div><div><span>Stärkster Aussenleiter</span><strong>{result.valid ? format(result.maxCurrent, "A") : "–"}</strong></div><div><span>Grösster Spannungsfall · ganzer Pfad</span><strong>{result.valid ? format(result.maxDropPercent, "%") : "–"}</strong></div></div>
     <div className="np-editor-grid" inert={!ready}>
       <aside className="np-palette" aria-label="Bauteilpalette"><header><h2>Bauteile</h2><span>Klicken oder hineinziehen</span></header>{palette.map(group => <details open key={group.label}><summary>{group.label}</summary><div>{group.items.map(item => <button key={`${item.kind}-${item.device ?? ""}`} type="button" draggable disabled={!ready} aria-label={`${item.label} hinzufügen`} onDragEnd={() => setDragItem(null)} onDragStart={event => { setDragItem(item); event.dataTransfer.setData("application/x-edeco-network-node", JSON.stringify(item)); event.dataTransfer.effectAllowed = "copy"; }} onClick={() => add(item)}><svg viewBox="-42 -40 84 80" aria-hidden="true"><NetworkSymbol kind={item.kind} device={item.device} /></svg><span>{item.label}</span><Plus size={12} /></button>)}</div></details>)}</aside>
@@ -295,6 +318,7 @@ export default function NetworkPlanner(props: ToolProps) {
         </section> : <section role="tabpanel" aria-label="Prüfbericht"><h2>Prüfbericht · {currentReview ? "aktueller Stand" : review ? "erneute Prüfung nötig" : "noch nicht erstellt"}</h2>
           {!currentReview ? <div className="np-review-prompt"><CircleAlert size={22}/><p>{review ? "Die Eingaben wurden seit der letzten Prüfung geändert. Der frühere Prüfbericht gilt für diesen Stand nicht mehr." : "„Berechnen & prüfen“ erstellt einen dokumentierten Prüfstand mit Fehlern, offenen Angaben und Ergebnissen."}</p><button className="np-branch-add" onClick={runCheck}>Berechnen &amp; prüfen</button></div> : review && <>
             <p className="np-inspector-intro">{new Date(review.checkedAt).toLocaleString("de-CH")} · {review.result.status}</p>
+            <CheckpointOverview checkpoints={reviewCheckpoints} diagnostics={reviewDiagnostics} onExplain={explainDiagnostic} />
             {reviewDiagnostics.length ? <ul className="np-issue-list">{reviewDiagnostics.map(diagnostic=><li key={diagnostic.id} className={`np-tone-${diagnostic.tone}`} data-network-issue={diagnostic.id}><button onClick={()=>explainDiagnostic(diagnostic)} disabled={!diagnostic.targets?.length&&!diagnostic.issue.nodeId&&!diagnostic.issue.edgeId}><CircleAlert size={15}/><span><strong className="np-issue-context">{issueContext(diagnostic.issue,review.document)}</strong>{diagnostic.issue.text}</span></button><DiagnosticDetails diagnostic={diagnostic} onNavigate={navigateDiagnostic} /></li>)}</ul> : <p className="np-tone-ok">Keine zusätzlichen Hinweise im berechneten Modell.</p>}
             <h3>Geräte und Verbraucher</h3><div className="np-section-results">{review.document.nodes.map(node=>{const calculation=review.result.nodes.find(item=>item.id===node.id);return <div className={`np-review-item np-tone-${calculation?.tone??"neutral"}`} key={node.id}><button onClick={()=>select({kind:"node",id:node.id})}><span>{node.label}</span><strong>{calculation ? `${format(calculation.current,"A")} · ${format(calculation.powerKW,"kW")}` : "Nicht berechenbar · Eingaben prüfen"}</strong></button>{calculation?.checks.length ? <ul>{calculation.checks.map((check,index)=><li key={index}>{check}</li>)}</ul> : null}</div>;})}</div>
             <h3>Leitungen · Werte und Bedingungen</h3><div className="np-section-results">{review.document.edges.map(edge=>{const calculation=review.result.edges.find(item=>item.id===edge.id);return <div className={`np-review-item np-tone-${calculation?.tone??"neutral"}`} key={edge.id}><button onClick={()=>select({kind:"edge",id:edge.id})}><span>{review.document.nodes.find(node=>node.id===edge.from)?.label} → {review.document.nodes.find(node=>node.id===edge.to)?.label}</span><strong>{edge.values.length||"–"} m · {(edge.values.material??"–").toUpperCase()} {edge.values.area||"–"} mm²</strong></button>{calculation ? <EdgeMetrics edge={calculation}/> : <p>Nicht berechenbar. Die oben genannten Fehler und fehlenden Angaben zuerst korrigieren.</p>}</div>;})}</div>

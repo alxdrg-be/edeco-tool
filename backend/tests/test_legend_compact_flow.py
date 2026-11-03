@@ -28,7 +28,7 @@ def key():
     return {"rows": rows}
 
 
-@pytest.mark.parametrize("columns", [2, 3])
+@pytest.mark.parametrize("columns", [2, 3, 4])
 def test_all_items_flow_once_with_original_ids_and_indexes_and_no_overlap(columns):
     doc = flow_document(columns)
     original = deepcopy(doc)
@@ -88,6 +88,10 @@ def test_new_preset_is_default_while_stored_legacy_layout_and_explicit_raster_ar
     old = normalize({"style": {"text_size": 2.5, "columns": 2}, "blocks": []})
     assert old["style"]["compact_flow"] is False and old["style"]["columns"] == 2
     assert old["style"]["text_size"] == 2.5
+    # Saved accents are intentional document data; changing old defaults is an
+    # explicit, undoable editor preset rather than an on-read migration.
+    blue = normalize({"general_section": {"header": "#1c7ed6"}, "blocks": []})
+    assert blue["general_section"]["header"] == "#1c7ed6"
     new = propose([], [], True, {}, "L")
     assert new["style"]["compact_flow"] is True and new["style"]["columns"] == 3
     custom = flow_document(3, 2)
@@ -111,3 +115,18 @@ def test_enlarged_tall_and_wide_symbols_stay_inside_their_own_flow_row():
         assert symbol["y0"] >= row["y"] - .001
         assert symbol["y0"] + symbol["h"] <= row["y"] + row["h"] + .001
     assert rows[first["id"]]["h"] > 10
+
+
+def test_general_heading_uses_configured_accent_as_small_marker_and_thin_rule():
+    doc = flow_document(3, 2)
+    doc["general_section"].update(header="#aa2288", text="#334455", title="Allgemeiner Teil")
+    before = deepcopy(doc)
+    placed = layout(doc, {}, key())
+    marker = next(p for p in placed["prims"] if p.get("role") == "general-marker")
+    rule = next(p for p in placed["prims"] if p.get("role") == "general-rule")
+    heading = next(p for p in placed["prims"] if p["t"] == "text" and p["text"] == "Allgemeiner Teil")
+    assert marker["fill"] == rule["fill"] == "#aa2288"
+    assert marker["w"] < 1 and rule["h"] <= .2
+    assert heading["color"] == "#334455" and heading["bold"]
+    assert not any(p.get("role") == "header" for p in placed["prims"])
+    assert doc == before

@@ -69,12 +69,16 @@ def register(app):
             ai_lock.release()
 
     @app.post(PREFIX + "/connection")
-    def connection(request: Request):
+    def connection(request: Request, body: Preferences | None = None):
         authorize(request)
+        if not ai_lock.acquire(blocking=False):
+            raise HTTPException(409, "Bitte die laufende KI-Anfrage abwarten.")
         try:
-            return settings.check_connection()
+            return settings.check_connection(body.model_dump() if body is not None else None)
         except ValueError as exc:
             raise HTTPException(400, str(exc)) from None
+        finally:
+            ai_lock.release()
 
     @app.post(PREFIX + "/documents")
     async def upload(request: Request, file: UploadFile = File(...),

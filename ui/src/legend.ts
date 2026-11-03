@@ -23,6 +23,7 @@ export interface LegendItem {
   keep: boolean; // shown again on purpose, not hidden a second time
   color?: string; // plan colour of this entry, when it differs from the section
   layer_colors?: string[]; // all original plan colours; separate from semantic combination parts
+  visible_layer_colors?: string[]; // optional source-colour subset for this logical symbol only
   symbol_color?: string; // chosen colour of this one entry; the whole symbol is drawn in it
   parts?: LegendPart[]; // combined entry: further symbols beside the first, texts joined with « / »
 }
@@ -39,6 +40,7 @@ export interface LegendPart {
   mirror?: boolean;
   color?: string;
   layer_colors?: string[];
+  visible_layer_colors?: string[];
 }
 
 export const MAX_PARTS = 4;
@@ -443,6 +445,7 @@ function asPart(it: LegendItem): LegendPart {
     width_mm: it.width_mm, symbol_factor: it.symbol_factor, rotation: it.rotation, mirror: it.mirror,
     ...(it.color ? { color: it.color } : {}),
     ...(it.layer_colors ? { layer_colors: [...it.layer_colors] } : {}),
+    ...(it.visible_layer_colors ? { visible_layer_colors: [...it.visible_layer_colors] } : {}),
   };
 }
 
@@ -463,7 +466,8 @@ export function splitItem(doc: LegendDoc, blockId: string, itemId: string): Lege
   const extra = it.parts.map((p) =>
     makeItem({ kind: "symbol", family_key: p.family_key, symbol_key: p.symbol_key, text: p.text, length_mm: p.length_mm,
       width_mm: p.width_mm, symbol_factor: p.symbol_factor, rotation: p.rotation, mirror: p.mirror,
-      ...(p.color ? { color: p.color } : {}), ...(p.layer_colors ? { layer_colors: [...p.layer_colors] } : {}) }));
+      ...(p.color ? { color: p.color } : {}), ...(p.layer_colors ? { layer_colors: [...p.layer_colors] } : {}),
+      ...(p.visible_layer_colors ? { visible_layer_colors: [...p.visible_layer_colors] } : {}) }));
   return mapBlock(doc, blockId, (b) => {
     const i = b.items.findIndex((x) => x.id === itemId);
     const head = { ...b.items[i] };
@@ -481,7 +485,8 @@ export function detachPart(doc: LegendDoc, blockId: string, itemId: string, inde
   const rest = it.parts!.filter((_x, k) => k !== index);
   const single = makeItem({ kind: "symbol", family_key: p.family_key, symbol_key: p.symbol_key, text: p.text,
     length_mm: p.length_mm, width_mm: p.width_mm, symbol_factor: p.symbol_factor, rotation: p.rotation, mirror: p.mirror,
-    ...(p.color ? { color: p.color } : {}), ...(p.layer_colors ? { layer_colors: [...p.layer_colors] } : {}) });
+    ...(p.color ? { color: p.color } : {}), ...(p.layer_colors ? { layer_colors: [...p.layer_colors] } : {}),
+    ...(p.visible_layer_colors ? { visible_layer_colors: [...p.visible_layer_colors] } : {}) });
   return mapBlock(doc, blockId, (b) => {
     const i = b.items.findIndex((x) => x.id === itemId);
     const head: LegendItem = { ...b.items[i], parts: rest };

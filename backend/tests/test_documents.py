@@ -4,6 +4,8 @@ import base64
 import io
 import json
 import sys
+import threading
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import httpx
 import pytest
@@ -216,3 +218,102 @@ def test_ollama_server_rejects_public_plain_http_and_wrong_api_path(tmp_path):
     for url in ("http://example.com/api/chat", "http://8.8.8.8/api/chat", "http://ki-server:11434/"):
         with pytest.raises(ValueError):
             settings.save(url, "qwen3:4b", provider="ollama")
+
+
+@pytest.fixture
+def local_ollama():
+    """A real loopback HTTP service, so the backend path is tested without a GPU."""
+    calls = []
+
+    class Handler(BaseHTTPRequestHandler):
+        def log_message(self, *_):
+            pass
+
+        def reply(self, body):
+            data = json.dumps(body).encode()
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(data)))
+            self.end_headers()
+            self.wfile.write(data)
+
+        def do_GET(self):
+            calls.append({"method": "GET", "path": self.path, "headers": dict(self.headers)})
+            self.reply({"models": [{"name": "qwen3:4b"}]})
+
+        def do_POST(self):
+            payload = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
+            calls.append({"method": "POST", "path": self.path, "headers": dict(self.headers), "payload": payload})
+            context = json.loads(payload["messages"][1]["content"])
+            source = context["sources"][0]
+            self.reply({"message": {"content": json.dumps({"blocks": [{
+                "text": "Der Schutzleiter ist vor Inbetriebnahme zu prüfen.",
+                "source_ids": [source["id"]]}]})}})
+
+    server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    try:
+        yield f"http://127.0.0.1:{server.server_port}/api/chat", calls
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=5)
+
+
+def test_local_preview_does_not_replace_company_connection_or_forward_its_key(document_api, local_ollama):
+    client, app, headers = document_api
+    old = {"provider": "ollama", "endpoint": "http://ki-server:11434/api/chat", "model": "company-model", "api_key": "company-secret"}
+    assert client.post(PREFIX + "/settings", json=old, headers=headers).status_code == 200
+    settings = app.state.document_ai
+    before = settings.path.read_bytes()
+    endpoint, calls = local_ollama
+    candidate = {"provider": "ollama", "endpoint": endpoint, "model": "qwen3:4b"}
+    checked = client.post(PREFIX + "/connection", json=candidate, headers=headers)
+    assert checked.status_code == 200 and checked.json()["ok"] is True
+    assert [call["path"] for call in calls] == ["/api/tags"]
+    assert "Authorization" not in calls[0]["headers"]
+    assert "payload" not in calls[0]
+    assert settings.public()["endpoint"] == old["endpoint"] and settings.key == "company-secret"
+    assert settings.path.read_bytes() == before
+    missing = client.post(PREFIX + "/connection", json={**candidate, "model": "not-installed"}, headers=headers)
+    assert missing.status_code == 400 and "Modell fehlt" in missing.json()["detail"]
+    invalid = client.post(PREFIX + "/connection", json={**candidate, "endpoint": "http://8.8.8.8/api/chat"}, headers=headers)
+    assert invalid.status_code == 400
+    assert settings.path.read_bytes() == before and settings.key == "company-secret"
+    # Even a successful preview never persists the candidate. Only explicit save does.
+    saved = client.post(PREFIX + "/settings", json=candidate, headers=headers)
+    assert saved.status_code == 200 and saved.json()["endpoint"] == endpoint
+    assert settings.key == "" and settings.path.read_bytes() != before
+
+
+def test_local_ollama_answer_keeps_original_pdf_edition_and_clickable_source_metadata(document_api, local_ollama, monkeypatch):
+    client, _, headers = document_api
+    # A workstation proxy must not divert a request addressed to its own Ollama.
+    monkeypatch.setenv("HTTP_PROXY", "http://127.0.0.1:1")
+    monkeypatch.setenv("HTTPS_PROXY", "http://127.0.0.1:1")
+    monkeypatch.setenv("ALL_PROXY", "http://127.0.0.1:1")
+    monkeypatch.delenv("NO_PROXY", raising=False)
+    monkeypatch.delenv("no_proxy", raising=False)
+    endpoint, calls = local_ollama
+    candidate = {"provider": "ollama", "endpoint": endpoint, "model": "qwen3:4b"}
+    assert client.post(PREFIX + "/connection", json=candidate, headers=headers).status_code == 200
+    assert client.post(PREFIX + "/settings", json=candidate, headers=headers).status_code == 200
+    original = sample_pdf()
+    doc = client.post(PREFIX + "/documents", headers=headers, data={"edition": "Testausgabe 2025"},
+                      files={"file": ("test.pdf", original)}).json()["document"]
+    answer = client.post(PREFIX + "/ask", headers=headers, json={
+        "question": "Schutzleiter", "document_ids": [doc["id"]], "use_ai": True}).json()
+    assert answer["mode"] == "ai" and answer["blocks"][0]["source_ids"] == ["S1"]
+    source = answer["sources"][0]
+    assert source["document_id"] == doc["id"] and source["page"] == 2 and source["edition"] == "Testausgabe 2025"
+    assert source["start_line"] <= source["end_line"]
+    assert [call["path"] for call in calls] == ["/api/tags", "/api/chat"]
+    chat = calls[1]
+    assert "Authorization" not in chat["headers"] and chat["payload"]["model"] == "qwen3:4b"
+    context = json.loads(chat["payload"]["messages"][1]["content"])
+    assert len(context["sources"]) == 1 and context["sources"][0]["page"] == 2
+    assert "Vorwort" not in json.dumps(context) and "%PDF" not in json.dumps(chat["payload"])
+    page = client.get(PREFIX + f"/documents/{doc['id']}/pages/{source['page']}", headers=headers).json()
+    assert page["image"].startswith("data:image/png;base64,") and page["lines"][0]["box"]
+    assert client.get(PREFIX + f"/documents/{doc['id']}/file", headers=headers).content == original

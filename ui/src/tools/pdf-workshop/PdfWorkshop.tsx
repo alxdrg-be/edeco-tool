@@ -1,11 +1,11 @@
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type DragEvent, type FormEvent } from "react";
 import {
   ArrowLeft, ArrowLeftRight, ArrowUpRight, Award, BadgeCheck, BookOpen, CaseSensitive, Clock, CodeXml,
   Columns2, CopyPlus, Crop, Droplets, Eraser, FileArchive, FileCog, FileMinus, FilePenLine,
   FileSearch, ImageOff, ImagePlus, Images, Info, Layers, LayoutGrid, ListOrdered, ListTree,
   LockKeyhole, LockOpen, Maximize, MessageSquare, MessageSquareOff, Minimize, Palette,
   PanelsTopLeft, Paperclip, RotateCw, ScanLine, ScanText, Scissors, ScrollText, Search,
-  Settings, Shield, ShieldCheck, ShieldOff, Signature, Sparkles, Square, Stamp,
+  Settings, Shield, ShieldCheck, ShieldOff, Signature, Sparkles, Square, Stamp, X,
   TextCursorInput, Type, Workflow, Wrench, type LucideIcon,
 } from "lucide-react";
 import ToolHeader from "../../toolbox/ToolHeader";
@@ -24,6 +24,7 @@ interface Health { ready: boolean; version: string; message: string }
 interface PdfWindow extends Window { edecoPDF?: {
   hasWork: () => boolean; isReady: () => boolean;
   activateTool: (id: string) => Promise<void>; openHome: () => Promise<void>; openSettings: () => boolean;
+  importFiles: (files: readonly File[]) => Promise<void>;
 } }
 const API = "/api/tools/pdf-werkstatt";
 const RECENT_KEY = "edeco.pdf.recent-tools";
@@ -86,6 +87,10 @@ export default function PdfWorkshop({ onHome, onOpenTool }: ToolProps) {
   const [bridgeReady, setBridgeReady] = useState(false);
   const [settingsWanted, setSettingsWanted] = useState(false);
   const [cropOpened, setCropOpened] = useState(false);
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const [cropInitialFile, setCropInitialFile] = useState<File>();
+  const [cropRevision, setCropRevision] = useState(0);
+  const importingFiles = useRef<File[] | null>(null);
   const cropDirty = useRef(false);
   const frame = useRef<HTMLIFrameElement>(null);
   const tools = filterPdfTools(query, category, recent);
@@ -132,12 +137,23 @@ export default function PdfWorkshop({ onHome, onOpenTool }: ToolProps) {
 
   useEffect(() => {
     const receive = (event: MessageEvent) => {
-      if (event.origin !== window.location.origin || event.source !== frame.current?.contentWindow || event.data?.type !== "edeco-pdf-state") return;
-      setBridgeReady(event.data.ready === true);
+      if (event.origin !== window.location.origin || event.source !== frame.current?.contentWindow) return;
+      if (event.data?.type === "edeco-pdf-state") setBridgeReady(event.data.ready === true);
+      if (event.data?.type === "edeco-pdf-native-tool" && event.data.tool === "crop" && view === "stirling") {
+        const files: unknown = event.data.files;
+        if (Array.isArray(files) && files.length === 1 && files[0] instanceof File) {
+          setCropInitialFile(files[0]); setNotice("");
+        } else {
+          // Do not silently edit an older document when Core has several active files.
+          setCropInitialFile(undefined); setCropRevision(value => value + 1);
+          setNotice("Bitte die gewünschte PDF-Datei zum Zuschneiden auswählen.");
+        }
+        setSelected("crop"); setCropOpened(true); setView("crop"); setPendingTool(null); setSettingsWanted(false);
+      }
     };
     window.addEventListener("message", receive);
     return () => window.removeEventListener("message", receive);
-  }, []);
+  }, [view]);
 
   useEffect(() => {
     if (!pendingTool || !bridgeReady || view !== "stirling") return;
@@ -152,6 +168,23 @@ export default function PdfWorkshop({ onHome, onOpenTool }: ToolProps) {
   }, [pendingTool, bridgeReady, view]);
 
   useEffect(() => {
+    if (!pendingFiles.length || !bridgeReady || pendingTool || view !== "stirling" || importingFiles.current === pendingFiles) return;
+    const child = frame.current?.contentWindow as PdfWindow | null;
+    if (!child?.edecoPDF?.importFiles) return;
+    importingFiles.current = pendingFiles;
+    let alive = true;
+    void child.edecoPDF.importFiles(pendingFiles).then(() => {
+      // A palette visit during the handoff must not upload the same batch twice.
+      setPendingFiles(old => old === pendingFiles ? [] : old);
+      if (alive) setNotice("");
+    }).catch((e: Error) => {
+      importingFiles.current = null;
+      if (alive) setError(e.message);
+    });
+    return () => { alive = false; };
+  }, [pendingFiles, pendingTool, bridgeReady, view]);
+
+  useEffect(() => {
     if (!settingsWanted || !bridgeReady || view !== "stirling") return;
     const child = frame.current?.contentWindow as PdfWindow | null;
     if (child?.edecoPDF?.openSettings()) setSettingsWanted(false);
@@ -161,7 +194,7 @@ export default function PdfWorkshop({ onHome, onOpenTool }: ToolProps) {
     if (!state || busy) return;
     const changed = save && url.replace(/\/$/, "") !== state.service_url;
     const child = frame.current?.contentWindow as PdfWindow | null;
-    if (changed && (cropDirty.current || child?.edecoPDF?.hasWork())) {
+    if (changed && (pendingFiles.length || cropDirty.current || child?.edecoPDF?.hasWork())) {
       setError("Bitte die PDF-Ergebnisse speichern und die Werkstatt neu öffnen, bevor du den Dienst wechselst."); return;
     }
     setBusy("check"); setError("");
@@ -178,7 +211,7 @@ export default function PdfWorkshop({ onHome, onOpenTool }: ToolProps) {
   function requestLeave(callback: () => void) {
     if (busy === "workflow") return;
     const child = frame.current?.contentWindow as PdfWindow | null;
-    if (cropDirty.current || child?.edecoPDF?.hasWork()) setLeave(() => callback);
+    if (pendingFiles.length || cropDirty.current || child?.edecoPDF?.hasWork()) setLeave(() => callback);
     else callback();
   }
 
@@ -193,13 +226,31 @@ export default function PdfWorkshop({ onHome, onOpenTool }: ToolProps) {
   function openTool(tool: PdfTool) {
     const availability = pdfToolAvailability(tool, Boolean(state?.local), Boolean(health?.ready), capabilities);
     if (!state || !availability.enabled) { setNotice(availability.reason); return; }
+    if (tool.id === "crop" && pendingFiles.length > 1) { setError("Zum Zuschneiden bitte eine PDF-Datei bereithalten. Entferne die übrigen Dateien aus der Auswahl."); return; }
     setSelected(tool.id); setSettingsWanted(false); setError(""); setNotice(""); remember(tool.id);
-    if (tool.id === "crop") { setCropOpened(true); setView("crop"); setPendingTool(null); }
+    if (tool.id === "crop") {
+      if (pendingFiles[0]) { setCropInitialFile(pendingFiles[0]); setPendingFiles([]); }
+      setCropOpened(true); setView("crop"); setPendingTool(null);
+    }
     else { setView("stirling"); setPendingTool(tool.id); }
   }
 
   function allFunctions() { setSelected(null); setView("stirling"); setPendingTool("__home__"); setSettingsWanted(false); setError(""); }
-  function toolSettings() { setSelected(null); setPendingTool(null); setView("stirling"); setSettingsWanted(true); }
+  function toolSettings() { setSelected("__settings__"); setPendingTool(null); setView("stirling"); setSettingsWanted(true); }
+
+  function receiveDrop(event: DragEvent<HTMLElement>) {
+    if (event.defaultPrevented || !event.dataTransfer.files.length) return;
+    event.preventDefault();
+    const files = Array.from(event.dataTransfer.files);
+    if (view !== "stirling" && files.some(file => !/\.pdf$/i.test(file.name) && file.type !== "application/pdf")) {
+      setError("Bitte PDF-Dateien ablegen und anschliessend ein Werkzeug wählen."); return;
+    }
+    if (view === "crop") {
+      if (files.length > 1) { setError("Zum Zuschneiden bitte eine einzelne PDF-Datei ablegen."); return; }
+      setCropInitialFile(files[0]); setError(""); setNotice(""); return;
+    }
+    setPendingFiles(files); setError(""); setNotice("");
+  }
 
   async function workflow(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); if (!state || busy) return;
@@ -214,7 +265,9 @@ export default function PdfWorkshop({ onHome, onOpenTool }: ToolProps) {
     finally { setBusy(""); }
   }
 
-  return <div className="pdf-workshop">
+  return <div className="pdf-workshop" onDragOver={event => {
+    if (event.dataTransfer.types.includes("Files")) { event.preventDefault(); event.dataTransfer.dropEffect = "copy"; }
+  }} onDrop={receiveDrop}>
     <ToolHeader title="PDF-Werkstatt" onHome={() => requestLeave(onHome)} onOpenTool={onOpenTool ? id => requestLeave(() => onOpenTool(id)) : undefined} disabled={busy === "workflow"}>
       {health?.ready && <span className="pdf-service-badge">{state?.local ? "Offline bereit · auf diesem Computer" : `Stirling-PDF ${health.version} · interner Dienst`}</span>}
       {Boolean(state?.workflows.length) && <button className="btn" onClick={() => setWorkflows(!workflows)}>Firmenabläufe</button>}
@@ -244,6 +297,9 @@ export default function PdfWorkshop({ onHome, onOpenTool }: ToolProps) {
     {view === "catalog" && <main className="pdf-tool-home">
       <div className="pdf-tool-intro"><div><span className="pdf-eyebrow">PDF-WERKSTATT</span><h1>Was möchtest du mit deinem PDF tun?</h1><p>Werkzeug wählen. Datei öffnen. Fertig.</p></div>
         {health?.ready && <button className="btn" onClick={allFunctions}>Alle Funktionen <ArrowUpRight size={15} /></button>}</div>
+      {pendingFiles.length > 0 && <section className="pdf-pending-files" aria-label="Bereitgelegte PDF-Dateien"><p role="status">{pendingFiles.length === 1 ? "Eine PDF ist bereit. Wähle jetzt ein Werkzeug." : `${pendingFiles.length} PDFs sind bereit. Wähle jetzt ein Werkzeug.`}</p>
+        <ul>{pendingFiles.map((file, index) => <li key={`${file.name}-${index}`}><span>{file.name}</span><button className="btn" aria-label={`${file.name} aus der Auswahl entfernen`} onClick={() => setPendingFiles(old => old.filter((_, at) => at !== index))}><X size={14} /></button></li>)}</ul>
+      </section>}
       <div className="pdf-tool-filter"><label className="pdf-tool-search"><Search size={18} /><input type="search" placeholder="Werkzeug suchen …" aria-label="PDF-Werkzeug suchen" value={query} onChange={event => setQuery(event.target.value)} /></label>
         <div className="pdf-tool-tabs" role="group" aria-label="PDF-Werkzeugkategorien">{PDF_CATEGORIES.map(item => <button key={item.id} aria-pressed={category === item.id} onClick={() => setCategory(item.id)}>{item.title}</button>)}
           <button aria-pressed={category === "recent"} onClick={() => setCategory("recent")}><Clock size={13} /> Zuletzt verwendet</button></div></div>
@@ -263,9 +319,9 @@ export default function PdfWorkshop({ onHome, onOpenTool }: ToolProps) {
         {state?.local && <p>Offline werden Office-, HTML-/Webseiten-, E-Book-, Video- und KI-Konvertierung nicht mitgeliefert. OCR verwendet Tesseract ohne die erweiterten OCRmyPDF-Optionen. Zusätzliche Serverfunktionen hängen von eurer Einrichtung ab.</p>}
         <p>Für die lokale PDF-Werkstatt brauchst du kein Benutzerkonto. Das Zahnrad öffnet die PDF-Einstellungen. Bei einem Firmenserver bleibt dessen Anmeldung bestehen.</p></details>
     </main>}
-    {view === "stirling" && <div className="pdf-editor-heading"><button className="btn" onClick={() => setView("catalog")}><ArrowLeft size={16} /> Werkzeugauswahl</button><strong>{title || (settingsWanted ? "PDF-Einstellungen" : "Alle PDF-Funktionen")}</strong>{(pendingTool || settingsWanted) && <span role="status">{settingsWanted ? "Einstellungen werden geöffnet …" : "Werkzeug wird geöffnet …"}</span>}</div>}
+    {view === "stirling" && <div className="pdf-editor-heading"><button className="btn" onClick={() => setView("catalog")}><ArrowLeft size={16} /> Werkzeugauswahl</button><strong>{title || (selected === "__settings__" ? "PDF-Einstellungen" : "Alle PDF-Funktionen")}</strong>{(pendingTool || settingsWanted) && <span role="status">{settingsWanted ? "Einstellungen werden geöffnet …" : "Werkzeug wird geöffnet …"}</span>}</div>}
     {health?.ready && <div className="pdf-embedded-workspace" hidden={view !== "stirling"}><iframe ref={frame} key={revision} className="pdf-stirling-frame" title="Stirling-PDF · edeco PDF-Werkstatt" src="/tools/pdf-werkstatt/" onLoad={() => setBridgeReady(Boolean((frame.current?.contentWindow as PdfWindow | null)?.edecoPDF?.isReady()))} /></div>}
-    {cropOpened && state && <div className="pdf-native-crop" hidden={view !== "crop"}><PdfCropEditor sessionKey={state.session_key} onBack={() => setView("catalog")} onDirtyChange={dirty => { cropDirty.current = dirty; }} /></div>}
+    {cropOpened && state && <div className="pdf-native-crop" hidden={view !== "crop"}><PdfCropEditor key={cropRevision} sessionKey={state.session_key} initialFile={cropInitialFile} onBack={() => setView("catalog")} onDirtyChange={dirty => { cropDirty.current = dirty; }} /></div>}
     {leave && <LeaveDialog onClose={() => setLeave(null)} onLeave={() => { const callback = leave; setLeave(null); callback(); }} />}
   </div>;
 }

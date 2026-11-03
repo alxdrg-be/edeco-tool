@@ -4,6 +4,8 @@ import { Calculator, Check, ChevronDown, Search, Shapes, X } from "lucide-react"
 import { TOOLS, type ToolInfo } from "./catalog";
 import ToolIcon from "./ToolIcon";
 import { useDialogFocus } from "../useDialogFocus";
+import { usePresentation } from "./PresentationSettings";
+import { toolAllowed, type PresentationPolicy } from "./presentationPolicy";
 import "./toolhub-navigation.css";
 
 /** Current location comes from the host; navigation callbacks still belong to each editor. */
@@ -12,12 +14,13 @@ export function useToolhubLocation() { return useContext(ToolhubLocation); }
 
 type Kind = "tools" | "calculators";
 
-function entries(kind: Kind): readonly ToolInfo[] {
-  if (kind === "tools") return TOOLS.filter(tool => !tool.parentId);
-  const overview = TOOLS.find(tool => tool.id === "berechnungen");
+function entries(kind: Kind, policy: PresentationPolicy | null): readonly ToolInfo[] {
+  const tools = TOOLS.filter(tool => policy ? toolAllowed(tool, policy) : !tool.hiddenFromHub);
+  if (kind === "tools") return tools.filter(tool => !tool.parentId);
+  const overview = tools.find(tool => tool.id === "berechnungen");
   return [
     ...(overview ? [{ ...overview, title: "Alle Berechnungen" }] : []),
-    ...TOOLS.filter(tool => tool.parentId === "berechnungen" && !["wissens-hub", "berechnungsablage"].includes(tool.id)),
+    ...tools.filter(tool => tool.parentId === "berechnungen" && !["wissens-hub", "berechnungsablage"].includes(tool.id)),
   ];
 }
 
@@ -43,6 +46,7 @@ function NavigationPopup({ kind, trigger, close, choose, currentToolId }: {
   kind: Kind; trigger: HTMLButtonElement | null; close: () => void; choose: (id: string) => void; currentToolId: string | null;
 }) {
   const panel = useRef<HTMLDivElement>(null), search = useRef<HTMLInputElement>(null);
+  const { policy } = usePresentation();
   const [query, setQuery] = useState("");
   const [position, setPosition] = useState({ left: 16, top: 80, width: 380, maxHeight: 500 });
   useDialogFocus(panel, close);
@@ -59,7 +63,7 @@ function NavigationPopup({ kind, trigger, close, choose, currentToolId }: {
     return () => window.removeEventListener("resize", place);
   }, [trigger]);
   const words = query.toLocaleLowerCase("de-CH").trim().split(/\s+/).filter(Boolean);
-  const found = entries(kind).filter(tool => words.every(word => `${tool.title} ${tool.description} ${tool.category}`.toLocaleLowerCase("de-CH").includes(word)));
+  const found = entries(kind, policy).filter(tool => words.every(word => `${tool.title} ${tool.description} ${tool.category}`.toLocaleLowerCase("de-CH").includes(word)));
   const categories = [...new Set(found.map(tool => kind === "calculators" ? "Berechnungen" : tool.category))];
   return createPortal(<div className="toolhub-nav-overlay" onMouseDown={event => { if (event.target === event.currentTarget) close(); }}>
     <div ref={panel} className="toolhub-nav-panel" role="dialog" aria-modal="true"
@@ -77,7 +81,7 @@ function NavigationPopup({ kind, trigger, close, choose, currentToolId }: {
         {categories.map(category => <section key={category} aria-label={category}>
           {kind === "tools" && <h3>{category}</h3>}
           {found.filter(tool => kind === "calculators" || tool.category === category).map(tool => <button type="button" key={tool.id}
-            className="toolhub-nav-option" disabled={tool.status !== "available"} aria-current={tool.id === currentToolId ? "page" : undefined}
+            className="toolhub-nav-option" aria-label={tool.title} aria-description={tool.hiddenFromHub ? "Nur für Administratoren; im Toolhub ausgeblendet." : undefined} disabled={tool.status !== "available"} aria-current={tool.id === currentToolId ? "page" : undefined}
             onClick={() => { if (tool.id === currentToolId) close(); else choose(tool.id); }} onKeyDown={event => {
               if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
               event.preventDefault();
@@ -86,7 +90,7 @@ function NavigationPopup({ kind, trigger, close, choose, currentToolId }: {
               options[next]?.focus();
             }}>
             <span className={`toolhub-nav-symbol tool-color-${tool.color}`}><ToolIcon id={tool.id} /></span>
-            <span>{tool.title}{tool.status !== "available" && <small>Geplant</small>}</span>
+            <span>{tool.title}{tool.hiddenFromHub && <small>Im Toolhub ausgeblendet</small>}{tool.status !== "available" && <small>Geplant</small>}</span>
             {tool.id === currentToolId && <Check size={16} aria-hidden="true" />}
           </button>)}
         </section>)}

@@ -161,7 +161,7 @@ jobs:
             throw 'Nativer Fensterstart fehlgeschlagen'
           }
           $report = Get-Content "$env:EDECO_TOOLBOX_HOME\desktop-smoke.json" -Raw | ConvertFrom-Json
-          if (-not $report.ok -or $report.tool_count -ne 10 -or -not $report.pdf_ready) { throw 'Toolbox oder PDF-Werkstatt wurde im Programmfenster nicht gerendert' }
+          if (-not $report.ok -or $report.tool_count -lt 1 -or $report.tool_count -ne $report.expected_tool_count -or -not $report.pdf_ready) { throw 'Toolhub oder PDF-Werkstatt wurde im Programmfenster nicht gerendert' }
       - name: Installer bauen
         shell: pwsh
         run: |
@@ -182,10 +182,15 @@ jobs:
           New-Item -ItemType Directory -Force "$env:EDECO_TOOLBOX_HOME\webview" | Out-Null
           $marker = "$env:EDECO_TOOLBOX_HOME\webview\profile-marker.txt"
           Set-Content $marker 'keep-profile'
+          # Model a real in-place upgrade: obsolete hashed assets may exist.
+          $oldUi = Join-Path $installDir '_internal\ui\dist\assets'
+          New-Item -ItemType Directory -Force $oldUi | Out-Null
+          Set-Content (Join-Path $oldUi 'previous-build-ui.js') 'window.previousBuildUi = true;'
           for ($pass = 0; $pass -lt 2; $pass++) {
             $installer = Start-Process -FilePath $setup -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/NoAutoRun=1',"/DIR=`"$installDir`"" -Wait -PassThru
             if ($installer.ExitCode -ne 0) { throw "Installation fehlgeschlagen: $($installer.ExitCode)" }
             if ((Get-Content $marker).Trim() -ne 'keep-profile') { throw 'Benutzerprofil wurde verändert' }
+            if (Test-Path (Join-Path $oldUi 'previous-build-ui.js')) { throw 'Veraltete UI-Dateien blieben beim Update erhalten' }
             if (-not (Test-Path "$installDir\_internal\packaging\toolbox.ico")) { throw 'Toolbox-Icon fehlt' }
             New-NetFirewallRule -DisplayName 'edeco installed PDF offline test' -Direction Outbound -Action Block -Program "$installDir\_internal\pdf-runtime\java\bin\java.exe" -RemoteAddress '1.0.0.0-126.255.255.255','128.0.0.0-223.255.255.255','2000::/3','fc00::/7','fe80::/10' | Out-Null
             $p = Start-Process -FilePath "$installDir\edeco-Toolbox.exe" -ArgumentList '--server','--port','8798' -PassThru

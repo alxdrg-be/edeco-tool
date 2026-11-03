@@ -98,7 +98,7 @@ def named_cards(page, label):
 @pytest.fixture()
 def editor(env):
     client, tmp = env
-    ui = Path(__file__).resolve().parents[2] / "ui" / "dist"
+    ui = Path(os.environ["NOVA_TEST_UI_DIR"]) if os.environ.get("NOVA_TEST_UI_DIR") else Path(__file__).resolve().parents[2] / "ui" / "dist"
     if not (ui / "index.html").is_file():
         pytest.skip("Build the UI with npm run build before browser tests")
     ids = []
@@ -112,8 +112,10 @@ def editor(env):
     sock = socket.socket()
     sock.bind(("127.0.0.1", 0))
     port = sock.getsockname()[1]
-    server = uvicorn.Server(uvicorn.Config(
-        create_app(client.app.state.nova, ui_dir=ui), log_level="error"))
+    served_app = create_app(client.app.state.nova, ui_dir=ui)
+    # Browser role tests replace the OS identity on this isolated server only.
+    client.app.state.toolhub_presentation = served_app.state.presentation
+    server = uvicorn.Server(uvicorn.Config(served_app, log_level="error"))
     thread = threading.Thread(target=server.run, kwargs={"sockets": [sock]}, daemon=True)
     thread.start()
     deadline = time.monotonic() + 10
@@ -241,26 +243,21 @@ def test_bim_open_dialog_and_storage_failure_prevent_leaving(editor):
 
 
 @pytest.mark.parametrize("font_family", [None, "DejaVu Sans, sans-serif"], ids=["system-font", "wide-system-font"])
-def test_toolbox_shows_all_tiles_without_scroll_and_greys_only_planned_tools(editor, font_family):
+def test_toolbox_shows_core_tiles_without_scroll_and_hides_removed_extras(editor, font_family):
     page, _, _, _ = editor
     if font_family:
         page.evaluate("font => document.documentElement.style.setProperty('--font-ui', font)", font_family)
     page.set_viewport_size({"width": 1400, "height": 900})
     page.get_by_role("button", name="Zum Toolhub", exact=True).click()
-    playwright.expect(page.locator(".toolbox-card")).to_have_count(10)
+    playwright.expect(page.locator(".toolbox-card")).to_have_count(7)
     assert page.locator(".toolbox").evaluate("el => el.scrollHeight <= el.clientHeight")
     # A 900px native window also needs space for its Windows title bar.
     page.set_viewport_size({"width": 1400, "height": 860})
     assert page.locator(".toolbox").evaluate("el => el.scrollHeight <= el.clientHeight")
-    planned = ["Änderungsbericht", "Anlagetool"]
-    for name in planned:
-        tile = page.locator(".toolbox-card").filter(has=page.get_by_role("heading", name=name, exact=True))
-        playwright.expect(tile).to_be_visible()
-        playwright.expect(tile.locator(".toolbox-badge")).to_have_text("Geplant")
+    for name in ["Änderungsbericht", "Anlagetool", "Planlieferungs-Assistent"]:
+        playwright.expect(page.get_by_role("heading", name=name, exact=True)).to_have_count(0)
     playwright.expect(page.get_by_role("heading", name="Blitzschutz", exact=True)).to_have_count(0)
-    for tile in page.locator(".toolbox-card:not(.is-available)").all():
-        playwright.expect(tile.get_by_role("button")).to_be_disabled()
-        assert tile.locator(".toolbox-symbol").evaluate("el => getComputedStyle(el).filter") == "grayscale(1)"
+    playwright.expect(page.locator(".toolbox-card:not(.is-available)")).to_have_count(0)
     playwright.expect(page.get_by_role("button", name="NOVA-Legenden öffnen", exact=True)).to_be_enabled()
     playwright.expect(page.get_by_role("button", name="BIM2STEIGER öffnen", exact=True)).to_be_enabled()
     playwright.expect(page.get_by_role("button", name="Dokumenten-Assistent öffnen", exact=True)).to_be_enabled()
@@ -270,20 +267,26 @@ def test_toolbox_shows_all_tiles_without_scroll_and_greys_only_planned_tools(edi
     page.set_viewport_size({"width": 390, "height": 844})
     assert page.locator(".toolbox").evaluate("el => el.scrollWidth <= el.clientWidth")
     assert page.locator(".toolbox").evaluate("el => el.scrollHeight > el.clientHeight")
-    page.get_by_role("heading", name="Anlagetool", exact=True).scroll_into_view_if_needed()
-    playwright.expect(page.get_by_role("heading", name="Anlagetool", exact=True)).to_be_in_viewport()
+    page.get_by_role("heading", name="Berechnungen", exact=True).scroll_into_view_if_needed()
+    playwright.expect(page.get_by_role("heading", name="Berechnungen", exact=True)).to_be_in_viewport()
 
 
 def test_plan_delivery_downloads_manifest_and_records_only_explicitly_confirmed_sends(editor, tmp_path):
     import io
     import zipfile
     from test_documents import sample_pdf
-    page, _, _, _ = editor
+    page, _, client, _ = editor
+    client.app.state.toolhub_presentation.identity = "EDECO\\aduerger"
+    client.app.state.toolhub_presentation.windows = True
+    page.reload()
     prefix = page.url.rstrip("/") + "/api/tools/projektzentrale"
     state = page.request.get(prefix + "/state").json()
     project = page.request.post(prefix + "/projects", headers={"X-Edeco-Projects": state["session_key"]}, data={"number": "1498", "name": "Planlieferung Test"}).json()
     page.get_by_role("button", name="Zum Toolhub", exact=True).click()
-    page.get_by_role("button", name="Planlieferungs-Assistent öffnen", exact=True).click()
+    page.get_by_role("button", name="Werkzeuge", exact=True).click()
+    menu = page.get_by_role("dialog", name="Werkzeug wechseln", exact=True)
+    menu.get_by_role("searchbox", name="Werkzeug suchen", exact=True).fill("Planlieferungs-Assistent")
+    menu.get_by_role("button", name="Planlieferungs-Assistent", exact=True).click()
     playwright.expect(page.get_by_label("Lieferprojekt", exact=True)).to_have_value(project["id"])
     page.get_by_label("Lieferempfänger", exact=True).fill("Bauleitung Test")
     page.get_by_label("Lieferdatum", exact=True).fill("2026-11-01")
@@ -978,7 +981,7 @@ def test_the_view_menu_floats_the_settings_and_opens_the_wide_view(editor):
     view = page.get_by_role("group", name="Ansicht", exact=True)
     playwright.expect(view.get_by_role("button", name="Einstellungen schwebend")).to_be_visible()
     page.keyboard.press("Escape")
-    page.get_by_role("button", name="Editor gross", exact=True).click()
+    page.get_by_role("button", name="Editor gross öffnen", exact=True).click()
     close = page.get_by_role("button", name="Kompakt", exact=True)
     playwright.expect(close).to_be_visible()
     close.click()
@@ -1457,7 +1460,7 @@ def test_editor_space_and_view_options_do_not_change_the_exported_document(edito
     page.get_by_role("button", name="Raster anzeigen", exact=True).click()
     page.get_by_role("button", name="Dunkler Modus", exact=True).click()
     assert page.locator(".legend-paper > rect").first.evaluate("node => getComputedStyle(node).fill") == "rgb(255, 255, 255)"
-    page.get_by_role("button", name="Editor gross", exact=True).click()
+    page.get_by_role("button", name="Editor gross öffnen", exact=True).click()
     playwright.expect(page.locator(".legend-editor.windowed")).to_be_visible()
     page.locator("summary").filter(has_text="Ansicht").click()
     view_menu = page.get_by_role("group", name="Ansicht", exact=True)
@@ -1479,7 +1482,7 @@ def test_editor_space_and_view_options_do_not_change_the_exported_document(edito
     playwright.expect(view_menu).not_to_be_visible()
     playwright.expect(page.locator("summary").filter(has_text="Ansicht")).to_be_focused()
     page.set_viewport_size({"width": 1440, "height": 960})
-    page.get_by_role("button", name="Editor gross", exact=True).click()
+    page.get_by_role("button", name="Editor gross öffnen", exact=True).click()
     sheet = page.locator(".legend-paper")
     holder = page.locator(".legend-canvas")
     initial_width = float(sheet.get_attribute("width"))

@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
+import { BookOpen } from "lucide-react";
 import ToolHeader from "../../toolbox/ToolHeader";
 import type { ToolProps } from "../../toolbox/modules";
 import { request, sourceLabel, ROOT, type Answer, type DocumentInfo, type DocumentPage, type LibraryState, type Source } from "./api";
 import Settings from "./Settings";
+import QwenGuide from "./QwenGuide";
 import "./documents.css";
 
 export default function DocumentAssistant({ onHome, onOpenTool }: ToolProps) {
@@ -154,6 +156,7 @@ export default function DocumentAssistant({ onHome, onOpenTool }: ToolProps) {
       <main className="doc-conversation">
         <p className="toolbox-eyebrow">WISSEN MIT QUELLEN.</p><h2>Was möchtest du wissen?</h2>
         <p className="doc-intro">Frage zu deinen ausgewählten Unterlagen. Jede Antwort führt zurück zur Fundstelle.</p>
+        <QwenGuide onOpenSettings={() => setSettingsOpen(true)} disabled={!library || Boolean(busy)} />
         <form onSubmit={submit} className="doc-question-form">
           <label htmlFor="doc-question">Deine Frage</label>
           <textarea id="doc-question" rows={4} maxLength={2000} value={question} disabled={Boolean(busy)}
@@ -202,7 +205,7 @@ export default function DocumentAssistant({ onHome, onOpenTool }: ToolProps) {
             })}</div> : <ol className="doc-text-page">{page.lines.map(line => <li key={line.number} value={line.number}
               data-highlight={highlighted(line.number) || undefined} className={highlighted(line.number) ? "is-highlighted" : ""}>{line.text || " "}</li>)}</ol>}
           {!page.lines.length && <p className="doc-warning">Diese Seite enthält keinen durchsuchbaren Text. Für Fundstellen ist eine Texterkennung (OCR) nötig.</p>}
-        </> : <div className="doc-preview-empty"><span aria-hidden="true">↗</span><h3>Quellen direkt nachlesen</h3><p>Klicke auf eine Fundstelle, um die Seite mit markiertem Text zu öffnen. Über „Ansehen“ kannst du auch ohne Frage im Dokument blättern.</p></div>}
+        </> : <div className="doc-preview-empty"><span aria-hidden="true"><BookOpen size={36} /></span><h3>Quellen direkt nachlesen</h3><p>Klicke auf eine Fundstelle, um die Seite mit markiertem Text zu öffnen. Über „Ansehen“ kannst du auch ohne Frage im Dokument blättern.</p></div>}
       </section>
     </div>
     {settingsOpen && library && <Settings value={library.settings} sessionKey={library.session_key}

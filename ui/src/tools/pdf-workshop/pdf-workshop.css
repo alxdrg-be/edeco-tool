@@ -12,6 +12,12 @@
 .pdf-muted { color: var(--muted); font-size: 11px; }
 .pdf-connected { color: var(--ok); }
 .pdf-error { color: var(--danger); }
+.pdf-pending-files { margin-bottom:20px; padding:14px 16px; border:1px solid var(--line-strong); border-radius:10px; background:var(--panel); }
+.pdf-pending-files p { margin:0 0 9px; color:var(--fg); font-size:12px; }
+.pdf-pending-files ul { display:flex; flex-wrap:wrap; gap:8px; margin:0; padding:0; list-style:none; }
+.pdf-pending-files li { display:flex; align-items:center; gap:8px; min-width:0; max-width:100%; border:1px solid var(--line); border-radius:7px; padding:5px 6px 5px 10px; font-size:11px; }
+.pdf-pending-files li>span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.pdf-pending-files .btn { flex:none; padding:5px; }
 .pdf-workflows h2 { font-size: 19px; }
 .pdf-workflows form { display: flex; align-items: flex-end; flex-wrap: wrap; gap: 16px; }
 @media (max-width: 740px) { .pdf-service-badge { width: 100%; } .pdf-connection h1 { font-size: 25px; } }

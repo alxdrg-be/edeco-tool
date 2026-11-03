@@ -724,8 +724,12 @@ def _clip_block(block, src, win) -> None:
 def _symbol_block(doc, cache: dict, prim: dict, geo) -> str:
     layer_color = prim.get("color") or "#000000"
     flat = bool(prim.get("flat"))
+    # Line weight belongs to a physical drawing size. A differently scaled
+    # instance needs its own block so proportional PDF output cannot reuse the
+    # last instance's line factor for every occurrence of the same apparatus.
+    scale_key = f"{float(prim.get('scale') or 1.0):.8g}"
     key = (f"{prim['key']}|{prim.get('length_mm') or ''}|{prim.get('width_mm') or ''}|"
-           f"{int(bool(prim.get('hatch_off')))}{int(bool(prim.get('fill_off')))}{int(flat)}|{layer_color}")
+           f"{int(bool(prim.get('hatch_off')))}{int(bool(prim.get('fill_off')))}{int(flat)}|{layer_color}|{scale_key}")
     if key in cache:
         return cache[key]
     base = re.sub(r"[^A-Za-z0-9_\-]", "_", str(prim["key"]))[:60] or "Symbol"

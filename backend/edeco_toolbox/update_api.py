@@ -4,6 +4,7 @@ import hmac
 from urllib.parse import urlsplit
 
 from fastapi import HTTPException, Request
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from .updater import UpdateManager
@@ -27,7 +28,7 @@ def register(app):
 
     @app.get("/api/toolbox/updates")
     def status():
-        return manager.public()
+        return JSONResponse(manager.public(), headers={"Cache-Control": "no-store"})
 
     @app.post("/api/toolbox/updates/check")
     def check(request: Request):

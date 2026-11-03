@@ -3,6 +3,8 @@ import { ArrowLeft, BookOpen, ChevronRight } from "lucide-react";
 import ToolhubBrand from "./ToolhubBrand";
 import ToolhubNavigation, { useToolhubLocation } from "./ToolhubNavigation";
 import { TOOLS } from "./catalog";
+import { DemoBadge, usePresentation } from "./PresentationSettings";
+import { allowedToolId } from "./presentationPolicy";
 import "./toolhub-navigation.css";
 
 export default function ToolhubHeader({ title, onHome, onOpenTool, currentToolId, disabled, onTitleActivate,
@@ -12,6 +14,8 @@ export default function ToolhubHeader({ title, onHome, onOpenTool, currentToolId
   knowledge?: ReactNode; parent?: { label: string; onClick: () => void };
 }) {
   const location = useToolhubLocation(), id = currentToolId ?? location;
+  const { policy } = usePresentation();
+  const showKnowledge = !policy || allowedToolId("wissens-hub", TOOLS, policy);
   const calculator = TOOLS.some(tool => tool.id === id && tool.category === "Berechnungen");
   return <header className={`toolhub-header ${className}`} aria-label={`${title} · Werkzeugleiste`}>
     <button type="button" className="toolhub-home" aria-label="Startseite öffnen" title="edeco Toolhub" disabled={disabled} onClick={onHome}><ToolhubBrand /></button>
@@ -21,10 +25,11 @@ export default function ToolhubHeader({ title, onHome, onOpenTool, currentToolId
       <span className="tool-header-title" onDoubleClick={onTitleActivate}>{title}</span>
     </nav>
     <div className="toolhub-header-actions">
+      <DemoBadge />
       {onOpenTool && <>
         {calculator && <ToolhubNavigation kind="calculators" currentToolId={id} onSelect={onOpenTool} disabled={disabled} />}
         <ToolhubNavigation kind="tools" currentToolId={id} onSelect={onOpenTool} disabled={disabled} />
-        {knowledge ?? <button type="button" className="toolhub-knowledge" aria-label="Wissens-Hub" title="Wissens-Hub" disabled={disabled} onClick={() => onOpenTool("wissens-hub")}><BookOpen size={16} aria-hidden="true" /><span>Wissens-Hub</span></button>}
+        {showKnowledge && (knowledge ?? <button type="button" className="toolhub-knowledge" aria-label="Wissens-Hub" title="Wissens-Hub" disabled={disabled} onClick={() => onOpenTool("wissens-hub")}><BookOpen size={16} aria-hidden="true" /><span>Wissens-Hub</span></button>)}
       </>}
       {children}
     </div>

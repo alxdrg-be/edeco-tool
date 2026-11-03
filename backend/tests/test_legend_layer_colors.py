@@ -1,5 +1,9 @@
 """Original plan colours survive proposal, editing and logical combinations."""
 
+from copy import deepcopy
+
+import pytest
+
 from nova_legend.legend.layout import layout
 from nova_legend.legend.model import apply_company_symbols, normalize, propose, section_style
 
@@ -104,3 +108,98 @@ def test_color_variants_have_full_equal_tiles_and_stable_logical_part_indices():
     forced = [p for p in layout(doc, sizes)["prims"] if p["t"] == "symbol" and p["id"] == "many"]
     assert len(forced) == 2 and all(p["color"] == "#123456" for p in forced)
     assert len(item["layer_colors"]) == 3 and len(item["parts"]) == 1
+
+
+def test_visible_colors_normalize_to_a_source_ordered_subset_without_changing_sources():
+    source = {"blocks": [{"id": "b", "items": [{
+        "id": "i", "symbol_key": "a", "layer_colors": ["#ff0000", "#0099ff", "#00ffff"],
+        "visible_layer_colors": ["#00FFFF", "invalid", "#0099FF", "#abcdef", "#00ffff"],
+        "parts": [{"symbol_key": "b", "layer_colors": ["#00ff00", "#ffff00"],
+                   "visible_layer_colors": ["#FFFF00", "#abcdef"]}],
+    }]}]}
+    before = deepcopy(source)
+    doc = normalize(source)
+    item = doc["blocks"][0]["items"][0]
+    assert item["visible_layer_colors"] == ["#0099ff", "#00ffff"]
+    assert item["layer_colors"] == ["#ff0000", "#0099ff", "#00ffff"]
+    assert item["parts"][0]["visible_layer_colors"] == ["#ffff00"]
+    assert item["parts"][0]["layer_colors"] == ["#00ff00", "#ffff00"]
+    assert source == before
+    assert normalize(doc) == doc
+
+
+@pytest.mark.parametrize("selection", [
+    None, [], "#0099ff", {}, [None, "invalid", "#ffffff", "#abcdef"],
+    ["#0099FF", "#FF0000"], ["#ff0000", "#0099ff", "#abcdef"],
+])
+def test_empty_invalid_or_all_visible_colors_are_omitted_on_item_and_part(selection):
+    doc = normalize({"blocks": [{"id": "b", "items": [{
+        "id": "i", "symbol_key": "a", "layer_colors": ["#ff0000", "#0099ff"],
+        "visible_layer_colors": selection,
+        "parts": [{"symbol_key": "b", "layer_colors": ["#ff0000", "#0099ff"],
+                   "visible_layer_colors": selection}],
+    }]}]})
+    item = doc["blocks"][0]["items"][0]
+    assert "visible_layer_colors" not in item
+    assert "visible_layer_colors" not in item["parts"][0]
+    assert item["layer_colors"] == item["parts"][0]["layer_colors"] == ["#ff0000", "#0099ff"]
+
+
+def test_selecting_only_color_b_keeps_original_variant_index_and_can_be_reversed():
+    doc = normalize({"blocks": [{"id": "b", "items": [{
+        "id": "i", "symbol_key": "a", "layer_colors": ["#ff0000", "#0099ff"],
+        "visible_layer_colors": ["#0099ff"],
+    }]}]})
+    before = deepcopy(doc)
+    selected = [p for p in layout(doc)["prims"] if p["t"] == "symbol"]
+    assert [(p["part"], p["variant"], p["color"]) for p in selected] == [(0, 1, "#0099ff")]
+    assert doc == before
+    item = doc["blocks"][0]["items"][0]
+    item.pop("visible_layer_colors")
+    restored = [p for p in layout(doc)["prims"] if p["t"] == "symbol"]
+    assert [(p["variant"], p["color"]) for p in restored] == [(0, "#ff0000"), (1, "#0099ff")]
+    assert item["layer_colors"] == before["blocks"][0]["items"][0]["layer_colors"]
+
+
+def test_color_filter_is_local_to_each_semantic_part_and_never_hides_other_parts():
+    doc = normalize({"blocks": [{"id": "b", "items": [{
+        "id": "i", "symbol_key": "a", "text": "Einlasskasten",
+        "layer_colors": ["#ff0000", "#0099ff"], "visible_layer_colors": ["#0099ff"],
+        "parts": [
+            {"symbol_key": "b", "text": "Schalungsschoner", "layer_colors": ["#ff0000", "#00ff00"]},
+            {"symbol_key": "c", "text": "Deckel", "layer_colors": ["#ff8000", "#cc0099"],
+             "visible_layer_colors": ["#cc0099"]},
+        ],
+    }]}]})
+    before = deepcopy(doc)
+    symbols = [p for p in layout(doc)["prims"] if p["t"] == "symbol"]
+    assert [(p["part"], p["variant"], p["color"]) for p in symbols] == [
+        (0, 1, "#0099ff"), (1, 0, "#ff0000"), (1, 1, "#00ff00"), (2, 1, "#cc0099"),
+    ]
+    assert doc == before
+
+
+def test_company_combination_copies_current_part_filter_instead_of_saved_palette():
+    doc = normalize({"blocks": [{"id": "b", "items": [
+        {"id": "a", "symbol_key": "ka", "family_key": "fa", "text": "Dose",
+         "layer_colors": ["#ff0000", "#0099ff"], "visible_layer_colors": ["#ff0000"]},
+        {"id": "b", "symbol_key": "kb", "family_key": "fb", "text": "Auslass",
+         "layer_colors": ["#00ffff", "#0000ff"], "visible_layer_colors": ["#0000ff"]},
+    ]}]})
+    consumed = doc["blocks"][0]["items"][1]
+    apply_company_symbols(doc, {"fa": {"parts": [{
+        "family_key": "fb", "layer_colors": ["#ffff00"], "visible_layer_colors": ["#00ffff"],
+    }]}})
+    item = doc["blocks"][0]["items"][0]
+    part = item["parts"][0]
+    assert item["visible_layer_colors"] == ["#ff0000"]
+    assert part["layer_colors"] == ["#00ffff", "#0000ff"]
+    assert part["visible_layer_colors"] == ["#0000ff"]
+    symbols = [p for p in layout(doc)["prims"] if p["t"] == "symbol"]
+    assert [(p["part"], p["variant"], p["color"]) for p in symbols] == [
+        (0, 0, "#ff0000"), (1, 1, "#0000ff"),
+    ]
+    consumed["visible_layer_colors"].clear()
+    consumed["layer_colors"].clear()
+    assert part["visible_layer_colors"] == ["#0000ff"]
+    assert part["layer_colors"] == ["#00ffff", "#0000ff"]

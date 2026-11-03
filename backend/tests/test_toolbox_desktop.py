@@ -27,10 +27,14 @@ def test_local_desktop_probe_ignores_dead_system_proxy(monkeypatch):
 
 def test_native_probe_requires_rendered_tiles_and_records_success(tmp_path):
     events = []
-    window = SimpleNamespace(evaluate_js=lambda script: True, destroy=lambda: events.append("closed"))
+    window = SimpleNamespace(evaluate_js=lambda script: {
+        "ready": True, "tool_count": 7, "expected_tool_count": 7, "mode": "normal",
+    }, destroy=lambda: events.append("closed"))
     desktop.probe_desktop(window, tmp_path)
     import json
-    assert json.loads((tmp_path / "desktop-smoke.json").read_text())["ok"] is True
+    report = json.loads((tmp_path / "desktop-smoke.json").read_text())
+    assert report["ok"] is True
+    assert report["tool_count"] == report["expected_tool_count"] == 7
     assert events == ["closed"]
 
 

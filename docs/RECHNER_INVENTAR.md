@@ -73,9 +73,9 @@ Browserlauf zugänglich und wurden erneut geprüft. Die früheren Grenzen der
 Browsermethode sind im historischen Quellenbericht dokumentiert. Beobachtete passende Fälle,
 unzuverlässige Zwischenberichte und offene Bereiche bleiben getrennt.
 
-Der angekündigte Vergleich mit den Electrosuisse-Werkzeugen steht bis zur für
-morgen angekündigten Bereitstellung durch den Nutzer aus. Er ist noch kein
-Bestandteil des Zahlenabgleichs. Aktuelle Gesamttestzahlen und Vorschaubilder
+Das Electrosuisse-Programm und der NIN-2025-Prüfungs-Screenshot wurden inzwischen
+bereitgestellt. Die elf Prüfthemen sind sichtbar, die numerische Referenzauswertung
+ist noch nicht abgeschlossen. Aktuelle Gesamttestzahlen und Vorschaubilder
 werden nach Abschluss der laufenden Integrationsprüfung separat ausgewiesen.
 
 Quellen: [Startseite](https://www.elektro-rechner.ch/),

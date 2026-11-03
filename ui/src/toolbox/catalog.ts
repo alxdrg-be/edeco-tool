@@ -9,6 +9,7 @@ export interface ToolInfo {
   status: "available" | "awaiting-source" | "planned";
   developmentStatus?: "in-progress";
   parentId?: string;
+  hiddenFromHub?: boolean;
 }
 
 /** Planned tools need metadata only; register a loader when their implementation is ready. */
@@ -29,10 +30,8 @@ export const TOOLS: readonly ToolInfo[] = [
     description: "PDF-Dateien und Seiten mit Stirling-PDF zusammenführen, trennen, bearbeiten und konvertieren.", status: "available", developmentStatus: "in-progress" },
   { id: "projektzentrale", title: "Projektzentrale", category: "Projekte", symbol: "P", color: "gold",
     description: "Projektnummern, Kontakte, Ablageordner und Dokumentverweise verwalten; gemeinsames Projekt auswählen.", status: "available", developmentStatus: "in-progress" },
-  { id: "aenderungsbericht", title: "Änderungsbericht", category: "Projekte", symbol: "Δ", color: "orange",
-    description: "Geplant: Projektstände vergleichen und Änderungen für einen Bericht nach PDF oder Excel exportieren.", status: "planned" },
   { id: "planlieferung", title: "Planlieferungs-Assistent", category: "Projekte", symbol: "PL", color: "coral",
-    description: "PDFs prüfen und benennen, Planlisten erstellen und Lieferungen beim Projekt protokollieren.", status: "available", developmentStatus: "in-progress" },
+    description: "PDFs prüfen und benennen, Planlisten erstellen und Lieferungen beim Projekt protokollieren.", status: "available", developmentStatus: "in-progress", hiddenFromHub: true },
   { id: "berechnungen", title: "Berechnungen", category: "Berechnungen", symbol: "=", color: "orange",
     description: "Schweizer Rechenhilfen für Leitungen, Schutz, Ladeinfrastruktur, Energie und Räume mit projektbezogener Ablage.", status: "available", developmentStatus: "in-progress" },
   { id: "blitzschutz", title: "Blitzschutz", category: "Berechnungen", symbol: "⚡", color: "orange", parentId: "berechnungen",
@@ -46,12 +45,10 @@ export const TOOLS: readonly ToolInfo[] = [
     description: "Geplant: Verbraucher erfassen, Leistungen mit Gleichzeitigkeitsfaktoren je Verteilung zusammenstellen.", status: "planned" },
   { id: "kabelberechnung", title: "Kabelberechnung", category: "Berechnungen", symbol: "mm²", color: "blue", parentId: "berechnungen",
     description: "Schweizer Spannungsfall-Vorprüfung mit Leiterwiderständen bei 55 °C, Live-Leitungsmodell und Querschnittsvergleich.", status: "available", developmentStatus: "in-progress" },
-  { id: "anlagetool", title: "Anlagetool", category: "Elektroplanung", symbol: "A", color: "green",
-    description: "Geplant: Anlagen, Verteilungen und Stromkreise strukturiert erfassen und dokumentieren.", status: "planned" },
 ];
 
-export function filterTools(query: string, category: string, parentId?: string): readonly ToolInfo[] {
+export function filterTools(query: string, category: string, parentId?: string, includeHidden = false): readonly ToolInfo[] {
   const words = query.toLocaleLowerCase("de-CH").trim().split(/\s+/).filter(Boolean);
-  return TOOLS.filter(tool => tool.parentId === parentId && (category === "Alle" || tool.category === category) &&
+  return TOOLS.filter(tool => tool.parentId === parentId && (includeHidden || !tool.hiddenFromHub) && (category === "Alle" || tool.category === category) &&
     words.every(word => `${tool.title} ${tool.description} ${tool.category}`.toLocaleLowerCase("de-CH").includes(word)));
 }

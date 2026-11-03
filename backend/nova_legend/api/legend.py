@@ -586,6 +586,7 @@ def register(app: FastAPI, st, project, evaluator, category_colors) -> None:
         return normalize_style({"grid": s.get("grid", DEFAULT_GRID), "text_size": s.get("text_size", c["text_size"]),
                                 "symbol_scale": s.get("symbol_scale", c["symbol_scale"]),
                                 "columns": s.get("columns", 3), "compact_flow": s.get("compact_flow", True),
+                                "margin": s.get("margin", MARGIN),
                                 "hatch_off": s.get("hatch_off", c["hatch_off"]),
                                 "fill_off": s.get("fill_off", c["fill_off"])})
 

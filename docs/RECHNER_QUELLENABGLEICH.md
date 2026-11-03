@@ -119,6 +119,7 @@ Schutzbedingungen werden modellbezogen geprüft. Eine vollständige numerische
 Übereinstimmung mit dem Beta-Anbieter oder NIN-Freigabe ist nicht behauptet.
 
 Aktuelle Gesamtprüfung und neue Vorschaubilder werden separat nach Abschluss
-der Integrationschecks berichtet. Der angekündigte Electrosuisse-Vergleich steht
-bis zur Bereitstellung durch den Nutzer aus. Arthur-Flury-Blitzschutz behält seine
+der Integrationschecks berichtet. Das bereitgestellte Electrosuisse-Programm und
+der NIN-2025-Screenshot werden ausgewertet; elf Prüfthemen sind sichtbar, eine
+vollständige numerische Gleichwertigkeit ist noch nicht belegt. Arthur-Flury-Blitzschutz behält seine
 separat dokumentierten Zahlenfälle und den bisherigen Druck-/PDF-Weg.

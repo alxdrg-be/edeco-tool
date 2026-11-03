@@ -1,6 +1,7 @@
 /* Small integration hook. PDF operations remain entirely in Stirling Core. */
 (() => {
   let hasWork = false;
+  let lastFiles = [];
   const root = "/tools/pdf-werkstatt/";
   const toolIds = new Set(['pdfTextEditor','multiTool','merge','certSign','timestampPdf','sign','addText','addImage','annotate','addPassword','watermark','addStamp','sanitize','flatten','unlockPDFForms','formFill','autoFormDetection','changePermissions','getPdfInfo','validateSignature','read','changeMetadata','editTableOfContents','crop','rotate','autoRotate','split','reorganizePages','scalePages','addPageNumbers','pageLayout','bookletImposition','pdfToSinglePage','addAttachments','createPortfolio','extractPages','extractImages','removePages','removeBlanks','removeAnnotations','removeImage','removePassword','removeCertSign','automate','autoRename','adjustContrast','repair','scannerImageSplit','overlayPdfs','replaceColor','showJS','compare','classify','compress','convert','ocr','redact']);
   let applicationReady = false;
@@ -41,6 +42,16 @@
     },
     openHome: async () => { await waitReady(); navigation(root); await settle(); },
     openSettings,
+    importFiles: async files => {
+      await waitReady();
+      const picker = document.querySelector('input[type="file"]');
+      if (!picker) throw new Error("Die Dateiauswahl ist noch nicht bereit. Bitte erneut versuchen.");
+      const transfer = new DataTransfer();
+      for (const file of files) transfer.items.add(file);
+      picker.files = transfer.files;
+      picker.dispatchEvent(new Event("change", { bubbles: true }));
+      await settle();
+    },
   };
   let previousReady = null;
   const publish = () => {
@@ -70,6 +81,14 @@
   };
   if (document.body) observe(); else document.addEventListener("DOMContentLoaded", observe, { once: true });
   document.addEventListener("click", event => {
+    const action = event.target instanceof Element ? event.target.closest('button, a, [role="button"]') : null;
+    const label = (action?.getAttribute("aria-label") || action?.getAttribute("title") || action?.textContent || "").trim();
+    if (window.parent !== window && (action?.getAttribute("data-tour") === "tool-button-crop" || /^(?:PDF zuschneiden|Zuschneiden|Crop PDF|Crop)$/i.test(label))) {
+      event.preventDefault(); event.stopImmediatePropagation();
+      const pdfFiles = lastFiles.filter(file => file.type === "application/pdf" || /\.pdf$/i.test(file.name));
+      window.parent.postMessage({ type: "edeco-pdf-native-tool", tool: "crop", files: pdfFiles.length === 1 ? pdfFiles : [] }, window.location.origin);
+      return;
+    }
     const target = event.target instanceof Element ? event.target.closest(".edeco-settings-control") : null;
     if (window.edecoOffline && target && openSettings()) { event.preventDefault(); event.stopPropagation(); }
   }, true);
@@ -86,10 +105,12 @@
     window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", syncTheme);
   } catch { /* The complete integration uses the same-origin Toolbox proxy. */ }
   document.addEventListener("change", event => {
-    if (event.target instanceof HTMLInputElement && event.target.type === "file" && event.target.files?.length) hasWork = true;
+    if (event.target instanceof HTMLInputElement && event.target.type === "file" && event.target.files?.length) {
+      hasWork = true; lastFiles = Array.from(event.target.files);
+    }
   }, true);
   document.addEventListener("drop", event => {
-    if (event.dataTransfer?.files?.length) hasWork = true;
+    if (event.dataTransfer?.files?.length) { hasWork = true; lastFiles = Array.from(event.dataTransfer.files); }
   }, true);
   const originalFetch = window.fetch;
   window.fetch = function(input, init) {

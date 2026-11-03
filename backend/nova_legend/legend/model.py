@@ -86,6 +86,17 @@ def original_colors(value, fallback: str = "") -> list[str]:
     return out[:256]
 
 
+def selected_original_colors(value, originals: list[str]) -> list[str]:
+    """A reversible display-only subset; empty/invalid/all means every variant.
+
+    Source colours are never removed, and a selection belongs only to one
+    logical apparatus, not to further semantic parts of a combination.
+    """
+    requested = set(original_colors(value))
+    selected = [color for color in originals if color in requested]
+    return selected if selected and len(selected) < len(originals) else []
+
+
 def _rgb(color: str) -> tuple[int, int, int]:
     return int(color[1:3], 16), int(color[3:5], 16), int(color[5:7], 16)
 
@@ -149,7 +160,7 @@ def default_style(text_size: float = DEFAULT_TEXT_SIZE, symbol_scale: float = DE
             "frame_on": False, "frame": "#000000"}
 
 
-GENERAL_HEADER = "#808080"      # grey, as the company colour of the category «Allgemein»
+GENERAL_HEADER = "#007f91"      # company accent for the general heading and its fine rule
 
 
 def _general_section(value) -> dict:
@@ -157,8 +168,6 @@ def _general_section(value) -> dict:
     v = value if isinstance(value, dict) else {}
     title = str(v.get("title") or "Allgemein").strip()[:200] or "Allgemein"
     header = _hex(v.get("header"), GENERAL_HEADER)
-    if header == "#1c7ed6":
-        header = GENERAL_HEADER          # the former blue default: «Allgemein» is grey now
     legacy_text = _hex(v.get("header_text"), "#000000")
     return {"title": title, "header": header,
             "text": _hex(v.get("text"), "#000000" if legacy_text.lower() == "#ffffff" else legacy_text),
@@ -195,7 +204,10 @@ def normalize_style(value) -> dict:
     grid = GRID_CUSTOM if named == GRID_CUSTOM else named if named in GRIDS else "standard"
     style = default_style(_num(v.get("text_size"), DEFAULT_TEXT_SIZE, 1.0, 10.0),
                           _num(v.get("symbol_scale"), DEFAULT_SYMBOL_SCALE, 0.2, 5.0),
-                          3 if int(_num(v.get("columns"), 2)) >= 3 else 2)
+                          int(_num(v.get("columns"), 2, 2, 4)))
+    # An inner drawing margin is independent of the PDF's fixed outer 5 mm.
+    # Older legends have no field and keep their original five millimetres.
+    style["margin"] = _num(v.get("margin"), MARGIN, 2, 10)
     # Stored legends without the new preset keep their earlier section layout.
     style["compact_flow"] = v.get("compact_flow") is True
     style["grid"] = grid
@@ -321,6 +333,9 @@ def _item(it, uid) -> dict | None:
     if variants:
         item["layer_colors"] = variants
         item.setdefault("color", variants[0])
+    visible = selected_original_colors(it.get("visible_layer_colors"), variants)
+    if visible:
+        item["visible_layer_colors"] = visible
     # a colour chosen for this entry alone: the whole symbol is drawn in it
     forced = it.get("symbol_color") or ""
     if isinstance(forced, str) and _HEX.match(forced) and forced.lower() != "#ffffff":
@@ -354,6 +369,9 @@ def _part(p) -> dict | None:
     if variants:
         out["layer_colors"] = variants
         out.setdefault("color", variants[0])
+    visible = selected_original_colors(p.get("visible_layer_colors"), variants)
+    if visible:
+        out["visible_layer_colors"] = visible
     return out
 
 
@@ -404,6 +422,8 @@ def apply_company_symbols(doc: dict, company_symbols: dict) -> dict:
                 part["color"] = oi["color"]
             if oi.get("layer_colors"):
                 part["layer_colors"] = list(oi["layer_colors"])
+            if oi.get("visible_layer_colors"):
+                part["visible_layer_colors"] = list(oi["visible_layer_colors"])
             parts.append(part)
             ob["items"] = [x for x in ob["items"] if x is not oi]
             taken.add(p["family_key"])

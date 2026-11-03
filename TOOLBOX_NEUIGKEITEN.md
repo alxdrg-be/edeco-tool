@@ -1,3 +1,15 @@
+## Präsentation, A4-Legenden und verlässliche Updates · 3. November 2026
+
+- Updates laden die aktuelle Oberfläche auch bei bestehendem WebView-Profil. Veraltete UI-Dateien werden beim Installieren entfernt; persönliche Profildaten bleiben erhalten.
+- NOVA-Legenden mit deutlich sichtbarer grosser Bearbeitungsansicht, rückgängig machbaren Kompaktvorlagen und einzeln wählbaren Farbvarianten. Originalvarianten bleiben gespeichert. Der Allgemeinteil erhält einen einstellbaren Farbakzent.
+- Optionales Layout «A4 kompakt» mit vier Spalten und engeren Abständen. Die Seitenhöhe folgt weiterhin dem tatsächlichen Inhalt; Symbole werden nicht pauschal kleingerechnet.
+- PDF-Werkstatt: Werkzeugkacheln vor dem Dateiimport. Hineingezogene Dateien bleiben bis zur Werkzeugwahl bereit; Zuschneiden öffnet den grossen Editor. Lokale Einstellungen benötigen kein Benutzerkonto.
+- Demo-Modus mit NOVA-Legenden, Berechnungen, Dateien umbenennen und PDF-Werkstatt. Admins werden über die Windows-Anmeldung zugeordnet; vorbelegt sind aduerger und nstrauss.
+- Änderungsbericht und Anlagentool erscheinen nicht mehr im Hub. Planlieferung bleibt erhalten und ist nur für Admins über die Werkzeugnavigation erreichbar.
+- Updates zeigen Downloadfortschritt mit MB, Prozent und den Schritten Herunterladen, Prüfen und Setup starten.
+- Dokumenten-Assistent mit aufklappbarer Qwen-/Ollama-Anleitung bis zur PDF-Fundstelle. Eine lokale Verbindung kann ohne Überschreiben der Firmenverbindung getestet werden.
+- Netzplaner mit elf aufklappbaren Prüfthemen. Nicht implementierte oder nicht belegte PEN-, I²t-, RCD- und Herstellernachweise bleiben ausdrücklich offen; dies ist keine vollständige Electrosuisse- oder NIN-Freigabe.
+
 ## Kompakte Legenden, PDF-Werkzeuge und gezielte Fehlerhilfe · 3. November 2026
 
 - NOVA-Legenden mit klarem Rückweg zu den Projekten, grossem Editor innerhalb des Toolhubs, Dokumentzoom am Mauszeiger und Handmodus. Ausführliche Hinweise bleiben hinter Info- und Aufklappfeldern.

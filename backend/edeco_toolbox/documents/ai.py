@@ -1,4 +1,4 @@
-"""OpenAI-compatible question answering. No files or tools are sent to the model."""
+"""Ollama and OpenAI-compatible answers. No files or tools are sent to the model."""
 
 import base64
 import ctypes
@@ -23,6 +23,14 @@ Antworte nur als JSON: {"blocks":[{"text":"Aussage", "source_ids":["S1"]}]}.
 Jeder Absatz braucht mindestens eine passende Quellen-ID aus der Eingabe.
 Wenn die Frage nicht aus den Quellen beantwortbar ist, gib {"blocks":[]} zurück.
 Keine Markdown-Links, keine zusätzlichen Felder. Maximal acht kurze Absätze."""
+
+
+def _loopback(endpoint: str) -> bool:
+    host = (urlsplit(endpoint).hostname or "").lower()
+    try:
+        return ipaddress.ip_address(host).is_loopback
+    except ValueError:
+        return host == "localhost"
 
 
 def protect(data: bytes, decrypt=False) -> bytes:
@@ -77,7 +85,8 @@ class AISettings:
                 "configured": ready,
                 "key_persistent": sys.platform == "win32"}
 
-    def save(self, endpoint: str, model: str, api_key: str = "", clear_key: bool = False, provider: str = "openai"):
+    def _prepare(self, endpoint: str, model: str, api_key: str = "", clear_key: bool = False, provider: str = "openai"):
+        """Validate a proposed connection without changing the saved connection."""
         endpoint, model = endpoint.strip(), model.strip()
         url = urlsplit(endpoint)
         sensitive_query = any(name.lower() in {"key", "api_key", "api-key", "token", "access_token", "authorization"}
@@ -102,6 +111,10 @@ class AISettings:
                           or urlsplit(self.values.get("endpoint", "")).netloc != url.netloc)
         key = "" if clear_key else (api_key.strip() or ("" if changed_server else self.key))
         values = {"provider": provider, "endpoint": endpoint, "model": model}
+        return values, key
+
+    def save(self, endpoint: str, model: str, api_key: str = "", clear_key: bool = False, provider: str = "openai"):
+        values, key = self._prepare(endpoint, model, api_key, clear_key, provider)
         if key and sys.platform == "win32":
             values["protected_key"] = base64.b64encode(protect(key.encode("utf-8"))).decode("ascii")
         self.path.parent.mkdir(parents=True, exist_ok=True)
@@ -132,7 +145,8 @@ class AISettings:
             payload.update(stream=False, format="json", think=False,
                            options={"temperature": 0, "num_predict": 1400, "num_ctx": 8192})
         try:
-            with httpx.Client(timeout=httpx.Timeout(180 if ollama else 60, connect=15), follow_redirects=False) as client:
+            with httpx.Client(timeout=httpx.Timeout(180 if ollama else 60, connect=15), follow_redirects=False,
+                              trust_env=not (ollama and _loopback(endpoint))) as client:
                 response = client.post(endpoint, headers=headers, json=payload)
             if response.status_code in {401, 403}:
                 raise ValueError("Der KI-Zugang wurde abgelehnt. Bitte Schlüssel und Berechtigung prüfen.")
@@ -145,17 +159,18 @@ class AISettings:
         except (httpx.HTTPError, KeyError, IndexError, TypeError, json.JSONDecodeError):
             raise ValueError("Keine verwendbare KI-Antwort erhalten. Die gefundenen Originalstellen bleiben verfügbar.") from None
 
-    def check_connection(self):
-        if self.public()["provider"] != "ollama" or not self.public()["configured"]:
-            raise ValueError("Bitte zuerst die Ollama-Serveradresse und das Modell speichern.")
-        endpoint = self.public()["endpoint"].rstrip("/").removesuffix("/api/chat") + "/api/tags"
-        headers = {"Authorization": "Bearer " + self.key} if self.key else {}
+    def check_connection(self, candidate: dict | None = None):
+        values, key = self._prepare(**candidate) if candidate is not None else (self.values, self.key)
+        if values.get("provider", "ollama") != "ollama" or not values.get("endpoint") or not values.get("model"):
+            raise ValueError("Bitte zuerst die Ollama-Serveradresse und das Modell eintragen.")
+        endpoint = values["endpoint"].rstrip("/").removesuffix("/api/chat") + "/api/tags"
+        headers = {"Authorization": "Bearer " + key} if key else {}
         try:
-            with httpx.Client(timeout=10, follow_redirects=False) as client:
+            with httpx.Client(timeout=10, follow_redirects=False, trust_env=not _loopback(endpoint)) as client:
                 response = client.get(endpoint, headers=headers)
             response.raise_for_status()
             models = [item["name"] for item in response.json()["models"]]
-            model = self.public()["model"]
+            model = values["model"]
             if model not in models and model + ":latest" not in models:
                 raise ValueError("Server erreichbar, aber das gewählte Modell fehlt. Auf dem KI-Server zuerst mit ollama pull herunterladen.")
             return {"ok": True, "message": f"KI-Server erreichbar. {model} ist verfügbar. Es wurden keine Dokumenttexte übertragen."}

@@ -57,7 +57,7 @@ import { SaveSession } from "../saveSession";
 import { useNavigation } from "../Navigation";
 import Menu from "./Menu";
 import { ArrowLeft, Hand, Maximize2, Minimize2, Minus, Plus } from "lucide-react";
-import { legendItemColors, legendLayerColors } from "../legendViewport";
+import { a4CompactLegendDocument, compactLegendDocument, legendItemColors, legendLayerColors, legendVisibleItemColors, legendVisibleLayerColors, type LayerColorSource } from "../legendViewport";
 import { useLegendViewport } from "../useLegendViewport";
 import "./LegendEditor.css";
 
@@ -901,6 +901,8 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
   const W = shown?.width ?? 200;
   const H = shown?.height ?? 100;
   const setStyle = (patch: Partial<LegendDoc["style"]>) => change({ ...doc, style: { ...style, ...patch } });
+  const applyCompact = () => change(compactLegendDocument(doc));
+  const applyA4 = () => change(a4CompactLegendDocument(doc));
 
   return (
     <>
@@ -914,10 +916,17 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
           <div><strong>{info.legend?.name || "Legende"}</strong><span className="hint legend-sheet-size">{W} × {H} mm</span></div>
           <InfoTip text="Die Blatthöhe folgt dem Inhalt. Änderungen werden automatisch gespeichert. Der Ansichtzoom verändert weder die Zeichnungsmasse noch den Export." />
         </div>
-        <button type="button" className="btn small" aria-pressed={windowed} onClick={() => setWindowed(value => !value)}>
-          {windowed ? <Minimize2 size={14} /> : <Maximize2 size={14} />}{windowed ? "Kompakt" : "Editor gross"}
+        <button type="button" className="btn legend-expand-button" aria-pressed={windowed} onClick={() => setWindowed(value => !value)} title={windowed ? "Zur eingebetteten Ansicht zurückkehren" : "Grosse Arbeitsfläche für die Legende innerhalb des Toolhubs öffnen"}>
+          {windowed ? <Minimize2 size={16} /> : <Maximize2 size={16} />}{windowed ? "Kompakt" : "Editor gross öffnen"}
         </button>
       </div>
+      {(!style.compact_flow || style.row > 9) && <div className="legend-layout-notice">
+        <span>Gespeichertes Layout <InfoTip text="Diese Legende verwendet ihre bisherigen Abstände und Grössen. Die kompakte Vorlage setzt drei Apparatespalten, ein dichtes Raster, 2,8 mm Schrift und kleinere Abstände. Inhalte, Zuordnungen und Originalfarben bleiben erhalten. Die Änderung lässt sich mit Rückgängig zurücknehmen." /></span>
+        <div className="row" style={{ gap: 6, flexWrap: "wrap" }}>
+          <button className="btn small" onClick={applyCompact}>Kompakte Vorlage anwenden</button>
+          <button className="btn small" onClick={applyA4} title="Vier Spalten, kompakte Abstände. Die Seitenhöhe folgt dem Inhalt.">A4 kompakt</button>
+        </div>
+      </div>}
       {generalBox}
       <div className="legend-toolbar">
         {bar.has("history") && (
@@ -996,6 +1005,7 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
                 <select className="select" value={style.columns} onChange={(e) => setStyle({ columns: Number(e.target.value) })}>
                   <option value={2}>2</option>
                   <option value={3}>3</option>
+                  <option value={4}>4</option>
                 </select>
               </label>
             )}
@@ -1070,8 +1080,11 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
           {!bar.has("gridlines") && (
             <button className={`btn small ${showGrid ? "is-on" : ""}`} aria-pressed={showGrid} onClick={toggleGrid}>Raster anzeigen</button>
           )}
-          <button className={`btn small ${style.compact_flow ? "is-on" : ""}`} aria-pressed={Boolean(style.compact_flow)} onClick={() => setStyle({ compact_flow: true, columns: 3 })}>
-            Kompakt wie Vorlage
+          <button className={`btn small ${style.compact_flow && style.columns !== 4 ? "is-on" : ""}`} aria-pressed={Boolean(style.compact_flow && style.columns !== 4)} onClick={applyCompact}>
+            Dichte wie Entwurf
+          </button>
+          <button className={`btn small ${style.compact_flow && style.columns === 4 ? "is-on" : ""}`} aria-pressed={Boolean(style.compact_flow && style.columns === 4)} onClick={applyA4} title="Vier Spalten, kompakte Abstände. Die Seitenhöhe folgt dem Inhalt.">
+            A4 kompakt
           </button>
           <button className={`btn small ${detached ? "is-on" : ""}`} aria-pressed={detached} onClick={() => setDetached((v) => !v)}>
             {detached ? "Einstellungen andocken" : "Einstellungen schwebend"}
@@ -1171,13 +1184,13 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
                     {...dragProps({ type: "move", block: b.id, item: it.id })}
                     {...dropProps({ block: b.id, before: it.id })}
                   >
-                    {it.kind === "symbol" && it.symbol_key ? <span className="legend-outline-symbols">{[it, ...(it.parts ?? [])].flatMap((part, partIndex) => (it.symbol_color ? [it.symbol_color] : legendLayerColors(part).length ? legendLayerColors(part) : [b.style.symbol]).map(color => <SymIcon key={`${partIndex}:${color}`} r={symbols[symbolRequestKey({ symbol_key: part.symbol_key, length_mm: null, width_mm: null, flat: Boolean(it.symbol_color) })]} color={color} />))}</span> : null}
+                    {it.kind === "symbol" && it.symbol_key ? <span className="legend-outline-symbols">{[it, ...(it.parts ?? [])].flatMap((part, partIndex) => (it.symbol_color ? [it.symbol_color] : legendVisibleLayerColors(part).length ? legendVisibleLayerColors(part) : [b.style.symbol]).map(color => <SymIcon key={`${partIndex}:${color}`} r={symbols[symbolRequestKey({ symbol_key: part.symbol_key, length_mm: null, width_mm: null, flat: Boolean(it.symbol_color) })]} color={color} />))}</span> : null}
                     {it.kind === "line" ? "― " : it.kind === "note" ? "◐ " : it.kind === "text" ? "¶ " : ""}
                     <span className="outline-text">{entryText(it) || "(ohne Text)"}</span>
                     {companyKey(it) && descriptions[companyKey(it)!] === it.text.trim() && (
                       <span className="badge company" title="Dieser Text ist der Firmentext">F</span>
                     )}
-                    {multicolorIds.has(it.id) && <span className="badge layer-variant-badge">{legendItemColors(it).length} Farben</span>}
+                    {multicolorIds.has(it.id) && <span className="badge layer-variant-badge">{legendVisibleItemColors(it).length < legendItemColors(it).length ? `${legendVisibleItemColors(it).length}/${legendItemColors(it).length}` : legendItemColors(it).length} Farben</span>}
                     {it.hidden && <span className="badge">im Allgemeinteil</span>}
                     {dups.has(it.id) && <span className="badge warn">doppelt</span>}
                     {stale.has(it.id) && <span className="badge weg">nicht im Projekt</span>}
@@ -1458,6 +1471,8 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
               info={info}
               field={field}
               setStyle={setStyle}
+              onCompact={applyCompact}
+              onA4={applyA4}
               projectId={projectId}
               notify={notify}
               exportBlock={exportBlock}
@@ -1790,6 +1805,37 @@ function SymIcon({ r, color = "#000000" }: { r?: SymbolRender; color?: string })
   );
 }
 
+/** Source-colour repetitions belong to one logical apparatus. Semantic parts
+ * get independent controls, so choosing red never removes its UP/AP partner. */
+function ColorVariantChoice({ source, label, onChoose, overridden = false }: {
+  source: LayerColorSource;
+  label: string;
+  onChoose: (colors: string[]) => void;
+  overridden?: boolean;
+}) {
+  const colors = legendLayerColors(source);
+  if (colors.length < 2) return null;
+  const visible = legendVisibleLayerColors(source);
+  const selected = overridden ? "override" : visible.length === colors.length ? "all" : visible.length === 1 ? visible[0] : "subset";
+  const colorName = (index: number) => `Farbe ${index < 26 ? String.fromCharCode(65 + index) : index + 1}`;
+  return <div className="field legend-color-variant-field">
+    <span>Farbvarianten <InfoTip text="Alle zeigt die Originalfarben nebeneinander. Mit Nur Farbe A/B zeigst du eine Quellfarbe dieses Symbols. Die Auswahl wird in dieser Legende gespeichert und auch exportiert. Die anderen Originalfarben bleiben erhalten; weitere kombinierte Apparate werden nicht entfernt. Eine eigene Symbolfarbe wird bei dieser Auswahl zurückgesetzt." /></span>
+    <div className="legend-color-options" role="group" aria-label={label}>
+      {colors.length > 4 ? <select className="select" aria-label={label} value={selected} onChange={event => onChoose(event.target.value === "all" ? [] : [event.target.value])}>
+        <option value="all">Alle Farben</option>
+        {(selected === "override" || selected === "subset") && <option value={selected} disabled>{selected === "override" ? "Eigene Symbolfarbe aktiv" : `${visible.length} Farben gewählt`}</option>}
+        {colors.map((color, index) => <option key={color} value={color}>Nur {colorName(index)} · {color.toUpperCase()}</option>)}
+      </select> : <>
+        <button type="button" aria-pressed={selected === "all"} onClick={() => onChoose([])}>Alle</button>
+        {colors.map((color, index) => <button key={color} type="button" aria-pressed={selected === color} title={color.toUpperCase()} onClick={() => onChoose([color])}>
+          <span className="legend-choice-swatch" style={{ background: color }} aria-hidden="true" />Nur {colorName(index)}
+        </button>)}
+      </>}
+    </div>
+    {overridden && <small className="hint">Eigene Symbolfarbe aktiv</small>}
+  </div>;
+}
+
 /** Mix a colour with white (share 0 = colour, 1 = white). */
 function tint(color: string, share: number): string {
   if (!/^#[0-9a-f]{6}$/i.test(color)) return color;
@@ -2082,6 +2128,7 @@ function ItemProps({
         )}
       </div>
       <details className="legend-help"><summary>Grösse und Massstab</summary><div>Faktor 1 verwendet die gemeinsame Grösse. Faktor 1,2 vergrössert diesen Eintrag; seine Zeile wächst bei Bedarf mit.</div></details>
+      {item.kind === "symbol" && <ColorVariantChoice source={item} label="Farbvarianten Symbol 1" overridden={Boolean(item.symbol_color)} onChoose={colors => set({ visible_layer_colors: colors, symbol_color: "" })} />}
       {(item.kind === "symbol" || item.kind === "line" || item.kind === "note") && (
         <div className="field">
           <span>Symbolfarbe</span>
@@ -2089,7 +2136,7 @@ function ItemProps({
             <input
               type="color"
               aria-label="Symbolfarbe"
-              value={item.symbol_color || item.color || block.style.symbol || "#000000"}
+              value={item.symbol_color || legendVisibleLayerColors(item)[0] || block.style.symbol || "#000000"}
               onChange={(e) => set({ symbol_color: e.target.value })}
             />
             <button
@@ -2107,9 +2154,9 @@ function ItemProps({
           </div>
           {legendItemColors(item).length > 0 && <div className="legend-layer-variants" aria-label="Original-Layerfarben">
             <span className={legendItemColors(item).length > 1 ? "badge layer-variant-badge" : "hint"}>{legendItemColors(item).length} Layerfarbe{legendItemColors(item).length === 1 ? "" : "n"}</span>
-            <span className="legend-layer-swatches">{legendItemColors(item).map(color => <span key={color} className="legend-layer-swatch" style={{ background: color }} title={color} />)}</span>
+            <span className="legend-layer-swatches">{legendItemColors(item).map(color => <span key={color} className={`legend-layer-swatch ${legendVisibleItemColors(item).includes(color) ? "" : "is-omitted"}`} style={{ background: color }} title={`${color}${legendVisibleItemColors(item).includes(color) ? "" : " · nicht dargestellt"}`} />)}</span>
           </div>}
-          <details className="legend-help"><summary>Layerfarben und eigene Farbe</summary><div>Die Originalfarben aus dem Plan bleiben unabhängig vom Abschnitt erhalten. Mehrere Farben erscheinen als vollständige Varianten und werden im Editor orange umrandet. Eine eigene Farbe oder die Abschnittsfarbe überschreibt diese Darstellung; «Layerfarben» stellt sie wieder her. Der orange Hinweisrahmen wird nicht exportiert.</div></details>
+          <details className="legend-help"><summary>Layerfarben und eigene Farbe</summary><div>Die Originalfarben bleiben gespeichert. Unter Farbvarianten wählst du für dieses Symbol alle Farben oder eine einzelne Farbe; die Auswahl gilt auch im Export. Kombinierte Apparate behalten ihre jeweils eigene Auswahl. Eine eigene Symbolfarbe überschreibt die Darstellung; «Layerfarben» stellt die gewählten Originalfarben wieder her. Der orange Hinweisrahmen wird nicht exportiert.</div></details>
         </div>
       )}
       {item.kind === "symbol" && item.family_key && (
@@ -2314,7 +2361,7 @@ function TitleProps({ doc, field, change }: { doc: LegendDoc; field: FieldFn; ch
 }
 
 function generalSectionOf(doc: LegendDoc): GeneralSection {
-  return doc.general_section ?? { title: "Allgemein", header: "#1c7ed6", header_text: "#ffffff", text: "#000000", title_scale: 1 };
+  return doc.general_section ?? { title: "Allgemein", header: "#007f91", header_text: "#ffffff", text: "#000000", title_scale: 1 };
 }
 
 function GeneralProps({
@@ -2334,13 +2381,17 @@ function GeneralProps({
     <>
       <h4>
         Allgemein
-        <InfoTip text={"Der Allgemeinteil beginnt mit einer schlichten, unterstrichenen Überschrift. Die Farbcodes stehen kompakt am Ende. Eine Zeile anklicken, um Text und Grösse zu ändern. Die Zeichnung selbst bleibt die Firmenvorlage."} />
+        <InfoTip text={"Der Allgemeinteil beginnt mit einer Überschrift mit Farbakzent. Die Farbcodes stehen kompakt direkt darunter. Eine Zeile anklicken, um Text und Grösse zu ändern. Die Zeichnung selbst bleibt die Firmenvorlage."} />
       </h4>
       <label className="field">
         <span>Titel</span>
         <input className="input" aria-label="Kategorientitel Allgemeinteil" value={section.title} onChange={(e) => set({ title: e.target.value })} />
       </label>
       <div className="color-grid">
+        <label className="color-field">
+          <input type="color" value={section.header || "#007f91"} onChange={event => set({ header: event.target.value })} aria-label="Akzentfarbe Allgemeinteil" />
+          <span>Akzent</span>
+        </label>
         <label className="color-field">
           <input type="color" value={section.text || (section.header_text !== "#ffffff" ? section.header_text : "#000000")} onChange={(e) => set({ text: e.target.value })} aria-label="Schriftfarbe Überschrift Allgemeinteil" />
           <span>Schrift</span>
@@ -2445,8 +2496,8 @@ function GeneralRowProps({
               ↻ 90°
             </button>
             {(row.rotation || 0) !== 0 && (
-              <button className="btn small" disabled={!admin || busy} onClick={() => save({ rotation: 0 })}>
-                Zurück
+              <button className="btn small" disabled={!admin || busy} onClick={() => save({ rotation: 0 })} title="Nur die zusätzliche Drehung aufheben. Die Geometrie aus der Firmenvorlage bleibt erhalten.">
+                Vorlagendrehung
               </button>
             )}
           </div>
@@ -2461,6 +2512,8 @@ function DocProps({
   info,
   field,
   setStyle,
+  onCompact,
+  onA4,
   projectId,
   notify,
   exportBlock,
@@ -2475,6 +2528,8 @@ function DocProps({
   info: LegendInfo;
   field: FieldFn;
   setStyle: (patch: Partial<LegendDoc["style"]>) => void;
+  onCompact: () => void;
+  onA4: () => void;
   projectId: string;
   notify: (text: string, error?: boolean) => void;
   exportBlock: string;
@@ -2500,9 +2555,10 @@ function DocProps({
       </label>
       <div className="form two">
         <label className="field">
-          <span>Layout <InfoTip text="Kompakt: Allgemeinteil in zwei Spalten, Farbcodes direkt darunter und Apparate fortlaufend in drei Spalten. Rubriken erhalten feine Farbmarkierungen; überlaufende Rubriken werden als Fortsetzung bezeichnet. Texte, Symbole und Zuordnungen bleiben erhalten." /></span>
-          <select className="select" aria-label="Legendenlayout" value={s.compact_flow ? "compact" : "classic"} onChange={event => setStyle(event.target.value === "compact" ? { compact_flow: true, columns: 3 } : { compact_flow: false })}>
-            <option value="compact">Kompakt wie Vorlage</option>
+          <span>Layout <InfoTip text="Dichte wie Entwurf: drei Apparatespalten und 2,8 mm Schrift. A4 kompakt: vier Spalten, 2,6 mm Schrift und kleinere Ränder. Die Seitenhöhe folgt dem Inhalt; umfangreiche Legenden können höher als A4 bleiben. Der Allgemeinteil steht in zwei Spalten mit den Farbcodes darunter. Inhalte, Quellfarben und Zuordnungen bleiben erhalten. Rückgängig stellt die vorherigen Werte wieder her." /></span>
+          <select className="select" aria-label="Legendenlayout" value={s.compact_flow ? s.columns === 4 ? "a4" : "compact" : "classic"} onChange={event => event.target.value === "compact" ? onCompact() : event.target.value === "a4" ? onA4() : setStyle({ compact_flow: false })}>
+            <option value="compact">Dichte wie Entwurf</option>
+            <option value="a4">A4 kompakt</option>
             <option value="classic">Klassische Abschnitte</option>
           </select>
         </label>
@@ -2548,9 +2604,13 @@ function DocProps({
         <label className="field">
           <span>
             Blattbreite (mm)
-            <InfoTip text={`Inkl. 5 mm Rand. Standard 200 mm, höchstens 210 mm. Firmen-Standard: Schrift ${String(company.text_size).replace(".", ",")} mm, Massstab ${String(company.symbol_scale).replace(".", ",")}.`} />
+            <InfoTip text={`Zeichnungsbreite inklusive Innenrand. Das PDF ergänzt aussen 5 mm je Seite: 200 mm ergeben 210 mm PDF-Breite. Firmen-Standard: Schrift ${String(company.text_size).replace(".", ",")} mm, Massstab ${String(company.symbol_scale).replace(".", ",")}.`} />
           </span>
           <NumberInput label="Blattbreite" value={s.width} step={5} min={80} max={210} onCommit={(v) => setStyle({ width: v })} />
+        </label>
+        <label className="field">
+          <span>Innenrand (mm)</span>
+          <NumberInput label="Innenrand" value={s.margin ?? 5} step={0.5} min={2} max={10} onCommit={value => setStyle({ margin: Math.max(2, Math.min(10, value)) })} />
         </label>
       </div>
       <div className="row">
@@ -2757,6 +2817,10 @@ function PartProps({ part, index, item, block, doc, field, change }: {
         <span>Text {n}</span>
         <input className="input" value={part.text} {...field((d, v) => updatePart(d, block.id, item.id, index, { text: v }))} />
       </label>
+      <ColorVariantChoice source={part} label={`Farbvarianten Symbol ${n}`} overridden={Boolean(item.symbol_color)} onChoose={colors => {
+        const next = updatePart(doc, block.id, item.id, index, { visible_layer_colors: colors });
+        change(updateItem(next, block.id, item.id, { symbol_color: "" }));
+      }} />
       <div className="form two">
         <label className="field">
           <span>Symbol {n}: Grösse (Faktor)</span>

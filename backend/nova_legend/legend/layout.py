@@ -14,7 +14,7 @@ of at most 200 mm width:
 
 Rules: sections span the full width with a coloured header bar; the area
 behind the entries is paper unless the section switches a background on.
-Entries fill 2 or 3 columns top to bottom. In every column of a section all
+Entries fill 2, 3 or 4 columns top to bottom. In every column of a section all
 symbol centres sit on one vertical axis and all texts start on one vertical
 text line right of the widest symbol. Every entry takes a whole number of grid
 rows, so the entries sit exactly in the grid placeholders of their section.
@@ -29,7 +29,7 @@ from __future__ import annotations
 import math
 
 from .linetypes import dash_array
-from .model import DEFAULT_TEXT_SIZE, DEFAULT_TITLE_MM, entry_text, original_colors, section_style
+from .model import DEFAULT_TEXT_SIZE, DEFAULT_TITLE_MM, entry_text, original_colors, selected_original_colors, section_style
 
 LINE_FACTOR = 1.3            # line height relative to the text size
 _NARROW = set("il.,;:|!'`Iíìj()[]/\\ ")
@@ -265,12 +265,15 @@ def _members(item: dict) -> list[tuple[dict, int, int]]:
     Colour variants repeat geometry; they never replace the meaning of ``parts``.
     An explicit monochrome override hides only these colour repetitions.
     """
-    logical = [item] + [{**item, "parts": None, "layer_colors": None, **part}
+    logical = [item] + [{**item, "parts": None, "layer_colors": None, "visible_layer_colors": None, **part}
                         for part in item.get("parts") or []]
     members = []
     for index, part in enumerate(logical):
-        colors = original_colors(part.get("layer_colors"), part.get("color", "")) if not _forced_color(item) else []
-        for variant, color in enumerate(colors or [part.get("color")]):
+        originals = original_colors(part.get("layer_colors"), part.get("color", ""))
+        selected = selected_original_colors(part.get("visible_layer_colors"), originals)
+        colors = (selected or originals) if not _forced_color(item) else []
+        for color in colors or [part.get("color")]:
+            variant = originals.index(color) if color in originals else 0
             members.append(({**part, "color": color}, index, variant))
     return members
 
@@ -317,8 +320,14 @@ def _combined(item: dict, sizes: dict, single, room: tuple[float, float, float] 
     members = _members(item) if item["kind"] == "symbol" else []
     if tile and room and len(members) > 1:
         return _combined_tiles(item, sizes, single, room, tile)
-    first = single(item, sizes.get(item["id"]))
+    first_part = members[0][0] if members else item
+    first = single(first_part, sizes.get(item["id"]))
     if len(members) < 2:
+        if members and (first_part.get("color") != item.get("color") or members[0][2]):
+            # A single selected B/C variant still needs its own source colour;
+            # the old dominant colour remains stored for a later “all” choice.
+            return {**first, "parts": [{"dx": 0.0, "dy": 0.0, "box": first, "part": first_part,
+                                        "logical": members[0][1], "variant": members[0][2]}]}
         return first
     indexed = []
     for part, logical, variant in members:
@@ -363,11 +372,15 @@ def _general_header(prims: list, x: float, y: float, inner: float, ts: float, se
     title = str(section.get("title") or "Allgemein").strip() or "Allgemein"
     hts = ts * float(section.get("title_scale") or 1.0)
     head_h = max(hts * LINE_FACTOR + 0.8, hts + 1.2)
-    line = wrap(title, hts, inner - 2, True)[:1]
-    prims.append({"t": "text", "x": round(x + 0.8, 3), "y": round(y + hts * 0.95, 3),
+    accent = section.get("header") or "#007f91"
+    line = wrap(title, hts, inner - 3.6, True)[:1]
+    prims.append({"t": "rect", "x": round(x + 0.8, 3), "y": round(y + 0.25, 3),
+                  "w": 0.8, "h": max(1.8, hts * 0.8), "fill": accent,
+                  "stroke": None, "role": "general-marker", "block": "general"})
+    prims.append({"t": "text", "x": round(x + 2.2, 3), "y": round(y + hts * 0.95, 3),
                   "size": round(hts, 3), "text": line[0], "bold": True, "color": section.get("text") or "#000000"})
     prims.append({"t": "rect", "x": x, "y": round(y + head_h - 0.15, 3), "w": inner, "h": 0.15,
-                  "fill": "#b8bec4", "stroke": None, "role": "general-rule", "block": "general"})
+                  "fill": accent, "stroke": None, "role": "general-rule", "block": "general"})
     prims.append({"t": "hit", "kind": "general", "block": "general", "id": "general",
                   "x": x, "y": y, "w": inner, "h": head_h})
     return y + head_h
@@ -705,7 +718,7 @@ def layout(doc: dict, sizes: dict | None = None, general: dict | None = None,
     gap = max(0.0, float(style.get("section_gap") or 0.0))
     width = max(80.0, min(style["width"], 210.0))
     inner = width - 2 * margin
-    cols = 3 if style["columns"] >= 3 else 2
+    cols = max(2, min(4, int(style["columns"])))
     prims: list[dict] = []
     y = margin
 
@@ -1025,7 +1038,7 @@ def _entry(item, box, out, block, cx0, cy, colw, ts, row, axis, text_x, st,
                     "layer": block.get("layer") or "",
                     "hatch_off": fills_off[0], "fill_off": fills_off[1],
                     "color": colour, "flat": bool(forced)}
-            if len(members) > 1:
+            if len(members) > 1 or m.get("variant", 0):
                 prim["part"] = m.get("logical", k)
                 prim["variant"] = m.get("variant", 0)
             out.append(prim)

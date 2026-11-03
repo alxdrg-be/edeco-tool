@@ -74,5 +74,6 @@ abschliessende Testzahlen und Vorschaubilder werden separat ausgewiesen.
 
 Die sichtbare Premium-Bezeichnung ist entfernt; interne IDs bleiben für
 Projektstände stabil. Technischer Quellen-/Zahlenabgleich und visuelle
-Verständlichkeit sind separate Prüfungen. Der angekündigte Vergleich mit den
-Electrosuisse-Werkzeugen wartet noch auf die Bereitstellung durch den Nutzer.
+Verständlichkeit sind separate Prüfungen. Das Electrosuisse-Programm und der
+Prüfungs-Screenshot wurden inzwischen bereitgestellt. Die elf Prüfthemen sind
+sichtbar; die numerische Referenzauswertung ist noch nicht vollständig abgeschlossen.

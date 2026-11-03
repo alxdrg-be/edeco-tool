@@ -69,6 +69,9 @@ Type: files; Name: "{userdesktop}\edeco-Toolbox.lnk"
 Type: files; Name: "{userprograms}\edeco-Toolbox\edeco-Toolbox.lnk"
 Type: dirifempty; Name: "{userprograms}\edeco-Toolbox"
 Type: filesandordirs; Name: "{app}\_internal\pdf-runtime"
+; Compiled UI assets belong to the installed application, never to user data.
+; Remove stale hashed chunks so an old cached index cannot run the previous UI.
+Type: filesandordirs; Name: "{app}\_internal\ui\dist"
 
 [Icons]
 Name: "{group}\edeco Toolhub"; Filename: "{app}\edeco-Toolbox.exe"; IconFilename: "{app}\_internal\packaging\toolbox.ico"

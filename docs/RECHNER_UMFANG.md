@@ -99,6 +99,7 @@ Browser mit unabhängigen Zuleitungen und gemeinsamer Laständerung geprüft. De
 [Quellenabgleich](RECHNER_QUELLENABGLEICH.md) trennt belegte Referenzfälle von
 offenen Automatiken.
 
-Der zusätzliche Electrosuisse-Vergleich wartet auf die für morgen angekündigte
-Bereitstellung durch den Nutzer. Fachliche Anlagenfreigabe und praktische
-Firmenserverprüfung sind durch die Modelltests nicht erledigt.
+Das Electrosuisse-Programm und ein NIN-2025-Prüfungs-Screenshot wurden inzwischen
+bereitgestellt. Die elf Prüfthemen sind als Modellprüfungen oder offene Nachweise
+erfasst; vollständige numerische Gleichwertigkeit ist noch nicht belegt. Fachliche
+Anlagenfreigabe und praktische Firmenserverprüfung sind durch die Modelltests nicht erledigt.

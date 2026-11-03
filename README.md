@@ -110,9 +110,10 @@ Tabellenwert oder übereinstimmender Zahlenfall bestätigt weder die gesamte
 Referenzfunktion noch die normative Zuordnung. Aktueller Umfang und offene
 Funktionen: [Rechnerinventar](docs/RECHNER_INVENTAR.md),
 [Rechner und Grenzen](docs/RECHNER_UMFANG.md),
-[Quellenabgleich](docs/RECHNER_QUELLENABGLEICH.md). Der angekündigte zusätzliche
-Vergleich mit den Electrosuisse-Werkzeugen steht bis zur Bereitstellung durch
-den Nutzer aus.
+[Quellenabgleich](docs/RECHNER_QUELLENABGLEICH.md). Das Electrosuisse-Programm und
+ein Screenshot der NIN-2025-Prüfung wurden bereitgestellt. Die elf Prüfthemen
+sind als Modellprüfungen beziehungsweise offene Nachweise dargestellt. Eine
+vollständige numerische Gleichwertigkeit ist noch nicht durch Referenzfälle belegt.
 
 Die gemeinsame Ablage speichert Rechenstände und Notizen nach Berechnungstyp
 und Projekt in einem einstellbaren Serverordner, einschliesslich importierter

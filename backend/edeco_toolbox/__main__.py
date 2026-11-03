@@ -20,6 +20,7 @@ from . import APP_NAME, version_label
 from .app import create_app
 from .paths import local_home
 from .desktop_zoom import attach_desktop_zoom_guard
+from .ui_cache import desktop_ui_url
 
 
 def wait_until_up(url: str, timeout: float = 60.0) -> bool:
@@ -63,8 +64,17 @@ def probe_desktop(window, home: Path):
     try:
         deadline = time.monotonic() + 60
         while time.monotonic() < deadline:
-            if window.evaluate_js("Boolean(document.querySelector('.toolbox-header') && document.querySelectorAll('.toolbox-card').length === 10)"):
-                report = {"ok": True, "tool_count": 10}
+            surface = window.evaluate_js("""(() => {
+              const hub = document.querySelector('.toolbox[data-toolhub-count]');
+              const count = hub?.querySelectorAll('.toolbox-card').length ?? 0;
+              const expected = Number(hub?.dataset.toolhubCount ?? 0);
+              return {ready: Boolean(hub && document.querySelector('.toolbox-header') && count > 0 && count === expected),
+                tool_count: count, expected_tool_count: expected, mode: hub?.dataset.toolhubMode};
+            })()""")
+            if isinstance(surface, dict) and surface.get("ready"):
+                report = {"ok": True, "tool_count": surface["tool_count"],
+                          "expected_tool_count": surface["expected_tool_count"],
+                          "mode": surface.get("mode")}
                 break
             time.sleep(.25)
         if not report["ok"]:
@@ -136,7 +146,7 @@ def main(argv=None):
                 os.environ['WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS'] = '--disable-background-networking --disable-component-update --disable-domain-reliability --no-pings'
             webview.settings["OPEN_EXTERNAL_LINKS_IN_BROWSER"] = True
             icon = config.resource_dir() / "packaging" / "toolbox.ico"
-            window = webview.create_window(f"{APP_NAME} {version_label()}", url,
+            window = webview.create_window(f"{APP_NAME} {version_label()}", desktop_ui_url(url),
                                            width=1400, height=900, min_size=(900, 600), zoomable=False)
             attach_desktop_zoom_guard(window)
             dialogs.attach(window)
@@ -167,7 +177,7 @@ def main(argv=None):
                 return 0 if report.is_file() and json.loads(report.read_text(encoding="utf-8")).get("ok") else 1
             app.state.updates.launch_pending()
             return 0
-    webbrowser.open(url)
+    webbrowser.open(desktop_ui_url(url))
     try:
         while thread.is_alive():
             time.sleep(.3)
