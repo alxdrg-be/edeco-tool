@@ -80,6 +80,8 @@ function CalculatorActions({ children }: { children: ReactNode }) {
     const media = window.matchMedia("(max-width: 760px)");
     const sync = () => { setSmall(media.matches); setOpen(false); };
     media.addEventListener("change", sync);
+    // The viewport may change between the first render and this subscription.
+    sync();
     return () => media.removeEventListener("change", sync);
   }, []);
   useEffect(() => {

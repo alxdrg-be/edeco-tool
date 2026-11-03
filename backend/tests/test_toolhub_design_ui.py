@@ -72,3 +72,58 @@ def test_mobile_calculator_actions_are_compact_and_remain_available(editor, widt
     playwright.expect(actions.locator("summary")).to_be_focused()
     page.set_viewport_size({"width": 1600, "height": 1000})
     playwright.expect(export).to_be_visible()
+
+
+def test_calculator_actions_catch_resize_between_snapshot_and_subscription(editor):
+    """A breakpoint can change before React's effect subscribes, without another event."""
+    page, _, _, _ = editor
+    switch_tool(page, "Berechnungen")
+    switch_calculator(page, "LS-Schalter")
+    page.set_viewport_size({"width": 375, "height": 844})
+    page.add_init_script("""(() => {
+      const nativeMatchMedia = window.matchMedia.bind(window);
+      const race = {subscribed: false, staleReads: 0, changeEvents: 0};
+      window.__calculatorBreakpointRace = race;
+      window.matchMedia = query => {
+        const media = nativeMatchMedia(query);
+        if (query !== '(max-width: 760px)') return media;
+        media.addEventListener('change', () => { race.changeEvents += 1; });
+        return new Proxy(media, {
+          get(target, key) {
+            if (key === 'matches') {
+              // The render saw desktop; by subscription time the viewport is mobile.
+              if (!race.subscribed) { race.staleReads += 1; return false; }
+              return target.matches;
+            }
+            if (key === 'addEventListener') return (type, listener, options) => {
+              if (type === 'change') race.subscribed = true;
+              return target.addEventListener(type, listener, options);
+            };
+            const value = Reflect.get(target, key, target);
+            return typeof value === 'function' ? value.bind(target) : value;
+          }
+        });
+      };
+    })();""")
+    page.reload()
+    actions = page.locator(".lab-export-actions")
+    playwright.expect(actions).to_be_attached()
+    page.wait_for_function("window.__calculatorBreakpointRace.subscribed")
+    assert page.evaluate("window.__calculatorBreakpointRace.staleReads") >= 1
+    assert page.evaluate("window.__calculatorBreakpointRace.changeEvents") == 0
+    playwright.expect(actions).not_to_have_attribute("open", "")
+
+    summary = actions.locator("summary")
+    export = page.get_by_role("button", name="Ergebnis als JSON sichern", exact=True)
+    for key in ("Enter", "Space"):
+        summary.focus()
+        page.keyboard.press(key)
+        playwright.expect(export).to_be_visible()
+        page.keyboard.press("Escape")
+        playwright.expect(actions).not_to_have_attribute("open", "")
+        playwright.expect(summary).to_be_focused()
+
+    page.set_viewport_size({"width": 1600, "height": 1000})
+    playwright.expect(export).to_be_visible()
+    page.set_viewport_size({"width": 375, "height": 844})
+    playwright.expect(actions).not_to_have_attribute("open", "")
