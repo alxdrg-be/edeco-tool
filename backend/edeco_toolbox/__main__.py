@@ -87,8 +87,8 @@ def probe_desktop(window, home: Path):
             while time.monotonic() < deadline:
                 if not selected:
                     selected = bool(window.evaluate_js("(() => { const tool = document.querySelector('[data-pdf-tool=merge]'); if (!tool || tool.getAttribute('aria-disabled') === 'true' || tool.disabled) return false; tool.click(); return true; })()"))
-                if selected and window.evaluate_js("Boolean(document.querySelector('.pdf-stirling-frame')?.contentDocument?.querySelector('input[type=file]'))"):
-                    report.update(ok=True, pdf_ready=True, pdf_tool_selected="merge")
+                if selected and window.evaluate_js("Boolean([...document.querySelectorAll('.pdf-desk')].some(el => el.getClientRects().length && el.querySelector('input[type=file]')))"):
+                    report.update(ok=True, pdf_ready=True, pdf_tool_selected="merge", pdf_mode="native-pages")
                     break
                 time.sleep(.5)
             if not report['ok']:

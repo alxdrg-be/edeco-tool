@@ -5,6 +5,7 @@ import type { ToolProps } from "../../toolbox/modules";
 import { request, sourceLabel, ROOT, type Answer, type DocumentInfo, type DocumentPage, type LibraryState, type Source } from "./api";
 import Settings from "./Settings";
 import QwenGuide from "./QwenGuide";
+import FolderSettings from "./FolderSettings";
 import "./documents.css";
 
 export default function DocumentAssistant({ onHome, onOpenTool }: ToolProps) {
@@ -21,6 +22,7 @@ export default function DocumentAssistant({ onHome, onOpenTool }: ToolProps) {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [folderOpen, setFolderOpen] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
   const pageRequest = useRef(0);
   const controller = useRef<AbortController | null>(null);
@@ -124,6 +126,7 @@ export default function DocumentAssistant({ onHome, onOpenTool }: ToolProps) {
 
   return <div className="document-assistant">
     <ToolHeader title="Dokumenten-Assistent" onHome={onHome} onOpenTool={onOpenTool} disabled={busy === "upload" || busy === "delete"}>
+      <button className="btn" disabled={!library || Boolean(busy)} onClick={() => setFolderOpen(true)}>Dokumentordner</button>
       <button className="btn" disabled={!library || Boolean(busy)} onClick={() => setSettingsOpen(true)}>KI-Verbindung</button>
     </ToolHeader>
     <div className="doc-workspace">
@@ -210,5 +213,12 @@ export default function DocumentAssistant({ onHome, onOpenTool }: ToolProps) {
     </div>
     {settingsOpen && library && <Settings value={library.settings} sessionKey={library.session_key}
       onSave={settings => setLibrary({ ...library, settings })} onClose={() => setSettingsOpen(false)} />}
+    {folderOpen && library && <FolderSettings sessionKey={library.session_key} onClose={() => setFolderOpen(false)} onDocuments={next => {
+      const existing = new Set(library.documents.map(document => document.id));
+      const readable = new Set(next.filter(document => document.empty_pages < document.pages).map(document => document.id));
+      setLibrary({ ...library, documents: next });
+      setSelected(old => [...new Set([...old.filter(id => readable.has(id)), ...next.filter(document => !existing.has(document.id) && readable.has(document.id)).map(document => document.id)])]);
+      resetAnswer();
+    }} />}
   </div>;
 }

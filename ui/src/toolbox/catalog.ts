@@ -14,6 +14,8 @@ export interface ToolInfo {
 
 /** Planned tools need metadata only; register a loader when their implementation is ready. */
 export const TOOLS: readonly ToolInfo[] = [
+  { id: "formelrechner", title: "Formelrechner", category: "Berechnungen", parentId: "berechnungen", symbol: "Σ", color: "indigo",
+    description: "Elektrotechnische Formeln mit Werten berechnen und im Elektro-Memory nachschlagen.", status: "available" },
   { id: "wissens-hub", title: "Wissens-Hub", category: "Berechnungen", parentId: "berechnungen", symbol: "W", color: "petrol",
     description: "Grundlagen, Formeln und Quellen für die Schweizer Elektroplanung mit direkten Verbindungen zu den Rechnern.", status: "available" },
   { id: "netzplaner", title: "Netzplaner · NIN (Beta)", category: "Berechnungen", symbol: "NET", color: "blue", parentId: "berechnungen",
@@ -34,6 +36,8 @@ export const TOOLS: readonly ToolInfo[] = [
     description: "PDFs prüfen und benennen, Planlisten erstellen und Lieferungen beim Projekt protokollieren.", status: "available", developmentStatus: "in-progress", hiddenFromHub: true },
   { id: "berechnungen", title: "Berechnungen", category: "Berechnungen", symbol: "=", color: "orange",
     description: "Schweizer Rechenhilfen für Leitungen, Schutz, Ladeinfrastruktur, Energie und Räume mit projektbezogener Ablage.", status: "available", developmentStatus: "in-progress" },
+  { id: "elektro-memory", title: "Elektro-Memory", category: "Wissen", symbol: "EM", color: "indigo",
+    description: "Elektrotechnische Grundlagen, Formeln und Schaubilder nachschlagen und direkt mit Werten berechnen.", status: "available" },
   { id: "blitzschutz", title: "Blitzschutz", category: "Berechnungen", symbol: "⚡", color: "orange", parentId: "berechnungen",
     description: "Trennungsabstand nach dem veröffentlichten Schweizer Verfahren berechnen und am Gebäude visualisieren. Fachliche Freigabe offen.", status: "available", developmentStatus: "in-progress" },
   { id: "emobilitaet", title: "E-Mobilität · AC-Vorplanung", category: "Berechnungen", symbol: "EV", color: "green", parentId: "berechnungen",

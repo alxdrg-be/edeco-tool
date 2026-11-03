@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type DragEvent, type FormEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type DragEvent, type FormEvent } from "react";
 import {
   ArrowLeft, ArrowLeftRight, ArrowUpRight, Award, BadgeCheck, BookOpen, CaseSensitive, Clock, CodeXml,
   Columns2, CopyPlus, Crop, Droplets, Eraser, FileArchive, FileCog, FileMinus, FilePenLine,
@@ -12,6 +12,9 @@ import ToolHeader from "../../toolbox/ToolHeader";
 import type { ToolProps } from "../../toolbox/modules";
 import { useDialogFocus } from "../../useDialogFocus";
 import PdfCropEditor from "./PdfCropEditor";
+import PageWorkbench from "./PageWorkbench";
+import PdfTask from "./PdfTask";
+import { NATIVE_PAGE_TOOLS, NATIVE_TASKS, isImageSource, isPdfSource, type NativeTaskId } from "./nativeTools";
 import { PDF_CATEGORIES, PDF_TOOLS, filterPdfTools, pdfToolAvailability, recordRecentPdfTool,
   type EndpointCapabilities, type PdfTool } from "./toolCatalog";
 import "./pdf-workshop.css";
@@ -81,7 +84,7 @@ export default function PdfWorkshop({ onHome, onOpenTool }: ToolProps) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("all");
   const [recent, setRecent] = useState(readRecent);
-  const [view, setView] = useState<"catalog" | "stirling" | "crop">("catalog");
+  const [view, setView] = useState<"catalog" | "stirling" | "crop" | "pages" | "task" | "convert">("catalog");
   const [selected, setSelected] = useState<string | null>(null);
   const [pendingTool, setPendingTool] = useState<string | null>(null);
   const [bridgeReady, setBridgeReady] = useState(false);
@@ -92,6 +95,17 @@ export default function PdfWorkshop({ onHome, onOpenTool }: ToolProps) {
   const [cropRevision, setCropRevision] = useState(0);
   const importingFiles = useRef<File[] | null>(null);
   const cropDirty = useRef(false);
+  const nativeDirty = useRef(false);
+  const nativeFiles = useRef<File[]>([]);
+  const [nativeWorking, setNativeWorking] = useState(false);
+  const [pagesOpened, setPagesOpened] = useState(false);
+  const [pageIncoming, setPageIncoming] = useState<File[]>();
+  const [taskIncoming, setTaskIncoming] = useState<Partial<Record<NativeTaskId, File[]>>>({});
+  const taskFiles = useRef<Partial<Record<NativeTaskId, File[]>>>({});
+  const [openedTasks, setOpenedTasks] = useState<NativeTaskId[]>([]);
+  const [nativeTask, setNativeTask] = useState<NativeTaskId | null>(null);
+  const markNativeDirty = useCallback(() => { nativeDirty.current = true; }, []);
+  const rememberNativeFiles = useCallback((files: File[]) => { nativeFiles.current = files; }, []);
   const frame = useRef<HTMLIFrameElement>(null);
   const tools = filterPdfTools(query, category, recent);
   const title = PDF_TOOLS.find(tool => tool.id === selected)?.title;
@@ -194,7 +208,7 @@ export default function PdfWorkshop({ onHome, onOpenTool }: ToolProps) {
     if (!state || busy) return;
     const changed = save && url.replace(/\/$/, "") !== state.service_url;
     const child = frame.current?.contentWindow as PdfWindow | null;
-    if (changed && (pendingFiles.length || cropDirty.current || child?.edecoPDF?.hasWork())) {
+    if (changed && (pendingFiles.length || cropDirty.current || nativeDirty.current || child?.edecoPDF?.hasWork())) {
       setError("Bitte die PDF-Ergebnisse speichern und die Werkstatt neu öffnen, bevor du den Dienst wechselst."); return;
     }
     setBusy("check"); setError("");
@@ -209,9 +223,9 @@ export default function PdfWorkshop({ onHome, onOpenTool }: ToolProps) {
   }
 
   function requestLeave(callback: () => void) {
-    if (busy === "workflow") return;
+    if (busy === "workflow" || nativeWorking) return;
     const child = frame.current?.contentWindow as PdfWindow | null;
-    if (pendingFiles.length || cropDirty.current || child?.edecoPDF?.hasWork()) setLeave(() => callback);
+    if (pendingFiles.length || cropDirty.current || nativeDirty.current || child?.edecoPDF?.hasWork()) setLeave(() => callback);
     else callback();
   }
 
@@ -232,7 +246,30 @@ export default function PdfWorkshop({ onHome, onOpenTool }: ToolProps) {
       if (pendingFiles[0]) { setCropInitialFile(pendingFiles[0]); setPendingFiles([]); }
       setCropOpened(true); setView("crop"); setPendingTool(null);
     }
+    else if (NATIVE_PAGE_TOOLS.has(tool.id)) {
+      if (pendingFiles.length) { setPageIncoming(pendingFiles); setPendingFiles([]); }
+      setPagesOpened(true); setView("pages"); setPendingTool(null);
+    } else if (tool.id === "split" || tool.id === "scalePages") {
+      openNativeTask(tool.id === "split" ? "split" : "resize");
+    } else if (tool.id === "convert") { setView("convert"); setPendingTool(null); }
     else { setView("stirling"); setPendingTool(tool.id); }
+  }
+
+  function openNativeTask(id: NativeTaskId) {
+    const candidates = pendingFiles.length ? pendingFiles : taskFiles.current[id]?.length ? taskFiles.current[id]! : nativeFiles.current;
+    const incoming = candidates.filter(id === "images-to-pdf" ? isImageSource : isPdfSource);
+    if (id !== "images-to-pdf" && incoming.length > 1) { setError("Bitte eine PDF-Datei für dieses Werkzeug auswählen. Die übrigen Dateien bleiben bereitgelegt."); return; }
+    if (incoming.length && (pendingFiles.length || !openedTasks.includes(id))) setTaskIncoming(previous => ({ ...previous, [id]: incoming }));
+    if (pendingFiles.length && incoming.length === pendingFiles.length) setPendingFiles([]);
+    setOpenedTasks(previous => previous.includes(id) ? previous : [...previous, id]);
+    setNativeTask(id); setView("task"); setPendingTool(null); setError("");
+  }
+
+  function openExtendedTool() {
+    if (nativeWorking) return;
+    if (nativeFiles.current.length) setPendingFiles([...nativeFiles.current]);
+    setNotice("Die Originaldateien werden im erweiterten Werkzeug geöffnet. Die Seitenanordnung bleibt im integrierten Arbeitsbereich erhalten.");
+    setView("stirling"); setPendingTool(selected || "__home__");
   }
 
   function allFunctions() { setSelected(null); setView("stirling"); setPendingTool("__home__"); setSettingsWanted(false); setError(""); }
@@ -242,12 +279,19 @@ export default function PdfWorkshop({ onHome, onOpenTool }: ToolProps) {
     if (event.defaultPrevented || !event.dataTransfer.files.length) return;
     event.preventDefault();
     const files = Array.from(event.dataTransfer.files);
-    if (view !== "stirling" && files.some(file => !/\.pdf$/i.test(file.name) && file.type !== "application/pdf")) {
-      setError("Bitte PDF-Dateien ablegen und anschliessend ein Werkzeug wählen."); return;
+    const imageInput = view === "task" && nativeTask === "images-to-pdf";
+    if (view !== "stirling" && files.some(file => imageInput ? !isImageSource(file) : !isPdfSource(file))) {
+      setError(imageInput ? "Bitte PNG- oder JPEG-Bilder ablegen." : "Bitte PDF-Dateien ablegen und anschliessend ein Werkzeug wählen."); return;
     }
     if (view === "crop") {
       if (files.length > 1) { setError("Zum Zuschneiden bitte eine einzelne PDF-Datei ablegen."); return; }
       setCropInitialFile(files[0]); setError(""); setNotice(""); return;
+    }
+    if (view === "pages") { setPageIncoming(files); setError(""); setNotice(""); return; }
+    if (view === "task") {
+      if (nativeTask !== "images-to-pdf" && files.length > 1) { setError("Bitte eine PDF-Datei für dieses Werkzeug ablegen."); return; }
+      if (nativeTask) setTaskIncoming(previous => ({ ...previous, [nativeTask]: files }));
+      setError(""); setNotice(""); return;
     }
     setPendingFiles(files); setError(""); setNotice("");
   }
@@ -268,7 +312,7 @@ export default function PdfWorkshop({ onHome, onOpenTool }: ToolProps) {
   return <div className="pdf-workshop" onDragOver={event => {
     if (event.dataTransfer.types.includes("Files")) { event.preventDefault(); event.dataTransfer.dropEffect = "copy"; }
   }} onDrop={receiveDrop}>
-    <ToolHeader title="PDF-Werkstatt" onHome={() => requestLeave(onHome)} onOpenTool={onOpenTool ? id => requestLeave(() => onOpenTool(id)) : undefined} disabled={busy === "workflow"}>
+    <ToolHeader title="PDF-Werkstatt" onHome={() => requestLeave(onHome)} onOpenTool={onOpenTool ? id => requestLeave(() => onOpenTool(id)) : undefined} disabled={busy === "workflow" || nativeWorking}>
       {health?.ready && <span className="pdf-service-badge">{state?.local ? "Offline bereit · auf diesem Computer" : `Stirling-PDF ${health.version} · interner Dienst`}</span>}
       {Boolean(state?.workflows.length) && <button className="btn" onClick={() => setWorkflows(!workflows)}>Firmenabläufe</button>}
       {!state?.local && <button className="btn" onClick={() => setSettings(!settings)}>Verbindung</button>}
@@ -276,7 +320,7 @@ export default function PdfWorkshop({ onHome, onOpenTool }: ToolProps) {
       <button className="btn pdf-info-button" onClick={() => setInfo(!info)}><Info size={16} /> Info / Lizenzen</button>
     </ToolHeader>
     {info && <section className="pdf-connection pdf-license-panel"><button className="btn" onClick={() => setInfo(false)}>Info schliessen</button><iframe className="pdf-stirling-frame" title="Info / Lizenzen" src={API + "/licenses"} /></section>}
-    {!state?.local && (settings || (state && !health?.ready && view !== "crop")) && <section className="pdf-connection" aria-label="PDF-Verbindung">
+    {!state?.local && (settings || (state && !health?.ready && (view === "catalog" || view === "stirling"))) && <section className="pdf-connection" aria-label="PDF-Verbindung">
       <div><h2>PDF-Dienst verbinden</h2><p className="pdf-muted">Dein lokaler oder firmeneigener Stirling-Dienst verarbeitet die PDFs.</p></div>
       <form onSubmit={event => { event.preventDefault(); void check(!state?.managed); }}>
         <label>Adresse des Firmen-PDF-Dienstes<input type="url" required value={url} disabled={!state || state.managed || Boolean(busy)}
@@ -303,7 +347,7 @@ export default function PdfWorkshop({ onHome, onOpenTool }: ToolProps) {
       <div className="pdf-tool-filter"><label className="pdf-tool-search"><Search size={18} /><input type="search" placeholder="Werkzeug suchen …" aria-label="PDF-Werkzeug suchen" value={query} onChange={event => setQuery(event.target.value)} /></label>
         <div className="pdf-tool-tabs" role="group" aria-label="PDF-Werkzeugkategorien">{PDF_CATEGORIES.map(item => <button key={item.id} aria-pressed={category === item.id} onClick={() => setCategory(item.id)}>{item.title}</button>)}
           <button aria-pressed={category === "recent"} onClick={() => setCategory("recent")}><Clock size={13} /> Zuletzt verwendet</button></div></div>
-      {!health?.ready && <div className="pdf-runtime-status" role="status"><span>{health?.message || "Der PDF-Dienst wird gestartet. Zuschneiden ist bereits verfügbar."}</span><button className="btn" disabled={!state || Boolean(busy)} onClick={() => void check(false)}>Status prüfen</button></div>}
+      {!health?.ready && <div className="pdf-runtime-status" role="status"><span>{health?.message || "Der PDF-Dienst wird gestartet."} Seitenwerkzeuge, Zuschneiden und Bild-/Textausgabe sind bereits verfügbar.</span><button className="btn" disabled={!state || Boolean(busy)} onClick={() => void check(false)}>Status prüfen</button></div>}
       <div className="pdf-tool-grid">{tools.map(tool => {
         const availability = pdfToolAvailability(tool, Boolean(state?.local), Boolean(health?.ready), capabilities);
         const Icon = ICONS[tool.icon] || FilePenLine;
@@ -321,6 +365,10 @@ export default function PdfWorkshop({ onHome, onOpenTool }: ToolProps) {
     </main>}
     {view === "stirling" && <div className="pdf-editor-heading"><button className="btn" onClick={() => setView("catalog")}><ArrowLeft size={16} /> Werkzeugauswahl</button><strong>{title || (selected === "__settings__" ? "PDF-Einstellungen" : "Alle PDF-Funktionen")}</strong>{(pendingTool || settingsWanted) && <span role="status">{settingsWanted ? "Einstellungen werden geöffnet …" : "Werkzeug wird geöffnet …"}</span>}</div>}
     {health?.ready && <div className="pdf-embedded-workspace" hidden={view !== "stirling"}><iframe ref={frame} key={revision} className="pdf-stirling-frame" title="Stirling-PDF · edeco PDF-Werkstatt" src="/tools/pdf-werkstatt/" onLoad={() => setBridgeReady(Boolean((frame.current?.contentWindow as PdfWindow | null)?.edecoPDF?.isReady()))} /></div>}
+    {(view === "pages" || view === "task" || view === "convert") && <div className="pdf-editor-heading"><button className="btn" disabled={nativeWorking} onClick={() => setView("catalog")}><ArrowLeft size={16} /> Werkzeugauswahl</button><strong>{view === "task" && nativeTask ? NATIVE_TASKS[nativeTask].title : title}</strong><span className="pdf-native-badge">Auf diesem Computer</span>{health?.ready && <button className="btn" disabled={nativeWorking} onClick={openExtendedTool}>Erweiterte Funktionen</button>}</div>}
+    {pagesOpened && state && <div className="pdf-native-workspace" hidden={view !== "pages"}><PageWorkbench sessionKey={state.session_key} incomingFiles={pageIncoming} onDirty={markNativeDirty} onWorking={setNativeWorking} onFilesChange={rememberNativeFiles} /></div>}
+    {state && openedTasks.map(id => <div key={id} className="pdf-native-workspace" hidden={view !== "task" || nativeTask !== id}><PdfTask tool={id} sessionKey={state.session_key} incomingFiles={taskIncoming[id]} onDirty={markNativeDirty} onWorking={setNativeWorking} onFilesChange={files => { taskFiles.current[id] = files; if (nativeTask === id) nativeFiles.current = files; }} /></div>)}
+    {view === "convert" && <main className="pdf-native-conversions"><h1>Was möchtest du umwandeln?</h1><div className="pdf-tool-grid">{(["pdf-to-images", "pdf-to-text", "images-to-pdf"] as const).map(id => <button key={id} className="pdf-tool-tile" onClick={() => openNativeTask(id)}><span className="pdf-tool-label"><strong>{NATIVE_TASKS[id].title}</strong><span>{NATIVE_TASKS[id].description}</span></span><ArrowUpRight size={17} /></button>)}<button className="pdf-tool-tile" disabled={!health?.ready} onClick={openExtendedTool}><span className="pdf-tool-label"><strong>Weitere Formate</strong><span>Office, Webseiten und zusätzliche Formate deines PDF-Dienstes.</span></span></button></div></main>}
     {cropOpened && state && <div className="pdf-native-crop" hidden={view !== "crop"}><PdfCropEditor key={cropRevision} sessionKey={state.session_key} initialFile={cropInitialFile} onBack={() => setView("catalog")} onDirtyChange={dirty => { cropDirty.current = dirty; }} /></div>}
     {leave && <LeaveDialog onClose={() => setLeave(null)} onLeave={() => { const callback = leave; setLeave(null); callback(); }} />}
   </div>;

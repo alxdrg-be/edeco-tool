@@ -1,5 +1,6 @@
 // Catalog verified against Stirling-PDF Core v3.2.2, useTranslatedToolRegistry.tsx.
 // All 57 PDF tools are kept; the four developer documentation links are separate.
+import { NATIVE_PAGE_TOOLS } from "./nativeTools.ts";
 export const PDF_CATALOG_VERSION = "3.2.2";
 export const PDF_CATEGORIES = [
   { id: "all", title: "Alle" }, { id: "pages", title: "Seiten" },
@@ -625,6 +626,8 @@ export const PDF_TOOLS: readonly PdfTool[] = [
 /** Operations can expose several endpoints; the runtime decides their availability. */
 export function pdfToolAvailability(tool: PdfTool, local: boolean, ready: boolean, capabilities: EndpointCapabilities | null = null): ToolAvailability {
   if (tool.id === "crop") return { enabled: true, checking: false, reason: "Der integrierte Zuschnitt funktioniert ohne Java-Dienst.", partial: false };
+  if (NATIVE_PAGE_TOOLS.has(tool.id) || tool.id === "split" || tool.id === "scalePages") return { enabled: true, checking: false, reason: "Das integrierte Seitenwerkzeug funktioniert ohne Java-Dienst.", partial: false };
+  if (tool.id === "convert") return { enabled: true, checking: false, reason: "PNG, Text und Bilder in PDF funktionieren ohne Java-Dienst. Weitere Formate hängen vom PDF-Dienst ab.", partial: true };
   if (tool.unavailable) return { enabled: false, checking: false, reason: tool.unavailable, partial: false };
   if (local && tool.offlineUnavailable) return { enabled: false, checking: false, reason: tool.offlineUnavailable, partial: false };
   if (!ready) return { enabled: false, checking: true, reason: "Der PDF-Dienst ist noch nicht bereit.", partial: false };

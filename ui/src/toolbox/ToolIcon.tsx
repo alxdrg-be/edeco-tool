@@ -1,5 +1,8 @@
 import CalculatorIcon, { CALCULATOR_ICONS } from "../tools/berechnungen/CalculatorIcon";
+import { BookOpen, Sigma } from "lucide-react";
 export default function ToolIcon({ id }: { id: string }) {
+  if (id === "elektro-memory") return <BookOpen size={48} strokeWidth={1.6} aria-hidden="true" />;
+  if (id === "formelrechner") return <Sigma size={48} strokeWidth={1.6} aria-hidden="true" />;
   if (CALCULATOR_ICONS[id]) return <CalculatorIcon id={id} size={48} />;
   const paths: Record<string, React.ReactNode> = {
     berechnungen: <><rect x="10" y="4" width="28" height="40" rx="4"/><path d="M16 11h16v8H16ZM16 27h4m-2-2v4m9-2h5m-16 9h4m7-2 5 5m0-5-5 5"/></>,

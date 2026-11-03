@@ -96,6 +96,9 @@ def test_packaged_workshop_preview_merge_branding_and_licenses():
         expect(page.locator('[data-pdf-tool="merge"]')).to_have_attribute("aria-disabled", "false")
         expect(page.locator('.pdf-embedded-workspace')).to_be_hidden()
         page.locator('[data-pdf-tool="merge"]').click()
+        # The tile now opens the integrated document rows. Core remains an
+        # explicit advanced workflow, including its real bundled PDF.js assets.
+        page.get_by_role('button', name='Erweiterte Funktionen', exact=True).click()
         frame = page.frame_locator("iframe[title='Stirling-PDF · edeco PDF-Werkstatt']")
         picker = frame.locator('input[type=file]').first
         picker.wait_for(state='attached', timeout=60000)

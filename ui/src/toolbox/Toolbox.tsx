@@ -15,6 +15,7 @@ import "./toolbox.css";
 
 function toolFromHash(): string | null | undefined {
   if (/^#wissen(?:\/|$)/.test(window.location.hash)) return "wissens-hub";
+  if (/^#memory(?:\/|$)/.test(window.location.hash)) return "elektro-memory";
   if (window.location.hash === "#toolbox" || window.location.hash === "#toolhub") return null;
   const tool = window.location.hash.match(/^#rechner\/([a-z0-9-]+)$/)?.[1];
   return tool && MODULES[tool] && TOOLS.some(item => item.id === tool && item.status === "available") ? tool : undefined;
@@ -63,11 +64,11 @@ function ToolboxContents() {
   useEffect(() => {
     const navigate = () => {
       const current = activeRef.current;
-      const managed = current === null || current === "wissens-hub" || TOOLS.some(tool => tool.id === current && tool.category === "Berechnungen");
+      const managed = current === null || current === "wissens-hub" || current === "elektro-memory" || TOOLS.some(tool => tool.id === current && tool.category === "Berechnungen");
       if (!managed) {
         // Another editor owns its save/dirty-navigation contract. A hash edit
         // or browser Back must not bypass that editor's onHome callback.
-        if (/^#(?:wissen|rechner|toolbox|toolhub)(?:\/|$)/.test(window.location.hash)) history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
+        if (/^#(?:wissen|memory|rechner|toolbox|toolhub)(?:\/|$)/.test(window.location.hash)) history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
         return;
       }
       const next = toolFromHash();
@@ -86,11 +87,13 @@ function ToolboxContents() {
     activeRef.current = id;
     if (id === "wissens-hub") {
       if (!/^#wissen(?:\/|$)/.test(window.location.hash)) openKnowledge();
+    } else if (id === "elektro-memory") {
+      window.location.hash = "memory";
     } else if (TOOLS.some(tool => tool.id === id && tool.category === "Berechnungen")) {
       // Canonicalise even when entered from #toolbox: browser Back from an
       // article must restore this calculator rather than the toolbox.
       window.location.hash = `rechner/${id}`;
-    } else if (/^#(?:wissen|rechner|toolbox|toolhub)(?:\/|$)/.test(window.location.hash)) {
+    } else if (/^#(?:wissen|memory|rechner|toolbox|toolhub)(?:\/|$)/.test(window.location.hash)) {
       // Keep other tools on their established callback-based navigation.
       // Their editors own pending-save/dirty-state checks before onHome.
       history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
@@ -108,7 +111,7 @@ function ToolboxContents() {
     if (tool) document.documentElement.dataset.toolColor = tool.color;
     else delete document.documentElement.dataset.toolColor;
     document.title = tool ? `${tool.title} · edeco Toolhub` : "edeco Toolhub";
-    if (!effectiveActive && active && /^#(?:wissen|rechner)(?:\/|$)/.test(window.location.hash)) history.replaceState(null, "", `${window.location.pathname}${window.location.search}#toolhub`);
+    if (!effectiveActive && active && /^#(?:wissen|memory|rechner)(?:\/|$)/.test(window.location.hash)) history.replaceState(null, "", `${window.location.pathname}${window.location.search}#toolhub`);
     if (!effectiveActive && returning.current) heading.current?.focus();
   }, [active, effectiveActive, policy]);
 
@@ -116,7 +119,7 @@ function ToolboxContents() {
     returning.current = true;
     activeRef.current = null;
     setActive(null);
-    if (/^#(?:wissen|rechner)(?:\/|$)/.test(window.location.hash)) window.location.hash = "toolhub";
+    if (/^#(?:wissen|memory|rechner)(?:\/|$)/.test(window.location.hash)) window.location.hash = "toolhub";
   };
 
   if (!policy) return <main className="toolhub-policy-error"><h1>edeco Toolhub</h1>{policyError ? <><p role="alert">{policyError}</p><button className="btn" onClick={() => void refresh()}>Erneut versuchen</button></> : <p role="status">Toolhub wird geladen …</p>}</main>;

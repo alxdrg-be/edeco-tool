@@ -87,6 +87,14 @@
 .doc-guide-more { border-top:1px solid var(--line); margin-top:14px; padding-top:10px; }
 .doc-guide-more>summary { cursor:pointer; font-weight:600; }
 .doc-data-guide { margin:20px 0; }
+.doc-folder-path { display:flex; gap:8px; min-width:0; }
+.doc-folder-path input { min-width:0; flex:1; }
+.doc-folder-path .btn { display:inline-flex; align-items:center; gap:6px; flex:none; }
+.doc-folder-guide { margin-top:20px; }
+.doc-folder-close { margin-top:16px; }
+.doc-folder-warnings { margin:14px 0; }
+.doc-folder-warnings ul { margin:0; padding-left:18px; }
+@media(max-width:480px) { .doc-folder-path { flex-wrap:wrap; } .doc-folder-path input { flex-basis:100%; } }
 @media (prefers-reduced-motion:reduce) { .doc-ai-guide>summary>svg:last-child { transition:none; } }
 @media (max-width: 1120px) { .doc-workspace { grid-template-columns: 210px minmax(0, 1fr); overflow: auto; } .doc-preview { grid-column: 2; border-top: 1px solid var(--line); overflow: visible; } .doc-library { grid-row: span 2; overflow: visible; } .doc-conversation { overflow: visible; } }
 @media (max-width: 680px) { .doc-workspace { display: block; } .doc-library { border-right: 0; border-bottom: 1px solid var(--line); } .doc-document-list { max-height: 280px; overflow: auto; } .doc-conversation, .doc-preview { padding: 24px 18px; } .doc-preview { border-left: 0; } .doc-preview-empty { margin: 30px auto; } }

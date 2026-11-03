@@ -14,6 +14,7 @@ from starlette.concurrency import run_in_threadpool
 from ..paths import local_home
 from .ai import AISettings
 from .extract import MAX_BYTES
+from .folders import FolderBusyError, FolderSource
 from .store import DocumentStore
 
 PREFIX = "/api/tools/dokumenten-assistent"
@@ -33,14 +34,21 @@ class Question(BaseModel):
     use_ai: bool = False
 
 
+class FolderPreferences(BaseModel):
+    path: str = Field(max_length=2000)
+    recursive: bool = True
+
+
 def register(app):
     home = local_home() / "documents"
     store = DocumentStore(home)
     settings = AISettings(home)
+    folders = FolderSource(store)
     session_key = secrets.token_urlsafe(32)
     ai_lock = threading.Lock()
     app.state.documents = store
     app.state.document_ai = settings
+    app.state.document_folders = folders
 
     def authorize(request: Request, require_key=True):
         host = request.headers.get("host", "")
@@ -55,6 +63,38 @@ def register(app):
     def state(request: Request):
         authorize(request, require_key=False)
         return {"documents": store.list(), "settings": settings.public(), "session_key": session_key}
+
+    @app.get(PREFIX + "/folder")
+    def folder_state(request: Request):
+        authorize(request)
+        try:
+            return folders.public()
+        except (ValueError, OSError) as exc:
+            raise HTTPException(400, str(exc) if isinstance(exc, ValueError) else "Die lokale Ordnerkonfiguration ist nicht lesbar.") from None
+
+    @app.post(PREFIX + "/folder")
+    def folder_save(request: Request, body: FolderPreferences):
+        authorize(request)
+        try:
+            return folders.configure(body.path, body.recursive)
+        except FolderBusyError as exc:
+            raise HTTPException(409, str(exc)) from None
+        except (ValueError, OSError) as exc:
+            raise HTTPException(400, str(exc) if isinstance(exc, ValueError) else "Der Ordner ist nicht lesbar. Bitte Pfad und Windows-Leserechte prüfen.") from None
+
+    @app.post(PREFIX + "/folder/sync")
+    def folder_sync(request: Request):
+        authorize(request)
+        if not ai_lock.acquire(blocking=False):
+            raise HTTPException(409, "Bitte die laufende KI-Anfrage abwarten.")
+        try:
+            return folders.sync()
+        except FolderBusyError as exc:
+            raise HTTPException(409, str(exc)) from None
+        except (ValueError, OSError) as exc:
+            raise HTTPException(400, str(exc) if isinstance(exc, ValueError) else "Der Ordner ist nicht lesbar. Lokale Kopien bleiben erhalten.") from None
+        finally:
+            ai_lock.release()
 
     @app.post(PREFIX + "/settings")
     def preferences(request: Request, body: Preferences):
@@ -87,7 +127,9 @@ def register(app):
         data = await file.read(MAX_BYTES + 1)
         await file.close()
         try:
-            return await run_in_threadpool(store.add, data, file.filename or "", title, edition)
+            return await run_in_threadpool(folders.add_manual, data, file.filename or "", title, edition)
+        except FolderBusyError as exc:
+            raise HTTPException(409, str(exc)) from None
         except ValueError as exc:
             raise HTTPException(400, str(exc)) from None
 
@@ -95,7 +137,9 @@ def register(app):
     def remove(request: Request, document_id: str):
         authorize(request)
         try:
-            store.remove(document_id)
+            folders.remove_document(document_id)
+        except FolderBusyError as exc:
+            raise HTTPException(409, str(exc)) from None
         except KeyError:
             raise HTTPException(404, "Das Dokument wurde nicht gefunden.") from None
         except OSError:

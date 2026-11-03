@@ -32,21 +32,25 @@ test("local exclusions are visible and cannot be enabled by a misleading endpoin
 });
 
 test("real endpoint capability reports restrict operations and identify partial tools", () => {
-  assert.equal(pdfToolAvailability(tool("merge"), false, true, { "merge-pdfs": { enabled: false, reason: "Durch die Firma deaktiviert" } }).enabled, false);
-  assert.match(pdfToolAvailability(tool("merge"), false, true, { "merge-pdfs": { enabled: false, reason: "Durch die Firma deaktiviert" } }).reason, /Firma/);
+  assert.equal(pdfToolAvailability(tool("ocr"), false, true, { "ocr-pdf": { enabled: false, reason: "Durch die Firma deaktiviert" } }).enabled, false);
+  assert.match(pdfToolAvailability(tool("ocr"), false, true, { "ocr-pdf": { enabled: false, reason: "Durch die Firma deaktiviert" } }).reason, /Firma/);
   const partial = pdfToolAvailability(tool("convert"), false, true, { "img-to-pdf": { enabled: true }, "pdf-to-word": { enabled: false } });
   assert.equal(partial.enabled, true);
   assert.equal(partial.partial, true);
-  assert.match(pdfToolAvailability(tool("convert"), true, true).reason, /Office/);
+  assert.match(pdfToolAvailability(tool("convert"), true, true).reason, /PNG/);
   // Frontend-only components need not appear in the endpoint map. Unknown is not
   // represented as confirmed server support.
   assert.match(pdfToolAvailability(tool("formFill"), false, true, {}).reason, /geprüft/);
 });
 
-test("native crop is usable while the Java service is starting", () => {
+test("native page and output tools work while Java starts; Core-only tools wait", () => {
   assert.equal(pdfToolAvailability(tool("crop"), true, false).enabled, true);
-  assert.equal(pdfToolAvailability(tool("merge"), true, false).enabled, false);
-  assert.equal(pdfToolAvailability(tool("merge"), true, false).checking, true);
+  for (const id of ["multiTool", "merge", "split", "rotate", "removePages", "extractPages", "reorganizePages", "scalePages", "convert"]) {
+    assert.equal(pdfToolAvailability(tool(id), true, false).enabled, true);
+    assert.equal(pdfToolAvailability(tool(id), true, false).checking, false);
+  }
+  assert.equal(pdfToolAvailability(tool("compress"), true, false).enabled, false);
+  assert.equal(pdfToolAvailability(tool("compress"), true, false).checking, true);
   assert.equal(pdfToolAvailability(tool("classify"), true, false).checking, false);
 });
 

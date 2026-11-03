@@ -9,7 +9,7 @@ from test_editor_navigation import choose_card, editor, env, playwright  # noqa:
 def open_calculator(page, calculator_id):
     # Leave NOVA through its save/navigation contract before using calculator routes.
     page.get_by_role("button", name="Zum Toolhub", exact=True).click()
-    playwright.expect(page.locator(".toolbox-card")).to_have_count(7)
+    playwright.expect(page.locator(".toolbox-card")).to_have_count(8)
     page.evaluate("id => { location.hash = 'rechner/' + id; }", calculator_id)
     page.wait_for_function("""prefix => Object.keys(localStorage).some(key => key.startsWith(prefix))""",
                            arg="edeco.workbench.v1." + calculator_id + ".")

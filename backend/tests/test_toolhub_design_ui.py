@@ -11,10 +11,10 @@ def test_toolhub_header_alignment_palette_and_shared_theme(editor):
     page, _, _, _ = editor
     page.set_viewport_size({"width": 1600, "height": 1000})
     page.get_by_role("button", name="Zum Toolhub", exact=True).click()
-    playwright.expect(page.locator(".toolbox-card")).to_have_count(7)
+    playwright.expect(page.locator(".toolbox-card")).to_have_count(8)
     palette = page.locator(".toolbox-card.is-available .toolbox-symbol").evaluate_all(
         "nodes => nodes.map(node => getComputedStyle(node).backgroundImage)")
-    assert len(palette) == 7 and len(set(palette)) == 7
+    assert len(palette) == 8 and len(set(palette)) == 8
     geometry = page.locator(".toolhub-header-actions").evaluate("""el =>
       [...el.querySelectorAll(':scope > button, :scope > a, .project-picker select')]
         .filter(node => node.getClientRects().length)

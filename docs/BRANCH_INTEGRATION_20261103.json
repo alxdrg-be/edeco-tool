@@ -1,0 +1,329 @@
+{
+  "schemaVersion": 1,
+  "auditDate": "2026-11-03",
+  "auditMode": "Read-only Git/content review; no branch mutation or old-program execution.",
+  "publishedMain": "46ad7afb988d962eb4bddb274419e2159e4a5526",
+  "comparisonCheckpoint": "d6a5fc2cb5a59010ec9727733df84cf9fbd29fec",
+  "fetchNote": "remote.origin.fetch previously covered main only; all refs fetched explicitly by root before final audit.",
+  "remoteBranchCount": 8,
+  "branches": [
+    {
+      "branch": "origin/BIM2STEIGER",
+      "sha": "57966d3ab15843fc99595101b32cee3032a6ec62",
+      "mergeBaseWithCheckpoint": "d1ed342afb1203149c4b7d8188528dee7aa5a25c",
+      "checkpointAheadCommits": 38,
+      "branchAheadCommits": 20,
+      "ancestorOfPublishedMain": false,
+      "ancestorOfCheckpoint": false,
+      "uniqueCommits": [
+        "57966d3ab15843fc99595101b32cee3032a6ec62 BIM2STEIGER importieren",
+        "b886231f3dc72e65a6ec84b4dc194db83f042bf7 Add files via upload",
+        "d02eca0e98e37772fab677de0a02374cd2c9344c Add files via upload",
+        "2709d9ff4a7870b7d6c4a061fa85a92e6307fedd Add files via upload",
+        "6e3af148d47fc59843e0eb4ac1993ab9df4d6f89 Add files via upload",
+        "85b65ee9a9668b753139804c7486bcbe7b17b265 Add files via upload",
+        "61c5929db4982ed11f30704ce6ec37221986a68d Add files via upload",
+        "e687c22db12b227b059c517f8dfdc5644a968d8d Add files via upload",
+        "5d41e3ea94238961264792b82363f45ab1dbc166 Add files via upload",
+        "3535ec6afbdcf9af9a597a43e56ee1663f388e49 Add files via upload",
+        "a7e00b8bedb6ab9d827e10e343af513aafea76c0 Add files via upload",
+        "354d39b5e71cd98097110bd748af53612d113b52 Add files via upload",
+        "7fb70d2218638fb29420d02574a274d178b63137 Add files via upload",
+        "ad86106cef2a1c672fda0f177276e729f39ede2e Add files via upload",
+        "9a3ecc9bb1d565daba6cf11eb7cdb45c8dbcc1aa Add files via upload",
+        "43ed8760518f1fb309063ad894739ea2cb654251 Add files via upload",
+        "0890f208db3bf7491e84d47c2a6937705d47bf6d Add files via upload",
+        "8b42a5a044a9a52daf67107d2559b60c5658149d Add files via upload",
+        "999bc441a0581e1c79f66d3c8a12e6abe0d2adab Add files via upload",
+        "b2d4ccb96e0bd05f8df08507a5687a5f6fd917ec Add files via upload"
+      ],
+      "changedFileCountSinceMergeBase": 27323,
+      "changedFilesNote": "Large original BIM tree; every branch file checked under backend/bim2steiger, see bimContentMapping."
+    },
+    {
+      "branch": "origin/Nova-Legenden",
+      "sha": "a635705b50c0fb7f051fac6cd41b6d14ed693257",
+      "mergeBaseWithCheckpoint": "a635705b50c0fb7f051fac6cd41b6d14ed693257",
+      "checkpointAheadCommits": 37,
+      "branchAheadCommits": 0,
+      "ancestorOfPublishedMain": true,
+      "ancestorOfCheckpoint": true,
+      "uniqueCommits": [],
+      "changedFileCountSinceMergeBase": 0,
+      "changedFilesSinceMergeBase": []
+    },
+    {
+      "branch": "origin/codex/presentation-review-20261103",
+      "sha": "d6a5fc2cb5a59010ec9727733df84cf9fbd29fec",
+      "mergeBaseWithCheckpoint": "d6a5fc2cb5a59010ec9727733df84cf9fbd29fec",
+      "checkpointAheadCommits": 0,
+      "branchAheadCommits": 0,
+      "ancestorOfPublishedMain": false,
+      "ancestorOfCheckpoint": true,
+      "uniqueCommits": [],
+      "changedFileCountSinceMergeBase": 0,
+      "changedFilesSinceMergeBase": []
+    },
+    {
+      "branch": "origin/codex/restore-toolhub-20261103",
+      "sha": "5a6bf6e6c34170a937a9e3e887e6f94048b3f88f",
+      "mergeBaseWithCheckpoint": "5a6bf6e6c34170a937a9e3e887e6f94048b3f88f",
+      "checkpointAheadCommits": 3,
+      "branchAheadCommits": 0,
+      "ancestorOfPublishedMain": true,
+      "ancestorOfCheckpoint": true,
+      "uniqueCommits": [],
+      "changedFileCountSinceMergeBase": 0,
+      "changedFilesSinceMergeBase": []
+    },
+    {
+      "branch": "origin/cursor/berechnungen-edeco-bca8",
+      "sha": "3916952fb9be33afe5d17ee0f2842b44081059c2",
+      "mergeBaseWithCheckpoint": "46ad7afb988d962eb4bddb274419e2159e4a5526",
+      "checkpointAheadCommits": 1,
+      "branchAheadCommits": 6,
+      "ancestorOfPublishedMain": false,
+      "ancestorOfCheckpoint": false,
+      "uniqueCommits": [
+        "3916952fb9be33afe5d17ee0f2842b44081059c2 Leave the current project list behaviour unchanged.",
+        "63edf78653ecd13a97c3c20ce7b3b7868b45aaa7 Open the formula calculators from the current calculation overview.",
+        "74a479c01cd12daa98d135ca9ddc853d44da9519 Tighten calculator screens around the result.",
+        "3b7898411be9c34f6890aece3c98ec0a7a373468 Merge origin/main into the formula calculators.",
+        "0eb8b2c68daf2ad245b98698bf70b073528ef0ed Merge main and open the tested formula calculators.",
+        "82844158dc687f7c96dc3deb691f529f51f08315 Add Berechnungen with tested electrical calculators."
+      ],
+      "changedFileCountSinceMergeBase": 11,
+      "changedFilesSinceMergeBase": [
+        "M\tTOOLBOX_NEUIGKEITEN.md",
+        "A\tdocs/CODEX_BERECHNUNGEN.md",
+        "M\tdocs/TOOLBOX_ERWEITERN.md",
+        "A\tui/src/tools/berechnungen/Berechnungen.tsx",
+        "M\tui/src/tools/berechnungen/Calculations.tsx",
+        "A\tui/src/tools/berechnungen/berechnungen.css",
+        "A\tui/src/tools/berechnungen/calc.test.ts",
+        "A\tui/src/tools/berechnungen/calc.ts",
+        "A\tui/src/tools/berechnungen/conductors.ts",
+        "A\tui/src/tools/berechnungen/graphics.tsx",
+        "A\tui/src/tools/berechnungen/iz.ts"
+      ]
+    },
+    {
+      "branch": "origin/main",
+      "sha": "46ad7afb988d962eb4bddb274419e2159e4a5526",
+      "mergeBaseWithCheckpoint": "46ad7afb988d962eb4bddb274419e2159e4a5526",
+      "checkpointAheadCommits": 1,
+      "branchAheadCommits": 0,
+      "ancestorOfPublishedMain": true,
+      "ancestorOfCheckpoint": true,
+      "uniqueCommits": [],
+      "changedFileCountSinceMergeBase": 0,
+      "changedFilesSinceMergeBase": []
+    },
+    {
+      "branch": "origin/pdf-werkstatt-eigene-ui",
+      "sha": "c7579f8b6010f5ab3a008450cc787c8f042bd9b5",
+      "mergeBaseWithCheckpoint": "120f2b8a820846fc8f6f5ffb4126ab3965d0fde3",
+      "checkpointAheadCommits": 22,
+      "branchAheadCommits": 4,
+      "ancestorOfPublishedMain": false,
+      "ancestorOfCheckpoint": false,
+      "uniqueCommits": [
+        "c7579f8b6010f5ab3a008450cc787c8f042bd9b5 Add visual PDF crop and split controls, document folder sources and handoff guide",
+        "8a5cba7377ba0f52cd61432040c4a181281eb9c8 Allow server PDF image export without page rearrangement",
+        "cdcb39af4d4c0674c472f40da77086f835492f53 Fix PDF workbench selection, document lifecycle and server capabilities",
+        "69afba7cb4fef416fcf34c683f6b957ac1e3308d Add edeco PDF tool dashboard and local document workspaces"
+      ],
+      "changedFileCountSinceMergeBase": 31,
+      "changedFilesSinceMergeBase": [
+        "M\t.github/workflows/build-windows.yml",
+        "M\tREADME.md",
+        "M\tTOOLBOX_NEUIGKEITEN.md",
+        "M\tbackend/edeco_toolbox/__main__.py",
+        "M\tbackend/edeco_toolbox/documents/api.py",
+        "A\tbackend/edeco_toolbox/documents/folders.py",
+        "M\tbackend/edeco_toolbox/pdf_workshop/api.py",
+        "M\tbackend/edeco_toolbox/pdf_workshop/client.py",
+        "A\tbackend/edeco_toolbox/pdf_workshop/operations.py",
+        "A\tbackend/edeco_toolbox/pdf_workshop/workbench.py",
+        "A\tbackend/tests/test_document_folders.py",
+        "M\tbackend/tests/test_editor_navigation.py",
+        "A\tbackend/tests/test_pdf_operations.py",
+        "M\tbackend/tests/test_pdf_packaged_ui.py",
+        "A\tbackend/tests/test_pdf_tools_ui.py",
+        "M\tbackend/tests/test_pdf_workshop.py",
+        "M\tdocs/DOKUMENTEN_ASSISTENT.md",
+        "M\tdocs/PDF_OFFLINE_WINDOWS.md",
+        "A\tdocs/UEBERGABE_ARBEITS_PC.md",
+        "M\tui/src/styles.css",
+        "M\tui/src/tools/dokumenten-assistent/DocumentAssistant.tsx",
+        "A\tui/src/tools/dokumenten-assistent/FolderSettings.tsx",
+        "M\tui/src/tools/dokumenten-assistent/Settings.tsx",
+        "A\tui/src/tools/dokumenten-assistent/SetupGuide.tsx",
+        "M\tui/src/tools/dokumenten-assistent/documents.css",
+        "A\tui/src/tools/pdf-workshop/PageWorkbench.tsx",
+        "A\tui/src/tools/pdf-workshop/PdfTask.tsx",
+        "A\tui/src/tools/pdf-workshop/PdfToolHome.tsx",
+        "M\tui/src/tools/pdf-workshop/PdfWorkshop.tsx",
+        "M\tui/src/tools/pdf-workshop/pdf-workshop.css",
+        "A\tui/src/tools/pdf-workshop/tools.tsx"
+      ]
+    },
+    {
+      "branch": "origin/toolbox",
+      "sha": "1617252874c104af994b94246c8774a0addd448e",
+      "mergeBaseWithCheckpoint": "1617252874c104af994b94246c8774a0addd448e",
+      "checkpointAheadCommits": 35,
+      "branchAheadCommits": 0,
+      "ancestorOfPublishedMain": true,
+      "ancestorOfCheckpoint": true,
+      "uniqueCommits": [],
+      "changedFileCountSinceMergeBase": 0,
+      "changedFilesSinceMergeBase": []
+    }
+  ],
+  "safeDelete": [
+    {
+      "branch": "origin/Nova-Legenden",
+      "sha": "a635705b50c0fb7f051fac6cd41b6d14ed693257",
+      "reason": "Full head already reachable from published main and checkpoint."
+    },
+    {
+      "branch": "origin/toolbox",
+      "sha": "1617252874c104af994b94246c8774a0addd448e",
+      "reason": "Full head already reachable from published main and checkpoint."
+    },
+    {
+      "branch": "origin/codex/restore-toolhub-20261103",
+      "sha": "5a6bf6e6c34170a937a9e3e887e6f94048b3f88f",
+      "reason": "Restore head already reachable from published main and checkpoint."
+    }
+  ],
+  "needsPort": [
+    {
+      "branch": "origin/cursor/berechnungen-edeco-bca8",
+      "sha": "3916952fb9be33afe5d17ee0f2842b44081059c2",
+      "reason": "Ten standalone formula calculators, pure model/data/graphics/tests and overview entry absent at checkpoint.",
+      "pr": 3,
+      "status": "port_delegated_not_yet_committed_at_audit",
+      "integrationCommit": null,
+      "archiveRef": null,
+      "requiredValidation": [
+        "Formula models/assumptions adapted to current factors and evidence limits.",
+        "Current navigation, knowledge and export retained.",
+        "Relevant model/UI checks."
+      ]
+    },
+    {
+      "branch": "origin/pdf-werkstatt-eigene-ui",
+      "sha": "c7579f8b6010f5ab3a008450cc787c8f042bd9b5",
+      "reason": "Document folder import/synchronisation missing; dedicated PDF page/split workflows need functional comparison.",
+      "pr": 2,
+      "status": "selective_port_and_workflow_review_delegated",
+      "integrationCommit": null,
+      "archiveRef": null,
+      "features": [
+        {
+          "id": "document-folders",
+          "status": "needsPort",
+          "sourceFiles": [
+            "backend/edeco_toolbox/documents/folders.py",
+            "backend/edeco_toolbox/documents/api.py",
+            "ui/src/tools/dokumenten-assistent/FolderSettings.tsx",
+            "backend/tests/test_document_folders.py"
+          ],
+          "scope": "Explicit read-only local/UNC PDF/TXT/MD indexing, update/delete managed local copies, disconnect and setup guide."
+        },
+        {
+          "id": "native-pdf-page-workbench",
+          "status": "requiresReview",
+          "sourceFiles": [
+            "ui/src/tools/pdf-workshop/PageWorkbench.tsx",
+            "backend/edeco_toolbox/pdf_workshop/workbench.py"
+          ],
+          "scope": "Document rows, cross-document page moves, per-page selection/rotation/deletion, composed exports; current Core tools cover operations but own native UX absent."
+        },
+        {
+          "id": "visual-pdf-split-and-options",
+          "status": "requiresReview",
+          "sourceFiles": [
+            "ui/src/tools/pdf-workshop/PdfTask.tsx",
+            "backend/edeco_toolbox/pdf_workshop/operations.py"
+          ],
+          "scope": "Visual split markers, selected image exports and exact scale semantics; compare to current Core implementations."
+        },
+        {
+          "id": "old-crop-and-tool-dashboard",
+          "status": "superseded",
+          "scope": "Keep current 57-tool catalog and native crop; do not replace with old 11-tool layout or QPDF-dependent crop."
+        }
+      ]
+    }
+  ],
+  "requiresReview": [
+    {
+      "branch": "origin/BIM2STEIGER",
+      "sha": "57966d3ab15843fc99595101b32cee3032a6ec62",
+      "reason": "All source files mapped; original 20-commit history not reachable from main.",
+      "requiredAction": "Archive the exact source head remotely before deleting the branch name.",
+      "archiveRef": null,
+      "featurePortNeeded": false
+    },
+    {
+      "branch": "origin/codex/presentation-review-20261103",
+      "sha": "d6a5fc2cb5a59010ec9727733df84cf9fbd29fec",
+      "reason": "Exact presentation checkpoint exists remotely but is not yet ancestor of published main.",
+      "requiredAction": "Integrate checkpoint into final main and verify ancestry before deleting this checkpoint branch.",
+      "integrationCommit": null,
+      "archiveRef": null
+    }
+  ],
+  "preserve": [
+    "origin/main",
+    "main",
+    "work until final main integration and safe checkout"
+  ],
+  "bimContentMapping": {
+    "sourceHead": "57966d3ab15843fc99595101b32cee3032a6ec62",
+    "sourceTree": "5cd9e7760e424cf6df148a24828b5c06be4a919e",
+    "targetCheckpoint": "d6a5fc2cb5a59010ec9727733df84cf9fbd29fec",
+    "targetPrefix": "backend/bim2steiger/",
+    "mappedBranchFileCount": 27324,
+    "exactBlobCount": 27317,
+    "missingFiles": [],
+    "mainImprovedFiles": [
+      "importers.py",
+      "rules.py",
+      "tests/test_elda_export.py",
+      "tests/test_import_formats.py",
+      "web/bim2steiger-program.js",
+      "web/bim2steiger-updates.js",
+      "web/bim2steiger.html"
+    ],
+    "integrationCommit": "1617252874c104af994b94246c8774a0addd448e"
+  },
+  "localBranches": [
+    {
+      "branch": "Nova-Legenden",
+      "sha": "a635705b50c0fb7f051fac6cd41b6d14ed693257",
+      "ancestorOfPublishedMain": true
+    },
+    {
+      "branch": "main",
+      "sha": "044e9423193dd7156e1832c365fe30137bb322a3",
+      "ancestorOfPublishedMain": true
+    },
+    {
+      "branch": "toolbox",
+      "sha": "1617252874c104af994b94246c8774a0addd448e",
+      "ancestorOfPublishedMain": true
+    },
+    {
+      "branch": "work",
+      "sha": "d6a5fc2cb5a59010ec9727733df84cf9fbd29fec",
+      "ancestorOfPublishedMain": false
+    }
+  ],
+  "completedIntegrationCommits": [],
+  "archivedRefs": [],
+  "deletionsPerformed": []
+}

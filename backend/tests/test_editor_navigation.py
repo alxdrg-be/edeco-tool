@@ -249,7 +249,7 @@ def test_toolbox_shows_core_tiles_without_scroll_and_hides_removed_extras(editor
         page.evaluate("font => document.documentElement.style.setProperty('--font-ui', font)", font_family)
     page.set_viewport_size({"width": 1400, "height": 900})
     page.get_by_role("button", name="Zum Toolhub", exact=True).click()
-    playwright.expect(page.locator(".toolbox-card")).to_have_count(7)
+    playwright.expect(page.locator(".toolbox-card")).to_have_count(8)
     assert page.locator(".toolbox").evaluate("el => el.scrollHeight <= el.clientHeight")
     # A 900px native window also needs space for its Windows title bar.
     page.set_viewport_size({"width": 1400, "height": 860})
@@ -792,6 +792,7 @@ def test_stirling_embedded_keeps_original_ui_and_merges_two_real_pdfs(editor):
     page.get_by_role("button", name="PDF-Werkstatt öffnen", exact=True).click()
     playwright.expect(page.locator('[data-pdf-tool="merge"]')).to_have_attribute("aria-disabled", "false")
     page.locator('[data-pdf-tool="merge"]').click()
+    page.get_by_role("button", name="Erweiterte Funktionen", exact=True).click()
     frame = page.frame_locator("iframe[title='Stirling-PDF · edeco PDF-Werkstatt']")
     picker = frame.locator("input[type=file]").first
     picker.wait_for(state="attached", timeout=60000)
@@ -920,10 +921,14 @@ def test_common_updater_checks_and_requires_confirmation_before_install(editor):
         kind = route.request.url.rsplit("/", 1)[1]
         actions.append(kind)
         if kind == "check":
-            route.fulfill(json={**state, "status": "available", "latest": "v0.2.0-build.5", "notes": notes, "can_install": True, "message": "Ein Toolbox-Update ist verfügbar."})
+            state.update(status="available", latest="v0.2.0-build.5", notes=notes,
+                         can_install=True, message="Ein Toolhub-Update ist verfügbar.")
+            route.fulfill(json=state)
         else:
             assert kind == "install" and json.loads(route.request.post_data) == {}
-            route.fulfill(json={**state, "status": "installing", "message": "Setup geprüft. Die Toolbox schliesst sich."})
+            state.update(status="installing", can_install=False,
+                         message="Setup geprüft. Der Toolhub schliesst sich.")
+            route.fulfill(json=state)
     page.route("**/api/toolbox/updates/check", action)
     page.route("**/api/toolbox/updates/install", action)
     page.get_by_role("button", name="Zum Toolhub", exact=True).click()
@@ -949,7 +954,9 @@ def test_common_updater_checks_and_requires_confirmation_before_install(editor):
     page.get_by_role("button", name="Update installieren", exact=True).click()
     assert actions == ["check"]
     page.get_by_role("button", name="Jetzt aktualisieren", exact=True).click()
-    playwright.expect(page.get_by_role("status").filter(has_text="Setup geprüft")).to_be_visible()
+    installing = page.get_by_role("dialog", name="Der Toolhub wird aktualisiert", exact=True)
+    playwright.expect(installing.get_by_role("status")).to_contain_text("Download geprüft")
+    playwright.expect(installing.locator('[aria-current="step"]')).to_have_text("Setup starten")
     assert actions == ["check", "install"]
 
 

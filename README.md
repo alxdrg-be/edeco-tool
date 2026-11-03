@@ -10,24 +10,23 @@ direkt über die Kopfzeile wechseln; „Zum Toolhub“ führt zur Übersicht zur
 | --- | --- | --- |
 | NOVA-Legenden | Nutzbar, Work in progress | Petrol |
 | BIM2STEIGER | Nutzbar, Work in progress; lokaler Katalog integriert | Blau |
-| Dokumenten-Assistent | Nutzbar, Work in progress; lokale Suche, KI über gemeinsamen Server | Violett |
+| Dokumenten-Assistent | Lokale Suche; KI mit Ollama auf dem PC oder über einen Firmenserver; optionale Dokumentordner | Violett |
 | Dateien umbenennen | Nutzbar, Work in progress | Grün |
 | PDF-Werkstatt | Stirling Core mit vollständig mitgelieferter Windows-Offline-Laufzeit | Rosé |
 | Projektzentrale | Nutzbar, Work in progress | Gold |
-| Planlieferungs-Assistent | Nutzbar, Work in progress; ZIP, Planlisten und Projektverlauf | Koralle |
+| Planlieferungs-Assistent | Aus der Startübersicht ausgeblendet; für Admins über „Werkzeuge“ erreichbar | Koralle |
 | Berechnungen | 26 native Schweizer Rechenhilfen inklusive Netzplaner (Beta) | Orange |
+| Elektro-Memory | 16 Quellseiten als durchsuchbare Themen, Formeln, Tabellen und SVG-Grundlagen; integrierter Formelrechner | Indigo |
 | ↳ Blitzschutz | Trennungsabstand; fachliche Freigabe offen | Orange |
-| Änderungsbericht | Geplant | Orange |
-| Leistungsbilanz | Geplant | Violett |
+| ↳ Leistungsbilanz | Geplant im Bereich Berechnungen | Violett |
 | ↳ Kabelberechnung | Schweizer Spannungsfall-Vorprüfung; fachliche Freigabe offen | Blau |
-| Anlagetool | Geplant | Grün |
 
 BIM2STEIGER verwendet seinen vorhandenen Katalog mit 11’777 Katalogartikeln,
 Originalbildern, Favoriten, Modellimport und Ausschreibungen. Es läuft unter
 `/tools/bim2steiger/` im selben lokalen Server und Desktopfenster wie Nova.
-Die drei geplanten Erweiterungen sind als ausgegraute, deaktivierte Kacheln
-vorbereitet; Leistungsbilanz liegt im Bereich Berechnungen.
-Alle zehn Hauptkacheln sind im normalen Desktopfenster (1400 × 900)
+Änderungsbericht und Anlagentool erscheinen nicht mehr in der Oberfläche.
+Die geplante Leistungsbilanz liegt weiterhin im Bereich Berechnungen.
+Die acht Hauptkacheln sind im normalen Desktopfenster (1400 × 900)
 ohne Scrollen sichtbar; kleinere Fenster können scrollen. Umfang und Reihenfolge
 der Erweiterungen stehen im [Ausbauplan](docs/TOOLBOX_AUSBAUPLAN.md).
 
@@ -35,6 +34,36 @@ Der neue Produktname ändert keine bestehenden Datenpfade, AppId oder
 Update-Dateinamen. Installierte Vorversionen können weiter aktualisiert werden.
 Die Namensvorlage im Planlieferungs-Assistenten startet geschlossen; PDFs und
 Lieferangaben bleiben dadurch direkt erreichbar.
+
+## Vorführung, Memory und bestehende Legenden
+
+Die Einstellungen der Hubübersicht enthalten den Demo-Modus. Voreingestellt sind
+NOVA-Legenden, Berechnungen, Dateien umbenennen und PDF-Werkstatt. Der normale
+Hub enthält zusätzlich die übrigen verfügbaren Werkzeuge und das Elektro-Memory.
+Die Adminzuordnung verwendet unter Windows die tatsächliche Anmeldung; vorbelegt
+sind `aduerger` und `nstrauss`. Es entsteht kein zusätzliches Benutzerkonto.
+
+Im NOVA-Editor öffnet **Editor gross öffnen** die grosse Bearbeitungsansicht.
+Bestehende Layouts werden bewusst mit **Dichte wie Entwurf** oder **A4 kompakt**
+umgestellt; Undo stellt den vorherigen Stil wieder her. A4 kompakt verwendet vier
+Spalten und proportionale Konturen, ohne die Symbolgeometrie zu verändern. Die
+Seitenhöhe folgt dem Inhalt; nicht jede beliebig lange Legende passt auf A4.
+Farbvarianten lassen sich je logischem Symbol auswählen; die Originalvarianten
+bleiben gespeichert.
+
+Das **Elektro-Memory** setzt alle 16 Seiten der bereitgestellten Rastervorlage neu
+als Text, Tabellen und mathematische Vektorgrafiken. Die 70 Quelleneinträge und
+25 Formeleinträge sind mit den Quellseiten verbunden. Drei ergänzende Themen
+erklären Einheiten, Stromsysteme sowie Reihen- und Parallelschaltungen. Der Reiter
+**Formelrechner** ist auch über die Berechnungsübersicht erreichbar. Normbezogene
+Quellangaben sind Referenzen; der Formelrechner ersetzt keine Anlagenfreigabe.
+
+Die PDF-Werkstatt beginnt mit der Werkzeugwahl. Dateien können schon dort
+bereitgelegt und anschliessend im gewählten grossen Arbeitsbereich bearbeitet
+werden. Lokale Einstellungen benötigen kein Stirling-Benutzerkonto. Der Updater
+zeigt Download-MB, Prozent und Übergabe an das Setup. Ein versionsabhängiger
+Startlink und nicht zwischengespeicherte HTML-Einstiege verhindern eine alte
+Oberfläche nach dem Update, während das Benutzerprofil erhalten bleibt.
 
 Der erneute angemeldete Quellenabgleich vom 2. November 2026 ist getrennt für
 [Installation und Schutz](docs/REAUDIT_INSTALLATION_20261102.md),

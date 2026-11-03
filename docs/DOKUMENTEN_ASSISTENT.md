@@ -73,6 +73,41 @@ unterstützen. Es werden keine API-Schlüssel in die EXE eingebaut.
    Markierungen öffnet sich rechts. Pfeile blättern im Original; **Original
    speichern** lädt die unveränderte importierte Datei herunter.
 
+## Dokumentordner verbinden
+
+Über **Dokumentordner** lassen sich ein absoluter lokaler Ordnerpfad oder eine
+Windows-Freigabe wie `\\SERVER\Unterlagen` anbinden. Im Programmfenster kann der
+Ordner mit **Auswählen** gewählt werden; im Browser bleibt die Pfadeingabe.
+Die aufklappbare Anleitung erklärt die Einrichtung direkt im Dialog.
+
+- **Verbinden und einlesen** speichert die gewählte Quelle und startet den
+  ersten lesenden Abgleich. Nur dabei beziehungsweise mit **Jetzt aktualisieren**
+  wird der Quellordner durchsucht. Beim Programmstart und beim Öffnen des Dialogs
+  findet kein automatischer Scan statt.
+- Unterstützt werden PDF, UTF-8-TXT und Markdown. Grenzen pro Quelle: 200
+  Dokumente, 250 MB insgesamt, 100 MB pro Datei und 5000 Dateisystemeinträge
+  einschliesslich nicht unterstützter Dateien und Unterordner. Die vorhandenen
+  Grenzen für PDF-Seiten und extrahierten Text gelten weiterhin.
+- Quelldateien werden nur gelesen; Kopien und Suchindex liegen auf diesem PC.
+  Der Zugriff verwendet die Windows-Rechte des angemeldeten Toolhub-Benutzers.
+  Firmenfreigaben vorher im Explorer mit Firmennetz/VPN und Leserechten prüfen.
+  Verknüpfungen und Junctions werden nicht verfolgt.
+- Beim ausdrücklichen Abgleich werden neue und geänderte Dokumente übernommen.
+  Entfernte beziehungsweise ersetzte verwaltete Kopien werden aus dem lokalen
+  Index entfernt. Identische Inhalte werden über SHA-256 dedupliziert.
+  Zusätzlich manuell importierte Dokumente bleiben erhalten, auch wenn der
+  manuelle Import erst nach dem Ordnerimport erfolgt ist.
+- **Verbindung trennen** und ein Ordnerwechsel behalten die bisherigen lokalen
+  Dokumente. Ein nicht erreichbarer Quellordner oder während des Lesens
+  ausgetauschte, veränderte oder unlesbare Dateien löschen keine letzte gültige lokale Kopie.
+  Hinweise zur Aktualisierung zeigen solche Fälle an.
+
+Der Ordner und die KI sind getrennt eingerichtet: Ordnerimport und
+Fundstellensuche brauchen kein KI-Modell. Ollama liest keine Freigabe selbst;
+erst **KI-Antwort** sendet die Frage und passende Auszüge aus dem lokalen Index
+an die zuvor eingerichtete KI. Dokumentstände und Geltungsbereiche werden nicht
+aus Dateidatum oder Ordnernamen als fachlich gültig abgeleitet.
+
 ## Quellen und Genauigkeit
 
 - Seitenzahlen sind physische PDF-Seiten ab 1. Ein vorhandenes abweichendes
@@ -121,7 +156,9 @@ wird im Prompt ausdrücklich als Quellenmaterial behandelt.
 
 Automatisierte Prüfungen decken echte PDF-Textextraktion und Pixelpositionen in
 allen vier Seitendrehungen, leere Textschichten, Auswahl/Stand/Zeilennummern,
-Speicherung und Löschung, Zugriffsschutz, Ollama-/OpenAI-Protokoll und ungültige
+Speicherung und Löschung, lesenden Ordnerabgleich inklusive Grenzen,
+Verknüpfungen und getrennt erhaltenen manuellen Kopien, Zugriffsschutz,
+Ollama-/OpenAI-Protokoll und ungültige
 KI-Quellenangaben ab. Die KI-Protokolle werden mit simulierten Antworten geprüft;
 ein tatsächlich laufender Firmenserver und die fachliche Antwortqualität müssen
 bei der Einrichtung mit eigenen freigegebenen Unterlagen geprüft werden.

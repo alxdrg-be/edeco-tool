@@ -21,6 +21,8 @@ from . import API, ROOT
 from .client import PdfFile, StirlingClient
 from .config import Configuration
 from .crop import register_crop
+from .operations import register_operations
+from .workbench import register_workbench
 from .runtime import PdfRuntime, runtime_root
 
 ASSETS = Path(__file__).parent / "assets"
@@ -80,6 +82,8 @@ def register(app):
             raise HTTPException(403, "Die PDF-Werkstatt bitte direkt in der Toolbox öffnen.")
 
     register_crop(app, authorize)
+    register_workbench(app, authorize, config)
+    register_operations(app, authorize, config)
 
     @app.get(API + "/state")
     def state(request: Request):
