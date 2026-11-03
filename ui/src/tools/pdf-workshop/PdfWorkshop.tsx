@@ -1,7 +1,19 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
+import {
+  ArrowLeft, ArrowLeftRight, ArrowUpRight, Award, BadgeCheck, BookOpen, CaseSensitive, Clock, CodeXml,
+  Columns2, CopyPlus, Crop, Droplets, Eraser, FileArchive, FileCog, FileMinus, FilePenLine,
+  FileSearch, ImageOff, ImagePlus, Images, Info, Layers, LayoutGrid, ListOrdered, ListTree,
+  LockKeyhole, LockOpen, Maximize, MessageSquare, MessageSquareOff, Minimize, Palette,
+  PanelsTopLeft, Paperclip, RotateCw, ScanLine, ScanText, Scissors, ScrollText, Search,
+  Settings, Shield, ShieldCheck, ShieldOff, Signature, Sparkles, Square, Stamp,
+  TextCursorInput, Type, Workflow, Wrench, type LucideIcon,
+} from "lucide-react";
 import ToolHeader from "../../toolbox/ToolHeader";
 import type { ToolProps } from "../../toolbox/modules";
 import { useDialogFocus } from "../../useDialogFocus";
+import PdfCropEditor from "./PdfCropEditor";
+import { PDF_CATEGORIES, PDF_TOOLS, filterPdfTools, pdfToolAvailability, recordRecentPdfTool,
+  type EndpointCapabilities, type PdfTool } from "./toolCatalog";
 import "./pdf-workshop.css";
 
 interface State {
@@ -9,8 +21,20 @@ interface State {
   workflows: { id: string; title: string }[];
 }
 interface Health { ready: boolean; version: string; message: string }
-interface PdfWindow extends Window { edecoPDF?: { hasWork: () => boolean } }
+interface PdfWindow extends Window { edecoPDF?: {
+  hasWork: () => boolean; isReady: () => boolean;
+  activateTool: (id: string) => Promise<void>; openHome: () => Promise<void>; openSettings: () => boolean;
+} }
 const API = "/api/tools/pdf-werkstatt";
+const RECENT_KEY = "edeco.pdf.recent-tools";
+const ICONS: Record<string, LucideIcon> = {
+  ArrowLeftRight, Award, BadgeCheck, BookOpen, CaseSensitive, Clock, CodeXml, Columns2,
+  CopyPlus, Crop, Droplets, Eraser, FileArchive, FileCog, FileMinus, FilePenLine, FileSearch,
+  ImageOff, ImagePlus, Images, Layers, LayoutGrid, ListOrdered, ListTree, LockKeyhole,
+  LockOpen, Maximize, MessageSquare, MessageSquareOff, Minimize, Palette, PanelsTopLeft,
+  Paperclip, RotateCw, ScanLine, ScanText, Scissors, ScrollText, Shield, ShieldCheck,
+  ShieldOff, Signature, Sparkles, Square, Stamp, TextCursorInput, Type, Workflow, Wrench,
+};
 
 async function action<T>(path: string, sessionKey: string, body: object | FormData = {}): Promise<T> {
   const headers: Record<string, string> = { "X-Edeco-Pdf": sessionKey };
@@ -27,15 +51,23 @@ function LeaveDialog({ onClose, onLeave }: { onClose: () => void; onLeave: () =>
   useDialogFocus(ref, onClose);
   return <div className="modal-back"><div ref={ref} className="modal" role="alertdialog" aria-modal="true" aria-labelledby="pdf-leave-title" tabIndex={-1}>
     <h2 id="pdf-leave-title">Ergebnisse gespeichert?</h2>
-    <p>In der PDF-Werkstatt wurden Dateien geöffnet oder verarbeitet. Bitte benötigte Ergebnisse vor dem Werkzeugwechsel herunterladen.</p>
+    <p>Bitte benötigte Ergebnisse vor dem Verlassen herunterladen. Beim Wechsel zwischen den PDF-Werkzeugen bleiben die geöffneten Dateien erhalten.</p>
     <div className="pdf-actions"><button className="btn primary" onClick={onClose}>Hier bleiben</button>
       <button className="btn" onClick={onLeave}>Werkzeug wechseln</button></div>
   </div></div>;
 }
 
+function readRecent(): string[] {
+  try {
+    const value: unknown = JSON.parse(localStorage.getItem(RECENT_KEY) || "[]");
+    return Array.isArray(value) ? value.filter((id): id is string => typeof id === "string" && PDF_TOOLS.some(tool => tool.id === id)).slice(0, 8) : [];
+  } catch { return []; }
+}
+
 export default function PdfWorkshop({ onHome, onOpenTool }: ToolProps) {
   const [state, setState] = useState<State | null>(null);
   const [health, setHealth] = useState<Health | null>(null);
+  const [capabilities, setCapabilities] = useState<EndpointCapabilities | null>(null);
   const [url, setUrl] = useState("");
   const [settings, setSettings] = useState(false);
   const [info, setInfo] = useState(false);
@@ -45,7 +77,19 @@ export default function PdfWorkshop({ onHome, onOpenTool }: ToolProps) {
   const [notice, setNotice] = useState("");
   const [leave, setLeave] = useState<(() => void) | null>(null);
   const [revision, setRevision] = useState(0);
+  const [query, setQuery] = useState("");
+  const [category, setCategory] = useState("all");
+  const [recent, setRecent] = useState(readRecent);
+  const [view, setView] = useState<"catalog" | "stirling" | "crop">("catalog");
+  const [selected, setSelected] = useState<string | null>(null);
+  const [pendingTool, setPendingTool] = useState<string | null>(null);
+  const [bridgeReady, setBridgeReady] = useState(false);
+  const [settingsWanted, setSettingsWanted] = useState(false);
+  const [cropOpened, setCropOpened] = useState(false);
+  const cropDirty = useRef(false);
   const frame = useRef<HTMLIFrameElement>(null);
+  const tools = filterPdfTools(query, category, recent);
+  const title = PDF_TOOLS.find(tool => tool.id === selected)?.title;
 
   useEffect(() => {
     let alive = true;
@@ -73,11 +117,51 @@ export default function PdfWorkshop({ onHome, onOpenTool }: ToolProps) {
     return () => window.clearInterval(timer);
   }, [state, health?.ready]);
 
+  useEffect(() => {
+    if (!health?.ready) return;
+    let alive = true;
+    fetch("/tools/pdf-werkstatt/api/v1/config/endpoints-availability").then(async response => {
+      if (!response.ok) throw new Error();
+      const data: unknown = await response.json();
+      if (!data || typeof data !== "object" || Array.isArray(data)) throw new Error();
+      const valid = Object.fromEntries(Object.entries(data).filter(([, value]) => value && typeof value === "object" && typeof value.enabled === "boolean"));
+      if (alive) setCapabilities(valid);
+    }).catch(() => { if (alive) setCapabilities(null); });
+    return () => { alive = false; };
+  }, [health?.ready, revision]);
+
+  useEffect(() => {
+    const receive = (event: MessageEvent) => {
+      if (event.origin !== window.location.origin || event.source !== frame.current?.contentWindow || event.data?.type !== "edeco-pdf-state") return;
+      setBridgeReady(event.data.ready === true);
+    };
+    window.addEventListener("message", receive);
+    return () => window.removeEventListener("message", receive);
+  }, []);
+
+  useEffect(() => {
+    if (!pendingTool || !bridgeReady || view !== "stirling") return;
+    const child = frame.current?.contentWindow as PdfWindow | null;
+    if (!child?.edecoPDF) return;
+    let alive = true;
+    const opening = pendingTool === "__home__" ? child.edecoPDF.openHome() : child.edecoPDF.activateTool(pendingTool);
+    void opening.then(() => {
+      if (alive) { setPendingTool(null); setNotice(""); }
+    }).catch((e: Error) => { if (alive) { setPendingTool(null); setError(e.message); } });
+    return () => { alive = false; };
+  }, [pendingTool, bridgeReady, view]);
+
+  useEffect(() => {
+    if (!settingsWanted || !bridgeReady || view !== "stirling") return;
+    const child = frame.current?.contentWindow as PdfWindow | null;
+    if (child?.edecoPDF?.openSettings()) setSettingsWanted(false);
+  }, [settingsWanted, bridgeReady, view]);
+
   async function check(save: boolean) {
     if (!state || busy) return;
     const changed = save && url.replace(/\/$/, "") !== state.service_url;
     const child = frame.current?.contentWindow as PdfWindow | null;
-    if (changed && child?.edecoPDF?.hasWork()) {
+    if (changed && (cropDirty.current || child?.edecoPDF?.hasWork())) {
       setError("Bitte die PDF-Ergebnisse speichern und die Werkstatt neu öffnen, bevor du den Dienst wechselst."); return;
     }
     setBusy("check"); setError("");
@@ -86,17 +170,36 @@ export default function PdfWorkshop({ onHome, onOpenTool }: ToolProps) {
         const result = await action<State & Health>("/connection", state.session_key, { service_url: url });
         setState({ ...state, ...result }); setHealth(result);
       } else setHealth(await action<Health>("/check", state.session_key));
-      if (changed || !health?.ready) setRevision(value => value + 1);
+      if (changed || !health?.ready) { setBridgeReady(false); setCapabilities(null); setRevision(value => value + 1); }
     } catch (e) { setError((e as Error).message); }
     finally { setBusy(""); }
   }
 
-  function requestLeave(action: () => void) {
+  function requestLeave(callback: () => void) {
     if (busy === "workflow") return;
     const child = frame.current?.contentWindow as PdfWindow | null;
-    if (child?.edecoPDF?.hasWork()) setLeave(() => action);
-    else action();
+    if (cropDirty.current || child?.edecoPDF?.hasWork()) setLeave(() => callback);
+    else callback();
   }
+
+  function remember(id: string) {
+    setRecent(old => {
+      const value = recordRecentPdfTool(old, id);
+      try { localStorage.setItem(RECENT_KEY, JSON.stringify(value)); } catch { /* Storage may be unavailable in private mode. */ }
+      return value;
+    });
+  }
+
+  function openTool(tool: PdfTool) {
+    const availability = pdfToolAvailability(tool, Boolean(state?.local), Boolean(health?.ready), capabilities);
+    if (!state || !availability.enabled) { setNotice(availability.reason); return; }
+    setSelected(tool.id); setSettingsWanted(false); setError(""); setNotice(""); remember(tool.id);
+    if (tool.id === "crop") { setCropOpened(true); setView("crop"); setPendingTool(null); }
+    else { setView("stirling"); setPendingTool(tool.id); }
+  }
+
+  function allFunctions() { setSelected(null); setView("stirling"); setPendingTool("__home__"); setSettingsWanted(false); setError(""); }
+  function toolSettings() { setSelected(null); setPendingTool(null); setView("stirling"); setSettingsWanted(true); }
 
   async function workflow(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); if (!state || busy) return;
@@ -112,17 +215,16 @@ export default function PdfWorkshop({ onHome, onOpenTool }: ToolProps) {
   }
 
   return <div className="pdf-workshop">
-    <ToolHeader title="edeco PDF-Werkstatt" onHome={() => requestLeave(onHome)} onOpenTool={onOpenTool ? id => requestLeave(() => onOpenTool(id)) : undefined} disabled={busy === "workflow"}>
+    <ToolHeader title="PDF-Werkstatt" onHome={() => requestLeave(onHome)} onOpenTool={onOpenTool ? id => requestLeave(() => onOpenTool(id)) : undefined} disabled={busy === "workflow"}>
       {health?.ready && <span className="pdf-service-badge">{state?.local ? "Offline bereit · auf diesem Computer" : `Stirling-PDF ${health.version} · interner Dienst`}</span>}
       {Boolean(state?.workflows.length) && <button className="btn" onClick={() => setWorkflows(!workflows)}>Firmenabläufe</button>}
       {!state?.local && <button className="btn" onClick={() => setSettings(!settings)}>Verbindung</button>}
-      <button className="btn" onClick={() => setInfo(!info)}>Info / Lizenzen</button>
+      <button className="btn" onClick={toolSettings} disabled={!health?.ready}><Settings size={16} /> Einstellungen</button>
+      <button className="btn pdf-info-button" onClick={() => setInfo(!info)}><Info size={16} /> Info / Lizenzen</button>
     </ToolHeader>
-    {state?.local && !health?.ready && <section className="pdf-connection" aria-label="Lokaler PDF-Dienst"><h1>edeco PDF-Werkstatt</h1><p role="status">{health?.message || "Der lokale PDF-Dienst wird gestartet. Beim ersten Start kann dies etwas dauern."}</p><button className="btn" disabled={Boolean(busy)} onClick={() => void check(false)}>Status prüfen</button>{error && <p role="alert">{error}</p>}</section>}
-    {info && <section className="pdf-connection"><button className="btn" onClick={() => setInfo(false)}>Info schliessen</button><iframe className="pdf-stirling-frame" title="Info / Lizenzen" src={API + "/licenses"} /></section>}
-    {!state?.local && (settings || !health?.ready) && <section className="pdf-connection" aria-label="PDF-Verbindung">
-      <div><h1>Deine PDF-Werkstatt.</h1><p>Die vollständige Stirling-Oberfläche – direkt im edeco Toolhub.</p>
-        <p className="pdf-muted">PDFs werden ausschliesslich an den von euch eingestellten Stirling-Dienst übertragen. Bitte nur euren lokalen Dienst oder den firmeneigenen Server eintragen.</p></div>
+    {info && <section className="pdf-connection pdf-license-panel"><button className="btn" onClick={() => setInfo(false)}>Info schliessen</button><iframe className="pdf-stirling-frame" title="Info / Lizenzen" src={API + "/licenses"} /></section>}
+    {!state?.local && (settings || (state && !health?.ready && view !== "crop")) && <section className="pdf-connection" aria-label="PDF-Verbindung">
+      <div><h2>PDF-Dienst verbinden</h2><p className="pdf-muted">Dein lokaler oder firmeneigener Stirling-Dienst verarbeitet die PDFs.</p></div>
       <form onSubmit={event => { event.preventDefault(); void check(!state?.managed); }}>
         <label>Adresse des Firmen-PDF-Dienstes<input type="url" required value={url} disabled={!state || state.managed || Boolean(busy)}
           placeholder="http://PDF-SERVER:8088" onChange={event => setUrl(event.target.value)} /></label>
@@ -131,16 +233,39 @@ export default function PdfWorkshop({ onHome, onOpenTool }: ToolProps) {
           {health?.ready && <button type="button" className="btn" onClick={() => setSettings(false)}>Schliessen</button>}</div>
       </form>
       {health && <p role="status" className={health.ready ? "pdf-connected" : "pdf-muted"}>{health.message}</p>}
-      {error && <p role="alert" className="pdf-error">{error}</p>}
     </section>}
     {workflows && state && <section className="pdf-workflows" aria-label="Firmenabläufe">
-      <h2>Nach Firmenvorgabe ablegen</h2><p>Das fertige PDF wählen. Der eingerichtete Ablauf kann es stempeln und im vorgesehenen Ordner speichern. Bestehende Dateien werden nicht überschrieben.</p>
+      <h2>Nach Firmenvorgabe ablegen</h2><p>Fertiges PDF wählen und mit dem eingerichteten Ablauf im vorgesehenen Ordner ablegen.</p>
       <form onSubmit={workflow}><label>Ablauf<select name="profile" required>{state.workflows.map(profile => <option key={profile.id} value={profile.id}>{profile.title}</option>)}</select></label>
         <label>Fertiges PDF<input name="file" type="file" accept=".pdf" required disabled={Boolean(busy)} /></label>
         <button className="btn primary" disabled={Boolean(busy)}>{busy === "workflow" ? "Wird abgelegt …" : "Firmenablauf ausführen"}</button></form>
-      {notice && <p role="status">{notice}</p>}{error && <p role="alert" className="pdf-error">{error}</p>}
     </section>}
-    {health?.ready && <iframe ref={frame} key={revision} className="pdf-stirling-frame" title="Stirling-PDF · edeco PDF-Werkstatt" src="/tools/pdf-werkstatt/" />}
-    {leave && <LeaveDialog onClose={() => setLeave(null)} onLeave={leave} />}
+    {(error || notice) && <div className="pdf-message" role={error ? "alert" : "status"}>{error || notice}<button className="btn" onClick={() => { setError(""); setNotice(""); }} aria-label="Meldung schliessen">×</button></div>}
+    {view === "catalog" && <main className="pdf-tool-home">
+      <div className="pdf-tool-intro"><div><span className="pdf-eyebrow">PDF-WERKSTATT</span><h1>Was möchtest du mit deinem PDF tun?</h1><p>Werkzeug wählen. Datei öffnen. Fertig.</p></div>
+        {health?.ready && <button className="btn" onClick={allFunctions}>Alle Funktionen <ArrowUpRight size={15} /></button>}</div>
+      <div className="pdf-tool-filter"><label className="pdf-tool-search"><Search size={18} /><input type="search" placeholder="Werkzeug suchen …" aria-label="PDF-Werkzeug suchen" value={query} onChange={event => setQuery(event.target.value)} /></label>
+        <div className="pdf-tool-tabs" role="group" aria-label="PDF-Werkzeugkategorien">{PDF_CATEGORIES.map(item => <button key={item.id} aria-pressed={category === item.id} onClick={() => setCategory(item.id)}>{item.title}</button>)}
+          <button aria-pressed={category === "recent"} onClick={() => setCategory("recent")}><Clock size={13} /> Zuletzt verwendet</button></div></div>
+      {!health?.ready && <div className="pdf-runtime-status" role="status"><span>{health?.message || "Der PDF-Dienst wird gestartet. Zuschneiden ist bereits verfügbar."}</span><button className="btn" disabled={!state || Boolean(busy)} onClick={() => void check(false)}>Status prüfen</button></div>}
+      <div className="pdf-tool-grid">{tools.map(tool => {
+        const availability = pdfToolAvailability(tool, Boolean(state?.local), Boolean(health?.ready), capabilities);
+        const Icon = ICONS[tool.icon] || FilePenLine;
+        const enabled = Boolean(state) && availability.enabled;
+        return <button key={tool.id} className={`pdf-tool-tile${enabled ? "" : " is-unavailable"}`} data-pdf-tool={tool.id} aria-disabled={!enabled} onClick={() => openTool(tool)} title={availability.reason || tool.description}>
+          <span className="pdf-tool-icon"><Icon size={25} strokeWidth={1.6} /></span><span className="pdf-tool-label"><strong>{tool.title}</strong><span>{tool.description}</span>
+            {!enabled && <small>{availability.checking ? "Dienst wird gestartet" : state?.local && tool.offlineUnavailable ? "Im Firmenserver möglich" : tool.unavailable ? "In Core nicht verfügbar" : "Nicht verfügbar"}</small>}
+            {enabled && availability.partial && <small>Teilweise verfügbar</small>}</span>{enabled && <ArrowUpRight className="pdf-tool-arrow" size={16} />}
+        </button>;
+      })}</div>
+      {!tools.length && <p className="pdf-empty">{category === "recent" && !query ? "Hier erscheinen deine zuletzt gewählten PDF-Werkzeuge." : "Kein passendes Werkzeug. Probiere einen anderen Suchbegriff."}</p>}
+      <details className="pdf-tool-availability"><summary><Info size={15} /> Welche Funktionen sind enthalten?</summary><p>Alle 57 Werkzeuge der Stirling-Core-Registry 3.2.2 sind hier aufgeführt. Deaktivierte Funktionen bleiben sichtbar. Die vier Entwickler- und Dokumentationslinks sowie zusätzliche Werkzeuge deines Servers findest du unter „Alle Funktionen“.</p>
+        {state?.local && <p>Offline werden Office-, HTML-/Webseiten-, E-Book-, Video- und KI-Konvertierung nicht mitgeliefert. OCR verwendet Tesseract ohne die erweiterten OCRmyPDF-Optionen. Zusätzliche Serverfunktionen hängen von eurer Einrichtung ab.</p>}
+        <p>Für die lokale PDF-Werkstatt brauchst du kein Benutzerkonto. Das Zahnrad öffnet die PDF-Einstellungen. Bei einem Firmenserver bleibt dessen Anmeldung bestehen.</p></details>
+    </main>}
+    {view === "stirling" && <div className="pdf-editor-heading"><button className="btn" onClick={() => setView("catalog")}><ArrowLeft size={16} /> Werkzeugauswahl</button><strong>{title || (settingsWanted ? "PDF-Einstellungen" : "Alle PDF-Funktionen")}</strong>{(pendingTool || settingsWanted) && <span role="status">{settingsWanted ? "Einstellungen werden geöffnet …" : "Werkzeug wird geöffnet …"}</span>}</div>}
+    {health?.ready && <div className="pdf-embedded-workspace" hidden={view !== "stirling"}><iframe ref={frame} key={revision} className="pdf-stirling-frame" title="Stirling-PDF · edeco PDF-Werkstatt" src="/tools/pdf-werkstatt/" onLoad={() => setBridgeReady(Boolean((frame.current?.contentWindow as PdfWindow | null)?.edecoPDF?.isReady()))} /></div>}
+    {cropOpened && state && <div className="pdf-native-crop" hidden={view !== "crop"}><PdfCropEditor sessionKey={state.session_key} onBack={() => setView("catalog")} onDirtyChange={dirty => { cropDirty.current = dirty; }} /></div>}
+    {leave && <LeaveDialog onClose={() => setLeave(null)} onLeave={() => { const callback = leave; setLeave(null); callback(); }} />}
   </div>;
 }

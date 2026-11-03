@@ -55,3 +55,10 @@ html[data-edeco-theme="dark"] {
    available through Info / Lizenzen rather than repeated workspace branding. */
 .sui-logo, .sui-brandmark { display: none !important; }
 .file-sidebar-header { display: none !important; }
+/* Local Core runs without accounts. Keep React's original button subtree intact;
+   a visual gear and an accessible label replace the confusing avatar. */
+.edeco-settings-control { position: relative !important; color: transparent !important; font-size: 0 !important; }
+.edeco-settings-control > * { opacity: 0 !important; }
+.edeco-settings-control::before { content: ""; position: absolute; inset: 9px; background: var(--c-text, #203039); pointer-events: none;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m9.7 4.3.8-2.3h3l.8 2.3 2 .8 2.2-1.1 2.1 2.1-1.1 2.2.8 2L23 11v3l-2.7.8-.8 2 1.1 2.2-2.1 2.1-2.2-1.1-2 .8-.8 2.2h-3l-.8-2.2-2-.8-2.2 1.1L3.4 19l1.1-2.2-.8-2L1 14v-3l2.7-.7.8-2-1.1-2.2L5.5 4l2.2 1.1 2-.8Z'/%3E%3Ccircle cx='12' cy='12.5' r='3.5'/%3E%3C/svg%3E") center / contain no-repeat;
+}

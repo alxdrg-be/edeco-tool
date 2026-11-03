@@ -1,7 +1,78 @@
 /* Small integration hook. PDF operations remain entirely in Stirling Core. */
 (() => {
   let hasWork = false;
-  window.edecoPDF = { hasWork: () => hasWork };
+  const root = "/tools/pdf-werkstatt/";
+  const toolIds = new Set(['pdfTextEditor','multiTool','merge','certSign','timestampPdf','sign','addText','addImage','annotate','addPassword','watermark','addStamp','sanitize','flatten','unlockPDFForms','formFill','autoFormDetection','changePermissions','getPdfInfo','validateSignature','read','changeMetadata','editTableOfContents','crop','rotate','autoRotate','split','reorganizePages','scalePages','addPageNumbers','pageLayout','bookletImposition','pdfToSinglePage','addAttachments','createPortfolio','extractPages','extractImages','removePages','removeBlanks','removeAnnotations','removeImage','removePassword','removeCertSign','automate','autoRename','adjustContrast','repair','scannerImageSplit','overlayPdfs','replaceColor','showJS','compare','classify','compress','convert','ocr','redact']);
+  let applicationReady = false;
+  const isReady = () => {
+    // Settings pages need not contain an importer. Once Core has mounted, it
+    // remains routable while that page is open and the file library stays alive.
+    if (document.querySelector('input[type="file"]')) applicationReady = true;
+    return applicationReady;
+  };
+  const navigation = path => {
+    // Use Core's own history/PopState routing: the React file library stays alive.
+    window.history.pushState({}, "", path);
+    window.dispatchEvent(new PopStateEvent("popstate"));
+  };
+  const waitReady = () => new Promise((resolve, reject) => {
+    const deadline = Date.now() + 20000;
+    const check = () => {
+      if (isReady()) resolve();
+      else if (Date.now() >= deadline) reject(new Error("Die PDF-Oberfläche ist noch nicht bereit. Bitte erneut versuchen."));
+      else setTimeout(check, 100);
+    };
+    check();
+  });
+  const settle = () => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+  const openSettings = () => {
+    if (!isReady()) return false;
+    navigation(root + "settings/general");
+    return true;
+  };
+  window.edecoPDF = {
+    hasWork: () => hasWork,
+    isReady,
+    activateTool: async id => {
+      if (!toolIds.has(id)) throw new Error("Dieses PDF-Werkzeug ist nicht bekannt.");
+      await waitReady();
+      navigation(root + "?tool=" + encodeURIComponent(id));
+      await settle();
+    },
+    openHome: async () => { await waitReady(); navigation(root); await settle(); },
+    openSettings,
+  };
+  let previousReady = null;
+  const publish = () => {
+    const ready = isReady();
+    if (ready !== previousReady) {
+      previousReady = ready;
+      window.parent.postMessage({ type: "edeco-pdf-state", ready }, window.location.origin);
+    }
+  };
+  const localSettings = () => {
+    if (!window.edecoOffline) return;
+    document.querySelectorAll('button, [role="button"]').forEach(button => {
+      const label = button.getAttribute("aria-label") || "";
+      if (!button.classList.contains("edeco-settings-control") && !/^(Benutzer|User)(?:\s*[—–-]\s*(Konto|Account))?$/i.test(label)) return;
+      button.classList.add("edeco-settings-control");
+      button.setAttribute("aria-label", "Einstellungen");
+      button.setAttribute("title", "PDF-Einstellungen");
+    });
+  };
+  const observe = () => {
+    let pending = false;
+    const refresh = () => { pending = false; localSettings(); publish(); };
+    new MutationObserver(() => {
+      if (!pending) { pending = true; queueMicrotask(refresh); }
+    }).observe(document.body, { childList: true, subtree: true });
+    refresh();
+  };
+  if (document.body) observe(); else document.addEventListener("DOMContentLoaded", observe, { once: true });
+  document.addEventListener("click", event => {
+    const target = event.target instanceof Element ? event.target.closest(".edeco-settings-control") : null;
+    if (window.edecoOffline && target && openSettings()) { event.preventDefault(); event.stopPropagation(); }
+  }, true);
   try {
     const parentRoot = window.parent.document.documentElement;
     const syncTheme = () => {
