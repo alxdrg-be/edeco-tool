@@ -285,7 +285,8 @@ def test_source_color_selection_survives_reload_and_export_without_losing_parts(
         assert any(g > 100 and r < 90 and b < 90 for r, g, b in pixels)
     dxf = client.get(f"/api/projects/{pid}/legend/export", params={"format": "dxf", "general": False})
     assert dxf.status_code == 200
-    drawing = ezdxf.read(StringIO(dxf.content.decode("utf-8")))
+    # Mirror a text-mode DXF file read, including universal Windows newlines.
+    drawing = ezdxf.read(StringIO(dxf.content.decode("utf-8"), newline=None))
     assert drawing.modelspace().query("INSERT")
     reopen_first_editor(page)
     page.locator(f'.lg-hit[data-id="{item["id"]}"]').click()

@@ -29,8 +29,15 @@ sind zusätzlich unter `archive/*-20261103` auf GitHub erhalten. Alle sieben Bra
 wurden nach verifizierter Inhaltsübernahme und vollständiger lokaler Prüfung
 mit einer atomaren, auf die geprüften SHAs begrenzten Löschung entfernt.
 Auf GitHub bleibt nur `main`; sämtliche Archiv-Tags sind erhalten.
-Der tatsächliche Abschluss ist im JSON-Journal festgehalten. Der Windows-Build
-läuft davon unabhängig auf dem unveränderten Programmstand `d590a08b`.
+Der tatsächliche Abschluss ist im JSON-Journal festgehalten.
+
+Der erste Windows-Build 30 auf `d590a08b` deckte zwei zusätzliche
+Plattformunterschiede auf: Python 3.11 liefert in `DirEntry.stat()` unter Windows
+keine Datei-IDs, und die DXF-Teststreams müssen Windows-Zeilenumbrüche wie ein
+normaler Textdateileser normalisieren. Der Ordnerimport verwendet dafür einen
+frischen `lstat()`-Snapshot; Identitäts- und Verknüpfungsprüfungen bleiben erhalten.
+Die Nachprüfung enthält einen kurzen Windows-Dateisystem-/DXF-Schritt vor den
+vollständigen Backend- und Browsertests. Der erste Lauf wurde ohne Release beendet.
 
 ## Ursprüngliche Übersicht
 

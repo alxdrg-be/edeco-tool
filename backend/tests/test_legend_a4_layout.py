@@ -75,7 +75,9 @@ def test_four_columns_and_inner_margin_survive_api_save_reload_layout_and_export
     assert min(p["x"] for p in placed["prims"] if p["t"] == "hit" and p["kind"] == "block") == 3.5
     dxf_response = client.get(f"/api/projects/{pid}/legend/export", params={"format": "dxf"})
     assert dxf_response.status_code == 200
-    drawing = ezdxf.read(StringIO(dxf_response.text))
+    # DXF files use the host's line endings. Read like a real text file so
+    # Windows CRLF is normalised before ezdxf's stream parser consumes tags.
+    drawing = ezdxf.read(StringIO(dxf_response.text, newline=None))
     assert drawing.modelspace().query("INSERT")
     pdf_response = client.get(f"/api/projects/{pid}/legend/export", params={"format": "pdf"})
     assert pdf_response.status_code == 200

@@ -1,6 +1,7 @@
 """Read-only folder synchronisation, ownership and filesystem-boundary regression tests."""
 from __future__ import annotations
 
+from contextlib import contextmanager
 from pathlib import Path
 import stat
 from types import SimpleNamespace
@@ -37,6 +38,7 @@ def test_folder_sync_updates_removes_and_never_changes_source_files(tmp_path):
     before = file.stat().st_mtime_ns
     folder.configure(str(source), True)
     first = folder.sync()
+    assert first["errors"] == []
     identifier = first["documents"][0]["id"]
     assert first["added"] == 1 and first["errors"] == []
     assert folder.sync()["unchanged"] == 1
@@ -61,7 +63,9 @@ def test_folder_keeps_manual_duplicates_before_and_after_folder_import(tmp_path)
     assert folder.sync()["removed"] == 0 and store.get(manual)
     later = source / "Later.txt"
     later.write_bytes(b"Folder first, manual later")
-    owned = folder.sync()["documents"][0]["id"]
+    imported = folder.sync()
+    assert imported["errors"] == []
+    owned = imported["documents"][0]["id"]
     pinned = folder.add_manual(later.read_bytes(), "Personal copy.txt")
     assert pinned["duplicate"] and pinned["document"]["id"] == owned
     later.unlink()
@@ -108,6 +112,43 @@ def test_recursive_choice_and_digest_deduplication(tmp_path):
     assert expanded["folder"]["linked_files"] == 2 and len(store.list()) == 1
     (source / "Plan.txt").unlink()
     assert folder.sync()["removed"] == 0 and len(store.list()) == 1
+
+
+@pytest.mark.parametrize("relative_descriptors", [True, False])
+def test_windows_direntry_zero_ids_are_not_used_as_file_identity(tmp_path, monkeypatch, relative_descriptors):
+    """Win32 DirEntry.stat caches omit file IDs; lstat/fstat provide the real IDs."""
+    source, _, folder = library(tmp_path)
+    nested = source / "nested"
+    nested.mkdir()
+    (source / "Plan.txt").write_bytes(b"First approved document")
+    (nested / "Details.md").write_bytes(b"Second approved document")
+    folder.configure(str(source), True)
+    real_scandir = folders.os.scandir
+
+    class WindowsEntry:
+        def __init__(self, entry):
+            self.entry = entry
+            self.name = entry.name
+
+        def stat(self, *, follow_symlinks):
+            info = self.entry.stat(follow_symlinks=follow_symlinks)
+            fields = {name: getattr(info, name) for name in dir(info) if name.startswith("st_")}
+            fields.update(st_ino=0, st_dev=0, st_nlink=0)
+            return SimpleNamespace(**fields)
+
+    @contextmanager
+    def windows_scandir(path):
+        with real_scandir(path) as entries:
+            yield (WindowsEntry(entry) for entry in entries)
+
+    with monkeypatch.context() as patch:
+        patch.setattr(folders.os, "scandir", windows_scandir)
+        if not relative_descriptors:
+            patch.setattr(folders.os, "supports_dir_fd", set())
+        result = folder.sync()
+        assert result["errors"] == []
+        assert result["added"] == 2 and len(result["documents"]) == 2
+        assert folder.sync()["unchanged"] == 2
 
 
 def test_preflight_limits_do_not_partially_change_an_existing_index(tmp_path, monkeypatch):
@@ -269,6 +310,7 @@ def test_api_sessions_search_manual_pin_and_busy_sync(tmp_path, monkeypatch):
         headers = {"X-Edeco-Documents": client.get(PREFIX + "/state").json()["session_key"]}
         assert client.post(PREFIX + "/folder", headers=headers, json={"path": str(source)}).status_code == 200
         result = client.post(PREFIX + "/folder/sync", headers=headers).json()
+        assert result["errors"] == []
         identifier = result["documents"][0]["id"]
         response = client.post(PREFIX + "/ask", headers=headers, json={"question": "Schutzleiter", "document_ids": [identifier]})
         assert response.status_code == 200 and response.json()["sources"]

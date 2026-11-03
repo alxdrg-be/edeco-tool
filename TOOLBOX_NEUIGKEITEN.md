@@ -3,6 +3,7 @@
 - Neues Elektro-Memory mit allen 16 Seiten der Vorlage, 70 sauber gesetzten Quelleneinträgen, 25 Formeleinträgen und ergänzenden Grundlagen. Suche, aufklappbare Erklärungen und neue SVGs ersetzen die pixeligen Scanseiten.
 - Formelrechner aus PR 3 in das Memory integriert und weiterhin über Berechnungen erreichbar. Die U/I/R/P-Formelscheibe unterstützt alle sechs Wertepaare; Einheiten und bekannte Quellenfehler werden ausdrücklich unterschieden.
 - Übersehene Branch-Funktionen gezielt übernommen: Dokumentordner verbinden und aktualisieren, eigene PDF-Seitenreihen und visuelle Trennstellen. Bestehende Werkzeuge und der grosse Zuschnitt bleiben erhalten.
+- Dokumentordner unter Windows erkennen normale Dateien auch mit Python 3.11 korrekt. Verknüpfungen und Junctions bleiben ausgeschlossen; Originaldateien werden nur gelesen.
 - Updates laden die aktuelle Oberfläche auch bei bestehendem WebView-Profil. Veraltete UI-Dateien werden beim Installieren entfernt; persönliche Profildaten bleiben erhalten.
 - NOVA-Legenden mit deutlich sichtbarer grosser Bearbeitungsansicht, rückgängig machbaren Kompaktvorlagen und einzeln wählbaren Farbvarianten. Originalvarianten bleiben gespeichert. Der Allgemeinteil erhält einen einstellbaren Farbakzent.
 - Optionales Layout «A4 kompakt» mit vier Spalten und engeren Abständen. Die Seitenhöhe folgt weiterhin dem tatsächlichen Inhalt; Symbole werden nicht pauschal kleingerechnet.

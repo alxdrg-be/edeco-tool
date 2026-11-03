@@ -245,6 +245,14 @@ class FolderSource:
                         if recursive:
                             directories.append(child)
                     elif stat.S_ISREG(info.st_mode) and child.suffix.lower() in KINDS:
+                        # Windows DirEntry.stat caches contain zero file IDs.
+                        # Take a real no-follow snapshot before comparing with fstat.
+                        info = (root / child).lstat()
+                        if _linked(info):
+                            skipped.append(child.as_posix())
+                            continue
+                        if not stat.S_ISREG(info.st_mode):
+                            raise ValueError("Ein Ordnereintrag wurde während der Aktualisierung verändert. Bitte erneut aktualisieren.")
                         if info.st_size > MAX_BYTES:
                             raise ValueError(f"{entry.name}: höchstens 100 MB pro Datei. Bitte einen kleineren Unterordner wählen.")
                         total += info.st_size
