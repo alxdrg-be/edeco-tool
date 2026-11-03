@@ -1,6 +1,10 @@
 .calc-tool { height: 100%; display: flex; flex-direction: column; background: var(--bg); color: var(--fg); }
 .calc-body { flex: 1; min-height: 0; overflow: auto; padding: 20px 24px 40px; }
-.calc-pdf-note { max-width: 1100px; margin: 0 auto 16px; padding: 12px 14px; border-radius: 10px; background: var(--accent-soft); }
+.calc-print-only { display: none; }
+.calc-affix { display: flex; align-items: center; gap: 8px; }
+.calc-affix .input { flex: 1; min-width: 0; width: 100%; }
+.calc-unit { font-style: normal; font-size: 12px; color: var(--muted); white-space: nowrap; }
+.calc-info .calc-grid { padding-bottom: 12px; }
 .calc-layout { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 210px minmax(0, 1fr); gap: 22px; align-items: start; }
 .calc-nav { display: flex; flex-direction: column; gap: 6px; position: sticky; top: 0; }
 .calc-nav .btn { justify-content: flex-start; }
@@ -40,4 +44,10 @@
 @media (max-width: 800px) {
   .calc-layout { grid-template-columns: 1fr; }
   .calc-nav { position: static; flex-direction: row; flex-wrap: wrap; }
+}
+@media print {
+  .calc-print-only { display: block; margin: 0 auto 12px; max-width: 1100px; font-size: 12px; }
+  .calc-nav, .tool-header-actions { display: none !important; }
+  .calc-layout { display: block; max-width: none; }
+  .calc-tool, .calc-body { height: auto !important; overflow: visible !important; background: #fff; color: #111; }
 }

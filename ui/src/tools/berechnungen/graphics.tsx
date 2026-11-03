@@ -86,6 +86,5 @@ export function SelectivitySketch({ upstreamA, downstreamA }: { upstreamA: numbe
         <text x="343" y="92" textAnchor="middle">Ladepunkt</text>
       </g>
     </svg>
-    <figcaption>Skizze zweier Schutzstufen. Selektivität zwischen Leitungsschutzschaltern ist ohne Herstellerkennlinien nicht nachgewiesen.</figcaption>
   </figure>;
 }

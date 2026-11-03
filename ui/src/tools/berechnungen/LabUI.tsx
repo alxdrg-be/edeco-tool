@@ -42,7 +42,7 @@ export function Parameter({ label, value, onChange, min, max, step = 1, unit, in
 export function Segments<T extends string>({ label, value, options, onChange, disabled = false }: { label: string; value: T; options: { value: T; label: string }[]; onChange: (value: T) => void; disabled?: boolean }) {
   return <div className="lab-segments" role="group" aria-label={label}>{options.map(option => <button type="button" key={option.value} disabled={disabled} aria-pressed={value === option.value} onClick={() => onChange(option.value)}>{option.label}</button>)}</div>;
 }
-export function LabShell({ title, subtitle, children, help, setHelp, onHome, onOpenTool, exportData, canExport, report, archive, reviewLabel = "Rechenhilfe · Freigabe offen" }: ToolProps & {
+export function LabShell({ title, subtitle, children, help, setHelp, onHome, onOpenTool, exportData, canExport, report, archive, reviewLabel = "Vorprüfung" }: ToolProps & {
   title: string; subtitle: string; children: ReactNode; help: Help | null; setHelp: (help: Help | null) => void; exportData?: () => void; canExport?: boolean; report?: ReactNode; archive?: ArchivePayload; reviewLabel?: string;
 }) {
   const [saveOpen, setSaveOpen] = useState(false);
@@ -57,7 +57,7 @@ export function LabShell({ title, subtitle, children, help, setHelp, onHome, onO
           {exportData && <><button className="lab-icon" disabled={!canExport} aria-label="Ergebnis als JSON sichern" title="JSON sichern" onClick={exportData}><Download size={18} /></button><button className="lab-icon" disabled={!canExport} aria-label="Drucken / als PDF speichern" title="Drucken / PDF" onClick={() => window.print()}><Printer size={18} /></button></>}
           <button className="lab-home" onClick={onHome}>Zur Toolbox</button></div>
       </header>
-      <main className="lab-main"><div className="lab-heading"><div><p className="lab-eyebrow">EDECO ENGINEERING</p><h1>{title}</h1><span className="lab-subtitle">{subtitle}</span></div><span className="lab-review">{reviewLabel}</span></div>
+      <main className="lab-main"><div className="lab-heading"><div><h1>{title}</h1><span className="lab-subtitle">{subtitle}</span></div><span className="lab-review">{reviewLabel}</span></div>
         {children}
         <div className="lab-print-only lab-prose">{report}</div>
       </main>

@@ -25,6 +25,7 @@ import {
   type StartKind,
 } from "./calc";
 import type { InstallMethod, Insulation } from "./iz";
+import { GRID_CURRENT_VALUES } from "./electricalOptions";
 import { ChargeSingleLine, LimitBar, SelectivitySketch } from "./graphics";
 import "./berechnungen.css";
 
@@ -63,9 +64,12 @@ function optional(raw: string): number {
 }
 
 function Num({ label, value, onChange, unit }: { label: string; value: string; onChange: (value: string) => void; unit?: string }) {
-  return <label className="field">{label}
-    <input className="input" inputMode="decimal" autoComplete="off" value={value} aria-label={unit ? `${label} in ${unit}` : label}
-      onChange={(event) => onChange(event.target.value)} />
+  return <label className="field"><span>{label}</span>
+    <div className="calc-affix">
+      <input className="input" inputMode="decimal" autoComplete="off" value={value} aria-label={unit ? `${label} in ${unit}` : label}
+        onChange={(event) => onChange(event.target.value)} />
+      {unit && <em className="calc-unit">{unit}</em>}
+    </div>
   </label>;
 }
 
@@ -198,11 +202,15 @@ function LossPanel() {
       <Num label="Strom" unit="A" value={current} onChange={setCurrent} />
       <Num label="Länge" unit="m" value={length} onChange={setLength} />
       <Num label="cos φ" value={cosPhi} onChange={setCosPhi} />
-      <Num label="Preis" unit="CHF/kWh" value={price} onChange={setPrice} />
-      <Num label="Stunden pro Tag" value={hours} onChange={setHours} />
-      <Num label="Tage" value={days} onChange={setDays} />
-      <Num label="Jahre" value={years} onChange={setYears} />
     </div>
+    <details className="calc-info"><summary>Kosten</summary>
+      <div className="calc-grid">
+        <Num label="Preis" unit="CHF/kWh" value={price} onChange={setPrice} />
+        <Num label="Stunden pro Tag" unit="h" value={hours} onChange={setHours} />
+        <Num label="Tage" value={days} onChange={setDays} />
+        <Num label="Jahre" unit="a" value={years} onChange={setYears} />
+      </div>
+    </details>
     <LimitChoice value={limit} onChange={setLimit} />
     {result === null && <Missing text="Eingabe unvollständig." />}
     {result && !result.ok && <Missing text={result.message} />}
@@ -259,8 +267,6 @@ function ShortCircuitPanel() {
         { label: "Ik min", value: `${de(result.value.ikMinA / 1000, 3)} kA` },
         { label: "Zk Trafo", value: `${de(result.value.zkOhm * 1000, 2)} mΩ` },
       ]} />
-      <p className="calc-note">{result.value.ikMaxLabel}</p>
-      <p className="calc-note">{result.value.ikMinLabel}</p>
       <p className="calc-formula">{un === "400"
         ? `Ik max = 1,05 · 400 V / (√3 · Z) = ${de(result.value.ikMaxA, 0)} A.`
         : `Ik max = 1,05 · 230 V / Z = ${de(result.value.ikMaxA, 0)} A.`} Ik min = 0,95 · 230 V / Z_Schleife = {de(result.value.ikMinA, 0)} A.</p>
@@ -300,7 +306,7 @@ function TransformerPanel() {
         { label: "Zk", value: `${de(result.value.impedanceOhm * 1000, 2)} mΩ` },
         { label: "Übersetzung", value: `${de(result.value.ratio, 1)} : 1` },
       ]} />
-      <p className="calc-note">{result.value.ikLabel} I primär {de(result.value.primaryA, 2)} A, Leerlauf {de(result.value.noLoadA, 2)} A, Laststrom {de(result.value.loadA, 1)} A.</p>
+      <p className="calc-note">I primär {de(result.value.primaryA, 2)} A · Leerlauf {de(result.value.noLoadA, 2)} A · Last {de(result.value.loadA, 1)} A</p>
       <p className="calc-formula">I = S / (√3 · U) = {de(result.value.secondaryA, 2)} A. Ik = In · 100 / uk = {de(result.value.shortCircuitA, 1)} A. Zk = uk/100 · U²/S = {de(result.value.impedanceOhm * 1000, 2)} mΩ.</p>
     </>}
   </Panel>;
@@ -346,6 +352,7 @@ function ReactivePanel() {
 }
 
 function OhmPanel() {
+  const [kind, setKind] = useState<"dc" | "ac">("dc");
   const [voltage, setVoltage] = useState("230");
   const [current, setCurrent] = useState("");
   const [resistance, setResistance] = useState("10");
@@ -365,7 +372,11 @@ function OhmPanel() {
   return <Panel id="calc-ohm" title="Ohmsches Gesetz" norm="Gleichstrom U = R · I · Wechselstrom S, P und Q" info={<p>
     Gleichstrom braucht zwei der drei Grössen. Wechselstrom: dreiphasig S = √3 · U · I, einphasig S = U · I, P = S · cos φ, Q = √(S² − P²).
   </p>}>
-    <h3>Gleichstrom</h3>
+    <div className="calc-choice" role="group" aria-label="Stromart">
+      <button type="button" className={kind === "dc" ? "btn is-on" : "btn"} aria-pressed={kind === "dc"} onClick={() => setKind("dc")}>Gleichstrom</button>
+      <button type="button" className={kind === "ac" ? "btn is-on" : "btn"} aria-pressed={kind === "ac"} onClick={() => setKind("ac")}>Wechselstrom</button>
+    </div>
+    {kind === "dc" && <>
     <div className="calc-grid">
       <Num label="Spannung" unit="V" value={voltage} onChange={setVoltage} />
       <Num label="Strom" unit="A" value={current} onChange={setCurrent} />
@@ -373,7 +384,8 @@ function OhmPanel() {
     </div>
     {!dc.ok && <Missing text={dc.message} />}
     {dc.ok && <p className="calc-formula">U = R · I = {de(dc.value.voltageV, 3)} V, I = {de(dc.value.currentA, 3)} A, R = {de(dc.value.resistanceOhm, 3)} Ω, P = {de(dc.value.powerW, 2)} W.</p>}
-    <h3>Wechselstrom</h3>
+    </>}
+    {kind === "ac" && <>
     <div className="calc-grid">
       <Sel label="System" value={String(phases)} onChange={(value) => setPhases(value === "1" ? 1 : 3)} options={[
         { value: "3", label: "Drehstrom" }, { value: "1", label: "Wechselstrom" }]} />
@@ -384,6 +396,7 @@ function OhmPanel() {
     {ac === null && <Missing text="Eingabe unvollständig." />}
     {ac && !ac.ok && <Missing text={ac.message} />}
     {ac?.ok && <p className="calc-formula">S = {phases === 3 ? "√3 · U · I" : "U · I"} = {de(ac.value.apparentVa, 1)} VA, P = {de(ac.value.activeW, 1)} W, Q = {de(ac.value.reactiveVar, 1)} var, φ = {de(ac.value.angleDeg, 1)}°.</p>}
+    </>}
   </Panel>;
 }
 
@@ -436,7 +449,6 @@ function MotorPanel() {
     Der Nennstrom gilt für 400 V. Die Anlauffaktoren sind feste Planwerte, kein Typenschild: Direktanlauf 6, Stern-Dreieck 2, Sanftanlauf 3, Frequenzumrichter 1,2.
     η aus der Normleistungs-Liste ist ein IE3-Wert für 4-polige Motoren nach IEC 60034-30-1 und soll durch den Typenschildwert ersetzt werden.
   </p>}>
-    <p className="calc-factors">Direktanlauf 6 · Stern-Dreieck 2 · Sanftanlauf 3 · Frequenzumrichter 1,2</p>
     <div className="calc-grid">
       <Sel label="Normleistung" value={preset} onChange={(value) => {
         setPreset(value);
@@ -494,15 +506,17 @@ function ChargePanel() {
     hausA: Number(haus), gridA: Number(grid), connection,
     reserveKw: optional(reserve), pvKwp: optional(pv), batteryKwh: optional(battery), batteryHours: optional(hours),
   }) : null;
-  const fuses = SERVICE_FUSE_A.map((amps) => ({ value: String(amps), label: `${amps} A` }));
+  const hausFuses = SERVICE_FUSE_A.map((amps) => ({ value: String(amps), label: `${amps} A` }));
+  const gridFuses = GRID_CURRENT_VALUES.map((amps) => ({ value: String(amps), label: `${amps} A` }));
   const upstream = Math.min(Number(haus), Number(grid));
   return <Panel id="calc-emob" title="E-Mobilität" norm="NIN 7.22 · SIA 2060 als Näherung" info={<p>
-    Ohne Lastmanagement ist k = 1: jede Station kann mit Nennleistung laden. Mit statischem Lastmanagement stammt k aus wenigen veröffentlichten Beispielwerten und ist als Näherung gekennzeichnet.
+    Ohne Lastmanagement ist k = 1: jede Station kann mit Nennleistung laden. Mit statischem Lastmanagement stammt k aus wenigen veröffentlichten Beispielwerten und ist als Näherung gekennzeichnet. Bewohner und Beschäftigte nutzen hier dieselben Beispielpunkte.
     3,7 kW und 7,4 kW sind einphasig, 11 kW und 22 kW sind dreiphasig. PV rechnet mit der Annahme 0,7 · kWp, der Speicher mit kWh je Betriebsstunde.
+    Die zweite Skizze zeigt nur die Staffelung der Nennströme. Selektivität ohne Herstellerkennlinien ist damit nicht nachgewiesen.
   </p>}>
     <div className="calc-grid">
-      <Sel label="Hausanschluss" value={haus} onChange={setHaus} options={fuses} />
-      <Sel label="Grid" value={grid} onChange={setGrid} options={fuses} />
+      <Sel label="Hausanschluss" value={haus} onChange={setHaus} options={hausFuses} />
+      <Sel label="Grid" value={grid} onChange={setGrid} options={gridFuses} />
       <Num label="Ladepunkte" value={count} onChange={setCount} />
       <Sel label="Ladeleistung" value={option} onChange={setOption} options={CHARGE_OPTIONS.map((item) => ({ value: item.id, label: item.label }))} />
       <Sel label="Lastmanagement" value={management} onChange={(value) => setManagement(value === "static" ? "static" : "none")} options={[
@@ -510,7 +524,7 @@ function ChargePanel() {
       <Sel label="Anschluss von PV und Speicher" value={connection} onChange={(value) => setConnection(value === "grid" ? "grid" : "haus")} options={[
         { value: "haus", label: "am Hausanschluss" }, { value: "grid", label: "am Grid" }]} />
       {management === "static" && <Sel label="Gleichzeitigkeit" value={siaClass} onChange={(value) => setSiaClass(value as SiaClass)} options={[
-        { value: "bewohner", label: "Bewohner, Näherung" }, { value: "beschaeftigte", label: "Beschäftigte, Näherung" },
+        { value: "bewohner", label: "Bewohner" }, { value: "beschaeftigte", label: "Beschäftigte" },
         { value: "besucher", label: "Besucher, 11 kW" }, { value: "share", label: "eigener Anteil" }]} />}
       <Num label="Reserve" unit="kW" value={reserve} onChange={setReserve} />
       <Num label="Photovoltaik" unit="kWp" value={pv} onChange={setPv} />
@@ -584,20 +598,19 @@ function LightingPanel() {
         { label: "Strom 230 V, 1~", value: result.value.currentA === null ? "—" : `${de(result.value.currentA, 1)} A` },
       ]} />
       <p className="calc-formula">n = ceil({values[0]} lx · {de(result.value.areaM2, 2)} m² / ({values[5]} lm · {de(values[6] ?? 0, 2)} · {de(values[7] ?? 0, 2)})) = {result.value.count}</p>
-      <p className="calc-note">k = A / (hm · (L + W)) = {de(result.value.roomIndex, 3)}. η ist keine LiTG-Tabelle. Der Strom ist einphasig bei 230 V.</p>
     </>}
   </Panel>;
 }
 
 export default function Berechnungen({ onHome }: ToolProps) {
   const [tab, setTab] = useState<Tab>("spannungsfall");
-  const [pdfNote, setPdfNote] = useState(false);
+  const printedAt = new Date().toLocaleString("de-CH", { timeZone: "Europe/Zurich", dateStyle: "medium", timeStyle: "short" });
   return <div className="calc-tool">
     <ToolHeader title="Formelrechner" onHome={onHome} homeLabel="← Zu den Berechnungen">
-      <button type="button" className="btn" onClick={() => setPdfNote(true)}>PDF</button>
+      <button type="button" className="btn" onClick={() => window.print()}>PDF</button>
     </ToolHeader>
     <div className="calc-body">
-      {pdfNote && <p className="calc-pdf-note" role="status">PDF-Export folgt. Der Kopf soll das Logo der edeco ag und das Datum tragen. In diesem Stand wird noch keine Datei erzeugt.</p>}
+      <p className="calc-print-only">edeco ag · {printedAt}</p>
       <div className="calc-layout">
         <nav className="calc-nav" aria-label="Rechner">
           {TABS.map((item) => <button type="button" key={item.id} className={tab === item.id ? "btn is-on" : "btn"}

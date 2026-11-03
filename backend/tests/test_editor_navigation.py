@@ -448,7 +448,7 @@ def test_every_calculator_has_review_image_without_overlapping_labels(editor, tm
     page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
     page.get_by_role("button", name="Berechnungen öffnen", exact=True).click()
     playwright.expect(page.locator(".calc-tile")).to_have_count(26)
-    launchers = page.locator(".calc-tile button:not([disabled])").all_text_contents()
+    launchers = page.locator(".calc-tile button.lab-open:not([disabled])").all_text_contents()
     assert len(launchers) == 25
     assert "premium" not in page.locator("body").inner_text().lower()
     page.screenshot(path=str(tmp_path / "00-berechnungen.png"), full_page=True)

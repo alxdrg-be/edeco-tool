@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Cable, ChartNoAxesCombined, ExternalLink, Info, Zap } from "lucide-react";
 import type { ToolProps } from "../../toolbox/modules";
 import { filterTools } from "../../toolbox/catalog";
-import { LabShell, type Help } from "./LabUI";
+import { InfoButton, LabShell, type Help } from "./LabUI";
 import { calculationGroup } from "./workbench/catalog";
 import FormulaCalculators from "./Berechnungen";
 import "./ablage/archive.css";
@@ -18,12 +18,13 @@ export default function Calculations({ onHome, onOpenTool }: ToolProps) {
     <li><a href="https://www.aflury.ch/de/fachwissen/trennungsabstand-rechner/" target="_blank" rel="noreferrer">Arthur Flury Schweiz</a> – Trennungsabstand nach dem veröffentlichten Verfahren zur SN 414022:2024.</li>
     <li><a href="https://www.nexans.ch/de/Tools-and-downloads/easycalc.html" target="_blank" rel="noreferrer">Nexans Schweiz · EASYCALC</a> – Vergleich für geführte Kabeldimensionierung und installationsabhängige Korrekturfaktoren. Ländereinstellung und Projektbedingungen dort prüfen.</li>
   </ul><p>Rechnerische Ergebnisse sind Vorprüfungen. Nicht belegte Normtabellen und ausländische Grenzwerte werden nicht übernommen. Fachliche Freigabe und Nachweise für den Planungseinsatz bleiben offen.</p></>;
+  const blurb = (id: string, description: string) => id === "blitzschutz" ? "Trennungsabstand nach SN 414022:2024. Fachliche Freigabe offen." : id === "kabelberechnung" ? "Spannungsfall eines Abschnitts bei 55 °C. Strombelastbarkeit ist nicht enthalten." : id === "emobilitaet" ? "AC-Vorplanung bei 400 V. Keine vollständige Ladegrid-Dimensionierung." : description;
   return <LabShell onHome={onHome} title="Berechnungen" subtitle="Schweizer Grundlagen · edeco Toolbox" help={help} setHelp={setHelp}>
     <input className="lab-catalog-search" aria-label="Berechnung suchen" type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Rechner oder Stichwort suchen …" />
-    <div className="archive-toolbar"><button className="lab-open" onClick={() => onOpenTool?.("berechnungsablage")}>Gemeinsame Ablage & Einstellungen</button><button className="lab-open" onClick={() => setFormulas(true)}>Formelrechner öffnen</button><span className="lab-tag">25 RECHENHILFEN · CH</span></div>
+    <div className="archive-toolbar"><button className="lab-open" onClick={() => onOpenTool?.("berechnungsablage")}>Gemeinsame Ablage & Einstellungen</button><button className="lab-open" onClick={() => setFormulas(true)}>Formelrechner öffnen</button><span className="lab-tag">25 · CH</span></div>
     {groups.map(group => <section className="calc-group" key={group}><h2>{group}</h2><div className="lab-tile-grid">{tools.filter(tool => calculationGroup(tool.id) === group).map(tool => <article className="lab-tile calc-tile" key={tool.id}>
-      <div className="edeco:flex edeco:items-center edeco:justify-between edeco:gap-4"><span className="lab-tile-icon">{tool.id === "blitzschutz" ? <Zap size={25} /> : tool.id === "kabelberechnung" ? <Cable size={25} /> : <ChartNoAxesCombined size={25} />}</span><span className="lab-tag">{tool.status === "available" ? "CH · VORPRÜFUNG" : "GEPLANT"}</span></div>
-      <h2>{tool.title}</h2><p>{tool.id === "blitzschutz" ? "Trennungsabstand · SN 414022:2024" : tool.id === "kabelberechnung" ? "Spannungsfall · Schweizer Referenzmodell" : tool.id === "emobilitaet" ? "Eigene AC-Leistungs-Vorplanung · keine vollständige Ladegrid-Dimensionierung" : tool.description}</p>
+      <div className="edeco:flex edeco:items-center edeco:justify-between edeco:gap-4"><span className="lab-tile-icon">{tool.id === "blitzschutz" ? <Zap size={25} /> : tool.id === "kabelberechnung" ? <Cable size={25} /> : <ChartNoAxesCombined size={25} />}</span><span className="edeco:flex edeco:items-center edeco:gap-2">{tool.status !== "available" && <span className="lab-tag">Geplant</span>}<InfoButton title={tool.title} onClick={() => setHelp({ title: tool.title, content: <p>{blurb(tool.id, tool.description)}</p> })} /></span></div>
+      <h2>{tool.title}</h2>
       <button className="lab-open" disabled={tool.status !== "available"} onClick={() => onOpenTool?.(tool.id)}>{tool.status === "available" ? `${tool.title} öffnen` : "Demnächst"}</button>
     </article>)}</div></section>)}
     {!tools.length && <p className="lab-note">Keine passende Berechnung gefunden.</p>}
