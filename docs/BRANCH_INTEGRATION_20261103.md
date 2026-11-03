@@ -25,9 +25,12 @@ ohne die geprüfte aktuelle Oberfläche durch alte Versionen zu ersetzen.
 
 Verifiziert: 462 Frontendtests, 671 Backend-/Browserfälle (29 übersprungen) und
 76 BIM2STEIGER-Tests (2 übersprungen). Alle sieben aufzuräumenden Branch-Heads
-sind zusätzlich unter `archive/*-20261103` auf GitHub erhalten. Die Branch-Namen
-werden nach erfolgreicher Main-Prüfung und Veröffentlichung entfernt; der
-tatsächliche Abschluss wird im JSON-Journal festgehalten.
+sind zusätzlich unter `archive/*-20261103` auf GitHub erhalten. Alle sieben Branch-Namen
+wurden nach verifizierter Inhaltsübernahme und vollständiger lokaler Prüfung
+mit einer atomaren, auf die geprüften SHAs begrenzten Löschung entfernt.
+Auf GitHub bleibt nur `main`; sämtliche Archiv-Tags sind erhalten.
+Der tatsächliche Abschluss ist im JSON-Journal festgehalten. Der Windows-Build
+läuft davon unabhängig auf dem unveränderten Programmstand `d590a08b`.
 
 ## Ursprüngliche Übersicht
 
