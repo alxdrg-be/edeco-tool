@@ -80,11 +80,6 @@ jobs:
           $kiParseErrors = $null
           [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path 'packaging/ki-server/Start-KI-Server.ps1').Path, [ref]$kiParseTokens, [ref]$kiParseErrors) | Out-Null
           if ($kiParseErrors.Count) { throw ($kiParseErrors | Out-String) }
-      - name: Backend und Browser testen
-        run: python -m pytest backend/tests -q
-      - name: BIM2STEIGER-Fachlogik testen
-        working-directory: backend/bim2steiger
-        run: python -m unittest discover -s tests -q
       - name: Toolbox-EXE bauen
         run: |
           python packaging/make_toolbox_icon.py
@@ -138,6 +133,11 @@ jobs:
           } finally {
             Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue
           }
+      - name: Backend und Browser testen
+        run: python -m pytest backend/tests -q
+      - name: BIM2STEIGER-Fachlogik testen
+        working-directory: backend/bim2steiger
+        run: python -m unittest discover -s tests -q
       - name: Nativen Fensterstart mit Download-Markierung prüfen
         shell: pwsh
         run: |

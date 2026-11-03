@@ -39,6 +39,15 @@ frischen `lstat()`-Snapshot; Identitäts- und Verknüpfungsprüfungen bleiben er
 Die Nachprüfung enthält einen kurzen Windows-Dateisystem-/DXF-Schritt vor den
 vollständigen Backend- und Browsertests. Der erste Lauf wurde ohne Release beendet.
 
+Auf dem korrigierten Stand `dddedf2f` bestanden unter Linux 673 und unter Windows
+675 Backend-/Browserfälle (29 beziehungsweise 27 übersprungen), jeweils alle 462
+Frontendtests sowie die BIM2STEIGER-Prüfungen. Build 31 stoppte anschliessend bei
+einer Thumbnail-Erwartung im Test der fertigen EXE. Der Pakettest prüft nun zuerst
+den nativen Standardablauf und wählt für die weiterhin geprüfte Core-Vorschau die
+Ansicht „Aktive Dateien“ ausdrücklich. Bei Fehlern werden Frame-DOM, Screenshot
+und Asset-/Browserdiagnose mitgesichert. Die EXE-Prüfung steht im Windowsablauf vor
+der langen Gesamtsuite, damit solche Paketfehler früher sichtbar werden.
+
 ## Ursprüngliche Übersicht
 
 | Remote-Branch | geprüfter Head | eigene Commits gegenüber Checkpoint | Befund |
