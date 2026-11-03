@@ -40,9 +40,7 @@ export function useProjectHub() {
       if (mounted.current && current === sequence.current) { setHub(next); setError(""); }
       return next;
     } catch (e) {
-      const raw = e instanceof Error ? e.message : "";
-      const message = /json|failed to fetch|networkerror|load failed/i.test(raw) ? "Projektliste nicht erreichbar." : raw || "Projekte konnten nicht geladen werden.";
-      if (mounted.current && current === sequence.current) setError(message);
+      if (mounted.current && current === sequence.current) setError((e as Error).message || "Projekte konnten nicht geladen werden.");
       throw e;
     }
   }, []);
