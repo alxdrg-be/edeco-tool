@@ -19,6 +19,7 @@ from nova_legend.__main__ import free_port
 from . import APP_NAME, version_label
 from .app import create_app
 from .paths import local_home
+from .desktop_zoom import attach_desktop_zoom_guard
 
 
 def wait_until_up(url: str, timeout: float = 60.0) -> bool:
@@ -72,9 +73,12 @@ def probe_desktop(window, home: Path):
             report['ok'] = False
             window.evaluate_js("document.querySelector('button[aria-label=\"PDF-Werkstatt öffnen\"]').click()")
             deadline = time.monotonic() + 160
+            selected = False
             while time.monotonic() < deadline:
-                if window.evaluate_js("Boolean(document.querySelector('.pdf-stirling-frame')?.contentDocument?.querySelector('input[type=file]'))"):
-                    report.update(ok=True, pdf_ready=True)
+                if not selected:
+                    selected = bool(window.evaluate_js("(() => { const tool = document.querySelector('[data-pdf-tool=merge]'); if (!tool || tool.getAttribute('aria-disabled') === 'true' || tool.disabled) return false; tool.click(); return true; })()"))
+                if selected and window.evaluate_js("Boolean(document.querySelector('.pdf-stirling-frame')?.contentDocument?.querySelector('input[type=file]'))"):
+                    report.update(ok=True, pdf_ready=True, pdf_tool_selected="merge")
                     break
                 time.sleep(.5)
             if not report['ok']:
@@ -133,7 +137,8 @@ def main(argv=None):
             webview.settings["OPEN_EXTERNAL_LINKS_IN_BROWSER"] = True
             icon = config.resource_dir() / "packaging" / "toolbox.ico"
             window = webview.create_window(f"{APP_NAME} {version_label()}", url,
-                                           width=1400, height=900, min_size=(900, 600))
+                                           width=1400, height=900, min_size=(900, 600), zoomable=False)
+            attach_desktop_zoom_guard(window)
             dialogs.attach(window)
             app.state.shutdown = window.destroy
             app.state.updates.desktop = True

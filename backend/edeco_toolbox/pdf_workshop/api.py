@@ -20,6 +20,7 @@ from pydantic import BaseModel, Field
 from . import API, ROOT
 from .client import PdfFile, StirlingClient
 from .config import Configuration
+from .crop import register_crop
 from .runtime import PdfRuntime, runtime_root
 
 ASSETS = Path(__file__).parent / "assets"
@@ -77,6 +78,8 @@ def register(app):
         value = request.headers.get("X-Edeco-Pdf", "") if key else request.cookies.get(cookie_name(request), "")
         if not valid or ((key or cookie) and not hmac.compare_digest(value.encode(), session_key.encode())):
             raise HTTPException(403, "Die PDF-Werkstatt bitte direkt in der Toolbox öffnen.")
+
+    register_crop(app, authorize)
 
     @app.get(API + "/state")
     def state(request: Request):
