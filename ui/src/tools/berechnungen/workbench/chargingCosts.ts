@@ -1,3 +1,4 @@
+import { withInputRow } from "./inputDiagnostics.ts";
 import { integer, number, type Inputs, type SeriesItem } from "./types.ts";
 
 export interface CostPointInput { id:string;label:string;preset?:string;kind:"ac"|"dc";count:string;commission:string;power:string;hardware:string;installation:string;basis:string;annualEnergy:string;replacement:string }
@@ -36,14 +37,14 @@ export function calculateChargingCosts(input:Inputs){
     usage=["costRefFleet","costRefCommuters","costRefVisitors"].map(key=>number(input,key,"Nutzergruppenanteil",0,100,true)/100);
     if(Math.abs(usage.reduce((sum,value)=>sum+value,0)-1)>1e-9)throw new Error("Die Nutzergruppenanteile müssen zusammen 100 % ergeben.");
   }
-  const rows=parseCostRows(input.costRows).map(row=>{
+  const rows=parseCostRows(input.costRows).map((row,rowIndex)=>withInputRow("costRows",row,rowIndex,()=>{
     const count=numeric(row.count,`${row.label} · Anzahl`,10000,true);if(!Number.isInteger(count))throw new Error(`${row.label}: ganze Ladepunktzahl eingeben.`);
     const commission=numeric(row.commission,`${row.label} · Inbetriebnahme-Betriebsjahr`,50);if(!Number.isInteger(commission))throw new Error(`${row.label}: ganzes Inbetriebnahme-Betriebsjahr eingeben.`);
     const preset=row.preset??"";
     if(reference&&!Object.hasOwn(COST_REFERENCE_CLASS_KW,preset))throw new Error("Im Referenzansatz jeder Position eine belegte Leistungskategorie zuweisen.");
     const referenceEnergy=reference&&detail==="advanced"?COST_REFERENCE_USAGE[preset].reduce((sum,value,index)=>sum+value*usage[index],0):null;
     return{...row,count,commission,equivalentPower:reference?COST_REFERENCE_CLASS_KW[preset]:numeric(row.power,`${row.label} · Nennleistung`,5000),power:numeric(row.power,`${row.label} · Nennleistung`,5000),hardware:numeric(row.hardware,`${row.label} · Beschaffung`,1e7,true),installation:numeric(row.installation,`${row.label} · Installation`,1e7,true),basis:detail==="basic"?numeric(row.basis,`${row.label} · Basisinfrastruktur`,1e8,true):0,annualEnergy:referenceEnergy??numeric(row.annualEnergy,`${row.label} · Jahresenergie`,1e8,true),replacement:reference?0:numeric(row.replacement,`${row.label} · Ersatz`,1e7,true)};
-  });
+  }));
   const included=rows.filter(row=>row.commission<=years),points=included.reduce((sum,row)=>sum+row.count,0);if(!points)throw new Error("Mindestens einen Ladepunkt innerhalb der Betrachtungsdauer in Betrieb nehmen.");
   const equivalent=included.reduce((sum,row)=>sum+row.count*row.equivalentPower/11,0),annualEnergy=included.reduce((sum,row)=>sum+row.count*row.annualEnergy,0),station=included.reduce((sum,row)=>sum+row.count*(row.hardware+row.installation),0),basicBasis=included.reduce((sum,row)=>sum+row.count*row.basis,0);
   let base=basicBasis,pvShare=0,pvTariff=0,referenceCapacity=0;

@@ -32,7 +32,7 @@ function labelLines(label: string): string[] {
   return [`${label.slice(0, 18).trim()}…`];
 }
 
-export default function NetworkCanvas({ document, result, selection, connectFrom, connectMode, onSelect, onPort, onMove, onDrop, onConnect, dragItem, resetViewToken = 0, orientation = "horizontal" }: {
+export default function NetworkCanvas({ document, result, selection, connectFrom, connectMode, onSelect, onPort, onMove, onDrop, onConnect, dragItem, resetViewToken = 0, orientation = "horizontal", focusRequest }: {
   document: NetworkDocument;
   result: NetworkResult;
   selection: NetworkSelection;
@@ -46,11 +46,14 @@ export default function NetworkCanvas({ document, result, selection, connectFrom
   dragItem: PaletteItem | null;
   resetViewToken?: number;
   orientation?: NetworkOrientation;
+  focusRequest?: { selection: NetworkSelection; token: number };
 }) {
   const canvas = useRef<HTMLDivElement>(null), svg = useRef<SVGSVGElement>(null), unique = useId().replaceAll(":", "");
   const [size, setSize] = useState({ width: 900, height: 660 });
   const [view, setView] = useState({ x: 0, y: 0, zoom: .8 });
   const viewRef = useRef(view); viewRef.current = view;
+  const focusAnimation = useRef(0), focusGeneration = useRef(0);
+  function stopFocusAnimation() { focusGeneration.current++; cancelAnimationFrame(focusAnimation.current); }
   const [placement, setPlacement] = useState<{x:number;y:number;kind:NetworkNodeKind;parent?:NetworkNode}|null>(null);
   const [wirePreview, setWirePreview] = useState<{from:string;x:number;y:number;target?:string}|null>(null);
   const drag = useRef<{kind:"wire";id:string;port:"input"|"output";clientX:number;clientY:number;started:boolean} | { kind: "node"; id: string; x: number; y: number; clientX: number; clientY: number; started: boolean } | { kind: "pan"; x: number; y: number; clientX: number; clientY: number } | null>(null);
@@ -59,6 +62,35 @@ export default function NetworkCanvas({ document, result, selection, connectFrom
   const edgeResults = new Map(result.edges.map(edge => [edge.id, edge])), nodeResults = new Map(result.nodes.map(node => [node.id, node]));
   const incoming = new Set(document.edges.map(edge=>edge.to));
   const routes = new Map(document.edges.map((edge,index)=>[edge.id,routeNetworkEdge(edge,nodes,orientation,index,incoming)]));
+  const focusContext = useRef({ document, size, orientation }); focusContext.current = { document, size, orientation };
+  useEffect(() => {
+    const generation = ++focusGeneration.current;
+    const request = focusRequest?.selection;
+    if (!request) return;
+    const { document: current, size: viewport, orientation: direction } = focusContext.current;
+    const map = new Map(current.nodes.map(node => [node.id, node]));
+    const node = request.kind === "node" ? map.get(request.id) : undefined;
+    const edge = request.kind === "edge" ? current.edges.find(item => item.id === request.id) : undefined;
+    const route = edge ? routeNetworkEdge(edge, map, direction, current.edges.indexOf(edge), new Set(current.edges.map(item => item.to))) : null;
+    const points = node ? [{ x: node.x, y: node.y }, { x: node.x + NODE_WIDTH, y: node.y + NODE_HEIGHT }] : route?.points.length ? route.points : edge ? [map.get(edge.from), map.get(edge.to)].filter((item): item is NetworkNode => Boolean(item)).map(item => ({ x: item.x + NODE_WIDTH / 2, y: item.y + NODE_HEIGHT / 2 })) : [];
+    if (!points.length) return;
+    const minX = Math.min(...points.map(point => point.x)) - 45, maxX = Math.max(...points.map(point => point.x)) + 45;
+    const minY = Math.min(...points.map(point => point.y)) - 55, maxY = Math.max(...points.map(point => point.y)) + 65;
+    const start = viewRef.current;
+    const zoom = clamp(Math.min(Math.max(start.zoom, .8), viewport.width / Math.max(1, maxX - minX), viewport.height / Math.max(1, maxY - minY), 1.25), .01, 2.5);
+    const target = { x: (minX + maxX) / 2 - viewport.width / zoom / 2, y: (minY + maxY) / 2 - viewport.height / zoom / 2, zoom };
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) { setView(target); return; }
+    let began: number | null = null;
+    const animate = (time: number) => {
+      if (generation !== focusGeneration.current) return;
+      began ??= time;
+      const progress = Math.min(1, (time - began) / 260), smooth = 1 - (1 - progress) ** 3;
+      setView({ x: start.x + (target.x - start.x) * smooth, y: start.y + (target.y - start.y) * smooth, zoom: start.zoom + (target.zoom - start.zoom) * smooth });
+      if (progress < 1) focusAnimation.current = requestAnimationFrame(animate);
+    };
+    focusAnimation.current = requestAnimationFrame(animate);
+    return () => { focusGeneration.current++; cancelAnimationFrame(focusAnimation.current); };
+  }, [focusRequest]);
   const placementBlocked = placement && document.nodes.some(node=>node.id!==(drag.current?.kind==="node"?drag.current.id:undefined)&&Math.abs(node.x-placement.x)<228&&Math.abs(node.y-placement.y)<195);
   const blockedRoutes = [...routes.values()].filter(route=>route?.blocked).length;
   useEffect(()=>{
@@ -92,15 +124,18 @@ export default function NetworkCanvas({ document, result, selection, connectFrom
     const element = canvas.current; if (!element) return;
     function wheel(event: WheelEvent) {
       event.preventDefault();
+      stopFocusAnimation();
       const rect = element!.getBoundingClientRect(), x = event.clientX - rect.left, y = event.clientY - rect.top;
       setView(old => { const zoom = clamp(old.zoom * Math.exp(-event.deltaY * .0015), .01, 2.5); return { x: old.x + x / old.zoom - x / zoom, y: old.y + y / old.zoom - y / zoom, zoom }; });
     }
     element.addEventListener("wheel", wheel, { passive: false }); return () => element.removeEventListener("wheel", wheel);
   }, []);
   function zoomBy(factor: number) {
+    stopFocusAnimation();
     setView(old => { const zoom = clamp(old.zoom * factor, .01, 2.5); return { x: old.x + size.width / old.zoom / 2 - size.width / zoom / 2, y: old.y + size.height / old.zoom / 2 - size.height / zoom / 2, zoom }; });
   }
   function startNode(event: React.PointerEvent<SVGGElement>, node: NetworkNode) {
+    stopFocusAnimation();
     if (event.button !== 0) return;
     event.stopPropagation();
     onSelect({ kind: "node", id: node.id });
@@ -109,6 +144,7 @@ export default function NetworkCanvas({ document, result, selection, connectFrom
     drag.current = { kind: "node", id: node.id, x: node.x, y: node.y, clientX: event.clientX, clientY: event.clientY, started: false };
   }
   function startPan(event: React.PointerEvent<SVGSVGElement>) {
+    stopFocusAnimation();
     if (event.button !== 0 && event.button !== 1) return;
     event.currentTarget.setPointerCapture(event.pointerId);
     drag.current = { kind: "pan", x: view.x, y: view.y, clientX: event.clientX, clientY: event.clientY };
@@ -117,6 +153,7 @@ export default function NetworkCanvas({ document, result, selection, connectFrom
   function world(clientX:number,clientY:number) {const rect=canvas.current!.getBoundingClientRect(),v=viewRef.current;return{x:v.x+(clientX-rect.left)/v.zoom,y:v.y+(clientY-rect.top)/v.zoom};}
   function wireTarget(x:number,y:number,from:string) {return document.nodes.find(node=>node.id!==from&&node.kind!=="source"&&x>=node.x-16&&x<=node.x+NODE_WIDTH+16&&y>=node.y-16&&y<=node.y+NODE_HEIGHT+16);}
   function startPort(event:React.PointerEvent<SVGCircleElement>,id:string,port:"input"|"output") {
+    stopFocusAnimation();
     event.stopPropagation(); if(event.button!==0)return;
     svg.current?.setPointerCapture(event.pointerId); drag.current={kind:"wire",id,port,clientX:event.clientX,clientY:event.clientY,started:false};
   }
@@ -152,7 +189,7 @@ export default function NetworkCanvas({ document, result, selection, connectFrom
   }
   return <div className="np-canvas-shell">
     <div className="np-canvas-heading"><span><i />Einlinienschema · {orientation === "horizontal" ? "links → rechts" : "oben → unten"}</span><span>{document.nodes.length} Bauteile · {document.edges.length} Leitungen</span></div>
-    <div className={`np-canvas${connectMode ? " np-canvas-connect" : ""}`} ref={canvas} onDragLeave={event=>{if(!event.currentTarget.contains(event.relatedTarget as Node))setPlacement(null);}} onDragOver={event => { if (event.dataTransfer.types.includes("application/x-edeco-network-node")) { event.preventDefault(); event.dataTransfer.dropEffect = "copy"; if(dragItem){const p=world(event.clientX,event.clientY),x=Math.round((p.x-NODE_WIDTH/2)/10)*10,y=Math.round((p.y-NODE_HEIGHT/2)/10)*10;setPlacement({x,y,kind:dragItem.kind,parent:findAttachmentParent(document,{x,y},dragItem.kind)});} } }} onDrop={event => {
+    <div className={`np-canvas${connectMode ? " np-canvas-connect" : ""}`} data-document-zoom="true" ref={canvas} onDragLeave={event=>{if(!event.currentTarget.contains(event.relatedTarget as Node))setPlacement(null);}} onDragOver={event => { if (event.dataTransfer.types.includes("application/x-edeco-network-node")) { event.preventDefault(); event.dataTransfer.dropEffect = "copy"; if(dragItem){const p=world(event.clientX,event.clientY),x=Math.round((p.x-NODE_WIDTH/2)/10)*10,y=Math.round((p.y-NODE_HEIGHT/2)/10)*10;setPlacement({x,y,kind:dragItem.kind,parent:findAttachmentParent(document,{x,y},dragItem.kind)});} } }} onDrop={event => {
       event.preventDefault(); setPlacement(null); const raw = event.dataTransfer.getData("application/x-edeco-network-node");
       try { if (raw.length > 2048) return; const item = JSON.parse(raw) as PaletteItem; if (!["source", "transformer", "distribution", "protection", "load"].includes(item.kind) || typeof item.label !== "string" || item.label.length > 100 || item.device !== undefined && (typeof item.device !== "string" || item.device.length > 30)) return; const rect = canvas.current!.getBoundingClientRect(); onDrop(item, view.x + (event.clientX - rect.left) / view.zoom - NODE_WIDTH / 2, view.y + (event.clientY - rect.top) / view.zoom - NODE_HEIGHT / 2); } catch { /* unrelated drag content is ignored */ }
     }}>

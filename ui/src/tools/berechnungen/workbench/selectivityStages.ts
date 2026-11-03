@@ -1,4 +1,5 @@
 import { number as readNumber, type CalculationResult, type Inputs } from './types.ts';
+import { withInputRow } from './inputDiagnostics.ts';
 import { SELECTIVITY_CABLE_RX } from './selectivityCableData.ts';
 import { LEGACY_VOLTAGE_WARNING, shortCircuitVoltageFactors } from '../voltageFactors.ts';
 
@@ -40,7 +41,7 @@ export function selectivityStageCurrents(input:Inputs):StageCurrent[] {
   const single=input.supplyVoltage==='230',uPhase=single?230:400/Math.sqrt(3),ikSource=readNumber(input,'sourceIk','Kurzschlussstrom am Anschluss',0,1000)*1000;
   const z=factors.cMax*uPhase/(ikSource*(single?2:1)),x0=z/Math.sqrt(1.01);
   let r=.1*x0,x=x0,singlePath=single;
-  return stages.map((stage,index)=>{
+  return stages.map((stage,index)=>withInputRow('selectivityStages',stage,index,()=>{
     const prefix=`Stufe ${index+1}`;
     const rated=readNumber(stage as unknown as Inputs,'rated',`${prefix}: Nennstrom`,0,100000);
     if(!rated||!STAGE_DEVICES.some(([id])=>id===stage.type)||!['Cu','Al'].includes(stage.material)||!['5p','4p','3p'].includes(stage.system))throw Error(`${prefix}: Auswahl prüfen.`);
@@ -54,12 +55,12 @@ export function selectivityStageCurrents(input:Inputs):StageCurrent[] {
     const impedance=Math.hypot(r,x);
     if(stage.type==='fi'&&(!['10','30','100','300','500'].includes(stage.delta)||!['A','S','G','B'].includes(stage.fiType)))throw Error(`${prefix}: RCD-Auswahl prüfen.`);
     return {stage,ikMax:factors.cMax*uPhase/(impedance*(singlePath?2:1))/1000,ikLoop:input.earthing==='TN'?factors.cMin*uPhase/(2*impedance)/1000:null,resistance:r,reactance:x};
-  });
+  }));
 }
 export function calculateSelectivityStages(input:Inputs):CalculationResult {
   const factors=shortCircuitVoltageFactors(input.voltageTolerance);
   const nodes=selectivityStageCurrents(input);
-  const pairs=nodes.slice(1).map((node,j)=>{
+  const pairs=nodes.slice(1).map((node,j)=>withInputRow('selectivityStages',node.stage,j+1,()=>{
     const upper=nodes[j].stage,lower=node.stage,ratio=Number(upper.rated)/Number(lower.rated);
     if(lower.pairLimitKA.trim()) {
       const limit=readNumber(lower as unknown as Inputs,'pairLimitKA',`Paar ${j+1}→${j+2}: Herstellergrenze`,0,1000);
@@ -73,7 +74,7 @@ export function calculateSelectivityStages(input:Inputs):CalculationResult {
     if(upper.type==='fi'&&lower.type==='fi')text=`RCD: Differenzstromverhältnis ${(Number(upper.delta)/Number(lower.delta)).toFixed(2)}; vorgelagert Typ ${upper.fiType}. Strom- und Zeitstaffelung mit Herstellerdaten prüfen.`;
     if(upper.type==='fi'&&lower.type!=='fi')text='Vorgelagerter RCD kann bei Erdschluss vor dem nachgelagerten Überstromschutz auslösen. Keine Selektivität nachgewiesen.';
     return {tone:'warning' as const,documented:false,text};
-  });
+  }));
   const last=nodes[nodes.length-1],passes=pairs.filter(p=>p.documented).length;
   return {
     metrics:[{label:'Erfasste Schutzstufen',value:nodes.length},{label:'Ik am letzten Gerät · Modell',value:last.ikMax,unit:'kA',digits:3},{label:'L–PE-Schleifenstrom am Ende · Modell',value:last.ikLoop??'Netzform erfordert weitere Angaben',unit:last.ikLoop===null?undefined:'kA',digits:3},{label:'Paare innerhalb dokumentierter Grenze',value:`${passes} / ${pairs.length}`}],

@@ -1,5 +1,6 @@
+import { withInputRow } from "./inputDiagnostics.ts";
 import { POE_CABLE_REFERENCES, POE_CABLE_SOURCE, type PoeCableReference } from "./referenceInstallationData.ts";
-import { type CalculatorDefinition, type CalculationResult, type Field, type Inputs } from "./types.ts";
+import { InputError, type CalculatorDefinition, type CalculationResult, type Field, type Inputs } from "./types.ts";
 
 export const POE_ROUTE_SOURCE = POE_CABLE_SOURCE;
 export const POE_ROUTE_QUALIFICATION = "Publizierte Referenzannahmen · thermische Koeffizienten und Normzuordnung unbestätigt";
@@ -46,9 +47,10 @@ export function defaultPoeRouteSegment(id = "cable-1"): PoeRouteSegmentInput {
   return { id, label: "Kabelabschnitt 1", cableType: "cat6a-s-awg23", length: "80", numCables: "24", width: "50", ambient: "25", installCondition: "EF", temperature: "30", diameter: "7.5", resistance: "7.5", attenuation: "0.2", classFactor: "1", shielding: "/s", shieldCorrection: "0", evidence: "" };
 }
 function value(raw: string | undefined, label: string, min: number, max: number, integer = false) {
-  if (typeof raw !== "string" || !/^-?\d+(?:[.,]\d+)?$/.test(raw.trim())) throw new Error(`${label}: gültige Zahl eingeben.`);
+  const requirement = `${integer ? "Ganze Zahl, " : ""}${min} bis ${max}.`;
+  if (typeof raw !== "string" || !/^-?\d+(?:[.,]\d+)?$/.test(raw.trim())) throw new InputError("value", `${label}: gültige Zahl eingeben.`, requirement, raw || "leer");
   const result = Number(raw.trim().replace(",", "."));
-  if (!Number.isFinite(result) || result < min || result > max || integer && !Number.isInteger(result)) throw new Error(`${label}: ${integer ? "ganze Zahl, " : ""}${min} bis ${max} eingeben.`);
+  if (!Number.isFinite(result) || result < min || result > max || integer && !Number.isInteger(result)) throw new InputError("value", `${label}: ${integer ? "ganze Zahl, " : ""}${min} bis ${max} eingeben.`, requirement, raw);
   return result;
 }
 const positive = (raw: string | undefined, label: string, max = 1e6) => { const n = value(raw, label, 0, max); if (n <= 0) throw new Error(`${label}: grösser als 0 eingeben.`); return n; };
@@ -141,14 +143,14 @@ export function calculatePoeRoute(input: Inputs): PoeRouteResult {
     const temperature = patchAmbient + rise, attenuation = shielding === "/s" ? .2 : .4;
     return { id: `patch-${index + 1}`, label: index === 0 ? "Patch am Verteiler" : "Patch am Endgerät", kind: "patch", cableLabel: `Patchfaktor ${patchFactor} · ${shielding === "/s" ? "geschirmt" : "ungeschirmt"}`, physicalLength: length, equivalent20: poeEquivalentLength(length, temperature, attenuation, 1 / patchFactor), ambient: patchAmbient, temperature, rise, cableCount: count, attenuation, lengthFactor: 1 / patchFactor, diameter: patch.diameter, resistance20: patch.resistance, installation: "Freie Luft · Patch-Referenzansatz" };
   });
-  const cables = rows.map(row => {
+  const cables = rows.map((row, rowIndex) => withInputRow("poeSegments", row, rowIndex, () => {
     const cable = cableProperties(row, transmissionClass, thermalMode), count = value(row.numCables, `${row.label}: Bündelanzahl`, 1, 2000, true), width = positive(row.width, `${row.label}: Kanalbreite`, 1e5), ambient = value(row.ambient, `${row.label}: Umgebung`, -40, 100), length = positive(row.length, `${row.label}: Länge`, 10000);
     if (width < cable.diameter) throw new Error(`${row.label}: Kanalbreite muss mindestens dem Kabeldurchmesser entsprechen.`);
     const installation = POE_INSTALLATIONS.find(option => option.value === row.installCondition); if (!installation) throw new Error(`${row.label}: Einbauzustand wählen.`);
     const thermal = thermalMode === "manual" ? null : referencePoeRise(count, width, cable, installation.factor, designCurrent, priority);
     const temperature = thermalMode === "manual" ? value(row.temperature, `${row.label}: Leitertemperatur`, -40, 200) : ambient + thermal!.rise;
     return { id: row.id, label: row.label, kind: "cable" as const, cableLabel: cable.label, physicalLength: length, equivalent20: poeEquivalentLength(length, temperature, cable.attenuationPerDegree, cable.referenceLengthFactors[transmissionClass]), ambient, temperature, rise: temperature - ambient, cableCount: count, attenuation: cable.attenuationPerDegree, lengthFactor: cable.referenceLengthFactors[transmissionClass], diameter: cable.diameter, resistance20: cable.resistance20, ...(thermal ? { geometry: thermal.geometry, thermalCorrection: thermal.correction } : {}), installation: installation.label };
-  });
+  }));
   segments.splice(1, 0, ...cables);
   const permanentLink = cables.reduce((sum, segment) => sum + segment.physicalLength, 0), totalPatch = patch1Length + patch2Length;
   const physicalChannel = permanentLink + totalPatch, electricalLength20 = segments.reduce((sum, segment) => sum + segment.equivalent20, 0);

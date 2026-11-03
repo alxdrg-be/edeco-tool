@@ -56,7 +56,7 @@ export function createFireComparisonDefinition(legacy:CalculatorDefinition):Calc
       const beforeRows=parseFireLoadRows(input.fireloadRows);
       const before=calculateFireLoadPositions(fireLoadRowsToPositions(beforeRows),length,routeType,limit??200);
       if(comparison==="no")return validateResult({...before,rows:[{label:"Variantenvergleich",value:"Variante A ohne Vergleich"},...(before.rows??[])],limitations:[...before.limitations,"Nur Variante A ist in dieser Bilanz aktiv. Gespeicherte Werte einer deaktivierten Variante B werden nicht ausgewertet."]});
-      const afterRows=parseFireLoadRows(input.fireloadRowsAfter);
+      const afterRows=parseFireLoadRows(input.fireloadRowsAfter,false,"fireloadRowsAfter");
       const after=calculateFireLoadPositions(fireLoadRowsToPositions(afterRows),length,routeType,limit??200);
       const beforeTotal=numericMetric(before,"Brandlast total"),afterTotal=numericMetric(after,"Brandlast total");
       const beforeDensity=numericMetric(before,"Brandlast bezogen auf Fluchtweg"),afterDensity=numericMetric(after,"Brandlast bezogen auf Fluchtweg");

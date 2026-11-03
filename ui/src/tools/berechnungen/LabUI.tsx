@@ -36,17 +36,17 @@ export function InfoDrawer({ help, onClose, busy = false, footer }: { help: Help
       <h2 id={id}>{help.title}</h2><div className="lab-prose">{help.content}</div>{footer && <div className="lab-drawer-footer">{footer}</div>}
     </aside></div>;
 }
-export function Parameter({ label, value, onChange, min, max, step = 1, unit, info, disabled = false }: {
-  label: string; value: string; onChange: (value: string) => void; min: number; max: number; step?: number; unit?: string; info: () => void; disabled?: boolean;
+export function Parameter({ label, value, onChange, min, max, step = 1, unit, info, disabled = false, fieldKey }: {
+  label: string; value: string; onChange: (value: string) => void; min: number; max: number; step?: number; unit?: string; info: () => void; disabled?: boolean; fieldKey?: string;
 }) {
   const id = useId(), parsed = Number(value.replace(",", ".")), valid = value.trim() !== "" && Number.isFinite(parsed);
-  return <div className="lab-parameter"><div className="edeco:flex edeco:items-center edeco:justify-between edeco:gap-3"><label htmlFor={id}>{label}</label><InfoButton title={label} onClick={info} /></div>
+  return <div className="lab-parameter" data-field-key={fieldKey}><div className="edeco:flex edeco:items-center edeco:justify-between edeco:gap-3"><label htmlFor={id}>{label}</label><InfoButton title={label} onClick={info} /></div>
     <div className="lab-number"><input id={id} aria-label={label} inputMode="decimal" autoComplete="off" maxLength={24} disabled={disabled} value={value} onChange={event => onChange(event.target.value)} /><span>{unit}</span></div>
     <input className="lab-range" type="range" aria-label={`${label} Slider`} disabled={disabled} min={min} max={max} step={step} value={valid ? Math.max(min, Math.min(max, parsed)) : min} onChange={event => onChange(event.target.value)} />
   </div>;
 }
-export function Segments<T extends string>({ label, value, options, onChange, disabled = false }: { label: string; value: T; options: { value: T; label: string }[]; onChange: (value: T) => void; disabled?: boolean }) {
-  return <ChoiceCards label={label} value={value} options={options} onChange={onChange} disabled={disabled} />;
+export function Segments<T extends string>({ label, value, options, onChange, disabled = false, fieldKey }: { label: string; value: T; options: { value: T; label: string }[]; onChange: (value: T) => void; disabled?: boolean; fieldKey?: string }) {
+  return <ChoiceCards fieldKey={fieldKey} label={label} value={value} options={options} onChange={onChange} disabled={disabled} />;
 }
 /** Small visual choices use buttons; ratings and long lists stay compact. */
 export function ChoiceCards<T extends string>({ label, value, options, onChange, disabled = false, id, fieldKey, presentation = "auto" }: {

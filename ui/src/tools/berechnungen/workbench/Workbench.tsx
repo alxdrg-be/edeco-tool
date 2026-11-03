@@ -9,6 +9,9 @@ import { consumeRestore, type ArchiveProject } from "../ablage/api";
 import { CALCULATORS } from "./definitions";
 import { defaults, validateResult, type Inputs } from "./types";
 import ResultView from "./ResultView";
+import DiagnosticDetails, { revealDiagnosticElement, type DiagnosticTarget } from "../DiagnosticDetails";
+import { errorDiagnostics, fieldVisible, resultDiagnostics } from "./diagnostics";
+import { propertyForLabel } from "./inputDiagnostics";
 import { hasTechnicalGraphic } from "./TechnicalGraphics";
 import { fieldOptions, optionsWithProjectValue } from "../electricalOptions";
 import { calculationExplanation } from "./explanations";
@@ -60,7 +63,7 @@ function CalculatorForm({ definition, ...props }: ToolProps & { definition: (typ
   const [project, setProject] = useState<ArchiveProject | null>(null), [ready, setReady] = useState(false);
   const [help, setHelp] = useState<Help | null>(null), [storageError, setStorageError] = useState(""), [restoreError, setRestoreError] = useState("");
   const loaded = useRef(false), key = `edeco.workbench.v1.${definition.id}.${project?.id || project?.number || "unassigned"}`;
-  const positions = useRef<HTMLDetailsElement>(null);
+  const positions = useRef<HTMLDetailsElement>(null), controlSection = useRef<HTMLElement>(null);
   useEffect(() => {
     if (!hub || loaded.current) return; loaded.current = true;
     const restored = consumeRestore(definition.id), chosen = restored?.project ?? (active ? { id: active.id, number: active.number, name: active.name } : null);
@@ -74,9 +77,10 @@ function CalculatorForm({ definition, ...props }: ToolProps & { definition: (typ
     setReady(true);
   }, [hub, active, definition]);
   useEffect(() => { if (!ready || restoreError) return; try { localStorage.setItem(key, JSON.stringify({ input, notes })); setStorageError(""); } catch { setStorageError("Entwurf konnte nicht gespeichert werden."); } }, [input, notes, ready, key, restoreError]);
-  const { result, error } = useMemo(() => { if (restoreError) return { result: null, error: restoreError }; try { return { result: validateResult(definition.calculate(input)), error: "" }; } catch (e) { return { result: null, error: e instanceof Error ? e.message : "Eingaben prüfen." }; } }, [input, definition, restoreError]);
+  const { result, error } = useMemo(() => { if (restoreError) return { result: null, error: new Error(restoreError) }; try { return { result: validateResult(definition.calculate(input)), error: null }; } catch (e) { return { result: null, error: e }; } }, [input, definition, restoreError]);
+  const diagnostics = useMemo(() => result ? resultDiagnostics(definition, input, result) : errorDiagnostics(definition, input, error), [definition, input, result, error]);
   const document = { schema: "edeco.workbench.v1", calculatorId: definition.id, project, input, result, notes, source: definition.source, scope: definition.scope };
-  const visibleFields = definition.fields.filter(field => !["grids", "depotUnits", "depotPoints", "costRows", "siaZones", "poeSegments", "fireloadRows", "fireloadRowsAfter", "selectivityStages", "chargingSourceConnection"].includes(field.key) && (!field.visibleWhen || field.visibleWhen.every(condition => condition.values.includes(input[condition.key]))));
+  const visibleFields = definition.fields.filter(field => !["grids", "depotUnits", "depotPoints", "costRows", "siaZones", "poeSegments", "fireloadRows", "fireloadRowsAfter", "selectivityStages", "chargingSourceConnection"].includes(field.key) && fieldVisible(field, input));
   if (definition.id === "ls-schalter") visibleFields.sort((a, b) => (a.key === "rated" ? -1 : b.key === "rated" ? 1 : 0));
   const choices = Object.fromEntries(definition.fields.map(field => [field.key, field.options ?? fieldOptions(definition.id, field.key) ?? []]));
   if (definition.id === 'nin-kabelrechner') choices.method = ninMethodOptions(['single', 'multi'].includes(input.conductorKind) ? input.conductorKind : 'all');
@@ -89,6 +93,36 @@ function CalculatorForm({ definition, ...props }: ToolProps & { definition: (typ
     : definition.id === "premium-pkw" && input.layout === "modular" ? { title: "Ladegrids und Punktgruppen bearbeiten", content: <PlanningControls calculatorId={definition.id} input={input} onChange={editField} disabled={!ready} /> }
     : definition.id === "premium-lkw" && input.depotLayout === "modular" ? { title: "Power Units und Abgabepunkte bearbeiten", content: <PlanningControls calculatorId={definition.id} input={input} onChange={editField} disabled={!ready} /> }
     : definition.id === "premium-ladekosten" && input.costLayout === "contracts" ? { title: "Ladepunkte und Kostenpositionen bearbeiten", content: <PlanningControls calculatorId={definition.id} input={input} onChange={editField} disabled={!ready} /> } : null;
+  function navigateDiagnostic(target: DiagnosticTarget) {
+    const positionField = ["grids", "depotUnits", "depotPoints", "costRows", "siaZones", "poeSegments", "fireloadRows", "fireloadRowsAfter", "selectivityStages"].includes(target.field);
+    const scope = positionField ? positions.current : controlSection.current;
+    if (!scope) return;
+    if (scope instanceof HTMLDetailsElement) scope.open = true;
+    let element: HTMLElement | null = null;
+    if (positionField) {
+      const candidates = [...scope.querySelectorAll<HTMLElement>("[data-diagnostic-field]")].filter(node => node.dataset.diagnosticField === target.field);
+      const row = target.rowId ? candidates.find(node => node.dataset.diagnosticRow === target.rowId) : target.rowIndex !== undefined ? candidates.find(node => Number(node.dataset.diagnosticIndex) === target.rowIndex) : undefined;
+      if (row) {
+        if (target.property) {
+          element = row.querySelector<HTMLElement>(`[data-diagnostic-property="${CSS.escape(target.property)}"]`);
+          if (!element) {
+            const entry = [...row.querySelectorAll<HTMLElement>("[data-diagnostic-label]")].find(node => propertyForLabel(target.field, node.dataset.diagnosticLabel ?? "") === target.property);
+            element = entry ?? null;
+          }
+          if (!element) {
+            const label = [...row.querySelectorAll<HTMLLabelElement>("label")].find(node => propertyForLabel(target.field, node.textContent ?? "") === target.property);
+            element = label ?? null;
+          }
+        }
+        // An unresolved field stays at its own row; never jump to a different row.
+        element ??= row.querySelector<HTMLElement>("summary") ?? row;
+      } else element = scope.querySelector<HTMLElement>("summary") ?? scope;
+    } else element = scope.querySelector<HTMLElement>(`[data-diagnostic-field-key="${CSS.escape(target.field)}"]`) ?? scope.querySelector<HTMLElement>(`[data-field-key="${CSS.escape(target.field)}"]`) ?? positions.current?.querySelector<HTMLElement>(`[data-field-key="${CSS.escape(target.field)}"]`) ?? null;
+    if (!element) return;
+    controlSection.current?.querySelectorAll(".calc-diagnostic-focus").forEach(node => node.classList.remove("calc-diagnostic-focus"));
+    positions.current?.querySelectorAll(".calc-diagnostic-focus").forEach(node => node.classList.remove("calc-diagnostic-focus"));
+    revealDiagnosticElement(element);
+  }
   function editField(key: string, value: string) {
     setInput(old => definition.id === 'nin-kabelrechner' ? editNinInstallationInput(old, key, value) : ({ ...old, [key]: value, ...(definition.id === "poe" && key === "type" && value !== "manual" ? { voltage: ["1", "2"].includes(value) ? "48" : "53" } : {}) }));
   }
@@ -112,11 +146,12 @@ function CalculatorForm({ definition, ...props }: ToolProps & { definition: (typ
     {positionEditor && <details className="wb-position-editor" ref={positions}><summary><ListTree size={18} aria-hidden="true" /><span className="wb-structure-title">{positionEditor.title}<small>{structureSummary(definition.id, input)}</small></span><span>Bearbeiten</span></summary><div className="wb-position-content">{positionEditor.content}</div></details>}
     <div className="lab-bento wb-layout"><section className={`wb-results ${result && (result.diagram || result.charging || result.chargingNetwork || result.depotNetwork || result.siaBreakdown || result.poeRoute || result.series?.length || result.comparisons?.length || hasTechnicalGraphic(definition.id, result)) ? "wb-has-graphic" : ""}`} aria-label="Berechnungsergebnis"><div className="wb-result-heading"><span><Calculator size={17} /> Live-Auswertung</span><InfoButton title="Berechnungsgrundlagen" onClick={() => setHelp({ title: "Berechnungsgrundlagen", content: foundation })} /></div>
       <Explanation className="wb-reading-guide" title="Ergebnis verstehen"><p>{calculationExplanation(definition.id, input)}</p></Explanation>
-      {result ? <ResultView result={result} calculatorId={definition.id} input={input} /> : <div className="lab-error" role="alert">{error}</div>}
+      <div className={!result ? "lab-error wb-validation-guidance" : undefined} role={!result ? "alert" : undefined}>{diagnostics.map(diagnostic => <DiagnosticDetails key={diagnostic.id} diagnostic={diagnostic} onNavigate={navigateDiagnostic} initiallyOpen={!result} />)}</div>
+      {result && <ResultView result={result} calculatorId={definition.id} input={input} />}
       <Explanation className="wb-foundations" title="Formel, Quellen & Voraussetzungen">{foundation}<KnowledgeLink calculatorId={definition.id} onOpenTool={props.onOpenTool}>Grundlagen im Wissens-Hub</KnowledgeLink></Explanation>
-    </section><section className="lab-controls wb-controls" aria-label="Rechnereingaben"><div className="lab-control-heading"><h2>Parameter</h2><button className="lab-open" onClick={() => { setInput(defaults(definition)); setRestoreError(""); }} disabled={!ready}>Beispielwerte</button></div>
+    </section><section ref={controlSection} className="lab-controls wb-controls" aria-label="Rechnereingaben"><div className="lab-control-heading"><h2>Parameter</h2><button className="lab-open" onClick={() => { setInput(defaults(definition)); setRestoreError(""); }} disabled={!ready}>Beispielwerte</button></div>
       {positionEditor && <button type="button" className="wb-structure-entry" onClick={openPositions}><ListTree size={17} aria-hidden="true" /><span>Struktur bearbeiten<small>{structureSummary(definition.id, input)}</small></span></button>}
-      {groups.map((group, i) => <details className="wb-field-group" open={i === 0} key={group}><summary>{group}</summary>{visibleFields.filter(field => (field.group ?? "Eingaben") === group).map(field => <div className="wb-field" key={field.key}><div><label htmlFor={`wb-${field.key}`}>{field.label}{field.unit ? ` (${field.unit})` : ""}</label><InfoButton title={`${group} · ${field.label}`} onClick={() => setHelp({ title: field.label, content: <><p>{field.help}</p>{foundation}</> })} /></div>{(field.kind === "select" || choices[field.key].length > 0) ? choiceField(field.key, field.label) : <input id={`wb-${field.key}`} data-field-key={field.key} type="text" inputMode={field.kind === "text" ? "text" : "decimal"} autoComplete="off" maxLength={field.kind === "text" ? 180 : 24} value={input[field.key]} disabled={!ready} onChange={event => editField(field.key, event.target.value)} />}</div>)}</details>)}
+      {groups.map((group, i) => <details className="wb-field-group" open={i === 0} key={group}><summary>{group}</summary>{visibleFields.filter(field => (field.group ?? "Eingaben") === group).map(field => <div className="wb-field" key={field.key} data-diagnostic-field-key={field.key}><div><label htmlFor={`wb-${field.key}`}>{field.label}{field.unit ? ` (${field.unit})` : ""}</label><InfoButton title={`${group} · ${field.label}`} onClick={() => setHelp({ title: field.label, content: <><p>{field.help}</p>{foundation}</> })} /></div>{(field.kind === "select" || choices[field.key].length > 0) ? choiceField(field.key, field.label) : <input id={`wb-${field.key}`} data-field-key={field.key} type="text" inputMode={field.kind === "text" ? "text" : "decimal"} autoComplete="off" maxLength={field.kind === "text" ? 180 : 24} value={input[field.key]} disabled={!ready} onChange={event => editField(field.key, event.target.value)} />}</div>)}</details>)}
       <label className="lab-label" htmlFor="wb-notes">Notizen / Grundlagenverweis</label><textarea id="wb-notes" aria-label="Berechnungsnotizen" value={notes} maxLength={10000} rows={3} onChange={event => setNotes(event.target.value)} />{storageError && <p role="alert" className="lab-error">{storageError}</p>}
     </section></div>
   </LabShell>;

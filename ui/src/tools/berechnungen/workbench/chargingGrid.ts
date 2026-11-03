@@ -1,3 +1,4 @@
+import { withInputRow } from "./inputDiagnostics.ts";
 import { costReportInputs } from "./chargingCosts.ts";
 import { number, type Inputs } from "./types.ts";
 import { publishedEVFactor, EV_FACTOR_BASIS } from "../EVdata.ts";
@@ -66,9 +67,9 @@ export function parseChargingGrids(raw: string, editing = false): ChargingGridIn
 }
 /** Mixed-grid budget with phase constraints. The activation order is explicit input order. */
 export function calculateChargingNetwork(input: Inputs): ChargingNetworkResult {
-  const houseAmps = numeric(input.house,"Hausanschluss",10000), reserveKW = numeric(input.reserve,"Gebäudereserve",100000,true), mode = choose(input.mode,["none","static","dynamic"],"Lastmanagement");
+  const houseAmps = number(input,"house","Hausanschluss",0,10000), reserveKW = number(input,"reserve","Gebäudereserve",0,100000,true), mode = choose(input.mode,["none","static","dynamic"],"Lastmanagement");
   const houseKW = houseAmps * AC3_KW_PER_A, reserveCurrent = reserveKW / AC3_KW_PER_A;
-  const optional=(key:string,fallback:string,label:string,max:number,zero=false)=>numeric(input[key]===undefined?fallback:input[key],label,max,zero);
+  const optional=(key:string,fallback:string,label:string,max:number,zero=false)=>number({[key]:input[key]===undefined?fallback:input[key]},key,label,0,max,zero);
   const operatingHours=optional("chargingHours","10","Ladebetrieb pro Tag",24),vehicleConsumption=optional("chargingConsumption","15","Fahrzeugverbrauch",1000);
   const pv=optional("chargingPV","0","PV-Nennleistung",100000,true),battery=optional("chargingBattery","0","Nutzbare Speicherenergie pro Tag",1e8,true);
   const sourcePotentialKW=.7*pv+battery/operatingHours;
@@ -77,16 +78,17 @@ export function calculateChargingNetwork(input: Inputs): ChargingNetworkResult {
   if(sourceConnection!=="house"&&!sourceGrid)throw new Error("PV-/Speicheranschluss einem vorhandenen Grid oder dem Hausanschluss zuordnen.");
   // Balanced simultaneous-source assumption. Limiting the source to the selected
   // connection rating is deliberately conservative for reverse power flow.
-  const sourceKW=Math.min(sourcePotentialKW,houseKW,sourceGrid?numeric(sourceGrid.amps,"Grid-Vorsicherung",10000)*AC3_KW_PER_A:houseKW),sourceCurrent=sourceKW/AC3_KW_PER_A;
+  const sourceKW=Math.min(sourcePotentialKW,houseKW,sourceGrid?withInputRow("grids",sourceGrid,sourceSpecifications.indexOf(sourceGrid),()=>numeric(sourceGrid.amps,"Grid-Vorsicherung",10000))*AC3_KW_PER_A:houseKW),sourceCurrent=sourceKW/AC3_KW_PER_A;
   const sourceLimited=sourceKW<sourcePotentialKW-TOL,availableACKW=Math.max(0,houseKW-reserveKW+sourceKW);
   const specifications = parseChargingGrids(input.grids), coefficients: [number,number,number][] = [], stations: ChargingStation[] = [], gridIndices: number[] = [],stationUncapped:boolean[]=[];
-  const grids: ChargingGridResult[] = specifications.map((grid,gridIndex) => {
+  const grids: ChargingGridResult[] = specifications.map((grid,gridIndex) => withInputRow("grids",grid,gridIndex,()=>{
     const gridMode=grid.mode&&grid.mode!=="inherit"?grid.mode:mode;
     const amps = numeric(grid.amps,`${grid.label} Vorsicherung`,10000), nominalPhases: [number,number,number] = [0,0,0];
     let pointIndex = 0;
     const requestedPerPower=new Map<string,number>();
     const gridStations: ChargingStation[] = [];
-    for (const group of grid.groups) {
+    for (const [groupIndex,group] of grid.groups.entries()) {
+      withInputRow("grids",{id:`${grid.id}/${group.id}`},groupIndex,()=>{
       const count = numeric(group.count,`${grid.label} · Anzahl`,1000,true);
       if (!Number.isInteger(count)) throw new Error(`${grid.label}: ganze Anzahl Ladepunkte eingeben.`);
       if (stations.length + count > 2000) throw new Error("Das gemischte Modell unterstützt höchstens 2000 Ladepunkte pro Rechenstand.");
@@ -101,9 +103,9 @@ export function calculateChargingNetwork(input: Inputs): ChargingNetworkResult {
       if (gridMode === "static" && count > 0) {
         const perGrid=perGridFactor;
         const factorMode = choose(perGrid?grid.factorMode:group.factorMode,["manual","curve"],"Faktorgrundlage");
-        if (factorMode === "manual") factor = numeric(perGrid?grid.factor:group.factor,`${grid.label} · Leistungsanteil`,1,true);
+        if (factorMode === "manual") factor = perGrid?withInputRow("grids",grid,gridIndex,()=>numeric(grid.factor,`${grid.label} · Leistungsanteil`,1,true)):numeric(group.factor,`${grid.label} · Leistungsanteil`,1,true);
         else {
-          const curveCount=perGrid?grid.groups.filter(samePowerGroup).reduce((sum,other)=>sum+numeric(other.count,`${grid.label} · Gruppenanzahl`,1000,true),0):count;
+          const curveCount=perGrid?grid.groups.filter(samePowerGroup).reduce((sum,other)=>sum+withInputRow("grids",{id:`${grid.id}/${other.id}`},grid.groups.indexOf(other),()=>numeric(other.count,`${grid.label} · Gruppenanzahl`,1000,true)),0):count;
           const userClass=choose(perGrid?grid.userClass:group.userClass,["residents","visitors","transit"],"Anwenderklasse");
           const observed = publishedEVFactor(userClass,curveCount,power,customPower);
           if (observed === null) throw new Error(`${group.label}: für diese Anwenderklasse und Ladeleistung ist keine veröffentlichte Referenzkurve hinterlegt. Manuellen Faktor wählen.`);
@@ -114,7 +116,7 @@ export function calculateChargingNetwork(input: Inputs): ChargingNetworkResult {
       if(gridMode==="static"&&perGridFactor){
         const groupKey=`${group.kind}:${power}:${customPower?"custom":"preset"}`;
         if(!requestedPerPower.has(groupKey)){
-          const sameCount=grid.groups.filter(samePowerGroup).reduce((sum,other)=>sum+numeric(other.count,`${grid.label} · Gruppenanzahl`,1000,true),0);
+          const sameCount=grid.groups.filter(samePowerGroup).reduce((sum,other)=>sum+withInputRow("grids",{id:`${grid.id}/${other.id}`},grid.groups.indexOf(other),()=>numeric(other.count,`${grid.label} · Gruppenanzahl`,1000,true)),0);
           requestedPerPower.set(groupKey,Math.ceil(sameCount*factor));
         }
         requestedCount=Math.min(count,requestedPerPower.get(groupKey)!);
@@ -128,9 +130,10 @@ export function calculateChargingNetwork(input: Inputs): ChargingNetworkResult {
         const station: ChargingStation = { id:`${grid.id}/${group.id}/${point+1}`, label:`${group.label} · ${point+1}`, groupId:group.id,kind:group.kind,phase:phaseIndex === null ? null : phaseIndex+1 as 1|2|3,nominalKW:power,assignedKW:0,acInputKW:0,efficiency,minimumKW:minimum,active:false,factor,requested:point < requestedCount };
         stations.push(station);gridStations.push(station);coefficients.push(coeff);gridIndices.push(gridIndex);stationUncapped.push(uncapped);pointIndex++;
       }
+      });
     }
     return { id:grid.id,label:grid.label,amps,mode:gridMode,assignedKW:0,acInputKW:0,installedKW:gridStations.reduce((sum,p)=>sum+p.nominalKW,0),phases:sourceConnection===grid.id?[-sourceCurrent,-sourceCurrent,-sourceCurrent]:[0,0,0],sourceKW:sourceConnection===grid.id?sourceKW:0,overload:false,activeCount:0,waitingCount:0,stations:gridStations };
-  });
+  }));
   if (!stations.length) throw new Error("Mindestens einen Ladepunkt erfassen.");
   const housePhases: [number,number,number] = [reserveCurrent-sourceCurrent,reserveCurrent-sourceCurrent,reserveCurrent-sourceCurrent];
   let houseChargingKW = 0;
@@ -209,19 +212,19 @@ export function parseDepotPoints(raw:string,editing=false):DepotPointInput[]{
 }
 /** Explicit PU/dispenser topology; no hidden reassignment between Power Units. */
 export function calculateDepotNetwork(input:Inputs):DepotNetworkResult {
-  const houseAmps=numeric(input.feed,"AC-Einspeisung",10000),reserveKW=numeric(input.reserve,"Gebäudereserve",100000,true),mode=choose(input.mode,["none","static","dynamic"],"Lastmanagement");
+  const houseAmps=number(input,"feed","AC-Einspeisung",0,10000),reserveKW=number(input,"reserve","Gebäudereserve",0,100000,true),mode=choose(input.mode,["none","static","dynamic"],"Lastmanagement");
   const allocation=choose(input.depotAllocation??"project",["project","reference"],"Depot-Zuteilung"),reference=allocation==="reference",houseKW=houseAmps*AC3_KW_PER_A,availableACKW=Math.max(0,houseKW-reserveKW);
   const globalMinimumRaw=input.depotMinimum??"50";
   const unitInputs=parseDepotUnits(input.depotUnits),pointInputs=parseDepotPoints(input.depotPoints);
-  const units:DepotUnitResult[]=unitInputs.map(unit=>{
+  const units:DepotUnitResult[]=unitInputs.map((unit,index)=>withInputRow("depotUnits",unit,index,()=>{
     const modules=numeric(unit.modules,`${unit.label} · Module`,100);if(!Number.isInteger(modules))throw new Error(`${unit.label}: ganze Modulzahl eingeben.`);
     const modulePower=numeric(unit.modulePower,`${unit.label} · Modulleistung`,5000),efficiency=numeric(unit.efficiency,`${unit.label} · Wirkungsgrad`,1),gridAmps=numeric(unit.gridAmps,`${unit.grid} · Vorsicherung`,10000),powerBasis=choose(unit.powerBasis??"dc",["ac","dc"],"Leistungsbezug der Power Unit");
     const unitMode=choose(unit.mode&&unit.mode!=="inherit"?unit.mode:mode,["none","static","dynamic"],"Grid-Lastmanagement");
     const factor=reference&&unitMode==="static"?numeric(unit.factor??input.depotReferenceFactor??"1","Statischer Gridfaktor",1,true):1;
     return{id:unit.id,label:unit.label,grid:unit.grid,gridAmps,modules,modulePower,efficiency,powerBasis,mode:unitMode,factor,capacityDC:modules*modulePower*(powerBasis==="ac"?efficiency:1),demandDC:0,assignedDC:0,acInputKW:0,overload:false};
-  });
+  }));
   const globalMinimum=reference&&units.some(unit=>unit.mode==="dynamic")?numeric(globalMinimumRaw,"DC-Mindestleistung",5000):0;
-  const points:DepotPointResult[]=pointInputs.map(point=>{
+  const points:DepotPointResult[]=pointInputs.map((point,index)=>withInputRow("depotPoints",point,index,()=>{
     const unit=units.find(unit=>unit.id===point.unitId);if(!unit)throw new Error(`${point.label}: zugeordnete Power Unit fehlt. Die Zuordnung wird nicht automatisch ersetzt.`);
     const ports=numeric(point.ports,`${point.label} · Abgabepunkte`,1000,true);if(!Number.isInteger(ports))throw new Error(`${point.label}: ganze Anzahl Abgabepunkte eingeben.`);
     const pointMode=unit.mode??mode;
@@ -229,7 +232,7 @@ export function calculateDepotNetwork(input:Inputs):DepotNetworkResult {
     const minimumKW=reference&&pointMode==="dynamic"?Math.min(nominalKW,point.minimum===undefined||point.minimum===""?globalMinimum:numeric(point.minimum,`${point.label} · Mindestleistung`,nominalKW)):0;
     const demandDC=ports*nominalKW*(reference?1:factor);unit.demandDC+=demandDC;
     return{id:point.id,label:point.label,unitId:point.unitId,ports,connector:point.connector,nominalKW,factor,demandDC,assignedDC:0,perPortKW:0,...(reference?{activePorts:0,waitingPorts:ports,minimumKW}:{})};
-  });
+  }));
   if(!points.some(point=>point.ports>0))throw new Error("Mindestens einen DC-Abgabepunkt erfassen.");
   const portLists=units.map(unit=>points.filter(point=>point.unitId===unit.id).flatMap(point=>Array.from({length:point.ports},(_,index)=>({point,index,power:0,active:false}))));
   if(portLists.reduce((sum,list)=>sum+list.length,0)>10000)throw new Error("Das Depotmodell unterstützt höchstens 10'000 Abgabepunkte.");

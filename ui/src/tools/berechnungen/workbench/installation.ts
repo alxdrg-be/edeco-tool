@@ -1,4 +1,5 @@
-import { number, integer, type CalculatorDefinition, type Field, type Inputs } from "./types.ts";
+import { withInputRow } from "./inputDiagnostics.ts";
+import { InputError, number, integer, type CalculatorDefinition, type Field, type Inputs } from "./types.ts";
 import { lookupPublishedIz, publishedAreas, publishedTemperatureFactor, publishedGroupingFactor, lookupPublishedTrayIz, publishedTrayGroupingFactor, publishedHagerBackup, HAGER_BACKUP_REFERENCE, type PublishedHagerFamily, type PublishedIzConfig, type PublishedTrayType, POE_CABLE_REFERENCES, PV_BUY_TARIFFS, PV_FEED_TARIFFS, PV_DIRECTIONS, PV_TILTS, PV_MODULES, publishedMinimumFeedRp, publishedPvGrant } from "./referenceInstallationData.ts";
 import { fireCprState, fireCableFact } from "./fireCableData.ts";
 import { pvSensitivity } from "./pvAnalysis.ts";
@@ -381,7 +382,7 @@ export function createFireLoadRow(id:string,name="Neue Kabelposition"):FireLoadR
   if(!id.trim()||id.length>120)throw new Error("Eine eindeutige Zeilenkennung ist erforderlich.");
   return {id,name,mjPerMeter:"",quantity:"1",length:"",evidence:"open"};
 }
-export function parseFireLoadRows(raw:string,editing=false):FireLoadRow[] {
+export function parseFireLoadRows(raw:string,editing=false,diagnosticField="fireloadRows"):FireLoadRow[] {
   if(typeof raw!=="string"||raw.length>500000)throw new Error("Kabelpositionsliste ist ungültig oder zu gross.");
   let parsed:unknown;
   try {parsed=JSON.parse(raw);} catch {throw new Error("Kabelpositionsliste konnte nicht gelesen werden.");}
@@ -402,9 +403,11 @@ export function parseFireLoadRows(raw:string,editing=false):FireLoadRow[] {
       if(supplier&&!fact.suppliers.some(item=>item.supplier===supplier))throw new Error(`Position ${index+1}: Lieferant hat keinen plausiblen Katalogwert.`);
     }
     if(!editing) {
-      const input={q:mjPerMeter,n:quantity,l:length};
-      const q=number(input,"q",`Brandlast Position ${index+1}`,0,100000,true),n=integer(input,"n",`Anzahl Position ${index+1}`,0,100000,true),l=number(input,"l",`Länge Position ${index+1}`,0,100000,true);
-      if(n>0&&(q===0||l===0))throw new Error(`Position ${index+1}: vorhandene Kabel benötigen positive Brandlast und Länge.`);
+      withInputRow(diagnosticField,{id},index,()=>{
+        const values={mjPerMeter,quantity,length};
+        const q=number(values,"mjPerMeter",`Brandlast Position ${index+1}`,0,100000,true),n=integer(values,"quantity",`Anzahl Position ${index+1}`,0,100000,true),l=number(values,"length",`Länge Position ${index+1}`,0,100000,true);
+        if(n>0&&(q===0||l===0))throw new InputError(q===0?"mjPerMeter":"length",`Position ${index+1}: vorhandene Kabel benötigen positive Brandlast und Länge.`,"Bei vorhandenen Kabeln müssen Brandlast je Meter und betrachtete Kabellänge grösser als null sein.",q===0?mjPerMeter:length);
+      });
     }
     return {id,name,mjPerMeter,quantity,length,evidence,...(catalogId!==undefined?{catalogId}:{}),...(supplier!==undefined?{supplier}:{}),...(cpr!==undefined?{cpr}:{})};
   });

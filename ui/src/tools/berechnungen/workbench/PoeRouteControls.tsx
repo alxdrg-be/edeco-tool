@@ -9,7 +9,7 @@ import "./poe-route.css";
 type Props = { input: Inputs; onChange: (key: string, value: string) => void; disabled?: boolean };
 function Entry({ label, value, onChange, options, disabled, text = false }: { label: string; value: string; onChange: (value: string) => void; options?: readonly { value: string; label: string }[]; disabled?: boolean; text?: boolean }) {
   const id = useId();
-  return <div className="poe-route-entry" data-wide={text || Boolean(options) ? true : undefined}><label htmlFor={options ? undefined : id}>{label.replace(/^Abschnitt \d+ · /, "").replace("Dokumentierte Leitertemperatur", "Leitertemperatur")}</label>{options ? <ChoiceCards id={id} label={label} disabled={disabled} value={value} onChange={onChange} options={optionsWithProjectValue(options, value)} /> : <input id={id} aria-label={label} disabled={disabled} value={value} maxLength={text ? 180 : 24} inputMode={text ? "text" : "decimal"} onChange={event => onChange(event.target.value)} />}</div>;
+  return <div data-diagnostic-label={label} className="poe-route-entry" data-wide={text || Boolean(options) ? true : undefined}><label htmlFor={options ? undefined : id}>{label.replace(/^Abschnitt \d+ · /, "").replace("Dokumentierte Leitertemperatur", "Leitertemperatur")}</label>{options ? <ChoiceCards id={id} label={label} disabled={disabled} value={value} onChange={onChange} options={optionsWithProjectValue(options, value)} /> : <input id={id} aria-label={label} disabled={disabled} value={value} maxLength={text ? 180 : 24} inputMode={text ? "text" : "decimal"} onChange={event => onChange(event.target.value)} />}</div>;
 }
 export default function PoeRouteControls({ input, onChange, disabled }: Props) {
   if (input.poeRouteMode !== "published") return null;
@@ -23,7 +23,7 @@ export default function PoeRouteControls({ input, onChange, disabled }: Props) {
     {segments.map((segment, index) => {
       const cable = POE_CABLE_REFERENCES.find(option => option.id === segment.cableType), lengthFactor = cable?.referenceLengthFactors[input.poeClass];
       const label = `Abschnitt ${index + 1}`;
-      return <details className="poe-route-control-card" key={segment.id} open={index === 0}><summary>{segment.label || label} · {segment.length || "–"} m</summary><div className="poe-route-input-grid">
+      return <details data-diagnostic-field="poeSegments" data-diagnostic-row={segment.id} data-diagnostic-index={index} className="poe-route-control-card" key={segment.id} open={index === 0}><summary>{segment.label || label} · {segment.length || "–"} m</summary><div className="poe-route-input-grid">
         <Entry label={`${label} · Bezeichnung`} text value={segment.label} onChange={value => change(index, "label", value)} disabled={disabled} />
         <Entry label={`${label} · Kabeldatensatz`} value={segment.cableType} options={[...POE_CABLE_REFERENCES.map(row => ({ value: row.id, label: row.label })), { value: "custom", label: "Eigener dokumentierter Datensatz" }]} onChange={value => change(index, "cableType", value)} disabled={disabled} />
         <Entry label={`${label} · Physische Länge (m)`} value={segment.length} onChange={value => change(index, "length", value)} disabled={disabled} />
