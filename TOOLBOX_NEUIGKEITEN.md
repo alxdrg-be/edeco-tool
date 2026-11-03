@@ -1,5 +1,9 @@
 ## Neue Projekt- und Rechenwerkzeuge
 
+- Anschluss-/Vorsicherungswerte und weitere Gerätenennwerte als Dropdowns aus der Schweizer Referenzauswahl; kontinuierliche Messwerte bleiben frei. Abweichende gespeicherte Projektwerte bleiben erhalten.
+- Referenznähere Darstellung mit direkt sichtbaren Schemas, bemassten Raumplänen, jährlichen Kostensäulen, zugeordneten Kennzahlen und kurzen Lesehilfen. Formeln und geprüfte Zahlenfälle sind im Quellenabgleich dokumentiert; das ersetzt keine Normfreigabe.
+- Berechnungsverhalten für bereits erreichten Leistungsfaktor und ausgeblendete statische Ladefaktoren korrigiert. Modelldateien zur Vermeidung von Windows-Importkollisionen eindeutig benannt.
+
 - 25 native Rechenhilfen: eigene Vorprüfungen für die 24 Schweizer Referenzthemen plus Blitzschutz. Die bisherigen acht Entwurfskacheln rechnen jetzt; Umfang und Grenzen sind pro Rechner dokumentiert. Normtabellenwerte und Herstellergrenzen werden teilweise manuell eingetragen und nicht als automatische Fachkataloge ausgegeben.
 - Ladegrids mit reaktivem Schema: Hausanschluss, Unterverteiler, gerade Sammelschiene, Ladepunkte und Fahrzeuge. Cyan zeigt eingehaltene Leistungsbudgets, Gelb begrenzte Zuteilung, Rot die Überschreitung am jeweiligen Abschnitt. Die Kabel-/Schutzauslegung bleibt ungeprüft.
 - Gemeinsame Serverablage: Ordner einrichten, Rechenstände nach Berechnung und Projekt speichern, Notizen ergänzen und Eingaben neu berechnen. PDF-/JSON-Exporte können zusätzlich importiert werden. Kein SQLite auf dem Netzlaufwerk.

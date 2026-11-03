@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "typecheck": "tsc -b",
-    "test": "node --experimental-strip-types --test src/sheets.test.ts src/uiState.test.ts src/legend.test.ts src/floors.test.ts src/saveSession.test.ts src/minesweeper.test.ts src/tools/dateien-umbenennen/naming.test.ts src/tools/berechnungen/calc.test.ts src/tools/berechnungen/lightning.test.ts src/tools/berechnungen/engineering.test.ts src/tools/berechnungen/ev.test.ts src/tools/berechnungen/workbench/fundamentals.test.ts src/tools/berechnungen/workbench/installation.test.ts src/tools/berechnungen/workbench/planning.test.ts src/tools/berechnungen/workbench/definitions.test.ts src/tools/berechnungen/EVSchemaState.test.ts"
+    "test": "node --experimental-strip-types --test src/sheets.test.ts src/uiState.test.ts src/legend.test.ts src/floors.test.ts src/saveSession.test.ts src/minesweeper.test.ts src/tools/dateien-umbenennen/naming.test.ts src/tools/berechnungen/calc.test.ts src/tools/berechnungen/lightning.test.ts src/tools/berechnungen/engineering.test.ts src/tools/berechnungen/ev.test.ts src/tools/berechnungen/workbench/fundamentals.test.ts src/tools/berechnungen/workbench/installation.test.ts src/tools/berechnungen/workbench/planning.test.ts src/tools/berechnungen/workbench/definitions.test.ts src/tools/berechnungen/EVSchemaState.test.ts src/tools/berechnungen/reference-ev-cable.test.ts src/tools/berechnungen/electricalOptions.test.ts src/tools/berechnungen/workbench/reference-fundamentals.test.ts src/tools/berechnungen/workbench/reference-installation.test.ts src/sourceLayout.test.ts"
   },
   "dependencies": {
     "lucide-react": "^1.66.0",

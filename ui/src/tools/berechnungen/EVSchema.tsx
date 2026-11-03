@@ -1,5 +1,5 @@
 import { useId } from "react";
-import type { calculateEV, EVInput } from "./ev.ts";
+import type { calculateEV, EVInput } from "./ev-model.ts";
 import { schemaState, signalColour, type EVSchemaState } from "./EVSchemaState.ts";
 import "./ev-schema.css";
 
@@ -37,6 +37,7 @@ export default function EVSchema({ input, result, signals }: { input: EVInput; r
       <span>{shown ? `${shown} von ${count} Ladepunkten` : "Eingaben prüfen"}</span>
       <span className="ev-schema-mobile-hint">↔ Schema horizontal verschieben</span>
     </div>
+    <p className="ev-schema-explanation">Der Hausanschluss speist die Unterverteilung (UV), deren Sammelschiene die Ladepunkte versorgt. Pro Punkt stehen Nennleistung und gleichmässige Modellzuteilung getrennt; aktive und wartende Ladepunkte werden nicht simuliert.</p>
     <div className="ev-schema-signals" aria-label="Status der Leistungsabschnitte">
       {([{ key: "house", label: "Haus" }, { key: "grid", label: "Grid" }, { key: "points", label: "Ladepunkte" }] as const).map(item => <span key={item.key} data-state={state[item.key].tone} style={{ borderColor: signalColour(state[item.key].tone) }}><i style={{ background: signalColour(state[item.key].tone) }} /><strong>{item.label}</strong>{state[item.key].label}</span>)}
     </div>

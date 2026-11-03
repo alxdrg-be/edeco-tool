@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type { ToolProps } from "../../toolbox/modules";
 import { buildName, DEFAULTS, nameIssue, PARTS, restoreSettings, type NamingSettings, type Part } from "./naming";
 import "./file-rename.css";
-import { notifyProjectsChanged, useProjectHub, type Project } from "../projektzentrale/projectHub";
+import { notifyProjectsChanged, useProjectHub, type Project } from "../projektzentrale/projectHubState";
 import DeliveryHistory from "../planlieferung/DeliveryHistory";
 import "../projektzentrale/project-hub.css";
 

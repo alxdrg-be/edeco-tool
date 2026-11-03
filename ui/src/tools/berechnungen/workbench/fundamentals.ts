@@ -83,8 +83,8 @@ export function calculateMotor(input: Inputs): CalculationResult {
 }
 
 export function calculateCompensation(input: Inputs): CalculationResult {
-  const kw = number(input, "kw", "Wirkleistung", 0, 100000), before = number(input, "before", "Ist-Leistungsfaktor", 0, 1), after = number(input, "after", "Soll-Leistungsfaktor", 0, 1);
-  if (after < before) throw new Error("Soll-Leistungsfaktor muss mindestens dem Ist-Leistungsfaktor entsprechen.");
+  const kw = number(input, "kw", "Wirkleistung", 0, 100000), before = number(input, "before", "Ist-Leistungsfaktor", 0, 1), requestedAfter = number(input, "after", "Soll-Leistungsfaktor", 0, 1);
+  const alreadyReached = requestedAfter <= before, after = alreadyReached ? before : requestedAfter;
   const voltage = number(input, "voltage", "Nennspannung", 0, 1000), phase = choice(input, "phase", ["1", "3"]), factor = phase === "3" ? Math.sqrt(3) : 1;
   const hours = number(input, "hours", "Volllaststunden", 0, 8760, true), price = number(input, "price", "Strompreis", 0, 100, true), lossPct = number(input, "lossPct", "Angenommene Leitungsverluste vorher", 0, 100, true);
   const q1 = kw * Math.tan(Math.acos(before)), q2 = kw * Math.tan(Math.acos(after)), s1 = kw / before, s2 = kw / after;
@@ -92,10 +92,10 @@ export function calculateCompensation(input: Inputs): CalculationResult {
   const savedLoss = kw * lossPct / 100 * (1 - (i2 / i1) ** 2), energy = savedLoss * hours;
   return {
     metrics: [{ label: "Erforderliche Kompensation", value: q1 - q2, unit: "kvar", digits: 2 }, { label: "Stromreduktion", value: i1 - i2, unit: "A", digits: 1 }, { label: "Verlustkosten-Ersparnis · Annahme", value: energy * price, unit: "CHF/Jahr", digits: 0 }],
-    status: { tone: "neutral", text: "Vergleich bei gleicher Wirkleistung; Verlustersparnis ist eine manuelle Modellannahme." },
-    formula: "Q_C = P · [tan(arccos(cos φ₁)) − tan(arccos(cos φ₂))]; S = P / cos φ; I = S / (f · U), f = 1 oder √3; ΔP_V = P · p_V · [1 − (I₂ / I₁)²]; ΔE = ΔP_V · h.",
+    status: { tone: "neutral", text: alreadyReached ? "Ziel bereits erreicht; keine kapazitive Kompensation erforderlich. Der Ist-Leistungsfaktor bleibt unverändert." : "Vergleich bei gleicher Wirkleistung; Verlustersparnis ist eine manuelle Modellannahme." },
+    formula: "cos φ_nach = max(cos φ_Ist, cos φ_Ziel); Q_C = P · [tan(arccos(cos φ₁)) − tan(arccos(cos φ_nach))]; S = P / cos φ; I = S / (f · U), f = 1 oder √3; ΔP_V = P · p_V · [1 − (I₂ / I₁)²]; ΔE = ΔP_V · h.",
     limitations: ["Sinusförmige Grössen und unveränderte Wirkleistung. Oberschwingungen, Resonanz, Verdrosselung und Stufung einer Kompensationsanlage werden nicht ausgelegt.", "Der eingegebene Verlustanteil ist eine Projektannahme, kein Normwert. Nur die angenommene ohmsche Leitungsverlustersparnis wird bepreist.", "Keine Berechnung von Blindenergie-Tarifen, Netzentgelten oder garantierter Amortisation. Tatsächliche Tarif- und Messdaten des Schweizer Netzbetreibers separat prüfen."],
-    rows: [{ label: "Blindleistung vorher", value: q1, unit: "kvar" }, { label: "Blindleistung nachher", value: q2, unit: "kvar" }, { label: "Scheinleistung vorher", value: s1, unit: "kVA" }, { label: "Scheinleistung nachher", value: s2, unit: "kVA" }, { label: "Leitungsverlust-Ersparnis", value: energy, unit: "kWh/Jahr" }],
+    rows: [{ label: "Eingegebener Ziel-Leistungsfaktor", value: requestedAfter }, { label: "Angesetzter Leistungsfaktor nachher", value: after }, { label: "Blindleistung vorher", value: q1, unit: "kvar" }, { label: "Blindleistung nachher", value: q2, unit: "kvar" }, { label: "Scheinleistung vorher", value: s1, unit: "kVA" }, { label: "Scheinleistung nachher", value: s2, unit: "kVA" }, { label: "Leitungsverlust-Ersparnis", value: energy, unit: "kWh/Jahr" }],
     series: [{ label: "Vorher", value: i1 }, { label: "Nachher", value: i2 }], seriesLabel: "Strom bei gleicher Wirkleistung", seriesUnit: "A",
   };
 }
@@ -174,7 +174,7 @@ export const FUNDAMENTALS: CalculatorDefinition[] = [
   },
   {
     id: "blindleistung", title: "Blindleistung", description: "Kompensation, Stromreduktion und angenommene Verlustersparnis vergleichen.", source: source("blindleistung"), scope: "Sinusförmiges Leistungsdreieck · Verlustanteil und Tarif manuell",
-    fields: [f("kw", "Wirkleistung", "100", "kW", "Unveränderte Wirkleistung vor und nach der Kompensation."), f("before", "Ist-Leistungsfaktor cos φ₁", "0.75", "", "Gemessener oder geplanter Ist-Wert."), f("after", "Soll-Leistungsfaktor cos φ₂", "0.95", "", "Muss mindestens dem Ist-Wert entsprechen."), select("phase", "System", "3", [["3", "Drehstrom · 3~"], ["1", "Einphasig · 1~"]], "Drehstrom wird symmetrisch betrachtet."), f("voltage", "Nennspannung", "400", "V", "Bei Drehstrom Aussenleiterspannung, bei 1~ Verbraucherspannung."), f("lossPct", "Leitungsverluste vorher · Annahme", "2", "% von P", "Manueller ohmscher Verlustanteil; 2 % ist kein Normwert und muss projektspezifisch belegt werden.", "Wirtschaftlichkeit"), f("hours", "Volllaststunden pro Jahr", "2000", "h", "Stunden mit der betrachteten Last, maximal 8760.", "Wirtschaftlichkeit"), f("price", "Arbeitspreis", "0.25", "CHF/kWh", "Nur Arbeitspreis für eingesparte Verluste, keine Blindenergie-/Netzentgelte.", "Wirtschaftlichkeit")], calculate: calculateCompensation,
+    fields: [f("kw", "Wirkleistung", "100", "kW", "Unveränderte Wirkleistung vor und nach der Kompensation."), f("before", "Ist-Leistungsfaktor cos φ₁", "0.75", "", "Gemessener oder geplanter Ist-Wert."), f("after", "Soll-Leistungsfaktor cos φ₂", "0.95", "", "Ist der Zielwert bereits erreicht, wird keine Kompensation angesetzt; der Ist-Wert wird nicht verschlechtert."), select("phase", "System", "3", [["3", "Drehstrom · 3~"], ["1", "Einphasig · 1~"]], "Drehstrom wird symmetrisch betrachtet."), f("voltage", "Nennspannung", "400", "V", "Bei Drehstrom Aussenleiterspannung, bei 1~ Verbraucherspannung."), f("lossPct", "Leitungsverluste vorher · Annahme", "2", "% von P", "Manueller ohmscher Verlustanteil; 2 % ist kein Normwert und muss projektspezifisch belegt werden.", "Wirtschaftlichkeit"), f("hours", "Volllaststunden pro Jahr", "2000", "h", "Stunden mit der betrachteten Last, maximal 8760.", "Wirtschaftlichkeit"), f("price", "Arbeitspreis", "0.25", "CHF/kWh", "Nur Arbeitspreis für eingesparte Verluste, keine Blindenergie-/Netzentgelte.", "Wirtschaftlichkeit")], calculate: calculateCompensation,
   },
   {
     id: "verlustleistung", title: "Verlustleistung", description: "Ohmsche Leitungsverluste, Spannungsfall und jährliche Verlustkosten.", source: source("verlustleistung"), scope: "DC oder symmetrische AC-Last mit cos φ = 1 · kein Strombelastbarkeitsnachweis",

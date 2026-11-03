@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useProjectHub } from "../../projektzentrale/projectHub";
+import { useProjectHub } from "../../projektzentrale/projectHubState";
 import { InfoDrawer } from "../LabUI";
 import { archiveRequest, type ArchivePayload, type ArchiveRecord, type ArchiveSettings, type ArchiveState } from "./api";
 import "./archive.css";

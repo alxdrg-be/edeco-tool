@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { AlertTriangle, Cable as CableIcon, CheckCircle2 } from "lucide-react";
 import type { ToolProps } from "../../toolbox/modules";
-import { useProjectHub } from "../projektzentrale/projectHub";
+import { useProjectHub } from "../projektzentrale/projectHubState";
 import { downloadBlob } from "../planlieferung/DeliveryHistory";
 import { calculateCable, CABLE_SOURCE, NIN_SOURCE, RESISTANCE_20, type CableInput } from "./engineering";
 import { InfoButton, LabShell, Parameter, Segments, type Help } from "./LabUI";
@@ -41,6 +41,7 @@ export default function Cable(props: ToolProps) {
   return <LabShell {...props} title="Kabel · Spannungsfall" subtitle={project ? `${project.number} · ${project.name}` : "Schweiz · NIN-orientierte Vorprüfung"} help={help} setHelp={setHelp} canExport={Boolean(result && ready)} archive={{ toolId: "kabelberechnung", project, document: { schema: "edeco.cable.ch.v1", input, result, sources: [CABLE_SOURCE, NIN_SOURCE], assumptions: { temperature: 55, reactance: "Richtwert, kein NIN-Normwert", scope: "Nur Spannungsfall" } } }} report={<><h2>Schweizer Berechnungsgrundlagen</h2>{foundation}</>}
     exportData={() => downloadBlob(new Blob([JSON.stringify({ schema: "edeco.cable.ch.v1", project, input, result, sources: [CABLE_SOURCE, NIN_SOURCE], assumptions: { temperature: 55, reactance: "Richtwerte, keine NIN-Normwerte", scope: "Nur Spannungsfall eines Abschnitts, keine Strombelastbarkeitsprüfung" }, review: "fachliche Freigabe offen", generated_at: new Date().toISOString() }, null, 2)], { type: "application/json" }), "Spannungsfall-CH.json")}>
     <div className="lab-bento"><section className="lab-visual calc-panel" aria-label="Leitungsmodell und Ergebnis"><div className="lab-visual-heading"><span className="edeco:flex edeco:items-center edeco:gap-2"><CableIcon size={16} /> Leitung · Spannungsverlauf</span><span className="lab-live">LIVE</span><InfoButton title="Spannungsfall und Grundlagen" onClick={() => info("Spannungsfall · Schweiz")} /></div>
+      <p className="lab-reading-guide">Der Verlauf zeigt den Spannungsfall entlang der Leitung; die gestrichelte Linie markiert das gewählte Budget. Der vorgeschlagene Querschnitt berücksichtigt nur den Spannungsfall, nicht die Strombelastbarkeit.</p>
       <CableCanvas result={result} material={input.material} />
       <div className="lab-values"><div className="lab-value"><small>Spannungsfall</small><strong data-testid="voltage-drop-result">{result ? `${format(result.deltaU)} V` : "–"}</strong><span>{result ? `${format(result.percent)} % von ${result.voltage} V` : "Eingaben prüfen"}</span></div><div className="lab-value"><small>Am Verbraucher</small><strong>{result ? `${format(result.endVoltage, 1)} V` : "–"}</strong><span>rechnerisch</span></div><div className="lab-value"><small>Querschnitt aus ΔU</small><strong data-testid="recommended-area">{result ? result.recommendedArea ? `${result.recommendedArea} mm²` : "> 240 mm²" : "–"}</strong><span>nur Spannungsfall</span></div></div>
       <dl className="lab-detail-values" aria-label="Kabel-Ergebnisdetails">

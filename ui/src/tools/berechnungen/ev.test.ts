@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { calculateEV, type EVInput } from "./ev.ts";
+import { calculateEV, type EVInput } from "./ev-model.ts";
 const base: EVInput = { house:"160",grid:"125",reserve:"30",count:"10",power:"11",mode:"dynamic",diversity:"1" };
 test("AC budget accounts for both grid and house reserve, dynamic allocation conserves power",()=>{
   const r=calculateEV(base), factor=Math.sqrt(3)*400/1000;
