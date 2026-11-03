@@ -12,7 +12,7 @@ from __future__ import annotations
 import zlib
 
 PT_PER_MM = 72 / 25.4
-MARGIN_MM = 10.0
+MARGIN_MM = 5.0
 LINE_MODES = ("original", "proportional")
 # proportional line weights stay printable and do not turn into bars
 PROPORTIONAL_MIN, PROPORTIONAL_MAX = 0.09, 0.50      # mm

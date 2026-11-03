@@ -538,7 +538,8 @@ def register(app: FastAPI, st, project, evaluator, category_colors) -> None:
 
     def project_style_default() -> dict:
         c = company_legend()
-        return normalize_style({"text_size": c["text_size"], "symbol_scale": c["symbol_scale"]})
+        return normalize_style({"text_size": c["text_size"], "symbol_scale": c["symbol_scale"],
+                                "compact_flow": True, "columns": 3})
 
     @app.post("/api/company/general/reload")
     def reload_general() -> dict:
@@ -584,7 +585,7 @@ def register(app: FastAPI, st, project, evaluator, category_colors) -> None:
         c = company_legend()
         return normalize_style({"grid": s.get("grid", DEFAULT_GRID), "text_size": s.get("text_size", c["text_size"]),
                                 "symbol_scale": s.get("symbol_scale", c["symbol_scale"]),
-                                "columns": s.get("columns", 2),
+                                "columns": s.get("columns", 3), "compact_flow": s.get("compact_flow", True),
                                 "hatch_off": s.get("hatch_off", c["hatch_off"]),
                                 "fill_off": s.get("fill_off", c["fill_off"])})
 

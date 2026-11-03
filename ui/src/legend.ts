@@ -22,6 +22,7 @@ export interface LegendItem {
   hidden: boolean; // the general part already shows it: hidden, not deleted
   keep: boolean; // shown again on purpose, not hidden a second time
   color?: string; // plan colour of this entry, when it differs from the section
+  layer_colors?: string[]; // all original plan colours; separate from semantic combination parts
   symbol_color?: string; // chosen colour of this one entry; the whole symbol is drawn in it
   parts?: LegendPart[]; // combined entry: further symbols beside the first, texts joined with « / »
 }
@@ -37,6 +38,7 @@ export interface LegendPart {
   rotation: number;
   mirror?: boolean;
   color?: string;
+  layer_colors?: string[];
 }
 
 export const MAX_PARTS = 4;
@@ -77,6 +79,7 @@ export interface LegendStyle {
   row: number;
   text_offset: number;
   columns: number;
+  compact_flow?: boolean; // continuous apparatus columns; saved classic layouts remain available
   width: number;
   margin: number;
   plan_scale: number;
@@ -87,7 +90,7 @@ export interface LegendStyle {
   fill_off?: boolean; // legend-wide: no solid fills in symbols, the outlines stay
   /** PDF: line weights as drawn, or thinner / thicker with the symbol size */
   pdf_lines?: "original" | "proportional";
-  /** equal tiles: every drawing gets the same area, at most 75 % of the tile (default on) */
+  /** equal tiles: every drawing gets the same area with a small clear edge */
   normalize_size?: boolean;
   symbol_size?: "real" | "tile"; // real size on the insertion point (default) or equal tiles
   frame_on: boolean; // border round the whole legend
@@ -98,6 +101,7 @@ export interface GeneralSection {
   title: string;
   header: string;
   header_text: string;
+  text?: string; // plain heading colour; old filled-header values remain compatible metadata
   title_scale: number;
 }
 
@@ -438,6 +442,7 @@ function asPart(it: LegendItem): LegendPart {
     family_key: it.family_key, symbol_key: it.symbol_key ?? "", text: it.text, length_mm: it.length_mm,
     width_mm: it.width_mm, symbol_factor: it.symbol_factor, rotation: it.rotation, mirror: it.mirror,
     ...(it.color ? { color: it.color } : {}),
+    ...(it.layer_colors ? { layer_colors: [...it.layer_colors] } : {}),
   };
 }
 
@@ -458,7 +463,7 @@ export function splitItem(doc: LegendDoc, blockId: string, itemId: string): Lege
   const extra = it.parts.map((p) =>
     makeItem({ kind: "symbol", family_key: p.family_key, symbol_key: p.symbol_key, text: p.text, length_mm: p.length_mm,
       width_mm: p.width_mm, symbol_factor: p.symbol_factor, rotation: p.rotation, mirror: p.mirror,
-      ...(p.color ? { color: p.color } : {}) }));
+      ...(p.color ? { color: p.color } : {}), ...(p.layer_colors ? { layer_colors: [...p.layer_colors] } : {}) }));
   return mapBlock(doc, blockId, (b) => {
     const i = b.items.findIndex((x) => x.id === itemId);
     const head = { ...b.items[i] };
@@ -476,7 +481,7 @@ export function detachPart(doc: LegendDoc, blockId: string, itemId: string, inde
   const rest = it.parts!.filter((_x, k) => k !== index);
   const single = makeItem({ kind: "symbol", family_key: p.family_key, symbol_key: p.symbol_key, text: p.text,
     length_mm: p.length_mm, width_mm: p.width_mm, symbol_factor: p.symbol_factor, rotation: p.rotation, mirror: p.mirror,
-    ...(p.color ? { color: p.color } : {}) });
+    ...(p.color ? { color: p.color } : {}), ...(p.layer_colors ? { layer_colors: [...p.layer_colors] } : {}) });
   return mapBlock(doc, blockId, (b) => {
     const i = b.items.findIndex((x) => x.id === itemId);
     const head: LegendItem = { ...b.items[i], parts: rest };

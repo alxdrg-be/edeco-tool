@@ -51,6 +51,8 @@ def test_packaged_workshop_preview_merge_branding_and_licenses():
             expect(page.get_by_role('button', name=title + ' öffnen', exact=True)).to_be_visible()
         page.get_by_role('button', name='PDF-Werkstatt öffnen', exact=True).click()
         expect(page.get_by_text('Offline bereit · auf diesem Computer')).to_be_visible(timeout=180000)
+        expect(page.locator('[data-pdf-tool="merge"]')).to_have_attribute("aria-disabled", "false")
+        page.locator('[data-pdf-tool="merge"]').click()
         frame = page.frame_locator("iframe[title='Stirling-PDF · edeco PDF-Werkstatt']")
         picker = frame.locator('input[type=file]').first
         picker.wait_for(state='attached', timeout=60000)
@@ -72,7 +74,6 @@ def test_packaged_workshop_preview_merge_branding_and_licenses():
         preview = frame.get_by_alt_text('Vorschau von Plan-A.pdf', exact=True).first
         expect(preview).to_be_visible(timeout=30000)
         assert preview.evaluate('(img) => img.naturalWidth > 0')
-        frame.get_by_text('Zusammenführen', exact=True).first.click()
         with page.expect_response(lambda response: response.url.endswith('/api/v1/general/merge-pdfs'), timeout=60000) as processing:
             frame.get_by_role('button', name='Zusammenführen (2 Dateien)', exact=True).click()
         assert processing.value.status == 200

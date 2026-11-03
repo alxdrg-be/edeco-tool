@@ -787,16 +787,18 @@ def test_stirling_embedded_keeps_original_ui_and_merges_two_real_pdfs(editor):
     page.set_viewport_size({"width": 1400, "height": 900})
     page.get_by_role("button", name="Zum Toolhub", exact=True).click()
     page.get_by_role("button", name="PDF-Werkstatt öffnen", exact=True).click()
+    playwright.expect(page.locator('[data-pdf-tool="merge"]')).to_have_attribute("aria-disabled", "false")
+    page.locator('[data-pdf-tool="merge"]').click()
     frame = page.frame_locator("iframe[title='Stirling-PDF · edeco PDF-Werkstatt']")
     picker = frame.locator("input[type=file]").first
     picker.wait_for(state="attached", timeout=60000)
-    playwright.expect(frame.locator(".sui-logo").first).to_have_css("background-image", re.compile("edeco/logo.svg"))
+    playwright.expect(frame.locator(".sui-logo").first).to_be_hidden()
+    playwright.expect(page.get_by_role("img", name="edeco Toolhub", exact=True)).to_have_count(1)
     picker.set_input_files([
         {"name": "Plan-A.pdf", "mimeType": "application/pdf", "buffer": sample_pdf([["FIRST PLAN"]])},
         {"name": "Plan-B.pdf", "mimeType": "application/pdf", "buffer": sample_pdf([["SECOND PLAN"]])},
     ])
     frame.get_by_text("Plan-B.pdf", exact=True).first.wait_for(timeout=30000)
-    frame.get_by_text("Zusammenführen", exact=True).first.click()
     with page.expect_response(lambda response: response.url.endswith("/api/v1/general/merge-pdfs"), timeout=60000) as processing:
         frame.get_by_role("button", name="Zusammenführen (2 Dateien)", exact=True).click()
     response = processing.value
@@ -975,8 +977,9 @@ def test_the_view_menu_floats_the_settings_and_opens_the_wide_view(editor):
     page.locator("summary").filter(has_text="Ansicht").click()
     view = page.get_by_role("group", name="Ansicht", exact=True)
     playwright.expect(view.get_by_role("button", name="Einstellungen schwebend")).to_be_visible()
-    view.get_by_role("button", name="Als Fenster", exact=True).click()
-    close = page.locator("button.btn", has_text="Grossansicht beenden")
+    page.keyboard.press("Escape")
+    page.get_by_role("button", name="Editor gross", exact=True).click()
+    close = page.get_by_role("button", name="Kompakt", exact=True)
     playwright.expect(close).to_be_visible()
     close.click()
     playwright.expect(page.locator(".legend-editor.windowed")).not_to_be_visible()
@@ -985,12 +988,15 @@ def test_the_view_menu_floats_the_settings_and_opens_the_wide_view(editor):
 def test_the_toolbar_shows_what_this_computer_chose(editor):
     page, _field, _client, _ids = editor
     toolbar = page.locator(".legend-toolbar")
-    playwright.expect(toolbar.get_by_role("combobox", name="Rastermass")).to_be_visible()
+    playwright.expect(toolbar.get_by_role("combobox", name="Rastermass")).to_have_count(0)
     playwright.expect(toolbar.get_by_label("Schriftgrösse in mm")).to_have_count(0)
     page.locator("summary").filter(has_text="Ansicht").click()
+    playwright.expect(page.get_by_role("group", name="Ansicht", exact=True).get_by_role("combobox", name="Rastermass")).to_be_visible()
     page.get_by_role("group", name="Sichtbar in der Leiste").get_by_label("Schrift, Symbole, gleiche Fläche").check()
+    page.get_by_role("group", name="Sichtbar in der Leiste").get_by_label("Raster", exact=True).check()
     page.keyboard.press("Escape")
     playwright.expect(toolbar.get_by_label("Schriftgrösse in mm")).to_be_visible()
+    playwright.expect(toolbar.get_by_role("combobox", name="Rastermass")).to_be_visible()
     # kept on this computer for the next time
     assert "sizes" in page.evaluate("() => window.localStorage.getItem('nl.legend.toolbar')")
 
@@ -1002,7 +1008,7 @@ def test_a_symbol_can_take_the_section_colour(editor):
     item = page.locator("button.outline-item").filter(has_not_text="T Titel").first
     playwright.expect(item).to_be_visible()
     item.click()
-    take = page.get_by_role("button", name="Farbe von Abschnitt übernehmen")
+    take = page.get_by_role("button", name="Abschnittsfarbe", exact=True)
     playwright.expect(take).to_be_visible()
     playwright.expect(page.get_by_label("Symbolfarbe")).to_be_visible()
     with page.expect_response(LEGEND_URL) as saved:
@@ -1046,7 +1052,7 @@ def test_immediate_navigation_saves_to_the_original_project(editor, destination)
         page.get_by_role("button", name="Gesamtliste", exact=False).click()
         playwright.expect(field).not_to_be_visible()
     elif destination == "back":
-        page.get_by_role("button", name="← Alle Projekte", exact=True).click()
+        page.get_by_role("button", name="Zurück zu Projekten", exact=True).click()
         playwright.expect(page.get_by_role("button", name="Legende erstellen", exact=True)).to_be_visible()
     else:
         page.get_by_role("combobox", name="Projekt wechseln", exact=True).select_option(b)
@@ -1164,6 +1170,7 @@ def test_dragging_onto_an_empty_cell_places_the_entry_there(editor):
     doc = client.get(f"/api/projects/{a}/legend").json()["legend"]["doc"]
     entries = [{"id": f"e{k}", "kind": "text", "text": f"Eintrag {k}"} for k in range(4)]
     doc["style"]["columns"] = 3
+    doc["style"]["compact_flow"] = False  # This regression exercises classic empty raster cells.
     doc["blocks"] = [{"id": "blk", "title": "Test", "items": entries}]
     assert client.put(f"/api/projects/{a}/legend", json={"doc": doc}).status_code == 200
     # The open editor still shows the previous document. Leave and return so it
@@ -1450,8 +1457,7 @@ def test_editor_space_and_view_options_do_not_change_the_exported_document(edito
     page.get_by_role("button", name="Raster anzeigen", exact=True).click()
     page.get_by_role("button", name="Dunkler Modus", exact=True).click()
     assert page.locator(".legend-paper > rect").first.evaluate("node => getComputedStyle(node).fill") == "rgb(255, 255, 255)"
-    page.locator("summary").filter(has_text="Ansicht").click()
-    page.get_by_role("button", name="Als Fenster", exact=True).click()
+    page.get_by_role("button", name="Editor gross", exact=True).click()
     playwright.expect(page.locator(".legend-editor.windowed")).to_be_visible()
     page.locator("summary").filter(has_text="Ansicht").click()
     view_menu = page.get_by_role("group", name="Ansicht", exact=True)
@@ -1462,7 +1468,7 @@ def test_editor_space_and_view_options_do_not_change_the_exported_document(edito
     playwright.expect(view_menu).not_to_be_visible()
     playwright.expect(page.locator("summary").filter(has_text="Ansicht")).to_be_focused()
     playwright.expect(page.locator(".legend-editor.windowed")).to_be_visible()
-    page.get_by_role("button", name="Fenster schliessen", exact=True).click()
+    page.get_by_role("button", name="Kompakt", exact=True).click()
     playwright.expect(page.locator(".legend-editor.windowed")).not_to_be_visible()
     page.set_viewport_size({"width": 390, "height": 844})
     page.locator("summary").filter(has_text="Ansicht").click()
@@ -1473,6 +1479,40 @@ def test_editor_space_and_view_options_do_not_change_the_exported_document(edito
     playwright.expect(view_menu).not_to_be_visible()
     playwright.expect(page.locator("summary").filter(has_text="Ansicht")).to_be_focused()
     page.set_viewport_size({"width": 1440, "height": 960})
+    page.get_by_role("button", name="Editor gross", exact=True).click()
+    sheet = page.locator(".legend-paper")
+    holder = page.locator(".legend-canvas")
+    initial_width = float(sheet.get_attribute("width"))
+    bounds = holder.bounding_box()
+    point = {"x": bounds["x"] + bounds["width"] / 2, "y": bounds["y"] + min(100, bounds["height"] / 2)}
+    before_world = sheet.evaluate("(el,p) => (p.x-el.getBoundingClientRect().left)/Number(el.getAttribute('width'))", point)
+    page.mouse.move(point["x"], point["y"])
+    page.keyboard.down("Control")
+    page.mouse.wheel(0, -180)
+    page.keyboard.up("Control")
+    page.wait_for_function("w => Number(document.querySelector('.legend-paper').getAttribute('width')) > w", arg=initial_width)
+    after_world = sheet.evaluate("(el,p) => (p.x-el.getBoundingClientRect().left)/Number(el.getAttribute('width'))", point)
+    assert abs(before_world-after_world) < 0.01
+    assert page.evaluate("window.visualViewport.scale") == 1
+    holder.focus()
+    page.keyboard.press("Control+0")
+    playwright.expect(sheet).to_have_attribute("width", str(int(initial_width)))
+    page.keyboard.press("Control+-")
+    assert float(sheet.get_attribute("width")) < initial_width
+    page.keyboard.press("Control+0")
+    page.keyboard.press("Control++")
+    page.wait_for_function("Number(document.querySelector('.legend-paper').getAttribute('width')) > 800")
+    holder.evaluate("el => {el.scrollLeft=80}")
+    old_scroll = holder.evaluate("el => el.scrollLeft")
+    page.keyboard.down("Space")
+    page.mouse.move(point["x"], point["y"])
+    page.mouse.down()
+    page.mouse.move(point["x"]-40, point["y"], steps=4)
+    page.mouse.up()
+    page.keyboard.up("Space")
+    assert holder.evaluate("el => el.scrollLeft") > old_scroll
+    page.get_by_role("button", name="Ganzes Blatt", exact=True).click()
+    page.get_by_role("button", name="Kompakt", exact=True).click()
     with page.expect_download() as downloaded:
         page.get_by_role("button", name="DXF herunterladen", exact=True).click()
     import ezdxf

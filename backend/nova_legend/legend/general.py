@@ -361,14 +361,14 @@ def _paint(entity) -> str | None:
     return f"#{r:02x}{g:02x}{b:02x}"
 
 
-def _is_bar(entity, box, to_mm: float) -> bool:
+def _is_bar(entity, box, to_mm: float, minimum_width: float = 12.0) -> bool:
     """A colour field across the symbol column, not a symbol."""
     w, h = _span_mm(box, to_mm)
-    if entity.dxftype() in _FILL and w >= 12 and 0.3 <= h <= 8 and w >= h * 3.2:
+    if entity.dxftype() in _FILL and w >= minimum_width and 0.3 <= h <= 8 and w >= h * 3.2:
         return True
     if entity.dxftype() == "LWPOLYLINE" and entity.dxf.hasattr("const_width"):
         thick = max(float(entity.dxf.const_width) * to_mm, h)
-        return 0.6 <= thick <= 8 and w >= max(12.0, thick * 3.2)
+        return 0.6 <= thick <= 8 and w >= max(minimum_width, thick * 3.2)
     return False
 
 
@@ -378,7 +378,7 @@ def _is_hairline(box, to_mm: float) -> bool:
     return h <= 0.45 and w >= max(8.0, h * 6)
 
 
-def _row_picture(ents, to_mm: float) -> dict | None:
+def _row_picture(ents, to_mm: float, color_key: bool = False, line_sample: bool = False) -> dict | None:
     """What of this row is worth drawing.
 
     The source legend mixes the symbol with leaders, notes («90°») and colour
@@ -390,7 +390,7 @@ def _row_picture(ents, to_mm: float) -> dict | None:
     bars, hair, core = [], [], []
     for item in geom:
         e, b = item
-        if _is_bar(e, b, to_mm):
+        if _is_bar(e, b, to_mm, 6.0 if color_key else 12.0):
             bars.append(item)
         elif _is_hairline(b, to_mm):
             hair.append(item)
@@ -401,6 +401,23 @@ def _row_picture(ents, to_mm: float) -> dict | None:
         return {"picture": "swatch", "swatch": _paint(bars[0][0]) or "#9aa0a6"}
     if not core:
         return {"picture": "line", "keep": hair or geom}
+    if line_sample and hair and not bars and all(
+            e.dxftype() in {"CIRCLE", "SOLID", "TRACE", "LWPOLYLINE"} and
+            max(_span_mm(box, to_mm)) <= 3.0 for e, box in core):
+        # An endpoint marker and its conductor are one line sample. Ordinary
+        # apparatus leaders are still left out of their symbol normalization.
+        return {"picture": "line", "keep": geom}
+    # Shallow CAD cable curves are line samples too. INSERTs and filled shapes
+    # remain symbols, even when their bounding box happens to be very flat.
+    strokes = {"LINE", "SPLINE", "ARC", "ELLIPSE", "LWPOLYLINE", "POLYLINE"}
+    if not bars and all(e.dxftype() in strokes for e, _box in geom):
+        left = min(box.extmin.x for _e, box in geom)
+        bottom = min(box.extmin.y for _e, box in geom)
+        right = max(box.extmax.x for _e, box in geom)
+        top = max(box.extmax.y for _e, box in geom)
+        width, height = (right - left) * to_mm, (top - bottom) * to_mm
+        if width >= 6 and height <= min(2.5, width * 0.2):
+            return {"picture": "line", "keep": geom}
     return {"picture": "symbol", "keep": core}
 
 
@@ -572,7 +589,14 @@ def split_rows(doc, to_mm: float, bands: list[float] | None = None) -> tuple[lis
     left = min((b.extmin.x for r in rows for _e, b in r["ents"]), default=text_x)
     area = (text_x - left) * to_mm
     out = []
+    in_color_key = False
     for i, r in enumerate(rows):
+        # A colour-key heading may share the exact text column with its entries.
+        # A labelled colour sample (with geometry) is still an ordinary row.
+        if not r["ents"] and norm_text(r["text"]) in {"farbcodes", "farbcode", "farblegende", "farbschlüssel"}:
+            r["heading"] = True
+        if r.get("heading"):
+            in_color_key = "farbcode" in norm_text(r["text"]) or norm_text(r["text"]) in {"farblegende", "farbschlüssel"}
         item = {"id": f"g{i}", "text": r["text"], "heading": r["heading"], "text_h": r["text_h"],
                 "names": sorted(set(r["names"])),
                 # for the template export: the text entity, the height of the row and every
@@ -585,11 +609,13 @@ def split_rows(doc, to_mm: float, bands: list[float] | None = None) -> tuple[lis
                 simplify_linetypes(doc)
                 doc._nl_simple_lt = True
             tune_entities(doc, [e for e, _b in r["ents"]], to_mm)
-            pic = _row_picture(r["ents"], to_mm)
+            pic = _row_picture(r["ents"], to_mm, color_key=in_color_key,
+                               line_sample=bool(re.match(r"^(?:leitung|steigleitung|up .*leitung|ap leitung)\b", norm_text(r["text"]))))
             if pic and pic["picture"] == "swatch":
                 item["picture"] = "swatch"
-                item["swatch"] = pic["swatch"]
-                item["vb"], item["svg"] = _swatch_svg(pic["swatch"])
+                colors = _row_colors(doc, [e for e, _b in r["ents"]])
+                item["swatch"] = colors[0] if colors else pic["swatch"]
+                item["vb"], item["svg"] = _swatch_svg(item["swatch"])
             elif pic and pic.get("keep"):
                 kept = pic["keep"]
                 x0 = min(b.extmin.x for _e, b in kept)
@@ -609,34 +635,46 @@ def split_rows(doc, to_mm: float, bands: list[float] | None = None) -> tuple[lis
 
 
 def _row_colors(doc, entities) -> list[str]:
-    """Colours of a row graphic, most used first (blocks resolved, layer colour as fallback)."""
+    """Effective colours using the same nested CAD inheritance as the renderer.
+
+    BYBLOCK and layer 0 inherit the enclosing INSERT's resolved properties.
+    White fills remain in the drawing but do not hide a visible outline colour
+    in this metadata list.
+    """
     from collections import Counter
+    from ezdxf.addons.drawing import RenderContext
 
     counts: Counter = Counter()
+    context = RenderContext(doc)
+    context.current_layout_properties.set_colors("#ffffff")
 
-    def visit(e, depth=0):
-        if e.dxftype() == "INSERT" and depth < 4:
+    def visit(entity, depth=0):
+        if entity.dxftype() in _NOTE:
+            return
+        try:
+            properties = context.resolve_all(entity)
+        except Exception:  # noqa: BLE001 - one broken entity must not hide the other colours
+            return
+        if entity.dxftype() == "INSERT":
+            if depth >= 16:
+                return
+            context.push_state(properties)
             try:
-                for v in e.virtual_entities():
-                    visit(v, depth + 1)
-            except Exception:  # noqa: BLE001
+                for child in entity.virtual_entities():
+                    visit(child, depth + 1)
+            except Exception:  # noqa: BLE001 - unsupported block geometry
                 pass
-            return
-        if e.dxftype() in _NOTE:
-            return
-        color = _paint(e)
-        if color is None:
-            try:
-                layer = doc.layers.get(e.dxf.layer)
-                color = _paint(layer) if layer is not None else None
-            except Exception:  # noqa: BLE001
-                color = None
-        if color:
-            counts[color.lower()] += 1
+            finally:
+                context.pop_state()
+        elif properties.is_visible:
+            color = properties.color[:7].lower()
+            if re.fullmatch(r"#[0-9a-f]{6}", color):
+                counts[color] += 1
 
-    for e in entities:
-        visit(e)
-    return [c for c, _n in counts.most_common()]
+    for entity in entities:
+        visit(entity)
+    colors = [color for color, _count in counts.most_common()]
+    return [color for color in colors if color != "#ffffff"] + [color for color in colors if color == "#ffffff"]
 
 
 # Farbcodes of the general part -> category of the installation system
@@ -726,7 +764,11 @@ def _row_svg(doc, entities, box, prefix: str = "g") -> tuple[str, str]:
         backend = svg.SVGBackend()
         cfg = config.Configuration(background_policy=config.BackgroundPolicy.OFF,
                                    color_policy=config.ColorPolicy.COLOR)
-        Frontend(RenderContext(doc), backend, config=cfg).draw_entities(entities)
+        # Adaptive CAD foreground (ACI 7/BYLAYER/BYBLOCK) must contrast with
+        # our white paper; explicit true colours and true-white fills stay intact.
+        context = RenderContext(doc)
+        context.current_layout_properties.set_colors("#ffffff")
+        Frontend(context, backend, config=cfg).draw_entities(entities)
         x0, y0, x1, y1 = box
         pad = max(x1 - x0, y1 - y0) * 0.02 + 1e-6
         page = layout.Page(max(x1 - x0, 0.1), max(y1 - y0, 0.1), layout.Units.mm, margins=layout.Margins.all(0))
