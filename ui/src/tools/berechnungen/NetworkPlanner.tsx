@@ -111,7 +111,8 @@ export default function NetworkPlanner(props: ToolProps) {
       if (wrapper) {
         let parent = wrapper.parentElement;
         while (parent && parent !== inspector) { if (parent instanceof HTMLDetailsElement) parent.open = true; parent = parent.parentElement; }
-        const control = wrapper.matches("input,select,textarea,button") ? wrapper : wrapper.querySelector<HTMLElement>("select,input:not([type=hidden]),textarea,button[aria-pressed=true],button");
+        if (!target.field) wrapper.tabIndex = -1;
+        const control = !target.field || wrapper.matches("input,select,textarea,button") ? wrapper : wrapper.querySelector<HTMLElement>("select,input:not([type=hidden]),textarea,button[aria-pressed=true],button");
         wrapper.scrollIntoView({ block: "center", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
         control?.focus({ preventScroll: true });
         wrapper.animate([{ outline: "2px solid var(--accent)", outlineOffset: "3px" }, { outline: "2px solid transparent", outlineOffset: "3px" }], { duration: matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 1600 });
@@ -185,6 +186,7 @@ export default function NetworkPlanner(props: ToolProps) {
     setFieldRequest({ target: destination, token });
   }
   function explainDiagnostic(diagnostic: NetworkDiagnostic) {
+    setTab("properties");
     setExplainedIssue(diagnostic.issue);
     const first = diagnostic.targets?.[0];
     if (first) navigateDiagnostic(first);

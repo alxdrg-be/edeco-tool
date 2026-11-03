@@ -191,6 +191,14 @@ def test_failed_ls_condition_shows_real_constraints_and_updates_without_editing_
     playwright.expect(issue).to_have_count(0)
     # Separate magnetic limitation is not silently converted to a full approval.
     playwright.expect(page.locator('[data-diagnostic-id="breaker-magnetic"]')).to_be_visible()
+    page.locator('input[data-field-key="load"]').fill("20")
+    field.fill("19.999999999999996")
+    issue.locator("summary").click()
+    playwright.expect(issue).to_contain_text("numerisch gleiche Grenze Iₙ ≈ 20 A")
+    playwright.expect(issue).not_to_contain_text("kein Nennstrombereich")
+    choose_field(page, "rated", "20")
+    playwright.expect(issue).to_have_count(0)
+    playwright.expect(field).to_have_value("19.999999999999996")
 
 
 def test_sia_consumer_and_fire_variant_b_reveal_the_actual_nested_cell(editor):

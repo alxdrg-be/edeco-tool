@@ -171,12 +171,38 @@ zunächst pro PC; sie wird nicht automatisch zwischen Rechnern geteilt.
 Eine kostenpflichtige OpenAI-kompatible API ist optional. Details und Grenzen:
 [Dokumenten-Assistent](docs/DOKUMENTEN_ASSISTENT.md).
 
-Die **edeco PDF-Werkstatt** verwendet die originale kostenlose Stirling-Core-Oberfläche.
+Die **edeco PDF-Werkstatt** öffnet zuerst eine durchsuchbare Werkzeugauswahl und
+danach den Import des gewählten Werkzeugs. Die 57 Einträge entsprechen der
+Stirling-Core-Registry 3.2.2; im lokalen Paket sind 49 auswählbar und acht
+deaktivierte Funktionen mit Begründung sichtbar. Der Umfang entspricht nicht der
+gesamten PDF24-Sammlung. Geöffnete Dateien bleiben beim Werkzeugwechsel erhalten.
+Die Verarbeitung verwendet die originale kostenlose Stirling-Core-Oberfläche.
+Ein eigener grosser Zuschneideeditor bietet Griffpunkte, mm-Ränder, Seitenauswahl,
+Zoom und Verschieben; PDF-Text und Vektoren bleiben beim Export erhalten.
 Ab 0.5.0 enthalten Windows-Setup und Portable-Paket Java, Windows-PDFium, qpdf,
 Tesseract und OCR-Sprachdaten für Deutsch/Englisch. Der Dienst startet automatisch
 auf 127.0.0.1 und benötigt weder Internet noch Firmenserver, VPN, Docker oder
 zusätzliche Installationen. Lizenztexte und mitgelieferte Quellen sind unter
 **Info / Lizenzen** zugänglich. [Offline-Build, Tests und Einschränkungen](docs/PDF_OFFLINE_WINDOWS.md).
+
+Der **NOVA-Legendeneditor** bietet einen grossen Arbeitsbereich innerhalb des
+Toolhubs und einen klaren Rückweg zu den Projekten. Das kompakte Vorlagenlayout
+stellt den Allgemeinteil zweispaltig dar, die Farbcodes direkt darunter und die
+Apparate in fortlaufenden Spalten. Gespeicherte klassische Layouts bleiben
+erhalten; die kompakte Vorlage ist im Editor wählbar. Kategorien und
+Kombinationslogik bleiben bestehen. Layerfarben werden separat erhalten, auch
+an kombinierten Symbolen. Die Exporthöhe folgt dem tatsächlichen Inhalt.
+
+Die **Rechnerfehlerhilfe** erklärt Modellbedingungen anhand der aktuellen
+Eingaben und führt zur betroffenen Eingabe oder Positionszeile. Fehlende Mess-,
+Hersteller- oder Projektgrundlagen erhalten keine erfundenen Ersatzwerte und
+gelten weiterhin als offene Nachweise. Die Modellhinweise ersetzen keine
+vollständige Fachfreigabe der Anlage.
+
+Ein Commit mit **`[skip release]`** im Titel überspringt den automatischen
+Windows-Installer-/Release-Workflow bei einem reinen Code-Upload. Die normalen
+Linux-Prüfungen laufen weiterhin. Ein manueller Start des Windows-Workflows ist
+davon unabhängig.
 
 Die gemeinsame Anwendung liegt auf `main`. Die Branches `Nova-Legenden` und
 `BIM2STEIGER` enthalten die ursprünglichen Programme; `toolbox` hält den bisherigen

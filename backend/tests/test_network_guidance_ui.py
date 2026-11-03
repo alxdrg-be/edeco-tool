@@ -77,6 +77,17 @@ def test_live_invalid_input_routes_to_the_actual_field_without_substituting_valu
     playwright.expect(guide).to_contain_text("Dieser Hinweis ist im aktuellen Stand nicht mehr vorhanden")
 
 
+def test_global_structure_error_opens_its_explanation_from_the_report(editor):
+    page, _, _, _ = editor
+    open_network(page)
+    page.get_by_role("button", name="Neu", exact=True).click()
+    page.get_by_role("alertdialog").get_by_role("button", name="Leeres Netz anlegen", exact=True).click()
+    review_network(page)
+    page.get_by_role("button", name="Fehler anzeigen", exact=True).click()
+    playwright.expect(page.get_by_role("tab", name="Eigenschaften", exact=True)).to_have_attribute("aria-selected", "true")
+    playwright.expect(page.locator(".np-active-diagnostic")).to_contain_text("Genau eine NS-Einspeisung")
+
+
 def test_app_zoom_guard_keeps_viewer_handlers_in_dynamic_nested_frames(editor):
     page, _, _, _ = editor
     result = page.evaluate("""async () => {

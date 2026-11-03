@@ -106,6 +106,15 @@ test("charging group minimum above its real power targets the actual group witho
   assert.match(diagnostics[0].required!, /11/); assert.equal(input.grids, before);
 });
 
+test("charging reserve explanation uses the same simultaneous source budget as the model", () => {
+  const { result, diagnostics } = evaluate("premium-pkw", { house: "25", reserve: "30", chargingPV: "10", chargingBattery: "0" });
+  assert.ok(result.chargingNetwork?.reserveExceeded);
+  const issue = diagnostics.find(item => item.id === "charging-reserve")!;
+  assert.match(issue.actual!, /30 kW Reserve − 7 kW Quelle = 23 kW netto/);
+  assert.ok(issue.required!.includes((result.chargingNetwork!.houseKW + 7).toLocaleString("de-CH", { maximumFractionDigits: 3 })));
+  assert.match(issue.action!, /ohne PV bleibt separat/);
+});
+
 test("PoE blank second section points at its own length despite identical names", () => {
   const d = definition("premium-poe"), input = defaults(d), rows = JSON.parse(input.poeSegments);
   rows.push({ ...rows[0], id: "second", length: "" }); input.poeSegments = JSON.stringify(rows);
@@ -155,6 +164,19 @@ test("narrow feasible current interval keeps both limits at a common useful prec
   const text = diagnostics.find(item => item.id === "overload-capacity")!.required!;
   assert.match(text, /0\.99996 A ≤ Iₙ ≤ 1\.00004 A/);
   assert.doesNotMatch(text, /kein Nennstrombereich/);
+});
+
+test("floating-point-equal LS current limits describe a boundary instead of an inverted or impossible range", () => {
+  const edit = { load: "20", iz: "19.999999999999996", i2factor: "1.45" };
+  const { diagnostics } = evaluate("ls-schalter", { ...edit, rated: "25" });
+  const issue = diagnostics.find(item => item.id === "overload-capacity")!;
+  assert.match(issue.required!, /numerisch gleiche Grenze Iₙ ≈ 20 A/);
+  assert.doesNotMatch(issue.required!, /kein Nennstrombereich|20 A ≤ Iₙ ≤/);
+  const accepted = evaluate("ls-schalter", { ...edit, rated: "20" });
+  assert.equal(accepted.result.rows!.find(row => row.label === "Überlastbedingungen")!.value, "erfüllt");
+  assert.ok(!accepted.diagnostics.some(item => item.id.startsWith("overload-")));
+  const insufficient = evaluate("ls-schalter", { ...edit, iz: "19.99999", rated: "25" });
+  assert.match(insufficient.diagnostics.find(item => item.id === "overload-capacity")!.required!, /kein Nennstrombereich/);
 });
 
 test("group identifiers reused in separate grids retain the owning grid in their target", () => {

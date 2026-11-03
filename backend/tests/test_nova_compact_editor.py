@@ -150,4 +150,7 @@ def test_dragging_a_flowed_section_uses_original_item_indices(editor):
     page.mouse.up()
     page.get_by_role("button", name="Legende speichern", exact=True).click()
     stored = client.get(f"/api/projects/{pid}/legend").json()["legend"]["doc"]
-    assert ["_" if item["kind"] == "gap" else item["id"] for item in stored["blocks"][0]["items"]] == ["_", "e1", "e2", "e0", "e3"]
+    # An occupied destination closes the old hole and inserts at its original
+    # visible-item index. Empty-cell placement is checked separately in the
+    # classic-raster regression; a continuation must not reset its index to zero.
+    assert [item["id"] for item in stored["blocks"][0]["items"]] == ["e1", "e2", "e3", "e0"]

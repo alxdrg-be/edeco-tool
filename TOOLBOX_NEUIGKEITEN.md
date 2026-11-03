@@ -1,3 +1,15 @@
+## Kompakte Legenden, PDF-Werkzeuge und gezielte Fehlerhilfe · 3. November 2026
+
+- NOVA-Legenden mit klarem Rückweg zu den Projekten, grossem Editor innerhalb des Toolhubs, Dokumentzoom am Mauszeiger und Handmodus. Ausführliche Hinweise bleiben hinter Info- und Aufklappfeldern.
+- Neues kompaktes Vorlagenlayout: Allgemeinteil in zwei Spalten, Farbcodes direkt darunter und Apparate in fortlaufenden Spalten mit schmalen Farbmarkierungen. Die Höhe folgt dem Inhalt. Gespeicherte klassische Layouts bleiben erhalten; das Vorlagenlayout ist bewusst wählbar.
+- Ursprüngliche Layerfarben bleiben unabhängig von der Abschnittszuordnung erhalten. Mehrere Farbvarianten werden vollständig dargestellt und im Editor orange markiert. Kombinationslogik und UP/AP-Symbolbedeutung bleiben bestehen.
+- Die Firmen-DXF wird zuverlässiger gelesen: Farbcode-Überschriften, kleine Farbflächen, gebogene Leitungsmuster und verschachtelte Objektfarben werden richtig zugeordnet. Linien und Doppelsymbole bleiben in der Ausgabe erkennbar.
+- PDF-Werkstatt mit Werkzeugauswahl vor dem Import: alle 57 Stirling-Core-Einträge, Suche, Kategorien und zuletzt verwendete Werkzeuge. Im lokalen Paket sind 49 auswählbar; acht nicht verfügbare Funktionen bleiben mit Begründung sichtbar. Geöffnete Dateien bleiben beim Werkzeugwechsel erhalten.
+- Grosses PDF-Zuschneiden direkt auf der Seite mit acht Griffen, Rändern, Seitenwahl, Zoom, Handmodus und Touch-Pinch. Der Export erhält Text und Vektoren; Originaldateien werden nicht überschrieben.
+- Rechnerhinweise erklären Ursache, Istwert, erforderliche Bedingung und nächste Schritte. Verknüpfungen öffnen die betroffene Eingabe beziehungsweise die genaue Zeile; Werte werden dabei nicht verändert.
+- Netzplaner mit gezielter Fehlerhilfe auch bei gleich benannten Bauteilen. Erklärungen folgen den aktuellen Werten und berücksichtigen kombinierte Schutzbedingungen. Fehlende Hersteller- und Projektgrundlagen bleiben als offene Nachweise erkennbar.
+- Strg-Zoom verändert Dokumentansichten statt der gesamten Programmoberfläche. Die lokalen PDF-Einstellungen sind über ein Zahnrad erreichbar; ein lokales Benutzerkonto ist nicht nötig.
+
 ## Qwen lokal einrichten · 2. November 2026
 
 - Dokumenten-Assistent mit aufklappbarer Anleitung für Qwen/Ollama auf dem eigenen PC: Windows-Download, PowerShell-Befehl, lokale Adresse, Modellname und Verbindungsprüfung.
