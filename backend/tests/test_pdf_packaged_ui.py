@@ -245,7 +245,8 @@ def test_packaged_workshop_preview_merge_branding_and_licenses():
                 frame.get_by_role('button', name='Zusammenführen (2 Dateien)', exact=True).click()
             assert processing.value.status == 200
             import pypdfium2 as pdfium
-            with PDF_LOCK, pdfium.PdfDocument(processing.value.body()) as doc:
+            merged_data = processing.value.body()
+            with PDF_LOCK, pdfium.PdfDocument(merged_data) as doc:
                 assert len(doc) == 2
             frame.get_by_text('merged_Plan-A.pdf', exact=True).first.wait_for(timeout=30000)
             frame.locator('label[for$="-viewer"]').click()

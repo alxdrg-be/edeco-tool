@@ -161,7 +161,7 @@ def test_network_json_import_roundtrip_and_actual_pdf(editor, tmp_path):
     with page.expect_download() as pending:
         page.get_by_role("button", name="Berechnung als PDF herunterladen", exact=True).click()
     pending.value.save_as(tmp_path / "Netzberechnung.pdf")
-    with PDF_LOCK, pdfium.PdfDocument(pending.value.path()) as document:
+    with PDF_LOCK, pdfium.PdfDocument(tmp_path / "Netzberechnung.pdf") as document:
         assert len(document) >= 1
         with closing(document[0]) as first:
             width, height = first.get_size()
