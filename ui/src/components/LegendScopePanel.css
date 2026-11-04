@@ -1,0 +1,26 @@
+.legend-scope-panel { border:1px solid var(--line); border-radius:9px; padding:11px; background:var(--panel); min-width:0; }
+.legend-scope-heading { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px; }
+.legend-scope-heading strong { display:flex; align-items:center; gap:6px; font-size:12px; }
+.legend-floor-choices { display:flex; flex-wrap:wrap; gap:5px; }
+.legend-floor-choices .btn { display:inline-flex; align-items:center; gap:6px; min-height:31px; font-size:11px; }
+.legend-floor-choices .btn[aria-pressed=true] { background:var(--accent-soft); border-color:var(--accent); color:var(--accent); }
+.legend-floor-count { font-size:10px; opacity:.75; font-variant-numeric:tabular-nums; }
+.legend-scope-toggle { display:flex; align-items:flex-start; gap:7px; margin-top:9px; font-size:11px; line-height:1.5; }
+.legend-scope-toggle input { accent-color:var(--accent); flex:none; margin-top:2px; }
+.legend-scope-counts { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; margin:10px 0 0; }
+.legend-scope-counts>div { padding:7px; border-radius:6px; background:var(--panel-2); min-width:0; }
+.legend-scope-counts dt { font-size:9px; color:var(--muted); overflow-wrap:anywhere; }
+.legend-scope-counts dd { font-size:17px; font-weight:650; margin:1px 0 0; font-variant-numeric:tabular-nums; }
+.legend-scope-options { color:var(--muted); font-size:10px; margin-top:8px; line-height:1.5; }
+.legend-scope-options>summary { cursor:pointer; padding:3px 0; }
+.legend-scope-options>div { border-top:1px solid var(--line); margin-top:4px; padding-top:4px; }
+.legend-scope-options p { margin:5px 0; }
+.legend-scope-missing { display:flex; align-items:flex-start; gap:7px; padding:8px; margin-top:9px; background:color-mix(in srgb,var(--danger) 7%,var(--panel)); color:var(--danger); border:1px solid color-mix(in srgb,var(--danger) 35%,var(--line)); border-radius:7px; font-size:11px; }
+.legend-scope-missing svg { flex:none; margin-top:1px; }
+.legend-scope-missing p { margin:4px 0; }
+.legend-scope-missing .btn { margin:3px 3px 0 0; }
+.legend-scope-color-warnings { border:1px solid color-mix(in srgb,var(--warning,#a36c12) 55%,var(--line)); border-radius:7px; margin-top:9px; font-size:11px; }
+.legend-scope-color-warnings>summary { display:flex; align-items:center; gap:6px; cursor:pointer; color:var(--warning,#a36c12); padding:7px; }
+.legend-scope-color-warnings>div { padding:0 7px 7px; max-height:230px; overflow:auto; }
+.legend-scope-color-warnings>div>div { padding-block:7px; border-top:1px solid var(--line); }
+.legend-scope-color-warnings p { color:var(--muted); margin:4px 0; line-height:1.5; }

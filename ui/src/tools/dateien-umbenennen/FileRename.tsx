@@ -6,6 +6,7 @@ import "./file-rename.css";
 import { notifyProjectsChanged, useProjectHub, type Project } from "../projektzentrale/projectHubState";
 import DeliveryHistory from "../planlieferung/DeliveryHistory";
 import ToolHeader from "../../toolbox/ToolHeader";
+import { IncomingToolFiles } from "../../toolbox/ToolHandoffPanel";
 import "../projektzentrale/project-hub.css";
 
 const API = "/api/tools/dateien-umbenennen";
@@ -81,25 +82,28 @@ export default function FileRename({ onHome, onOpenTool, deliveryMode = false }:
     });
   }
   async function addFiles(files: File[]) {
-    if (!files.length || busy || !session) return;
+    if (!files.length || busy || !session) return false;
     setError(""); setNotice("");
     if (rows.length + files.length > 100 || [...rows.map(row => row.file), ...files].reduce((sum, file) => sum + file.size, 0) > 150 * 1024 * 1024) {
-      setError("Bitte höchstens 100 PDFs mit insgesamt 150 MB auswählen."); return;
+      setError("Bitte höchstens 100 PDFs mit insgesamt 150 MB auswählen."); return false;
     }
     if (files.some(file => !file.name.toLowerCase().endsWith(".pdf") || !file.size || file.size > 30 * 1024 * 1024)) {
-      setError("Bitte ausschliesslich PDFs mit höchstens 30 MB je Datei wählen."); return;
+      setError("Bitte ausschliesslich PDFs mit höchstens 30 MB je Datei wählen."); return false;
     }
     setBusy("Geschosse werden geprüft …"); setExported(false); requestId.current = crypto.randomUUID();
     try {
+      const additions: Row[] = [];
       for (const file of files) {
         const form = new FormData(); form.append("file", file);
         const response = await fetch(API + "/inspect", { method: "POST", headers: { "X-Edeco-Rename": session }, body: form });
         if (!response.ok) await failure(response);
         const detected = await response.json() as Detection;
         const id = nextId.current++;
-        setRows(old => [...old, { ...detected, id, file, customName: null, index: null, scale: null, plan: null }]);
+        additions.push({ ...detected, id, file, customName: null, index: null, scale: null, plan: null });
       }
-    } catch (e) { setError((e as Error).message); }
+      setRows(old => [...old, ...additions]);
+      return true;
+    } catch (e) { setError((e as Error).message); return false; }
     finally { setBusy(""); }
   }
   function rowSettings(row: Row): NamingSettings {
@@ -131,7 +135,7 @@ export default function FileRename({ onHome, onOpenTool, deliveryMode = false }:
       const response = await fetch(deliveryMode ? "/api/tools/planlieferung/prepare" : API + "/export", { method: "POST", headers: deliveryMode ? { "X-Edeco-Projects": projects!.session_key } : { "X-Edeco-Rename": session }, body: form });
       if (!response.ok) await failure(response);
       const url = URL.createObjectURL(await response.blob());
-      const link = document.createElement("a"); link.href = url; link.download = "edeco-planlieferung.zip"; link.click();
+      const link = document.createElement("a"); link.href = url; link.download = deliveryMode ? "edeco-planlieferung.zip" : "edeco-Dateikopien.zip"; link.click();
       setTimeout(() => URL.revokeObjectURL(url), 60_000);
       setExported(true); setNotice(deliveryMode ? "Lieferung vorbereitet und protokolliert. ZIP enthält PDFs und Planliste (CSV, Druckansicht, JSON). Downloadordner prüfen; Versand bei Bedarf separat bestätigen." : "ZIP-Download gestartet. Bitte im Downloadordner prüfen. Die Originaldateien bleiben erhalten.");
       if (deliveryMode) notifyProjectsChanged();
@@ -145,6 +149,7 @@ export default function FileRename({ onHome, onOpenTool, deliveryMode = false }:
   const example = buildName({ ...settings, values: { ...settings.values, project: settings.values.project || "1498", date: settings.values.date || "2026-11-01" } }, "OG02");
   return <div className="rename-tool">
     <ToolHeader title={deliveryMode ? "Planlieferungs-Assistent" : "Dateien umbenennen"} onHome={() => leave()} onOpenTool={onOpenTool ? id => leave(() => onOpenTool(id)) : undefined} disabled={Boolean(busy)} />
+    {!deliveryMode && <IncomingToolFiles target="dateien-umbenennen" currentProjectId={activeProject?.id} disabled={!session || Boolean(busy)} onReceive={addFiles} />}
     <main className="rename-main">
       <h1>{deliveryMode ? "Planlieferung vorbereiten" : "Dateien umbenennen"}</h1>
       <p>{deliveryMode ? "Projekt wählen, PDFs prüfen und ein Lieferpaket mit Planliste erstellen." : "PDFs hinzufügen, Dateinamen prüfen und benannte Kopien herunterladen."}</p>
@@ -206,6 +211,7 @@ export default function FileRename({ onHome, onOpenTool, deliveryMode = false }:
             <td><button className="btn" disabled={Boolean(busy)} aria-label={`${row.file.name} entfernen`} onClick={() => { setRows(old => old.filter(item => item.id !== row.id)); setExported(false); setNotice(""); requestId.current = crypto.randomUUID(); }}>Entfernen</button></td></tr>)}
         </tbody></table></div>}
         <div className="rename-actions"><button className="btn primary" disabled={!session || !rows.length || Boolean(busy) || issues.some(Boolean) || (deliveryMode && !deliveryReady)} onClick={() => void download()}>{deliveryMode ? "Lieferpaket mit Planliste erstellen" : "Benannte Kopien als ZIP herunterladen"}</button><small>Originale werden nicht umbenannt oder überschrieben.</small></div>
+        {!deliveryMode && <details className="rename-project-output"><summary>Im Projektordner ablegen</summary><p>ZIP herunterladen und die benannten Kopien anschliessend in euren Projektordner entpacken. Der Toolhub schreibt dabei nicht automatisch in den Ordner.</p>{activeProject?.folder && <p>Ziel laut Projektzentrale: <code>{activeProject.folder}</code></p>}</details>}
       </section>
       {busy && <p role="status">{busy}</p>}{notice && <p role="status">{notice}</p>}{error && <p role="alert" className="rename-error">{error}</p>}
       {deliveryMode && deliveryProject && <DeliveryHistory projectId={deliveryProject.id} />}

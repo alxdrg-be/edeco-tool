@@ -87,6 +87,7 @@
 .doc-guide-more { border-top:1px solid var(--line); margin-top:14px; padding-top:10px; }
 .doc-guide-more>summary { cursor:pointer; font-weight:600; }
 .doc-data-guide { margin:20px 0; }
+.doc-data-route{margin:12px 0}.doc-data-route dl{margin:0}.doc-data-route dt{font-weight:650;margin-top:10px}.doc-data-route dd{margin:4px 0 0;color:var(--muted);font-size:12px;line-height:1.55}.doc-data-route code{overflow-wrap:anywhere;white-space:normal}.doc-data-route p{margin:5px 0}.doc-data-route>summary span{flex:1}
 .doc-folder-path { display:flex; gap:8px; min-width:0; }
 .doc-folder-path input { min-width:0; flex:1; }
 .doc-folder-path .btn { display:inline-flex; align-items:center; gap:6px; flex:none; }

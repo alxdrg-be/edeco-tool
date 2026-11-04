@@ -6,6 +6,7 @@ import { request, sourceLabel, ROOT, type Answer, type DocumentInfo, type Docume
 import Settings from "./Settings";
 import QwenGuide from "./QwenGuide";
 import FolderSettings from "./FolderSettings";
+import DataRoute from "./DataRoutePanel";
 import "./documents.css";
 
 export default function DocumentAssistant({ onHome, onOpenTool }: ToolProps) {
@@ -160,6 +161,7 @@ export default function DocumentAssistant({ onHome, onOpenTool }: ToolProps) {
         <p className="toolbox-eyebrow">WISSEN MIT QUELLEN.</p><h2>Was möchtest du wissen?</h2>
         <p className="doc-intro">Frage zu deinen ausgewählten Unterlagen. Jede Antwort führt zurück zur Fundstelle.</p>
         <QwenGuide onOpenSettings={() => setSettingsOpen(true)} disabled={!library || Boolean(busy)} />
+        {library && <DataRoute endpoint={library.settings.endpoint} configured={library.settings.configured} />}
         <form onSubmit={submit} className="doc-question-form">
           <label htmlFor="doc-question">Deine Frage</label>
           <textarea id="doc-question" rows={4} maxLength={2000} value={question} disabled={Boolean(busy)}

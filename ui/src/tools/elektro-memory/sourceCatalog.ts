@@ -387,14 +387,16 @@ export const SOURCE_CATALOG: MemoryCatalog = {
         },
         {
           "id": "em-p03-arc-ppe-levels",
-          "title": "PSA-Grundstufen nach Kurzschlussstrom",
+          "title": "PSA: Angaben für die Auswahl",
           "kind": "reference",
           "source": {
             "page": 3,
             "section": "Kurzschlussstrom Ik"
           },
           "confidence": "needs-review",
-          "explanation": "Tabelle mit Stufen G/1/2/3, Stromschwellen 1/7/15/20 kA und Sicherungswerten 16/80/200/315 A; darüber Freischalten oder zusätzliche Massnahmen laut Risikobeurteilung.",
+          "explanation": "Der Kurzschlussstrom allein bestimmt keine passende Schutzkleidung. Für die Auswahl fehlen ohne Abschaltzeit, Arbeitsabstand, Bewertungsverfahren und Herstellerangaben wesentliche Bedingungen. Hier wird deshalb keine Schutzklasse oder Kleidungsfreigabe berechnet.",
+          "sourceTranscription": "Die Vorlage zeigt die Stufen G/1/2/3 mit Stromschwellen 1/7/15/20 kA, Sicherungswerten 16/80/200/315 A und Bekleidungshinweisen.",
+          "correction": "Die vereinfachte Stromtabelle wird nicht als eigenständige Auswahlregel übernommen. Ihre Aussagen sind nur mit dem vollständigen Quellenkontext, der Tätigkeit, der Risikobeurteilung und den Herstellerangaben zu beurteilen.",
           "conditions": [
             "Als Quellreferenz mit Hersteller- und Risikobeurteilung behandeln, nicht als eigenständigen automatischen PSA-Rechner. Der Scan verweist ausdrücklich auf Herstellerangaben."
           ],
@@ -405,38 +407,32 @@ export const SOURCE_CATALOG: MemoryCatalog = {
           },
           "table": {
             "headers": [
-              "Stufe",
-              "Ik laut Scan",
-              "Niederspannungssicherung laut Scan",
-              "Bekleidung laut Scan"
+              "Angabe",
+              "Weshalb benötigt"
             ],
             "rows": [
               [
-                "G",
-                "≤ 1 kA",
-                "≤ 16 A",
-                "Langarm"
+                "Kurzschlussstrom Ik am Arbeitsort",
+                "Elektrische Randbedingung; allein keine Kleidungsfreigabe"
               ],
               [
-                "1",
-                "≤ 7 kA",
-                "≤ 80 A",
-                "Kurzarm zulässig"
+                "Abschaltzeit / Schutzorgan",
+                "Dauer und Begrenzung des möglichen Störlichtbogens"
               ],
               [
-                "2",
-                "≤ 15 kA",
-                "≤ 200 A",
-                "Kurzarm zulässig"
+                "Arbeitsabstand",
+                "Abstand zur möglichen Einwirkung"
               ],
               [
-                "3",
-                "≤ 20 kA",
-                "≤ 315 A",
-                "Kurzarm zulässig"
+                "Tätigkeit und Bewertungsverfahren",
+                "Passende Risikobeurteilung und anwendbare Berechnungsgrundlagen"
+              ],
+              [
+                "Herstellerangaben / konkrete PSA",
+                "Nachgewiesene Eignung der vollständigen Ausrüstungskombination"
               ]
             ],
-            "note": "Grenzen nicht allein zur Arbeitsfreigabe nutzen."
+            "note": "Keine automatische Arbeitsfreigabe. Stromschwellen allein reichen für die Auswahl nicht aus."
           }
         },
         {

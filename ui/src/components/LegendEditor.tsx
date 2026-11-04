@@ -59,6 +59,14 @@ import Menu from "./Menu";
 import { ArrowLeft, Hand, Maximize2, Minimize2, Minus, Plus } from "lucide-react";
 import { a4CompactLegendDocument, alignLegendSectionColors, compactLegendDocument, legendItemColors, legendLayerColors, legendVisibleItemColors, legendVisibleLayerColors, type LayerColorSource } from "../legendViewport";
 import { useLegendViewport } from "../useLegendViewport";
+import LegendScopePanel from "./LegendScopePanel";
+import LegendTextPanel from "./LegendTextPanel";
+import LegendVariantPanel from "./LegendVariantPanel";
+import LegendPalettePanel from "./LegendPalettePanel";
+import LegendPresentationPanel from "./LegendPresentationPanel";
+import LegendDefaultsPanel from "./LegendDefaultsPanel";
+import { stageToolHandoff } from "../toolbox/toolHandoff";
+import { legendSourceSelection } from "../legendSourceSelection";
 import "./LegendEditor.css";
 
 interface Props {
@@ -69,6 +77,7 @@ interface Props {
   /** The named legend to edit; null opens the first legend of the project. */
   legendId?: number | null;
   onProjects?: () => void;
+  onOpenTool?: (toolId: string) => void;
 }
 
 type SaveState = "idle" | "saving" | "saved" | "error";
@@ -135,7 +144,7 @@ function readPanes(): { outline: number; props: number } {
   }
 }
 
-export default function LegendEditor({ projectId, data, categories, notify, legendId = null, onProjects }: Props) {
+export default function LegendEditor({ projectId, data, categories, notify, legendId = null, onProjects, onOpenTool }: Props) {
   const [hist, setHist] = useState<History<LegendDoc> | null>(null);
   const [info, setInfo] = useState<LegendInfo | null>(null);
   const [placed, setPlaced] = useState<LegendLayout | null>(null);
@@ -204,6 +213,10 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
   }
   const [detached, setDetached] = useState(false);
   const [windowed, setWindowed] = useState(false);
+  const [outlineOpen, setOutlineOpen] = useState(true);
+  const [grayscale, setGrayscale] = useState(false);
+  const [layoutBusy, setLayoutBusy] = useState(false);
+  const [originalEdit, setOriginalEdit] = useState("");
   // sections opened in the list on the left (one line per section until opened)
   const [openBlocks, setOpenBlocks] = useState<Set<string>>(() => new Set());
   const toggleOpen = (id: string) => setOpenBlocks((cur) => {
@@ -403,16 +416,18 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
     const ctrl = new AbortController();
     const handle = window.setTimeout(() => {
       const generation = beginSave(layoutGate.current);
+      setLayoutBusy(true);
       api
         .layoutLegend(projectId, doc, ctrl.signal)
         .then((r) => isCurrentSave(layoutGate.current, generation) && setPlaced(r))
-        .catch(() => undefined);
+        .catch(error => { if (!ctrl.signal.aborted && isCurrentSave(layoutGate.current, generation)) notify(`Vorschau nicht aktualisiert: ${(error as Error).message}`, true); })
+        .finally(() => { if (isCurrentSave(layoutGate.current, generation)) setLayoutBusy(false); });
     }, 120);
     return () => {
       window.clearTimeout(handle);
       ctrl.abort();
     };
-  }, [doc, projectId, generalRev]);
+  }, [doc, projectId, generalRev, notify]);
 
   // symbol drawings for the placed symbols (and those of a general part from a template project),
   // plus the small icons of the lists on the left (same drawing, without length)
@@ -501,7 +516,7 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
     if (doc && !window.confirm("Neuen Vorschlag aus dem Projekt erstellen? Die jetzige Legende wird ersetzt (Rückgängig bleibt möglich).")) return;
     setBusy(true);
     try {
-      const r = await api.proposeLegend(projectId, doc?.style ?? info?.style);
+      const r = await api.proposeLegend(projectId, doc?.style ?? info?.style, doc ? { scope: doc.scope, text_rules: doc.text_rules, variant_rules: doc.variant_rules } : undefined);
       change(r.doc);
       setSel(null);
       notify("Vorschlag erstellt");
@@ -785,7 +800,7 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
 
   // -- save now and export ----------------------------------------------------------------
 
-  async function exportFile(format: "dxf" | "dwg" | "pdf", block: string, withGeneral: boolean) {
+  async function exportFile(format: "dxf" | "dwg" | "pdf", block: string, withGeneral: boolean, handoff = false) {
     if (format === "dwg" && !info?.oda) {
       notify("Für DWG-Dateien wird der ODA File Converter gebraucht. Er ist nicht installiert. Alternative: DXF exportieren.", true);
       return;
@@ -795,6 +810,11 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
       await saveNow();
       const { name } = await api.legendExportName(projectId, format, block, legendId);
       const blob = await api.legendExportFile(api.legendExportUrl(projectId, name, format, block, withGeneral, legendId));
+      if (handoff && onOpenTool) {
+        stageToolHandoff({ target: "pdf-werkzeuge", source: "NOVA-Legenden", files: [new File([blob], name, { type: "application/pdf" })], projectId, projectLabel: data.meta.name });
+        onOpenTool("pdf-werkzeuge");
+        return;
+      }
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -893,16 +913,21 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
   }
 
   const style = doc.style;
-  const stale = staleItems(doc, data.rows);
+  const scopeRows = placed?.scope_info?.rows ?? info.scope_info?.rows ?? data.rows;
+  const stale = staleItems(doc, scopeRows);
   const covered = new Set(info.in_general?.covered ?? []);
-  const missing = missingRows(doc, data.rows, covered);
-  const inGeneralRows = coveredRows(data.rows, covered);
+  const missing = missingRows(doc, scopeRows, covered);
+  const inGeneralRows = coveredRows(scopeRows, covered);
   const dups = duplicateItems(doc);
   const multicolorIds = new Set(doc.blocks.flatMap(block => block.items.filter(item => legendItemColors(item).length > 1 && !item.symbol_color).map(item => item.id)));
   const selBlock = sel && "block" in sel ? doc.blocks.find((b) => b.id === sel.block) : undefined;
   const selItem = sel?.type === "item" ? selBlock?.items.find((i) => i.id === sel.item) : undefined;
   // during a drag onto a cell the sheet shows the preview, so the others visibly make room
   const shown = dropAt?.cell !== undefined && preview ? preview.layout : placed;
+  const selectedSource = selItem ? legendSourceSelection(selItem, shown?.prims ?? []) : null;
+  const originalEditKey = `${selItem?.id ?? ""}:${selectedSource?.visibleKey ?? ""}`;
+  const selectedGroup = (shown?.variant_info ?? info.variant_info)?.groups.find(group => group.item === selItem?.id || group.source_ids.includes(selItem?.id ?? ""));
+  const paperSelection = selectedGroup && sel?.type === "item" ? { ...sel, item: selectedGroup.item } : sel;
   const W = shown?.width ?? 200;
   const H = shown?.height ?? 100;
   const setStyle = (patch: Partial<LegendDoc["style"]>) => change({ ...doc, style: { ...style, ...patch } });
@@ -920,7 +945,7 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
     {windowed && (
       <button type="button" className="legend-window-back" aria-label="Grossansicht beenden" title="Grossansicht beenden" onClick={() => setWindowed(false)} />
     )}
-    <div ref={editorRef} className={`legend-editor ${windowed ? "windowed" : ""}`} role={windowed ? "dialog" : undefined} aria-modal={windowed || undefined} aria-label={windowed ? "Legendeneditor" : undefined} tabIndex={-1}>
+    <div ref={editorRef} className={`legend-editor ${windowed ? "windowed" : ""} ${grayscale ? "preview-grayscale" : ""}`} role={windowed ? "dialog" : undefined} aria-modal={windowed || undefined} aria-label={windowed ? "Legendeneditor" : undefined} tabIndex={-1}>
       <div className="legend-editor-heading">
         <div className="legend-editor-heading-main">
           {onProjects && <button type="button" className="btn primary legend-projects-back" aria-label="Zurück zu Projekten" onClick={onProjects}><ArrowLeft size={15} /> Projekte</button>}
@@ -929,7 +954,7 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
           <InfoTip text="Die Blatthöhe folgt dem Inhalt. Änderungen werden automatisch gespeichert. Der Ansichtzoom verändert weder die Zeichnungsmasse noch den Export." />
         </div>
         <button type="button" className="btn legend-expand-button" aria-pressed={windowed} onClick={() => setWindowed(value => !value)} title={windowed ? "Zur eingebetteten Ansicht zurückkehren" : "Grosse Arbeitsfläche für die Legende innerhalb des Toolhubs öffnen"}>
-          {windowed ? <Minimize2 size={16} /> : <Maximize2 size={16} />}{windowed ? "Kompakt" : "Editor gross öffnen"}
+          {windowed ? <Minimize2 size={16} /> : <Maximize2 size={16} />}{windowed ? "Grossansicht beenden" : "Editor gross öffnen"}
         </button>
       </div>
       {(!style.compact_flow || style.row > 9 || style.symbol_fit !== "corridor") && <div className="legend-layout-notice">
@@ -941,6 +966,7 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
       </div>}
       {generalBox}
       <div className="legend-toolbar">
+        <button type="button" className="btn small" aria-expanded={outlineOpen} aria-controls="legend-sections-outline" onClick={() => setOutlineOpen(value => !value)}>Abschnitte {outlineOpen ? "ausblenden" : "einblenden"}</button>
         {bar.has("history") && (
           <div className="tool-group" role="group" aria-label="Verlauf">
             <button className="btn small" disabled={busy} onClick={proposal} title="Legende aus den aktuellen Projektzahlen neu vorschlagen">
@@ -1132,9 +1158,9 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
       </div>
 
 
-      <div className={`legend-body ${detached ? "detached" : ""}`}
+      <div className={`legend-body ${detached ? "detached" : ""} ${outlineOpen ? "" : "outline-hidden"}`}
         style={{ ["--outline-w" as string]: `${panes.outline}px`, ["--props-w" as string]: `${panes.props}px` }}>
-        <div className="pane-handle outline" role="separator" aria-orientation="vertical" aria-label="Breite der Liste links ändern"
+        <div hidden={!outlineOpen} className="pane-handle outline" role="separator" aria-orientation="vertical" aria-label="Breite der Liste links ändern"
           title="Ziehen ändert die Breite. Doppelklick: Standardbreite." onPointerDown={(e) => startPaneDrag(e, "outline")}
           onDoubleClick={() => resetPane("outline")} />
         {!detached && (
@@ -1142,7 +1168,7 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
             title="Ziehen ändert die Breite. Doppelklick: Standardbreite." onPointerDown={(e) => startPaneDrag(e, "props")}
             onDoubleClick={() => resetPane("props")} />
         )}
-        <aside className="legend-outline">
+        <aside id="legend-sections-outline" hidden={!outlineOpen} className="legend-outline">
           <div className="section" style={{ marginTop: 0 }}>
             Abschnitte
           </div>
@@ -1334,7 +1360,7 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
           ))}
         </aside>
 
-        <div className="legend-canvas-shell">
+        <div className="legend-canvas-shell" aria-busy={layoutBusy}>
         <div
           ref={canvasRef}
           className={`legend-canvas ${viewport.hand ? "hand-mode" : ""} ${viewport.space ? "space-pan" : ""} ${viewport.panning ? "is-panning" : ""}`}
@@ -1370,7 +1396,7 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
             {(shown?.prims ?? [])
               .filter((p) => p.t === "rect" && p.role === "background")
               .map((p, i) => (
-                <Prim key={`bg${i}`} p={p} symbols={symbols} general={general} sel={sel} pick={pick?.item} stale={stale} dups={dups} variants={multicolorIds} onSelect={selectOnSheet} />
+                <Prim key={`bg${i}`} p={p} symbols={symbols} general={general} sel={paperSelection} pick={pick?.item} stale={stale} dups={dups} variants={multicolorIds} onSelect={selectOnSheet} />
               ))}
             {showGrid && (shown?.prims ?? []).filter((p) => p.t === "grid").map((g) => <GridLines key={`g${g.block}:${g.flow_column ?? ""}:${g.y}`} g={g} />)}
             {groupByEntry((shown?.prims ?? []).filter((p) => !(p.t === "rect" && p.role === "background") && p.t !== "grid")).map((g, i) =>
@@ -1378,11 +1404,11 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
                 // one group per entry, keyed by its id: it glides to a new place (see the FLIP effect)
                 <g key={`e:${g.item}`} data-entry={g.item} className="lg-entry">
                   {g.prims.map((p, j) => (
-                    <Prim key={j} p={p} symbols={symbols} general={general} sel={sel} pick={pick?.item} stale={stale} dups={dups} variants={multicolorIds} onSelect={selectOnSheet} onDragStart={startSheetDrag} />
+                    <Prim key={j} p={p} symbols={symbols} general={general} sel={paperSelection} pick={pick?.item} stale={stale} dups={dups} variants={multicolorIds} onSelect={selectOnSheet} onDragStart={startSheetDrag} />
                   ))}
                 </g>
               ) : (
-                <Prim key={`p${i}`} p={g.prims[0]} symbols={symbols} general={general} sel={sel} pick={pick?.item} stale={stale} dups={dups} variants={multicolorIds} onSelect={selectOnSheet} onDragStart={startSheetDrag} />
+                <Prim key={`p${i}`} p={g.prims[0]} symbols={symbols} general={general} sel={paperSelection} pick={pick?.item} stale={stale} dups={dups} variants={multicolorIds} onSelect={selectOnSheet} onDragStart={startSheetDrag} />
               ),
             )}
             {dropAt && dropAt.cell !== undefined && preview && <DropCell layout={preview.layout} id={preview.id} />}
@@ -1400,6 +1426,19 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
           <button type="button" className="btn small" onClick={() => viewport.fitView("page")}><Maximize2 size={14} /> Ganzes Blatt</button>
           <InfoTip text="Strg + Mausrad zoomt am Mauszeiger. Strg + Plus/Minus/0 verändert nur dieses Blatt. Leertaste halten oder die Hand wählen und ziehen verschiebt die Ansicht." />
         </div>
+        <div className="legend-preview-heading"><strong>Vorschau</strong><span className="hint">{Math.round((H + 10) / 297 * 100)} % A4-Höhe · {Math.round((H + 10) / 420 * 100)} % A3-Höhe</span><span role="status" className="hint">{layoutBusy ? "Aktualisiert …" : "Gleiche Zeichnung wie im Export"}</span></div>
+        {!!shown?.warnings?.length && <div className="legend-layout-warnings" aria-label="Texthinweise"><strong>{shown.warnings.length} Texte prüfen</strong>{shown.warnings.map(warning => <button type="button" key={warning.id} onClick={() => {
+          setSel({ type: "item", block: warning.block, item: warning.item });
+          setOpenBlocks(current => new Set([...current, warning.block]));
+          requestAnimationFrame(() => {
+            paperRef.current?.querySelector(`[data-entry="${CSS.escape(warning.item)}"]`)?.scrollIntoView({ block: "nearest", inline: "nearest", behavior: "smooth" });
+            const details = editorRef.current?.querySelector<HTMLDetailsElement>(".legend-selection-details");
+            if (details) details.open = true;
+            const input = editorRef.current?.querySelector<HTMLInputElement>(`[data-legend-text="${CSS.escape(warning.item)}"]`);
+            input?.scrollIntoView({ block: "nearest", inline: "nearest" });
+            input?.focus({ preventScroll: true });
+          });
+        }}><span>{warning.text}</span><small>{warning.width_mm.toFixed(1)} / {warning.available_mm.toFixed(1)} mm{warning.suggestion ? ` · Vorschlag: ${warning.suggestion}` : " · Text oder Spaltenbreite prüfen"}</small></button>)}</div>}
         </div>
 
         <aside className={`legend-props ${detached ? "floating" : ""}`}>
@@ -1422,6 +1461,18 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
           </button>
         )}
         </div>
+          <LegendScopePanel key={legendId ?? "first"} value={doc.scope} info={shown?.scope_info ?? info.scope_info} disabled={busy} onChange={scope => change({ ...doc, scope })} onShowItem={(block, item) => setSel({ type: "item", block, item })} />
+          <LegendPresentationPanel style={style} onChange={setStyle} />
+          <LegendTextPanel value={doc.text_rules} categories={categories} disabled={busy} onChange={text_rules => change({ ...doc, text_rules })} />
+          <details className="legend-settings-card"><summary>Varianten zusammen anzeigen</summary><LegendVariantPanel value={doc.variant_rules} info={shown?.variant_info ?? info.variant_info} onChange={variant_rules => change({ ...doc, variant_rules })} /></details>
+          <LegendPalettePanel entries={doc.blocks.map(block => ({ id: block.id, title: block.title, color: block.style.header }))} threshold={doc.color_review?.threshold ?? 10} onThreshold={threshold => change({ ...doc, color_review: { threshold } })} onSelect={id => setSel({ type: "block", block: id })} grayscale={grayscale} onGrayscale={setGrayscale} />
+          <LegendDefaultsPanel projectId={projectId} doc={doc} onApply={defaults => change({ ...doc, ...defaults })} />
+          {onOpenTool && <button type="button" className="btn small" disabled={busy || exporting || layoutBusy} onClick={() => void exportFile("pdf", exportBlock, exportGeneral && Boolean(general?.kind), true)}>An PDF-Werkstatt übergeben</button>}
+          <details className="legend-selection-details" open><summary>{sel && sel.type !== "legend" ? "Ausgewähltes Element" : "Weitere Einstellungen"}</summary>
+          {selectedGroup && selectedGroup.source_ids.length > 1 && <div className="legend-source-context"><strong>Gemeinsame Ausgabe · Originaleintrag wählen</strong>{selectedGroup.source_ids.map(id => {
+            const source = selBlock?.items.find(item => item.id === id);
+            return source ? <button type="button" className="btn small" key={id} aria-pressed={id === selItem?.id} onClick={() => setSel({ type: "item", block: selectedGroup.block, item: id })}>{source.text}</button> : null;
+          })}</div>}
           {sel?.type === "general" ? (
             <GeneralProps doc={doc} general={general} company={info.company} change={change} />
           ) : sel?.type === "general-row" ? (
@@ -1444,6 +1495,8 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
             <TitleProps doc={doc} field={field} change={change} />
           ) : selItem && selBlock ? (
             <>
+            {selectedSource?.synthetic && originalEdit !== originalEditKey ? <div className="legend-source-context" role="status"><strong>Automatische Variantenansicht</strong><p>Die sichtbare Zeichnung entsteht aus einer Variantenregel. Sie ist kein eigener gespeicherter Eintrag.</p><p>Die Ausgangszeile «{entryText(selItem)}» bleibt erhalten. Ihre Bearbeitung ändert nicht automatisch jede ergänzte Katalogvariante.</p><button type="button" className="btn small" onClick={() => setOriginalEdit(originalEditKey)}>Ausgangszeile bewusst bearbeiten</button></div> : <>
+            {(selectedSource?.initialPart ?? 0) > 0 && <p className="hint legend-source-context">Gefilterte Darstellung: Der sichtbare Teil dieser gespeicherten Kombination ist ausgewählt.</p>}
             {pick && (
               <CombineBox doc={doc} first={selItem} second={pick}
                 onCombine={() => {
@@ -1454,6 +1507,8 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
                 onCancel={() => setPick(null)} />
             )}
             <ItemProps
+              key={`${selItem.id}:${selectedSource?.initialPart ?? 0}`}
+              initialPart={selectedSource?.initialPart ?? 0}
               item={selItem}
               block={selBlock}
               doc={doc}
@@ -1479,6 +1534,7 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
               onMove={moveSelected}
               onRemove={removeSelected}
             />
+            </>}
             </>
           ) : sel?.type === "block" && selBlock ? (
             <BlockProps block={selBlock} field={field} change={change} doc={doc} onMove={moveSelected} onRemove={removeSelected} catTitle={catTitle} templateTexts={info.template_texts} />
@@ -1501,6 +1557,7 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
               onExport={exportFile}
             />
           )}
+          </details>
         </aside>
       </div>
     </div>
@@ -1950,6 +2007,7 @@ function ItemProps({
   onMoveTo,
   onMove,
   onRemove,
+  initialPart = 0,
 }: {
   item: LegendItem;
   block: LegendBlock;
@@ -1970,9 +2028,10 @@ function ItemProps({
   onMoveTo: (blockId: string) => void;
   onMove: (delta: number) => void;
   onRemove: () => void;
+  initialPart?: number;
 }) {
   const [suggest, setSuggest] = useState<{ text: string; source: string }[]>([]);
-  const [tab, setTab] = useState(0);
+  const [tab, setTab] = useState(initialPart);
   const set = (patch: Partial<LegendItem>) => change(updateItem(doc, block.id, item.id, patch));
 
   async function saveCompanyText() {
@@ -2062,7 +2121,7 @@ function ItemProps({
       {tabs}
       {splitBox}
       {item.kind === "text" && <details className="legend-help"><summary>ⓘ Freier Text</summary><div>{FREE_TEXT_HINT}</div></details>}
-      {stale && <p className="warn-text">Dieser Apparat kommt in den aktuellen Importen nicht vor.</p>}
+      {stale && <p className="warn-text">Dieser Apparat kommt in den gewählten Geschossen beziehungsweise aktuellen Importen nicht vor.</p>}
       {duplicate && <p className="warn-text">doppelt: Dieses Symbol steht schon weiter oben in der Legende.</p>}
       {item.hidden && (
         <div className="info-line company">
@@ -2077,7 +2136,7 @@ function ItemProps({
       )}
       <label className="field">
         <span>{item.kind === "text" ? "Text" : parts.length ? "Text 1" : "Beschreibung"}</span>
-        <input className="input" list={listId} value={item.text} {...field((d, v) => updateItem(d, block.id, item.id, { text: v }))} />
+        <input className="input" data-legend-text={item.id} list={listId} value={item.text} {...field((d, v) => updateItem(d, block.id, item.id, { text: v }))} />
         <datalist id={listId}>
           {[...suggest.map((s) => s.text), ...templateTexts].filter((t, i, a) => a.indexOf(t) === i).map((t) => (
             <option key={t} value={t} />
@@ -2616,7 +2675,8 @@ function DocProps({
         </label>
         <label className="field">
           <span>Symbolgrösse <InfoTip text={sizeTip} /></span>
-          <select className="select" aria-label="Symbolgrösse" value={s.symbol_size === "real" ? "real" : fitted ? "fit" : "tile"} onChange={(e) => setStyle({ symbol_size: e.target.value === "real" ? "real" : "tile", symbol_fit: e.target.value === "fit" ? "corridor" : "square" })}>
+          <select className="select" aria-label="Symbolgrösse" value={s.symbol_size === "real" ? "real" : fitted ? s.symbol_weight === "optical" ? "optical" : "fit" : "tile"} onChange={(e) => setStyle({ symbol_size: e.target.value === "real" ? "real" : "tile", symbol_fit: e.target.value === "fit" || e.target.value === "optical" ? "corridor" : "square", symbol_weight: e.target.value === "optical" ? "optical" : "fit" })}>
+            <option value="optical">Optisch angleichen</option>
             <option value="fit">Breites Symbolfeld</option>
             <option value="tile">Quadratische Kacheln</option>
             <option value="real">Originalmassstab</option>

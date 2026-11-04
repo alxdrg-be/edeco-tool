@@ -4,6 +4,9 @@
 
 export type ItemKind = "symbol" | "line" | "note" | "text" | "gap"; // gap: an empty cell kept free
 export type LineStyle = "solid" | "dashed" | "dotted" | "dashdot";
+import type { LegendScope } from "./legendScope";
+import type { LegendTextRules } from "./legendTextRules";
+import type { LegendVariantRules } from "./components/LegendVariantPanel";
 
 export interface LegendItem {
   id: string;
@@ -96,6 +99,7 @@ export interface LegendStyle {
   normalize_size?: boolean;
   symbol_size?: "real" | "tile"; // real size on the insertion point (default) or equal tiles
   symbol_fit?: "square" | "corridor"; // fitted rectangle also keeps long line-like apparatus readable
+  symbol_weight?: "fit" | "optical";
   general_source_look?: boolean; // ignore saved presentation factors/turns in this legend, retaining source geometry
   frame_on: boolean; // border round the whole legend
   frame: string;
@@ -116,6 +120,10 @@ export interface LegendDoc {
   general_section?: GeneralSection;
   general_on?: boolean; // false: shown and exported without the general part (themed legend)
   blocks: LegendBlock[];
+  scope?: LegendScope;
+  text_rules?: LegendTextRules;
+  variant_rules?: LegendVariantRules;
+  color_review?: { threshold: number };
 }
 
 export type Selection =

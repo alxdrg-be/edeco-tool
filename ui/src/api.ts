@@ -1,4 +1,7 @@
 import type { LegendDoc } from "./legend";
+import type { LegendScopeInfo } from "./legendScope";
+import type { LegendTextWarning } from "./legendTextRules";
+import type { LegendVariantInfo } from "./components/LegendVariantPanel";
 // Thin client for the local Python API.
 
 export interface SymbolBrief {
@@ -399,6 +402,16 @@ export interface LegendInfo {
   oda: boolean;
   in_general: GeneralContents;
   company_symbols?: Record<string, CompanySymbolLook>;
+  scope_info?: LegendScopeInfo;
+  variant_info?: LegendVariantInfo;
+}
+
+export type LegendPresentationDefaults = Pick<LegendDoc, "style" | "text_rules" | "variant_rules">;
+export interface LegendDefaultsInfo {
+  project: LegendPresentationDefaults | null;
+  company: LegendPresentationDefaults | null;
+  effective: LegendPresentationDefaults | null;
+  is_admin: boolean;
 }
 
 /** How a symbol family looks in every legend of the company («Firmensymbol»). */
@@ -435,6 +448,9 @@ export interface LegendLayout {
   height: number;
   prims: LegendPrim[];
   general: GeneralInfo;
+  warnings?: LegendTextWarning[];
+  scope_info?: LegendScopeInfo;
+  variant_info?: LegendVariantInfo;
 }
 
 export interface SymbolRender {
@@ -643,6 +659,9 @@ export const api = {
     request<LegendInfo>("GET", `/api/projects/${encodeURIComponent(id)}/legend${legendId ? `?legend=${legendId}` : ""}`),
   saveLegend: (id: string, doc: LegendDoc, signal?: AbortSignal, legendId?: number | null) =>
     request<{ legend: StoredLegend }>("PUT", `/api/projects/${encodeURIComponent(id)}/legend${legendId ? `?legend=${legendId}` : ""}`, { doc }, signal),
+  legendDefaults: (id: string) => request<LegendDefaultsInfo>("GET", `/api/projects/${encodeURIComponent(id)}/legend/defaults`),
+  saveLegendDefaults: (id: string, scope: "project" | "company", doc: LegendDoc) =>
+    request<LegendDefaultsInfo>("PUT", `/api/projects/${encodeURIComponent(id)}/legend/defaults/${scope}`, { doc }),
   legends: (id: string) => request<{ items: LegendListItem[] }>("GET", `/api/projects/${encodeURIComponent(id)}/legends`),
   newLegend: (id: string, body: { name: string; source: "proposal" | "empty" | "copy"; categories?: string[]; copy_of?: number | null; general?: boolean }) =>
     request<{ legend: StoredLegend; items: LegendListItem[] }>("POST", `/api/projects/${encodeURIComponent(id)}/legends`, body),
@@ -650,8 +669,8 @@ export const api = {
     request<{ items: LegendListItem[] }>("PUT", `/api/projects/${encodeURIComponent(id)}/legends/${legendId}`, { name }),
   deleteLegend: (id: string, legendId: number) =>
     request<{ items: LegendListItem[] }>("DELETE", `/api/projects/${encodeURIComponent(id)}/legends/${legendId}`),
-  proposeLegend: (id: string, style?: LegendDoc["style"]) =>
-    request<{ doc: LegendDoc }>("POST", `/api/projects/${encodeURIComponent(id)}/legend/propose`, { style: style ?? null }),
+  proposeLegend: (id: string, style?: LegendDoc["style"], presentation?: Pick<LegendDoc, "scope" | "text_rules" | "variant_rules">) =>
+    request<{ doc: LegendDoc }>("POST", `/api/projects/${encodeURIComponent(id)}/legend/propose`, { style: style ?? null, ...presentation }),
   layoutLegend: (id: string, doc: LegendDoc, signal?: AbortSignal) =>
     request<LegendLayout>("POST", `/api/projects/${encodeURIComponent(id)}/legend/layout`, { doc }, signal),
   legendGeneral: (id: string) =>

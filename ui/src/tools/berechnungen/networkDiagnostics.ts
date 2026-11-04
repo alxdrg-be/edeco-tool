@@ -197,6 +197,7 @@ export function buildNetworkDiagnostics(document: NetworkDocument, result: Netwo
         break;
       }
       case "magnetic":
+        diagnostic.message = `${issue.text} Die magnetische Auslösung ist damit nicht nachgewiesen. Eine konkrete Abschaltzeit benötigt die passende Gerätekennlinie.`;
         diagnostic.actual = current === undefined || number("required") === undefined ? undefined : `Ik,min-Modell ${actual(current, "A")}; oberer Magnetauslöser ${actual(number("required")!, "A")}${number("loop") === undefined ? "" : `; gesamte Fehlerschleife ${actual(number("loop")!, "Ω")}`}.`;
         diagnostic.required = number("maxLoop") === undefined ? undefined : `Im verwendeten Modell gesamte L–PE-Schleife höchstens ${networkBound(number("maxLoop")!, "down")} Ω (0.95 × 230 V / oberer Magnetauslöser).`;
         diagnostic.action = "Gesamten Leitungs-/PE-Pfad, belegte Quellenimpedanz und passendes Schutzorgan gemeinsam prüfen. Diese Modellgrenze bestätigt keine verbindliche Abschaltzeit.";

@@ -38,7 +38,7 @@ Lieferangaben bleiben dadurch direkt erreichbar.
 ## Vorführung, Memory und bestehende Legenden
 
 Die Einstellungen der Hubübersicht enthalten den Demo-Modus. Voreingestellt sind
-NOVA-Legenden, Berechnungen, Dateien umbenennen und PDF-Werkstatt. Der normale
+NOVA-Legenden, Berechnungen, Dateien umbenennen, PDF-Werkstatt und Elektro-Memory. Der normale
 Hub enthält zusätzlich die übrigen verfügbaren Werkzeuge und das Elektro-Memory.
 Die Adminzuordnung verwendet unter Windows die tatsächliche Anmeldung; vorbelegt
 sind `aduerger` und `nstrauss`. Es entsteht kein zusätzliches Benutzerkonto.
@@ -50,6 +50,20 @@ Spalten und proportionale Konturen, ohne die Symbolgeometrie zu verändern. Die
 Seitenhöhe folgt dem Inhalt; nicht jede beliebig lange Legende passt auf A4.
 Farbvarianten lassen sich je logischem Symbol auswählen; die Originalvarianten
 bleiben gespeichert.
+
+Pro Legende lassen sich ein oder mehrere Geschosse auswählen. Die Ansicht und
+alle Exportformate nutzen dieselbe Auswahl, während die gespeicherten Zeilen
+erhalten bleiben. Bauteile, Symbolarten und Legendenzeilen werden getrennt gezählt.
+Fehlende Geschosse werden gemeldet und sperren den Export bis zur Korrektur.
+«Optisch angleichen» bleibt eine bewusste Darstellungsauswahl. Textregeln und
+Abkürzungstabelle wirken auf die Ausgabe; die ursprünglichen Beschreibungen
+bleiben bestehen. Projekt- und Firmenstandards gelten als Vorgaben für neue
+Vorschläge; die Firma kann nur von berechtigten Admins geändert werden.
+
+Dateien lassen sich ausdrücklich an das nächste Werkzeug übergeben: von NOVA
+zur PDF-Werkstatt und fertige PDFs zum Umbenennen. Die Übergabe liegt nur im
+Arbeitsspeicher der Sitzung und erfordert eine Übernahme am Ziel. Sie versendet
+keine E-Mail und ändert nicht automatisch das aktive Projekt.
 
 Das **Elektro-Memory** setzt alle 16 Seiten der bereitgestellten Rastervorlage neu
 als Text, Tabellen und mathematische Vektorgrafiken. Die 70 Quelleneinträge und

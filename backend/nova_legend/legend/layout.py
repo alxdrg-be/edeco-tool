@@ -31,6 +31,7 @@ from functools import lru_cache
 
 from .linetypes import dash_array
 from .model import DEFAULT_TEXT_SIZE, DEFAULT_TITLE_MM, entry_text, original_colors, selected_original_colors, section_style
+from .text_rules import prepare_texts
 
 LINE_FACTOR = 1.3            # line height relative to the text size
 _NARROW = set("il.,;:|!'`Iíìj()[]/\\ ")
@@ -258,13 +259,14 @@ def _symbol_box(item: dict, size, style: dict, tile: float, corridor: float | No
             longest = max(span, tall, 1e-6)
             scale = (min(corridor / max(span, 1e-6), tile * TILE_FILL / max(tall, 1e-6))
                      if corridor else tile * TILE_FILL / longest)
-            if not corridor and style.get("normalize_size", True):
-                # the same area for every drawing, never more than 75 % of the tile
+            maximum_scale = scale
+            if (not corridor and style.get("normalize_size", True)) or (corridor and style.get("symbol_weight") == "optical"):
+                # Similar visual area, bounded by the unchanged rectangular field.
                 target = (tile * TILE_FILL) ** 2 * AREA_SHARE
                 scale = min(scale, (target / max(span * tall, 1e-9)) ** 0.5)
             # A fitted corridor has a fixed printable height and cannot spill
             # into the adjacent description. Real-size mode remains available.
-            scale *= min(factor, 1.0) if corridor else factor
+            scale = min(scale * factor, maximum_scale) if corridor else scale * factor
             return box(span * scale / 2, span * scale / 2, tall * scale / 2, tall * scale / 2,
                        round(scale, 4), (x0 + x1) / 2, (y0 + y1) / 2)
         half = tile * TILE_FILL / 2 * factor
@@ -803,6 +805,7 @@ def layout(doc: dict, sizes: dict | None = None, general: dict | None = None,
            only_block: str | None = None, include_general: bool = True) -> dict:
     """Place everything. ``sizes`` maps an item id to (x0, y0, x1, y1, engine) of its
     drawing in mm at scale 1 around its insertion point (or the older (width, height, engine)). ``general`` is {"w", "h"} of the locked part in mm (already fitted)."""
+    doc = prepare_texts(doc)
     sizes = sizes or {}
     include_general = include_general and doc.get("general_on", True) is not False
     style = doc["style"]
@@ -924,7 +927,10 @@ def layout(doc: dict, sizes: dict | None = None, general: dict | None = None,
         # border round the whole legend, in the middle of the margin
         prims.append({"t": "rect", "x": margin / 2, "y": margin / 2, "w": width - margin, "h": height - margin,
                       "fill": None, "stroke": style.get("frame") or "#000000", "role": "border", "block": "frame"})
-    return {"width": width, "height": height, "prims": prims}
+    # Warnings belong to the exact final item placement, not measurement runs
+    # while balancing columns. Exports use these same text primitives.
+    warnings = [prim["text_warning"] for prim in prims if prim.get("text_warning")]
+    return {"width": width, "height": height, "prims": prims, "warnings": warnings}
 
 
 def _block(block, style, sizes, prims, x0, y, inner, cols, ts, row, continued: bool = False) -> float:
@@ -1083,7 +1089,9 @@ def _entry(item, box, out, block, cx0, cy, colw, ts, row, axis, text_x, st,
     its = ts * float(item.get("text_scale") or 1.0)
     lh = its * LINE_FACTOR
     tx = cx0 + text_x
-    lines = wrap(entry_text(item) if item.get("parts") else item["text"], its, cx0 + colw - tx - 0.8,
+    display = item.get("_display_text", entry_text(item) if item.get("parts") else item["text"])
+    available = max(its, cx0 + colw - tx - 0.8)
+    lines = wrap(display, its, available,
                  accurate=accurate, font=font)
     if lines_n:
         # a chosen line count: extra lines are dropped
@@ -1141,6 +1149,8 @@ def _entry(item, box, out, block, cx0, cy, colw, ts, row, axis, text_x, st,
                     "layer": block.get("layer") or "",
                     "hatch_off": fills_off[0], "fill_off": fills_off[1],
                     "color": colour, "flat": bool(forced)}
+            if "_source_part" in part:
+                prim["source_part"] = part["_source_part"]
             if len(members) > 1 or m.get("variant", 0):
                 prim["part"] = m.get("logical", k)
                 prim["variant"] = m.get("variant", 0)
@@ -1156,6 +1166,16 @@ def _entry(item, box, out, block, cx0, cy, colw, ts, row, axis, text_x, st,
     for i, line in enumerate(lines):
         out.append({"t": "text", "x": round(tx, 3), "y": round(base + i * lh, 3), "size": round(its, 3),
                     "text": line, "bold": False, "color": st["text"], "item": item["id"]})
-    out.append({"t": "hit", "kind": "item", "block": block["id"], "id": item["id"],
-                "x": cx0, "y": cy, "w": colw, "h": h})
+    hit = {"t": "hit", "kind": "item", "block": block["id"], "id": item["id"],
+           "x": cx0, "y": cy, "w": colw, "h": h}
+    if item.get("_text_mode") in ("warn", "abbreviate"):
+        measured = max((text_width(line, its, accurate=True, font=font) for line in display.split("\n")), default=0)
+        if measured > available + 0.01:
+            suggestion = item.get("_text_suggestion", display)
+            hit["text_warning"] = {"id": f"text-width:{block['id']}:{item['id']}",
+                                   "kind": "text-width", "block": block["id"], "item": item["id"],
+                                   "text": item.get("_text_source", display), "display_text": display,
+                                   "suggestion": suggestion if suggestion != display else "",
+                                   "width_mm": round(measured, 3), "available_mm": round(available, 3)}
+    out.append(hit)
     return h

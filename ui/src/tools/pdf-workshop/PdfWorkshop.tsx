@@ -10,6 +10,8 @@ import {
 } from "lucide-react";
 import ToolHeader from "../../toolbox/ToolHeader";
 import type { ToolProps } from "../../toolbox/modules";
+import { IncomingToolFiles, SendFilesToTool } from "../../toolbox/ToolHandoffPanel";
+import { useProjectHub } from "../projektzentrale/projectHubState";
 import { useDialogFocus } from "../../useDialogFocus";
 import PdfCropEditor from "./PdfCropEditor";
 import PageWorkbench from "./PageWorkbench";
@@ -75,6 +77,8 @@ function readRecent(): string[] {
 }
 
 export default function PdfWorkshop({ onHome, onOpenTool }: ToolProps) {
+  const { active: activeProject } = useProjectHub();
+  const [handoffFiles, setHandoffFiles] = useState<File[]>([]);
   const [state, setState] = useState<State | null>(null);
   const [health, setHealth] = useState<Health | null>(null);
   const [capabilities, setCapabilities] = useState<EndpointCapabilities | null>(null);
@@ -128,11 +132,12 @@ export default function PdfWorkshop({ onHome, onOpenTool }: ToolProps) {
   const callbacks = useRef(new Map<string, { onDirty: () => void; onDirtyChange: (dirty: boolean) => void; onWorking: (busy: boolean) => void; onFilesChange: (files: File[]) => void; onResultFiles: (files: File[]) => void }>());
   function workspace(id: string) {
     if (!callbacks.current.has(id)) callbacks.current.set(id, {
-      onDirty: () => { nativeDirty.current.add(id); },
-      onDirtyChange: dirty => { if (dirty) nativeDirty.current.add(id); else nativeDirty.current.delete(id); },
+      onDirty: () => { nativeDirty.current.add(id); setHandoffFiles([]); },
+      onDirtyChange: dirty => { if (dirty) { nativeDirty.current.add(id); setHandoffFiles([]); } else nativeDirty.current.delete(id); },
       onWorking: working => { if (working) workspaceBusy.current.add(id); else workspaceBusy.current.delete(id); setNativeWorking(workspaceBusy.current.size > 0); },
       onFilesChange: files => {
         const previous = workspaceFiles.current.get(id) || [];
+        if (activeWorkspace.current === id && (previous.length !== files.length || files.some((file, index) => previous[index] !== file))) setHandoffFiles([]);
         workspaceFiles.current.set(id, files);
         if (activeWorkspace.current === id) nativeFiles.current = files;
         const transfer = freshResult.current;
@@ -143,7 +148,7 @@ export default function PdfWorkshop({ onHome, onOpenTool }: ToolProps) {
         }
         if (!files.length && id !== "sign" && id !== "redact") nativeDirty.current.delete(id);
       },
-      onResultFiles: files => { const pdfs = files.filter(isPdfSource); if (pdfs.length) { freshResult.current = { owner: id, files: pdfs }; explicitPending.current = false; } },
+      onResultFiles: files => { const pdfs = files.filter(isPdfSource); setHandoffFiles(pdfs); if (pdfs.length) { freshResult.current = { owner: id, files: pdfs }; explicitPending.current = false; } },
     });
     return callbacks.current.get(id)!;
   }
@@ -411,7 +416,15 @@ export default function PdfWorkshop({ onHome, onOpenTool }: ToolProps) {
       {!state?.local && <button className="btn" onClick={() => setSettings(!settings)}>Verbindung</button>}
       <button className="btn" onClick={toolSettings} disabled={!health?.ready}><Settings size={16} /> Einstellungen</button>
       <button className="btn pdf-info-button" onClick={() => setInfo(!info)}><Info size={16} /> Info / Lizenzen</button>
+      <SendFilesToTool files={handoffFiles} source="PDF-Werkstatt" projectId={activeProject?.id}
+        projectLabel={activeProject ? `${activeProject.number} · ${activeProject.name}` : undefined}
+        disabled={Boolean(busy) || nativeWorking} onOpenTool={onOpenTool ? id => requestLeave(() => onOpenTool(id)) : undefined} onError={setError} />
     </ToolHeader>
+    <IncomingToolFiles target="pdf-werkzeuge" currentProjectId={activeProject?.id} disabled={!state || Boolean(busy) || nativeWorking} onReceive={files => {
+      if (requireRedactionExport("incoming")) return false;
+      explicitPending.current = true; setPendingFiles(previous => [...previous, ...files]);
+      setSelected(null); setView("catalog"); setNotice("Dateien übernommen. Wähle das gewünschte PDF-Werkzeug.");
+    }} />
     {info && <section className="pdf-connection pdf-license-panel"><button className="btn" onClick={() => setInfo(false)}>Info schliessen</button><iframe className="pdf-stirling-frame" title="Info / Lizenzen" src={API + "/licenses"} /></section>}
     {!state?.local && (settings || (state && !health?.ready && (view === "catalog" || view === "stirling"))) && <section className="pdf-connection" aria-label="PDF-Verbindung">
       <div><h2>PDF-Dienst verbinden</h2><p className="pdf-muted">Diese optionale Verbindung ist für eine separat eingerichtete Stirling-Installation. Die installierte Windows-Ausgabe bringt ihre lokale PDF-Verarbeitung bereits mit.</p></div>
@@ -460,12 +473,13 @@ export default function PdfWorkshop({ onHome, onOpenTool }: ToolProps) {
     {view === "stirling" && selected === "annotate" && <details className="pdf-connection pdf-server-explanation"><summary>ⓘ Was bedeutet „Auswählen und bearbeiten“?</summary><p>Damit wählst du vorhandene Anmerkungen, Markierungen oder Stempel aus und änderst deren Farbe, Deckkraft, Text, Grösse oder Position. Für den ursprünglichen Seitentext und die Bilder im PDF verwende „PDF bearbeiten“ in der Werkzeugauswahl.</p></details>}
     {health?.ready && <div className="pdf-embedded-workspace" hidden={view !== "stirling"}><iframe ref={frame} key={revision} className="pdf-stirling-frame" title="Stirling-PDF · edeco PDF-Werkstatt" src="/tools/pdf-werkstatt/" onLoad={() => setBridgeReady(Boolean((frame.current?.contentWindow as PdfWindow | null)?.edecoPDF?.isReady()))} /></div>}
     {(view === "pages" || view === "task" || view === "convert" || view === "process" || view === "mark") && <div className="pdf-editor-heading"><button className="btn" disabled={nativeWorking} onClick={() => setView("catalog")}><ArrowLeft size={16} /> Werkzeugauswahl</button><strong>{view === "task" && nativeTask ? NATIVE_TASKS[nativeTask].title : title}</strong><span className="pdf-native-badge">{state?.local ? "Auf diesem Computer" : "PDF-Arbeitsbereich"}</span>{health?.ready && <button className="btn" disabled={nativeWorking} onClick={openExtendedTool}>Erweiterte Funktionen</button>}</div>}
-    {pagesOpened && state && <div className="pdf-native-workspace" hidden={view !== "pages"}><PageWorkbench tool={pageTool} sessionKey={state.session_key} incomingFiles={pageIncoming} {...workspace("pages")} /></div>}
+    {/* Page and crop exports are snapshots for Senden an; tool changes retain the original file selection. */}
+    {pagesOpened && state && <div className="pdf-native-workspace" hidden={view !== "pages"}><PageWorkbench tool={pageTool} sessionKey={state.session_key} incomingFiles={pageIncoming} {...workspace("pages")} onResultFiles={setHandoffFiles} /></div>}
     {state && openedTasks.map(id => <div key={id} className="pdf-native-workspace" hidden={view !== "task" || nativeTask !== id}><PdfTask tool={id} sessionKey={state.session_key} incomingFiles={taskIncoming[id]} {...workspace(id)} /></div>)}
     {state && openedProcessing.map(id => <div key={id} className="pdf-native-workspace" hidden={view !== "process" || processingMode !== id}><ProcessingWorkspace mode={id} sessionKey={state.session_key} incomingFiles={processingIncoming[id]} {...workspace(id)} /></div>)}
     {state && openedMarks.map(id => <div key={id} className="pdf-native-workspace" hidden={view !== "mark" || markMode !== id}><PdfMarkEditor mode={id} sessionKey={state.session_key} initialFile={markIncoming[id]} onDirtyChange={workspace(id).onDirtyChange} onFilesChange={workspace(id).onFilesChange} onBusyChange={workspace(id).onWorking} onResultFiles={workspace(id).onResultFiles} onCertificateSign={openCertificateSign} certificateAvailable={certificateAvailable} /></div>)}
     {view === "convert" && <main className="pdf-native-conversions"><h1>Was möchtest du umwandeln?</h1><div className="pdf-tool-grid">{(["pdf-to-images", "pdf-to-text", "images-to-pdf"] as const).map(id => <button key={id} className="pdf-tool-tile" onClick={() => openNativeTask(id)}><span className="pdf-tool-label"><strong>{NATIVE_TASKS[id].title}</strong><span>{NATIVE_TASKS[id].description}</span></span><ArrowUpRight size={17} /></button>)}<button className="pdf-tool-tile" disabled={!health?.ready} onClick={openExtendedTool}><span className="pdf-tool-label"><strong>Weitere Formate</strong><span>Office, Webseiten und zusätzliche Formate deines PDF-Dienstes.</span></span></button></div></main>}
-    {cropOpened && state && <div className="pdf-native-crop" hidden={view !== "crop"}><PdfCropEditor key={cropRevision} sessionKey={state.session_key} initialFile={cropInitialFile} onBack={() => setView("catalog")} onDirtyChange={dirty => { cropDirty.current = dirty; }} onFilesChange={workspace("crop").onFilesChange} onWorking={workspace("crop").onWorking} /></div>}
+    {cropOpened && state && <div className="pdf-native-crop" hidden={view !== "crop"}><PdfCropEditor key={cropRevision} sessionKey={state.session_key} initialFile={cropInitialFile} onBack={() => setView("catalog")} onDirtyChange={dirty => { cropDirty.current = dirty; if (dirty) setHandoffFiles([]); }} onFilesChange={workspace("crop").onFilesChange} onWorking={workspace("crop").onWorking} onResultFiles={setHandoffFiles} /></div>}
     {leave && <LeaveDialog onClose={() => setLeave(null)} onLeave={() => { const callback = leave; setLeave(null); callback(); }} />}
     {fileChoice && <PdfFileChoice title={fileChoice.tool === "split" ? "Welches PDF möchtest du teilen?" : "Welches PDF möchtest du bearbeiten?"} files={fileChoice.files} onChoose={file => receiveSingleFile(fileChoice.tool, [file])} onClose={() => setFileChoice(null)} />}
   </div>;

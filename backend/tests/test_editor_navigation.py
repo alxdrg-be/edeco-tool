@@ -989,7 +989,7 @@ def test_the_view_menu_floats_the_settings_and_opens_the_wide_view(editor):
     playwright.expect(view.get_by_role("button", name="Einstellungen schwebend")).to_be_visible()
     page.keyboard.press("Escape")
     page.get_by_role("button", name="Editor gross öffnen", exact=True).click()
-    close = page.get_by_role("button", name="Kompakt", exact=True)
+    close = page.locator(".legend-expand-button").filter(has_text="Grossansicht beenden")
     playwright.expect(close).to_be_visible()
     close.click()
     playwright.expect(page.locator(".legend-editor.windowed")).not_to_be_visible()
@@ -1478,7 +1478,7 @@ def test_editor_space_and_view_options_do_not_change_the_exported_document(edito
     playwright.expect(view_menu).not_to_be_visible()
     playwright.expect(page.locator("summary").filter(has_text="Ansicht")).to_be_focused()
     playwright.expect(page.locator(".legend-editor.windowed")).to_be_visible()
-    page.get_by_role("button", name="Kompakt", exact=True).click()
+    page.locator(".legend-expand-button").filter(has_text="Grossansicht beenden").click()
     playwright.expect(page.locator(".legend-editor.windowed")).not_to_be_visible()
     page.set_viewport_size({"width": 390, "height": 844})
     page.locator("summary").filter(has_text="Ansicht").click()
@@ -1522,7 +1522,7 @@ def test_editor_space_and_view_options_do_not_change_the_exported_document(edito
     page.keyboard.up("Space")
     assert holder.evaluate("el => el.scrollLeft") > old_scroll
     page.get_by_role("button", name="Ganzes Blatt", exact=True).click()
-    page.get_by_role("button", name="Kompakt", exact=True).click()
+    page.locator(".legend-expand-button").filter(has_text="Grossansicht beenden").click()
     with page.expect_download() as downloaded:
         page.get_by_role("button", name="DXF herunterladen", exact=True).click()
     import ezdxf

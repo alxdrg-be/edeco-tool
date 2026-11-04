@@ -251,7 +251,8 @@ function AppContent({ onHome, onOpenTool }: NovaToolProps) {
         </header>}
         <div className="main">
           {tab === "projects" && status && (
-            <ProjectsPage categories={categories} novaVersion={status.settings.nova_version} notify={notify} onOpenSettings={() => navigate(() => setTab("settings"))} />
+            <ProjectsPage categories={categories} novaVersion={status.settings.nova_version} notify={notify} onOpenSettings={() => navigate(() => setTab("settings"))}
+              onOpenTool={onOpenTool ? id => { void navigate(() => onOpenTool(id)); } : undefined} />
           )}
           {tab === "library" && options && (
             <Library

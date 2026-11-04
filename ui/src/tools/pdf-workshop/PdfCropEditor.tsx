@@ -4,7 +4,7 @@ import { FULL_CROP, clampCrop, constrainCrop, cropMargins, cropPageRange, cropPo
   fitCropZoom, marginsCrop, moveCrop, resizeCrop, type CropHandle, type CropMargins, type CropPoint, type CropRect, type CropSize } from "./cropGeometry";
 import "./pdf-crop-editor.css";
 
-interface Props { sessionKey: string; onBack: () => void; initialFile?: File; onDirtyChange?: (dirty: boolean) => void; onFilesChange?: (files: File[]) => void; onWorking?: (busy: boolean) => void }
+interface Props { sessionKey: string; onBack: () => void; initialFile?: File; onDirtyChange?: (dirty: boolean) => void; onFilesChange?: (files: File[]) => void; onWorking?: (busy: boolean) => void; onResultFiles?: (files: File[]) => void }
 interface CropPage extends CropSize { page: number; rotation: number; user_unit?: number | null }
 interface CropDocument { id: string; name: string; page_count: number; pages: CropPage[] }
 type MarginDraft = Record<keyof CropMargins, string>;
@@ -33,7 +33,7 @@ function downloadName(response: Response, original: string): string {
   return /filename="([^"]+)"/i.exec(disposition)?.[1] || original.replace(/\.pdf$/i, "") + "_zugeschnitten.pdf";
 }
 
-export default function PdfCropEditor({ sessionKey, onBack, initialFile, onDirtyChange, onFilesChange, onWorking }: Props) {
+export default function PdfCropEditor({ sessionKey, onBack, initialFile, onDirtyChange, onFilesChange, onWorking, onResultFiles }: Props) {
   const [document, setDocument] = useState<CropDocument | null>(null), [pageNumber, setPageNumber] = useState(1);
   const [rects, setRects] = useState<Record<number, CropRect>>({}), [dirty, setDirty] = useState(false);
   const [preview, setPreview] = useState<{ id: string; page: number; url: string } | null>(null);
@@ -162,6 +162,7 @@ export default function PdfCropEditor({ sessionKey, onBack, initialFile, onDirty
 
   function updateRect(value: CropRect, clearDraft = true) {
     const next = clampCrop(value); rectRef.current = next;
+    dirtyCallback.current?.(true);
     setRects(old => ({ ...old, [pageNumber]: next })); setDirty(true); setNotice(""); if (clearDraft) setMarginDraft(null);
   }
   function pointAt(event: { clientX: number; clientY: number }) { return cropPoint({ x: event.clientX, y: event.clientY }, sheet.current!.getBoundingClientRect()); }
@@ -242,6 +243,7 @@ export default function PdfCropEditor({ sessionKey, onBack, initialFile, onDirty
       const blob = await response.blob(); if (controller.signal.aborted) return;
       const name = downloadName(response, document.name), url = URL.createObjectURL(blob), anchor = window.document.createElement("a");
       anchor.href = url; anchor.download = name; anchor.click(); window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+      onResultFiles?.([new File([blob], name, { type: "application/pdf" })]);
       const applied = pages === "all" ? document.pages.map(item => item.page) : pages;
       const remaining = Object.entries(rects).some(([number, value]) => !applied.includes(Number(number)) && !equalCrop(value, FULL_CROP));
       setRects(old => ({ ...old, ...Object.fromEntries(applied.map(number => [number, { ...rect }])) }));

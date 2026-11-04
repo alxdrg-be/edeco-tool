@@ -1,3 +1,15 @@
+## Geschossbezogene Legenden und verständliche Prüfungen · 4. November 2026
+
+- NOVA-Legenden mit Mehrfachauswahl der Geschosse. Bauteile, erkannte Symbolarten und Ausgabezeilen werden getrennt gezählt. Vorschau und Export verwenden dieselbe Auswahl; gespeicherte Originaleinträge bleiben erhalten.
+- Bewusst wählbarer Modus «Optisch angleichen» für proportionale, ähnlich wirkende Symbolgrössen. Symbolfeldhöhe und Zeilenraster werden getrennt angezeigt; Abschnitte lassen sich für mehr Vorschaufläche ausblenden.
+- Editierbare Abkürzungstabelle mit Rubrikbezug, CSV-Import und grossem Bearbeitungsfenster. Echte Schriftbreiten lösen anklickbare Hinweise aus. Typcodes, Einheiten, Nummern und Originaltexte bleiben geschützt.
+- Acht separat wählbare Variantenregeln. Nur belegte Katalogvarianten werden in der Ausgabe gemeinsam gezeigt; Quellfarben, Codes und gespeicherte Einzelzeilen bleiben erhalten. Ähnliche Rubrikfarben werden als Hinweise gemeldet, mit Graustufenvorschau.
+- Darstellungsvorgaben für diese Legende, das Projekt und die Firma. Firmenvorgaben benötigen Adminrechte; vorhandene Legenden werden nicht unbemerkt umgestellt.
+- Elektro-Memory mit unterscheidbaren Schweizer Steckdosenbildern, interaktivem IP-Decoder und ausführlichem Info-Panel. Favoriten bleiben auf diesem PC. Badzeichnungen enthalten keine ungeprüften farbigen Normbereiche; der offene Normabgleich ist sichtbar.
+- Netzplaner mit separatem Variantenvergleich vor der Übernahme und vollständiger Neuberechnung. Geänderte Eingaben sperren veraltete Vorschauen; Übernahmen lassen sich rückgängig machen. Eine nicht erreichte Magnetschwelle behauptet keine konkrete Abschaltzeit.
+- Ausdrückliche lokale Dateiübergabe von NOVA zur PDF-Werkstatt und von fertigen PDFs zum Umbenennen. Dateien müssen am Ziel übernommen werden; kein automatischer Versand, Projektwechsel oder Überschreiben.
+- Der Dokumenten-Assistent zeigt das konfigurierte KI-Ziel und erklärt den Datenweg für Suche, Frage und Fundstellen. Rechner erhalten kurze Hinweise zu Zweck und benötigten Eingaben.
+
 ## Lesbare Legenden und durchgängige PDF-Abläufe · 4. November 2026
 
 - Elektro-Memory im Demo-Modus ergänzt. Markanter Rückweg zu allen Themen, direkter Themenwechsel und eine digitale Gliederung; Drucklineal und Impressum stehen bei der Quellenbeschreibung.

@@ -3,6 +3,7 @@ import { ChevronDown, Info } from "lucide-react";
 import { useDialogFocus } from "../../useDialogFocus";
 import { request, type AISettings } from "./api";
 import QwenGuide from "./QwenGuide";
+import DataRoute from "./DataRoutePanel";
 
 export default function Settings({ value, sessionKey, onSave, onClose }: {
   value: AISettings; sessionKey: string; onSave: (settings: AISettings) => void; onClose: () => void;
@@ -66,6 +67,7 @@ export default function Settings({ value, sessionKey, onSave, onClose }: {
         placeholder={provider === "ollama" ? "http://127.0.0.1:11434/api/chat" : "https://api.openai.com/v1/chat/completions"}
         disabled={busy} onChange={e => { setEndpoint(e.target.value); clearFeedback(); }} /></label>
       <p className="doc-help">{provider === "ollama" ? "Ollama muss auf diesem PC oder dem angegebenen Firmenserver laufen. Einrichtung und Beispieladressen findest du unten. Lokal und im internen Netz ist auch HTTP möglich." : "Für OpenAI die Standardadresse, für Azure oder einen Firmenserver die vollständige Chat-Completions-Adresse der IT verwenden."}</p>
+      <DataRoute endpoint={endpoint} configured={Boolean(endpoint.trim())} draft />
       <label>Modell oder Bereitstellungsname<input required value={model} maxLength={150} disabled={busy}
         placeholder={provider === "ollama" ? "qwen3:4b" : "Modellname aus eurem API-Zugang"} onChange={e => { setModel(e.target.value); clearFeedback(); }} /></label>
       <label>{provider === "ollama" ? "Server-Schlüssel (optional)" : "API-Schlüssel"}<input type="password" autoComplete="new-password" value={apiKey} maxLength={4096}

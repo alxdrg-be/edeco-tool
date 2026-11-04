@@ -74,6 +74,9 @@ LEGEND_DEFAULTS = {
     # ({family_key: {symbol_factor, rotation, mirror, parts: [{family_key, symbol_factor,
     # rotation, mirror}], by, at}}); text and section live in descriptions / assignments
     "legend_company_symbols": {},
+    # Only reusable presentation choices. Scope IDs, titles and contents stay
+    # with their own legend/project and are never propagated to another one.
+    "legend_presentation_defaults": {},
 }
 
 # Bump when default categories gain number ranges; existing company files

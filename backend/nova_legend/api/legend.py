@@ -27,6 +27,9 @@ from ..legend.layout import layout as place
 from ..legend.general import norm_text
 from ..legend.model import (AP_NOTE, AP_NOTE_KEY, DEFAULT_GRID, GRIDS, MARGIN, MAX_SHEET_WIDTH, apply_plan_section_colors,
                              normalize, normalize_style, propose, template_texts)
+from ..legend.scope import normalize_scope, scope_info, scope_label, scoped_document, selected_plan_ids
+from ..legend.variants import apply_variant_rules
+from ..legend.text_rules import normalize_text_rules
 from ..projects.review import build_review
 from ..projects.store import Project, safe_folder_name
 from ..render.engine import engine_geometry
@@ -83,6 +86,9 @@ class LegendIn(BaseModel):
 class ProposeIn(BaseModel):
     style: dict | None = None
     categories: list[str] | None = None     # only these categories (e.g. a fire alarm legend)
+    scope: dict | None = None
+    text_rules: dict | None = None
+    variant_rules: dict | None = None
 
 
 class NewLegendIn(BaseModel):
@@ -91,6 +97,9 @@ class NewLegendIn(BaseModel):
     categories: list[str] | None = None     # proposal: only these sections or groups
     copy_of: int | None = None              # copy: this legend
     general: bool | None = None             # show the general part (default: only the full legend)
+    scope: dict | None = None
+    text_rules: dict | None = None
+    variant_rules: dict | None = None
 
 
 class RenameLegendIn(BaseModel):
@@ -640,6 +649,9 @@ def register(app: FastAPI, st, project, evaluator, category_colors) -> None:
     # -- project legend -------------------------------------------------------------------
 
     def project_style(p) -> dict:
+        presentation = p.settings().get("legend_defaults") or st.company.legend_settings().get("legend_presentation_defaults") or {}
+        if isinstance(presentation, dict) and isinstance(presentation.get("style"), dict):
+            return normalize_style(presentation["style"])
         s = p.settings().get("legend_style") or {}
         c = company_legend()
         return normalize_style({"grid": s.get("grid", DEFAULT_GRID), "text_size": s.get("text_size", c["text_size"]),
@@ -651,17 +663,83 @@ def register(app: FastAPI, st, project, evaluator, category_colors) -> None:
                                 "hatch_off": s.get("hatch_off", c["hatch_off"]),
                                 "fill_off": s.get("fill_off", c["fill_off"])})
 
+    def legend_document(value) -> dict:
+        """Old documents inherit their actual legacy grouping, including opt-outs."""
+        source = value if isinstance(value, dict) else {}
+        if not isinstance(source.get("variant_rules"), dict):
+            options = st.company.options()
+            source = {**source, "variant_rules": {
+                "labels": options.get("merge_labels") is not False,
+                "orientation": options.get("merge_orientation") is True}}
+        return normalize(source)
+
     def stored_legend(p, legend_id: int | None) -> dict | None:
         """One legend of the project (the first without an id); 404 for an unknown id."""
         stored = p.legend(legend_id)
         if legend_id is not None and stored is None:
             raise HTTPException(404, "Legende nicht gefunden")
-        return stored
+        return {**stored, "doc": legend_document(stored["doc"])} if stored else None
 
     def legend_part_name(p, stored: dict | None) -> str:
         """File name part of a whole legend: its own name when the project has several."""
         name = (stored or {}).get("name") or "Legende"
         return name if len(p.legends()) > 1 else "Legende"
+
+    def output_document(p, doc: dict) -> tuple[dict, dict, dict, dict]:
+        """One pipeline for the view, diagnostics and every export format.
+
+        No rendering choice mutates the saved legend. In particular an unknown
+        selected floor remains unknown rather than silently expanding to all.
+        """
+        ev = evaluator()
+        all_result = ev.evaluate(p)
+        ids = selected_plan_ids(doc.get("scope") or {})
+        result = ev.evaluate(p, ids) if ids is not None else all_result
+        view = scoped_document(doc, result, all_result["plans"])
+        view, variants = apply_variant_rules(view, families=ev.families, rows=result["rows"])
+        info = scope_info(doc, result, all_result["plans"], all_result)
+        info["counts"]["legend_rows"] = sum(
+            1 for block in view.get("blocks", []) for item in block.get("items", [])
+            if not item.get("hidden") and item.get("kind") != "gap")
+        return view, result, info, variants
+
+    def scoped_part_name(p, stored: dict | None, doc: dict, part: str = "") -> str:
+        name = part or legend_part_name(p, stored)
+        scope = normalize_scope(doc.get("scope"))
+        suffix = scope_label(scope, p.plans()) if scope["filename_suffix"] else ""
+        return f"{name}-{suffix}" if suffix else name
+
+    def presentation_defaults(value: dict) -> dict:
+        """Only presentation is reusable: never floor IDs, project text or entries."""
+        doc = legend_document(value)
+        return {key: doc[key] for key in ("style", "text_rules", "variant_rules")}
+
+    def defaults_info(p) -> dict:
+        own = p.settings().get("legend_defaults")
+        company = st.company.legend_settings().get("legend_presentation_defaults")
+        own = presentation_defaults(own) if isinstance(own, dict) and own else None
+        company = presentation_defaults(company) if isinstance(company, dict) and company else None
+        return {"project": own, "company": company,
+                "effective": own or company or presentation_defaults({"style": project_style(p)}),
+                "is_admin": company_legend()["is_admin"]}
+
+    @app.get("/api/projects/{project_id}/legend/defaults")
+    def get_legend_defaults(project_id: str) -> dict:
+        return defaults_info(project(project_id))
+
+    @app.put("/api/projects/{project_id}/legend/defaults/{target}")
+    def put_legend_defaults(project_id: str, target: str, body: LegendIn) -> dict:
+        p = project(project_id)
+        if target not in ("project", "company"):
+            raise HTTPException(400, "Vorgabe muss für Projekt oder Firma gelten.")
+        if target == "company":
+            require_admin()
+        values = presentation_defaults(body.doc)
+        if target == "company":
+            st.company.set_legend_settings({"legend_presentation_defaults": values})
+        else:
+            p.set_settings({"legend_defaults": values})
+        return defaults_info(p)
 
     # -- user stencils (Benutzerschablonen, per user and Nova version) -------------------
 
@@ -822,12 +900,14 @@ def register(app: FastAPI, st, project, evaluator, category_colors) -> None:
             raise HTTPException(404, "Kein Vorschaubild im Makro") from None
         return Response(data, media_type="image/bmp")
 
-    def make_proposal(p, style: dict | None, categories: list[str] | None) -> dict:
+    def make_proposal(p, style: dict | None, categories: list[str] | None, scope: dict | None = None,
+                      text_rules: dict | None = None, variant_rules: dict | None = None) -> dict:
         ev = evaluator()
-        result = ev.evaluate(p)
+        scope = normalize_scope(scope)
+        result = ev.evaluate(p, selected_plan_ids(scope))
         meta = p.meta()
         title = "Legende " + " ".join(x for x in (meta.get("project_number"), meta.get("name")) if x)
-        picked = category_colors(p, ev)
+        picked = category_colors(p, ev, result)
         colors = {c["id"]: c.get("color") for c in picked}
         layer_categories = {}
         for c in picked:
@@ -854,6 +934,10 @@ def register(app: FastAPI, st, project, evaluator, category_colors) -> None:
         if categories:
             wanted = set(categories)
             doc["blocks"] = [b for b in doc["blocks"] if b.get("category_id") in wanted]
+        doc["scope"] = scope
+        defaults = defaults_info(p)["effective"]
+        doc["text_rules"] = normalize_text_rules(text_rules if text_rules is not None else defaults["text_rules"])
+        doc["variant_rules"] = normalize({"variant_rules": variant_rules if variant_rules is not None else defaults["variant_rules"]})["variant_rules"]
         return doc
 
     # -- several legends per project -------------------------------------------------------
@@ -873,13 +957,21 @@ def register(app: FastAPI, st, project, evaluator, category_colors) -> None:
                 raise HTTPException(400, "Es gibt keine Legende zum Kopieren.")
             doc = normalize(src["doc"])
         elif body.source == "empty":
-            doc = normalize({"title": {"text": name}, "style": project_style(p), "blocks": []})
+            doc = normalize({"title": {"text": name}, "style": project_style(p), "blocks": [],
+                             "scope": body.scope})
         else:
-            doc = make_proposal(p, None, body.categories)
+            doc = make_proposal(p, None, body.categories, body.scope, body.text_rules, body.variant_rules)
             if body.categories:
                 doc["title"]["text"] = name
             # a themed legend (only UKV, only BMA) comes without the general part unless asked
             doc["general_on"] = body.general if body.general is not None else not body.categories
+        if body.source == "empty":
+            defaults = defaults_info(p)["effective"]
+            doc.update(text_rules=defaults["text_rules"], variant_rules=defaults["variant_rules"])
+        if body.text_rules is not None:
+            doc["text_rules"] = normalize_text_rules(body.text_rules)
+        if body.variant_rules is not None:
+            doc["variant_rules"] = normalize({"variant_rules": body.variant_rules})["variant_rules"]
         stored = p.add_legend(name, normalize(doc))
         return {"legend": {**stored, "doc": normalize(stored["doc"])}, "items": p.legends()}
 
@@ -911,17 +1003,17 @@ def register(app: FastAPI, st, project, evaluator, category_colors) -> None:
         gen = load_general()
         descriptions = st.company.descriptions()
         rows: list = []
-        if stored or gen.kind:
-            try:
-                ev = evaluator()
-                result = ev.evaluate(p)
-                if gen.kind:
-                    rows = result["rows"]
-                if doc is not None:
-                    picked = {c["id"]: c.get("color") or "" for c in category_colors(p, ev, result)}
-                    doc = apply_plan_section_colors(doc, picked)
-            except Exception:  # noqa: BLE001 - a colour refresh must not block the editor
-                rows = []
+        scope_status, variants = None, None
+        try:
+            ev = evaluator()
+            _, result, scope_status, variants = output_document(p, doc or normalize(None))
+            if gen.kind:
+                rows = result["rows"]
+            if doc is not None:
+                picked = {c["id"]: c.get("color") or "" for c in category_colors(p, ev, result)}
+                doc = apply_plan_section_colors(doc, picked)
+        except Exception:  # noqa: BLE001 - a colour refresh must not block the editor
+            rows = []
         if stored and doc is not None:
             stored = {**stored, "doc": doc}
         in_general = {**gen.contents(), "covered": sorted(covered_families(gen, rows, descriptions))}
@@ -929,6 +1021,7 @@ def register(app: FastAPI, st, project, evaluator, category_colors) -> None:
                 "template_texts": template_texts(), "descriptions": descriptions,
                 "stencil_names": stencil_names(evaluator(), project_nova(p)),
                 "in_general": in_general,
+                "scope_info": scope_status, "variant_info": variants,
                 "company_symbols": st.company.legend_settings().get("legend_company_symbols") or {},
                 "grids": [{"id": k, **v} for k, v in GRIDS.items()], "style": project_style(p),
                 "company": company_legend(), "oda": bool(config.resolve_oda_converter(st.settings.oda_path))}
@@ -936,7 +1029,7 @@ def register(app: FastAPI, st, project, evaluator, category_colors) -> None:
     @app.put("/api/projects/{project_id}/legend")
     def put_legend(project_id: str, body: LegendIn, legend: int | None = None) -> dict:
         try:
-            return {"legend": project(project_id).set_legend(normalize(body.doc), legend)}
+            return {"legend": project(project_id).set_legend(legend_document(body.doc), legend)}
         except KeyError:
             raise HTTPException(404, "Legende nicht gefunden") from None
 
@@ -944,15 +1037,18 @@ def register(app: FastAPI, st, project, evaluator, category_colors) -> None:
     def propose_legend(project_id: str, body: ProposeIn | None = None) -> dict:
         """A new proposal from the current project counts. Not saved: the editor saves it."""
         p = project(project_id)
-        return {"doc": make_proposal(p, body.style if body else None, body.categories if body else None)}
+        return {"doc": make_proposal(p, body.style if body else None, body.categories if body else None,
+                                     body.scope if body else None, body.text_rules if body else None,
+                                     body.variant_rules if body else None)}
 
     @app.post("/api/projects/{project_id}/legend/layout")
     def layout_legend(project_id: str, body: LegendIn) -> dict:
         p = project(project_id)
-        doc = normalize(body.doc)
+        doc = legend_document(body.doc)
+        view, _, scope_status, variants = output_document(p, doc)
         gen = project_general(p)
-        lay = place(doc, sizes_of(doc), gen.info() if gen.kind else None)
-        return {**lay, "general": gen.info()}
+        lay = place(view, sizes_of(view), gen.info() if gen.kind else None)
+        return {**lay, "general": gen.info(), "scope_info": scope_status, "variant_info": variants}
 
     @app.get("/api/projects/{project_id}/legend/general")
     def general_preview(project_id: str) -> dict:
@@ -968,7 +1064,7 @@ def register(app: FastAPI, st, project, evaluator, category_colors) -> None:
         stored = stored_legend(p, legend)
         doc = normalize(stored["doc"]) if stored else {"blocks": []}
         target = next((b for b in doc["blocks"] if b["id"] == block), None) if block else None
-        return {"name": export_name(p.meta(), target["title"] if target else legend_part_name(p, stored),
+        return {"name": export_name(p.meta(), scoped_part_name(p, stored, doc, target["title"] if target else ""),
                                     export_ext(format))}
 
     # The file name is part of the path, so a browser that ignores the header still saves it right.
@@ -984,14 +1080,17 @@ def register(app: FastAPI, st, project, evaluator, category_colors) -> None:
         target_block = next((b for b in doc["blocks"] if b["id"] == block), None) if block else None
         if block and target_block is None:
             raise HTTPException(404, "Abschnitt nicht gefunden")
+        view, _, scope_status, _ = output_document(p, doc)
+        if scope_status["missing_plan_ids"]:
+            raise HTTPException(409, "Ein gewähltes Geschoss ist nicht mehr vorhanden. Bitte die Geschossauswahl prüfen.")
         gen = project_general(p) if general else general_part.GeneralPart()
-        lay = place(doc, sizes_of(doc), gen.info() if gen.kind else None,
+        lay = place(view, sizes_of(view), gen.info() if gen.kind else None,
                     only_block=block or None, include_general=general)
         dxf = build_dxf(lay, gen if gen.kind else None,
                         lambda prim: geometry(prim["key"], prim.get("length_mm"), prim.get("width_mm"))[0],
                         doc["style"]["font"])
         ext = export_ext(format)
-        name = export_name(p.meta(), target_block["title"] if target_block else legend_part_name(p, stored), ext)
+        name = export_name(p.meta(), scoped_part_name(p, stored, doc, target_block["title"] if target_block else ""), ext)
         if ext == "pdf":
             data = build_pdf(dxf, lay["width"], lay["height"], Path(name).stem, doc["style"]["pdf_lines"])
             return Response(data, media_type="application/pdf",
@@ -1041,7 +1140,8 @@ def register(app: FastAPI, st, project, evaluator, category_colors) -> None:
             several = len(legends) > 1
             blocks = []
             for lg in legends:
-                for b in normalize(lg["doc"])["blocks"]:
+                view, _, _, _ = output_document(p, legend_document(lg["doc"]))
+                for b in view["blocks"]:
                     blocks.append({**b, "title": f"{lg['name']} · {b['title']}" if several else b["title"]})
             stored = {"doc": {"blocks": blocks},
                       "updated_at": min(lg.get("updated_at") or "" for lg in legends)}

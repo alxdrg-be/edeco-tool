@@ -19,6 +19,7 @@ interface Props {
   notify: (text: string, error?: boolean) => void;
   onBack: () => void;
   onOpenProject: (id: string) => void;
+  onOpenTool?: (id: string) => void;
 }
 
 type Tab = "list" | "legend" | "unknown" | "layers" | "ignored" | "changes" | "review";
@@ -30,7 +31,7 @@ interface ImportStatus {
 
 const DETACH_TEXT = "Entfernt nur die gespeicherte Plandatei. Importierte Anzahlen und Versionen bleiben erhalten.";
 
-export default function ProjectView({ projectId, projects, categories, notify, onBack, onOpenProject }: Props) {
+export default function ProjectView({ projectId, projects, categories, notify, onBack, onOpenProject, onOpenTool }: Props) {
   const { navigate } = useNavigation();
   const loadGeneration = useRef(0);
   const [data, setData] = useState<ProjectDetail | null>(null);
@@ -752,7 +753,7 @@ export default function ProjectView({ projectId, projects, categories, notify, o
                 </header>
                 {legendId !== null && (
                   <LegendEditor key={`${projectId}:${legendId}`} projectId={projectId} legendId={legendId || null}
-                    data={data} categories={categories} notify={notify} onProjects={() => { void navigate(onBack); }} />
+                    data={data} categories={categories} notify={notify} onProjects={() => { void navigate(onBack); }} onOpenTool={onOpenTool} />
                 )}
               </section>
             )}

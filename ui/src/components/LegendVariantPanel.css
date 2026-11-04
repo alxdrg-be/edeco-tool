@@ -1,0 +1,11 @@
+.legend-variant-panel{min-width:0;padding:12px;border:1px solid var(--line);border-radius:9px;background:var(--panel)}
+.legend-variant-panel>header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;font-size:12px}
+.legend-variant-rules>label{display:grid;grid-template-columns:16px minmax(70px,1fr) minmax(80px,1fr);gap:7px;align-items:center;min-height:34px;border-top:1px solid var(--line);cursor:pointer;font-size:12px}
+.legend-variant-rules input{width:14px;height:14px;margin:0;accent-color:var(--accent)}
+.legend-variant-rules input:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.legend-variant-rules small{color:var(--muted);font-size:10px;overflow-wrap:anywhere}
+.legend-variant-result{margin-top:8px;color:var(--muted);font-size:11px;font-variant-numeric:tabular-nums}
+.legend-variant-explanation{margin-top:8px;font-size:11px;color:var(--muted);line-height:1.5}
+.legend-variant-explanation>summary{cursor:pointer;padding-block:4px}
+.legend-variant-explanation>div{padding-top:3px}
+.legend-variant-explanation p{margin:6px 0}

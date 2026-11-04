@@ -25,6 +25,40 @@
 .legend-editor .legend-choice-swatch{display:inline-block;flex:0 0 auto;width:12px;height:12px;border:1px solid #89969f;border-radius:3px}
 .legend-editor .legend-color-options>button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .legend-editor .legend-layer-swatch.is-omitted{opacity:.3;filter:grayscale(.6)}
+.legend-editor .legend-body.outline-hidden{grid-template-columns:minmax(0,1fr) var(--props-w,280px)}
+.legend-editor .legend-body.outline-hidden.detached{grid-template-columns:minmax(0,1fr)}
+.legend-editor .legend-outline[hidden],.legend-editor .pane-handle[hidden]{display:none}
+.legend-editor .legend-preview-heading{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:7px 12px;background:var(--panel);border-top:1px solid var(--line);flex:0 0 auto;font-size:11px}
+.legend-editor .legend-preview-heading>:last-child{margin-left:auto}
+.legend-editor.preview-grayscale .legend-paper{filter:grayscale(1)}
+.legend-editor .legend-settings-card{border:1px solid var(--line);border-radius:9px;background:var(--panel);padding:10px;min-width:0}
+.legend-editor .legend-settings-card>header,.legend-editor .legend-settings-summary{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.legend-editor .legend-settings-summary{width:100%;background:none;border:0;color:var(--fg);font:600 12px var(--font-ui,system-ui);padding:0;text-align:left;cursor:pointer}
+.legend-editor .legend-settings-card>summary{cursor:pointer;font-size:12px;font-weight:650;line-height:1.5}
+.legend-editor .legend-settings-card>header{font-size:12px;margin-bottom:8px}
+.legend-editor .legend-settings-content{margin-top:9px;display:flex;flex-direction:column;gap:8px}
+.legend-editor .legend-choice-row{display:flex;gap:4px;flex-wrap:wrap;margin-top:8px}
+.legend-editor .legend-choice-row .btn{flex:1;min-width:0;padding:6px 7px;white-space:normal;line-height:1.3;font-size:11px}
+.legend-editor .legend-choice-row [aria-pressed=true]{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+.legend-editor .legend-size-values{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-block:9px;font-size:10px;color:var(--muted)}
+.legend-editor .legend-size-values label{display:flex;flex-direction:column;gap:4px}
+.legend-editor .legend-size-values output{display:block;padding:7px;border:1px solid var(--line);border-radius:6px;color:var(--fg);font-size:12px;background:var(--panel-2)}
+.legend-editor .legend-layout-warnings{flex:0 0 auto;max-height:140px;overflow:auto;padding:8px 10px;border-top:1px solid var(--line);background:var(--panel);font-size:11px}
+.legend-editor .legend-layout-warnings>strong{display:block;margin-bottom:4px}
+.legend-editor .legend-layout-warnings>button{display:flex;flex-direction:column;gap:3px;width:100%;text-align:left;border:0;border-top:1px solid var(--line);background:none;color:var(--fg);font:inherit;padding:6px 2px;cursor:pointer}
+.legend-editor .legend-layout-warnings small{color:var(--muted)}
+.legend-editor .legend-layout-warnings button:focus-visible,.legend-editor .legend-palette-issues button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.legend-editor .legend-palette-swatches{display:flex;flex-wrap:wrap;gap:5px}
+.legend-editor .legend-palette-swatches button{display:inline-flex;align-items:center;gap:5px;max-width:100%;font:inherit;font-size:10px;text-align:left;overflow-wrap:anywhere;color:var(--fg);background:var(--panel-2);border:1px solid var(--line);border-radius:5px;padding:4px 5px;cursor:pointer}
+.legend-editor .legend-palette-issues{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px}
+.legend-editor .legend-palette-issues button{display:flex;flex-direction:column;gap:3px;width:100%;text-align:left;color:var(--fg);font:inherit;font-size:11px;border:1px solid var(--line);border-left:2px solid var(--warning,#b57a19);border-radius:6px;background:var(--panel-2);padding:7px;cursor:pointer}
+.legend-editor .legend-standard-actions{display:flex;gap:5px;flex-wrap:wrap}
+.legend-editor .legend-standard-actions .btn{white-space:normal;font-size:11px}
+.legend-editor .legend-selection-details>summary{cursor:pointer;font-size:12px;font-weight:650;padding-block:9px;border-top:1px solid var(--line)}
+.legend-editor .legend-source-context{display:flex;flex-direction:column;gap:6px;padding:9px;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:7px;background:var(--panel-2);font-size:11px;line-height:1.5;margin-bottom:8px}.legend-editor .legend-source-context p{margin:0}.legend-editor .legend-source-context .btn{white-space:normal;text-align:left}
+@media(min-width:1251px){.legend-editor .legend-body{min-height:560px}.legend-editor.windowed .legend-canvas-shell{height:auto}}
 @media(max-width:1250px){.legend-editor .legend-canvas-shell{height:68dvh;min-height:400px}.legend-editor.windowed .legend-body{overflow:auto}.legend-editor.windowed .legend-canvas-shell{height:64dvh;min-height:360px}}
+@media(max-width:1250px){.legend-editor .legend-body.outline-hidden{grid-template-columns:minmax(0,1fr)}.legend-editor .legend-body.outline-hidden .legend-props:not(.floating){grid-column:auto;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}.legend-editor .legend-body.outline-hidden .legend-selection-details{grid-column:1/-1}}
 @media(max-width:800px){.legend-editor .legend-sheet-size{display:block;margin:1px 0 0}.legend-editor .legend-editor-heading{align-items:flex-start}.legend-editor .legend-editor-heading-main{flex-wrap:wrap;gap:6px}.legend-editor .legend-canvas{padding:14px}.legend-editor .legend-zoom-dock{gap:2px;padding-inline:4px}.legend-editor .legend-dock-divider{margin-inline:1px}.legend-editor.windowed{inset:4px;padding:8px}}
+@media(max-width:800px){.legend-editor .legend-body.outline-hidden .legend-props:not(.floating){display:flex}.legend-editor .legend-preview-heading{gap:6px}.legend-editor .legend-preview-heading>:last-child{margin-left:0}}
 @media(max-width:540px){.legend-editor .legend-editor-heading{flex-wrap:wrap}.legend-editor .legend-expand-button{margin-left:auto}.legend-editor .legend-layout-notice .btn{white-space:normal;text-align:left}}

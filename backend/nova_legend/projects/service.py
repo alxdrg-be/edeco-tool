@@ -55,16 +55,19 @@ class ProjectEvaluator:
         rep = fam.representative
         return auto_categories(rep.sheet, rep.name, self.categories, rep.dataset)[0]
 
-    def evaluate(self, project: Project) -> dict:
-        plans = project.plans()
+    def evaluate(self, project: Project, plan_ids: set[int] | None = None) -> dict:
+        plans = [plan for plan in project.plans() if plan_ids is None or plan["id"] in plan_ids]
         per_plan = project.current_elements()
         rows: dict[str, dict] = {}
         unknown: dict[str, dict] = {}
         ignored: dict[str, dict] = {}
         stats = defaultdict(int)
+        project_palette = {layer["name"]: layer.get("color") for layer in project.layers()}
         self.layer_usage: dict[str, dict[str, int]] = defaultdict(lambda: defaultdict(int))
         for plan in plans:
             pid = plan["id"]
+            own_palette = project.version_layer_palette(plan["current_version"]) if plan.get("current_version") else {}
+            palette = own_palette if own_palette is not None else project_palette
             for el in per_plan.get(pid, []):
                 found = _found_from_row(el)
                 res = resolve(found, self.index, self.mappings)
@@ -97,15 +100,32 @@ class ProjectEvaluator:
                             "total": 0,
                             "datasets": set(),
                             "layers": defaultdict(int),
+                            "layer_color_counts": defaultdict(lambda: defaultdict(int)),
+                            "source_colors_complete": True,
+                            "symbol_variants": {},
                         }
                     row = rows[row_key]
                     row["datasets"].add(sym.dataset)
                     row["counts"][pid] = row["counts"].get(pid, 0) + found.count
                     row["total"] += found.count
+                    variant = row["symbol_variants"].setdefault(sym.key, {
+                        "symbol_key": sym.key, "mounting": sym.mounting or "", "total": 0,
+                        "counts": defaultdict(int), "_colors": defaultdict(int),
+                        "source_colors_complete": True})
+                    variant["total"] += found.count
+                    variant["counts"][pid] += found.count
                     if found.count:
+                        row["source_colors_complete"] &= own_palette is not None
+                        variant["source_colors_complete"] &= own_palette is not None
                         row["mountings"][sym.mounting or "-"] += found.count
                         for layer, amount in found.layers.items():
                             row["layers"][layer] += amount
+                            color = palette.get(layer)
+                            if (isinstance(color, str) and len(color) == 7 and color.startswith("#")
+                                    and all(ch in "0123456789abcdefABCDEF" for ch in color[1:])
+                                    and color.lower() != "#ffffff" and amount > 0):
+                                row["layer_color_counts"][layer][color.lower()] += amount
+                                variant["_colors"][color.lower()] += amount
                             for cid in row["categories"]:
                                 self.layer_usage[cid][layer] += amount
                     if found.name and found.name.lower() != (row["title"] or "").lower():
@@ -140,6 +160,20 @@ class ProjectEvaluator:
             row["sources"] = sorted(row["sources"])
             row["datasets"] = sorted(row["datasets"], key=lambda d: (".V2." not in d, d))
             row["layers"] = dict(row.get("layers") or {})
+            row["layer_color_counts"] = {layer: dict(colors) for layer, colors in row["layer_color_counts"].items()}
+            color_totals: dict[str, int] = defaultdict(int)
+            for colors in row["layer_color_counts"].values():
+                for color, amount in colors.items():
+                    color_totals[color] += amount
+            row["layer_colors"] = [color for color, _ in sorted(color_totals.items(), key=lambda item: (-item[1], item[0]))]
+            variants = []
+            for variant in row["symbol_variants"].values():
+                colors = variant.pop("_colors")
+                variant["layer_colors"] = [color for color, _ in sorted(colors.items(), key=lambda item: (-item[1], item[0]))]
+                variant["counts"] = dict(variant["counts"])
+                if variant["total"] > 0:
+                    variants.append(variant)
+            row["symbol_variants"] = variants
             out_rows.append(row)
         out_rows.sort(key=lambda r: (min((order.get(c, 999) for c in r["categories"]), default=999),
                                      r["title"].lower()))
@@ -149,7 +183,12 @@ class ProjectEvaluator:
             u["layers"] = dict(u["layers"])
             out_unknown.append(u)
         out_unknown.sort(key=lambda u: -u["total"])
-        for name, count in project.import_ignored().items():
+        imported_ignored: dict[str, int] = {}
+        for plan in plans:
+            if plan.get("current_version"):
+                for name, count in project.version_ignored(plan["current_version"]).items():
+                    imported_ignored[name] = imported_ignored.get(name, 0) + count
+        for name, count in imported_ignored.items():
             ignored[f"import:{name}"] = {
                 "source_key": f"import:{name}", "name": name, "reason": _import_reason(name),
                 "manual": False, "total": count}

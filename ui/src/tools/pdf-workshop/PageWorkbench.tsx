@@ -17,9 +17,9 @@ const PAGE_WORKFLOWS: Record<string, { title: string; hint: string }> = {
 };
 interface DropTarget { document: string; before?: string; side?: "before" | "after"; page?: string }
 
-export default function PageWorkbench({ sessionKey, onDirty, onWorking, incomingFiles, onFilesChange, tool }: {
+export default function PageWorkbench({ sessionKey, onDirty, onWorking, incomingFiles, onFilesChange, onResultFiles, tool }: {
   sessionKey: string; onDirty: () => void; onWorking: (busy: boolean) => void;
-  incomingFiles?: File[]; onFilesChange?: (files: File[]) => void; tool?: string | null;
+  incomingFiles?: File[]; onFilesChange?: (files: File[]) => void; onResultFiles?: (files: File[]) => void; tool?: string | null;
 }) {
   const [sources, setSources] = useState<Source[]>([]);
   const [pages, setPages] = useState<Page[]>([]);
@@ -237,6 +237,7 @@ export default function PageWorkbench({ sessionKey, onDirty, onWorking, incoming
       resultUrl.current = URL.createObjectURL(blob);
       const name = (exportName.trim().replace(/[<>:"/\\|?*\x00-\x1f]/g, "_").replace(/\.pdf$/i, "") || "edeco-Dokument") + ".pdf";
       setResult({ url: resultUrl.current, name, count: exportPages.length });
+      onResultFiles?.([new File([blob], name, { type: "application/pdf" })]);
       const anchor = window.document.createElement("a");
       anchor.href = resultUrl.current; anchor.download = name; window.document.body.append(anchor); anchor.click(); anchor.remove();
     } catch (e) { setError((e as Error).message); }

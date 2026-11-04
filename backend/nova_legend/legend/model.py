@@ -15,6 +15,10 @@ import re
 import uuid
 from pathlib import Path
 
+from .scope import normalize_scope
+from .text_rules import normalize_text_rules
+from .variants import normalize_variant_rules
+
 DOC_VERSION = 4
 AP_NOTE = "Unterscheidung UP / AP (halbausgefüllt)"
 AP_NOTE_KEY = "hinweis:up-ap"      # key of its company text (table descriptions)
@@ -154,7 +158,7 @@ def default_style(text_size: float = DEFAULT_TEXT_SIZE, symbol_scale: float = DE
             "columns": columns, "compact_flow": True, "width": SHEET_WIDTH, "margin": MARGIN, "plan_scale": 50,
             "section_gap": 0.0, "entry_gap": 0.0, "text_lines": 0,
             "hatch_off": False, "fill_off": False,
-            "symbol_size": "tile", "symbol_fit": "corridor", "general_source_look": True,
+            "symbol_size": "tile", "symbol_fit": "corridor", "symbol_weight": "fit", "general_source_look": True,
             "pdf_lines": "original",
             "normalize_size": True,
             "frame_on": False, "frame": "#000000"}
@@ -177,6 +181,8 @@ def _general_section(value) -> dict:
 
 def empty_doc(title: str = "", style: dict | None = None) -> dict:
     return {"version": DOC_VERSION, "style": style or default_style(),
+            "scope": normalize_scope(None), "text_rules": normalize_text_rules(None),
+            "variant_rules": normalize_variant_rules(None), "color_review": {"threshold": 10.0},
             "title": {"text": title, "scale": 1.0, "size_mm": DEFAULT_TITLE_MM, "font": "Arial",
                       "color": "#000000", "border_on": False, "border": "#000000"},
             "general_section": _general_section(None),
@@ -211,6 +217,7 @@ def normalize_style(value) -> dict:
     # Saved square-cell legends stay unchanged until the user selects the new
     # template preset. Wide luminaires may then use the full symbol corridor.
     style["symbol_fit"] = "corridor" if v.get("symbol_fit") == "corridor" else "square"
+    style["symbol_weight"] = "optical" if v.get("symbol_weight") == "optical" else "fit"
     style["general_source_look"] = v.get("general_source_look") is True
     # Stored legends without the new preset keep their earlier section layout.
     style["compact_flow"] = v.get("compact_flow") is True
@@ -261,6 +268,10 @@ def normalize(doc: dict | None) -> dict:
     title = doc.get("title") or {}
     old = int(_num(doc.get("version"), 1))
     out = {"version": DOC_VERSION, "style": style,
+           "scope": normalize_scope(doc.get("scope")),
+           "text_rules": normalize_text_rules(doc.get("text_rules")),
+           "variant_rules": normalize_variant_rules(doc.get("variant_rules")),
+           "color_review": {"threshold": _num((doc.get("color_review") if isinstance(doc.get("color_review"), dict) else {}).get("threshold"), 10, 1, 40)},
            "title": {"text": str(title.get("text", ""))[:200], "scale": _scale(title.get("scale")),
                      "size_mm": _num(title.get("size_mm", DEFAULT_TITLE_MM), DEFAULT_TITLE_MM, 0, 20),
                      "font": str(title.get("font") or "Arial")[:40],
@@ -469,14 +480,21 @@ def color_shares(row: dict, category_id: str | None, layer_categories: dict[str,
     Layers that belong to another category are left out, so each section only
     shows the colours of its own layers. The legend uses the first (most used) one.
     """
-    if not layer_colors:
+    if not layer_colors and not row.get("layer_color_counts"):
         return []
     totals: dict[str, int] = {}
     for name, amount in (row.get("layers") or {}).items():
         mapped = (layer_categories or {}).get(name)
         if category_id and mapped and mapped != category_id:
             continue
-        color = _plan_hex(layer_colors.get(name))
+        snapshot = (row.get("layer_color_counts") or {}).get(name)
+        if isinstance(snapshot, dict):
+            for raw, count in snapshot.items():
+                color = _plan_hex(raw)
+                if color:
+                    totals[color] = totals.get(color, 0) + int(count or 0)
+            continue
+        color = _plan_hex((layer_colors or {}).get(name))
         if not color:
             continue
         totals[color] = totals.get(color, 0) + int(amount or 0)

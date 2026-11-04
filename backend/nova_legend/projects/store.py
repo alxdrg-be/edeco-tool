@@ -310,7 +310,8 @@ class Project:
                     "INSERT INTO plan_versions (plan_id, file_name, stored_file, format, imported_at, "
                     "imported_by, info, ignored) VALUES (?,?,?,?,?,?,?,?)",
                     (plan_id, original_name, f"{PLANS_DIR}/{stored.name}", result.format, _now(),
-                     current_user(), json.dumps(result.info, ensure_ascii=False, default=str),
+                     current_user(), json.dumps({**result.info, "_layer_palette": {
+                         layer.name: layer.color for layer in result.layers}}, ensure_ascii=False, default=str),
                      json.dumps(result.ignored, ensure_ascii=False)))
                 vid = int(cur.lastrowid)
                 con.executemany(
@@ -405,6 +406,18 @@ class Project:
         if not row:
             return {}
         return {name: int(count) for name, count in json.loads(row["ignored"] or "{}").items()}
+
+    def version_layer_palette(self, version_id: int) -> dict[str, str] | None:
+        """Per-import source colours; None distinguishes legacy unsnapshotted data.
+
+        The project-wide layers table intentionally retains only the latest
+        value of a name. That table cannot prove an older floor's own colour.
+        """
+        with self.tx() as con:
+            row = con.execute("SELECT info FROM plan_versions WHERE id=?", (version_id,)).fetchone()
+        info = json.loads(row["info"] or "{}") if row else {}
+        palette = info.get("_layer_palette") if isinstance(info, dict) else None
+        return palette if isinstance(palette, dict) else None
 
     # -- legend (Phase 4) ------------------------------------------------------------
 

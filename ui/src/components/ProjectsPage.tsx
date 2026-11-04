@@ -10,9 +10,10 @@ interface Props {
   novaVersion: string;
   notify: (text: string, error?: boolean) => void;
   onOpenSettings: () => void;
+  onOpenTool?: (id: string) => void;
 }
 
-export default function ProjectsPage({ categories, novaVersion, notify, onOpenSettings }: Props) {
+export default function ProjectsPage({ categories, novaVersion, notify, onOpenSettings, onOpenTool }: Props) {
   const [items, setItems] = useState<ProjectSummary[]>([]);
   const [folder, setFolder] = useState("");
   const [folderExists, setFolderExists] = useState(true);
@@ -45,6 +46,7 @@ export default function ProjectsPage({ categories, novaVersion, notify, onOpenSe
         projects={items}
         categories={categories}
         notify={notify}
+        onOpenTool={onOpenTool}
         onBack={() => {
           setOpen(null);
           load();

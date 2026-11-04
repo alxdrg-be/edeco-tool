@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Activity, ArrowLeft, ArrowUpRight, Bath, BookOpen, Cable, Calculator, ChevronDown, Earth, HardHat, HeartPulse, Info, Layers, Moon, Plug, Ruler, ScanLine, Search, ShieldCheck, Sun, Zap } from "lucide-react";
+import { Activity, ArrowLeft, ArrowUpRight, Bath, BookOpen, Cable, Calculator, ChevronDown, Earth, HardHat, HeartPulse, Info, Layers, Moon, Plug, Ruler, ScanLine, Search, ShieldCheck, Star, Sun, Zap } from "lucide-react";
 import type { ToolProps } from "../../toolbox/modules";
 import ToolhubHeader from "../../toolbox/ToolhubHeader";
 import { useToolhubLocation } from "../../toolbox/ToolhubNavigation";
@@ -11,12 +11,15 @@ import { SOURCE_CATALOG } from "./sourceCatalog";
 import { filterMemoryEntries, filterMemoryTopics, memoryPagesLabel, referenceMemoryTopics, type MemoryFilter } from "./memorySearch";
 import type { MemoryEntry, MemoryTopic } from "./types";
 import MemoryDiagram from "./MemoryDiagram";
+import { BathReference, IpDecoder, MemoryReferenceShortcuts, SwissSocketGuide } from "./MemoryReferenceTools";
+import { readMemoryFavorites } from "./memoryReference";
 import "./elektro-memory.css";
 
 export interface ElektroMemoryProps extends ToolProps { initialTab?: "reference" | "calculator"; initialFormulaId?: string }
 const TOPICS = referenceMemoryTopics([...SOURCE_CATALOG.topics, ...BASIC_TOPICS]);
 const SOURCE_NOTES = SOURCE_CATALOG.topics.flatMap(topic => topic.entries).filter(entry => entry.presentation === "source-note");
 const FILTERS: [MemoryFilter, string][] = [["all", "Alle"], ["formulas", "Formeln"], ["reference", "Schutz & Normen"], ["basics", "Grundlagen"]];
+const FAVORITES_KEY = "edeco-memory-favorites-v1";
 
 function TopicIcon({ topic, size = 22 }: { topic: MemoryTopic; size?: number }) {
   const sourceIcons = { "em-emergency": HeartPulse, "em-safety-rules": HardHat, "em-testing": ScanLine, "em-short-circuit-rules": Zap,
@@ -66,6 +69,11 @@ export default function ElektroMemory({ onHome, onOpenTool, initialTab = "refere
   const [query, setQuery] = useState("");
   const [entryQuery, setEntryQuery] = useState("");
   const [filter, setFilter] = useState<MemoryFilter>("all");
+  const [favoritesOnly, setFavoritesOnly] = useState(false);
+  const [favorites, setFavorites] = useState<string[]>(() => {
+    try { return readMemoryFavorites(localStorage.getItem(FAVORITES_KEY), TOPICS.map(topic => topic.id)); }
+    catch { return []; }
+  });
   const heading = useRef<HTMLHeadingElement>(null);
   const topicButtons = useRef(new Map<string, HTMLButtonElement>());
   const overviewScroll = useRef(0);
@@ -73,13 +81,15 @@ export default function ElektroMemory({ onHome, onOpenTool, initialTab = "refere
   const location = useToolhubLocation();
   const theme = useToolhubTheme();
   const selected = TOPICS.find(topic => topic.id === topicId);
-  const topics = filterMemoryTopics(TOPICS, query, filter);
+  const topics = filterMemoryTopics(TOPICS, query, filter).filter(topic => !favoritesOnly || favorites.includes(topic.id));
   const entries = selected ? filterMemoryEntries(selected, entryQuery) : [];
   const coverage = new Set(SOURCE_CATALOG.completeness.inventoriedPages).size;
   const formulaCount = SOURCE_CATALOG.topics.flatMap(topic => topic.entries).filter(entry => entry.kind === "formula").length;
   useEffect(() => { setTab(initialTab); }, [initialTab]);
   useEffect(() => { if (initialFormulaId && isFormulaId(initialFormulaId)) setFormula(initialFormulaId); }, [initialFormulaId]);
   useEffect(() => { if (topicId) heading.current?.focus(); }, [topicId]);
+  useEffect(() => { try { localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites)); } catch { /* Reference tools still work when browser storage is unavailable. */ } }, [favorites]);
+  function toggleFavorite(id: string) { setFavorites(current => current.includes(id) ? current.filter(value => value !== id) : [...current, id]); }
   function calculate(id: FormulaId) { setFormula(id); setTab("calculator"); window.scrollTo({ top: 0, behavior: "smooth" }); }
   function openTopic(id: string) {
     if (!topicId) { overviewScroll.current = window.scrollY; overviewTopic.current = id; }
@@ -110,16 +120,24 @@ export default function ElektroMemory({ onHome, onOpenTool, initialTab = "refere
         {selected ? <article className="memory-article">
           <nav className="memory-article-navigation" aria-label="Memory-Themennavigation">
             <button type="button" className="memory-back" onClick={returnToTopics}><ArrowLeft size={18} aria-hidden="true" />Alle Themen</button>
+            <button type="button" className="memory-favorite" aria-pressed={favorites.includes(selected.id)} onClick={() => toggleFavorite(selected.id)}><Star size={17} aria-hidden="true" />{favorites.includes(selected.id) ? "Als Favorit gespeichert" : "Als Favorit merken"}</button>
             <label className="memory-topic-switch"><span>Thema wechseln</span><select aria-label="Thema wechseln" value={selected.id} onChange={event => openTopic(event.target.value)}>{TOPICS.map(topic => <option key={topic.id} value={topic.id}>{topic.title}</option>)}</select></label>
           </nav>
           <header className="memory-article-heading"><span className="memory-topic-icon"><TopicIcon topic={selected} size={27} /></span><div><span className="memory-topic-source">{memoryPagesLabel(selected.pages)}</span><h2 tabIndex={-1} ref={heading}>{selected.title}</h2>{selected.summary && <p>{selected.summary}</p>}</div></header>
           {entryQuery && entries.length < selected.entries.length && <div className="memory-entry-search"><span>{entries.length} Einträge für «{entryQuery}»</span><button type="button" onClick={() => setEntryQuery("")}>Alle {selected.entries.length} Einträge anzeigen</button></div>}
-          <div className="memory-article-layout"><div className="memory-entry-list">{entries.map(entry => <MemoryEntryCard entry={entry} key={entry.id} onCalculate={calculate} />)}</div></div>
+          <div className="memory-article-layout">
+            {selected.id === "em-swiss-connectors" && <SwissSocketGuide />}
+            {selected.id === "em-ip-symbols" && <IpDecoder />}
+            {selected.id === "em-bathroom" && <BathReference />}
+            <div className="memory-entry-list">{entries.map(entry => <MemoryEntryCard entry={entry} key={entry.id} onCalculate={calculate} />)}</div>
+          </div>
         </article> : <>
-          <div className="memory-search-row"><label className="memory-search"><Search size={19} aria-hidden="true" /><input type="search" aria-label="Elektro-Memory durchsuchen" placeholder="Thema, Formel oder Einheit suchen …" value={query} onChange={event => setQuery(event.target.value)} /><span aria-label={`${topics.length} Themen`}>{topics.length}</span></label><div className="memory-filter" role="group" aria-label="Themen filtern">{FILTERS.map(([id, label]) => <button type="button" key={id} aria-pressed={filter === id} onClick={() => setFilter(id)}>{label}</button>)}</div></div>
+          <div className="memory-search-row"><label className="memory-search"><Search size={19} aria-hidden="true" /><input type="search" aria-label="Elektro-Memory durchsuchen" placeholder="Thema, Formel oder Einheit suchen …" value={query} onChange={event => setQuery(event.target.value)} /><span aria-label={`${topics.length} Themen`}>{topics.length}</span></label><div className="memory-reference-actions"><button type="button" className="memory-favorite" aria-pressed={favoritesOnly} onClick={() => setFavoritesOnly(value => !value)}><Star size={16} aria-hidden="true" />Favoriten{favorites.length > 0 ? ` (${favorites.length})` : ""}</button><button type="button" className="memory-emergency" onClick={() => openTopic("em-emergency")}><HeartPulse size={17} aria-hidden="true" />Notfall · 144</button></div></div>
+          <div className="memory-filter" role="group" aria-label="Themen filtern">{FILTERS.map(([id, label]) => <button type="button" key={id} aria-pressed={filter === id} onClick={() => setFilter(id)}>{label}</button>)}</div>
+          {!query && filter === "all" && !favoritesOnly && <MemoryReferenceShortcuts onOpenTopic={openTopic} />}
           {!query && filter === "all" && <div className="memory-quick"><span><Calculator size={18} />Schnell berechnen</span>{(["ohm", "leistung-3p", "leiterwiderstand", "energie"] as FormulaId[]).map((id, index) => <button type="button" key={id} onClick={() => calculate(id)}>{["Ohmsches Gesetz", "Drehstromleistung", "Leiterwiderstand", "Energie"][index]}<ArrowUpRight size={14} /></button>)}</div>}
           <div className="memory-topic-grid">{topics.map(topic => <button type="button" className={`memory-topic-card ${topic.group === "basics" ? "is-basic" : ""}`} key={topic.id} ref={node => { if (node) topicButtons.current.set(topic.id, node); else topicButtons.current.delete(topic.id); }} onClick={() => openTopic(topic.id)}><div><span className="memory-topic-icon"><TopicIcon topic={topic} /></span><ArrowUpRight size={17} aria-hidden="true" /></div><h2>{topic.title}</h2><p>{topic.summary}</p><footer><span>{topic.entries.length} Einträge</span><span>{memoryPagesLabel(topic.pages)}</span></footer></button>)}</div>
-          {topics.length === 0 && <div className="memory-empty" role="status"><Search size={30} strokeWidth={1.3} /><h2>Kein passendes Thema</h2><p>Versuche einen anderen Begriff oder entferne den Filter.</p><button type="button" onClick={() => { setQuery(""); setFilter("all"); }}>Suche zurücksetzen</button></div>}
+          {topics.length === 0 && <div className="memory-empty" role="status"><Search size={30} strokeWidth={1.3} /><h2>{favoritesOnly && favorites.length === 0 ? "Noch keine Favoriten" : "Kein passendes Thema"}</h2><p>{favoritesOnly && favorites.length === 0 ? "Öffne ein Thema und wähle «Als Favorit merken»." : "Versuche einen anderen Begriff oder entferne den Filter."}</p><button type="button" onClick={() => { setQuery(""); setFilter("all"); setFavoritesOnly(false); }}>Suche zurücksetzen</button></div>}
           <footer className="memory-overview-footer"><span>{coverage} PDF-Seiten als strukturierte Nachschlagethemen</span><span>Formelrechner und Wissens-Hub bleiben direkt erreichbar.</span></footer>
         </>}
       </section>
