@@ -22,6 +22,24 @@ def switch_calculator(page, title, query=None):
     playwright.expect(menu).not_to_be_visible()
 
 
+def test_loading_workspace_does_not_offer_a_disappearing_switcher(editor):
+    page, _, _, _ = editor
+    pending = []
+    page.route("**/Calculations-*.js", lambda route: pending.append(route))
+    switch_tool(page, "Berechnungen")
+    playwright.expect(page.get_by_text("Werkzeug wird geladen …", exact=True)).to_be_visible()
+    playwright.expect(page.get_by_role("button", name="Rechner wechseln", exact=True)).to_have_count(0)
+    playwright.expect(page.get_by_role("button", name="Werkzeuge", exact=True)).to_have_count(0)
+    playwright.expect(page.get_by_role("button", name="Zum Toolhub", exact=True)).to_be_enabled()
+    assert pending, "The lazy module must remain pending while its fallback is inspected."
+    for route in pending:
+        route.continue_()
+    page.unroute("**/Calculations-*.js")
+    playwright.expect(page.get_by_role("heading", name="Berechnungen", exact=True)).to_be_visible()
+    switch_calculator(page, "LS-Schalter")
+    playwright.expect(page.locator("#wb-load")).to_be_enabled()
+
+
 def test_calculator_switcher_preserves_inputs_and_returns_focus_on_escape(editor):
     page, _, _, _ = editor
     switch_tool(page, "Berechnungen")

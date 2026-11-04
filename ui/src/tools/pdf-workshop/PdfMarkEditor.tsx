@@ -267,7 +267,8 @@ export default function PdfMarkEditor({ mode, sessionKey, initialFile, onDirtyCh
         <button className="btn primary pdf-mark-export" disabled={!preview || Boolean(busy) || !available || document.signatures > 0 && !acknowledge} onClick={() => void exportFile()}>{busy === "export" ? "PDF wird erstellt …" : mode === "sign" ? "Unterschrift setzen & speichern" : "Schwärzen & speichern"}</button>
         {result && <a className="btn" href={result.url} download={result.name}>PDF erneut herunterladen</a>}
       </div></aside></div></>}
-    {busy === "upload" && <p className="pdf-mark-status" role="status">PDF wird geöffnet …</p>}{error && <p className="pdf-mark-error" role="alert">{error}</p>}{notice && <p className="pdf-mark-status" role="status">{notice}</p>}
-    {document && <p className="pdf-mark-footer">{mode === "sign" ? "Auf die Seite klicken oder die Darstellung an die gewünschte Stelle ziehen." : "Bereiche aufziehen oder Textzeilen anklicken. Die schwarzen Flächen zeigen die vorgemerkte Auswahl."} <button className="btn small" disabled={Boolean(busy)} onClick={() => { setRect(initialRect); setSelections([]); edited(); }}><RotateCcw size={14} /> Zurücksetzen</button></p>}
+    <div className="pdf-mark-footer"><div className="pdf-mark-feedback" aria-live="polite" aria-atomic="true">
+      {error ? <p className="pdf-mark-error" role="alert">{error}</p> : busy === "upload" ? <p className="pdf-mark-status" role="status">PDF wird geöffnet …</p> : notice ? <p className="pdf-mark-status" role="status">{notice}</p> : document ? <span>{mode === "sign" ? "Auf die Seite klicken oder die Darstellung an die gewünschte Stelle ziehen." : "Bereiche aufziehen oder Textzeilen anklicken. Die schwarzen Flächen zeigen die vorgemerkte Auswahl."}</span> : null}
+    </div>{document && <button className="btn small" disabled={Boolean(busy)} onClick={() => { setRect(initialRect); setSelections([]); edited(); }}><RotateCcw size={14} /> Zurücksetzen</button>}</div>
   </section>;
 }

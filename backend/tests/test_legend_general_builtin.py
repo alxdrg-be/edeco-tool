@@ -91,8 +91,6 @@ def test_general_template_admin_and_concurrent_source_guards(env):
 
 
 def test_settings_preview_apply_and_restore_the_general_source(editor, tmp_path):
-    from pathlib import Path
-
     page, _, client, _ = editor
     source = str(old_general(tmp_path / "alte-allgemeinvorlage.dxf"))
     client.app.state.nova.company.set_legend_settings({"legend_general_path": source})
@@ -104,9 +102,7 @@ def test_settings_preview_apply_and_restore_the_general_source(editor, tmp_path)
     playwright.expect(image).to_be_visible()
     page.wait_for_function("document.querySelector('.general-template-preview img')?.naturalWidth > 0")
     assert client.get("/api/company/general").json()["source"] == source
-    artifacts = Path("/workspace/artifacts/nova-new-audit")
-    artifacts.mkdir(parents=True, exist_ok=True)
-    choice.screenshot(path=str(artifacts / "builtin-general-preview-in-settings.png"))
+    choice.screenshot(path=str(tmp_path / "builtin-general-preview-in-settings.png"))
     page.get_by_role("button", name="Vorlage für NOVA übernehmen", exact=True).click()
     playwright.expect(choice).to_contain_text("edeco-Allgemeinvorlage aktiv")
     playwright.expect(page.get_by_role("textbox", name="Legende Allgemein", exact=True)).to_have_value(general.BUILTIN_SOURCE)

@@ -49,17 +49,30 @@ def test_visible_signature_logo_position_template_and_direct_download(pdf_entry,
     page.get_by_label("Signaturbild oder Logo hinzufügen", exact=True).set_input_files({"name": "logo.png", "mimeType": "image/png", "buffer": image.getvalue()})
     page.get_by_label("Name", exact=True).fill("Muster Planer")
     page.get_by_label("Ort", exact=True).fill("Basel")
+    marker = page.get_by_role("img", name="Signaturdarstellung verschieben", exact=True)
+    # Saving a template must not resize the paper under the pointer. Previously
+    # a new status row shrank it by42px; its old signature centre hit blank paper.
+    page.evaluate("() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))")
+    before_paper = page.locator(".pdf-mark-paper").bounding_box()
+    before_marker = marker.bounding_box()
     page.get_by_role("button", name="Vorlage merken", exact=True).click()
     saved = page.evaluate("localStorage.getItem('edeco-pdf-signature-appearance-v1')")
     assert "Muster Planer" in saved
-    marker = page.get_by_role("img", name="Signaturdarstellung verschieben", exact=True)
+    playwright.expect(page.get_by_role('status')).to_contain_text('Vorlage auf diesem Computer gespeichert.')
+    page.evaluate("() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))")
     box = marker.bounding_box()
     paper = page.locator(".pdf-mark-paper").bounding_box()
+    for key in ('x', 'y', 'width', 'height'):
+        assert paper[key] == pytest.approx(before_paper[key], abs=.5)
+        assert box[key] == pytest.approx(before_marker[key], abs=.5)
     page.mouse.move(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
     page.mouse.down()
     page.mouse.move(paper["x"] + paper["width"] * .3, paper["y"] + paper["height"] * .5, steps=8)
     page.mouse.up()
-    assert marker.evaluate("node=>parseFloat(node.style.left)") < 40
+    assert marker.evaluate("node=>parseFloat(node.style.left)") == pytest.approx(10, abs=1)
+    after_drag = page.locator(".pdf-mark-paper").bounding_box()
+    for key in ('x', 'y', 'width', 'height'):
+        assert after_drag[key] == pytest.approx(paper[key], abs=.5)
     with page.expect_download() as downloaded:
         page.get_by_role("button", name="Unterschrift setzen & speichern", exact=True).click()
     target = tmp_path / downloaded.value.suggested_filename

@@ -126,7 +126,7 @@ function ToolboxContents() {
 
   if (ActiveTool) return <ToolBoundary key={effectiveActive} onHome={goHome}>
     <Suspense fallback={<div className="toolhub-loading">
-      <ToolhubHeader title={TOOLS.find(tool => tool.id === effectiveActive)?.title ?? "Werkzeug"} currentToolId={effectiveActive} onHome={goHome} onOpenTool={openTool}>
+      <ToolhubHeader title={TOOLS.find(tool => tool.id === effectiveActive)?.title ?? "Werkzeug"} currentToolId={effectiveActive} onHome={goHome}>
         <button className="btn" aria-label={dark ? "Heller Modus" : "Dunkler Modus"} onClick={toggle}>{dark ? "☀ Hell" : "☾ Dunkel"}</button>
       </ToolhubHeader>
       <main className="toolhub-loading-main"><p role="status">Werkzeug wird geladen …</p><div aria-hidden="true" className="toolhub-loading-placeholder" /></main>
