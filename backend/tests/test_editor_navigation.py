@@ -821,14 +821,27 @@ def test_stirling_embedded_keeps_original_ui_and_merges_two_real_pdfs(editor):
     playwright.expect(page.get_by_role("heading", name="Ein Ort. Deine Werkzeuge.")).to_be_visible()
 
 
+def upload_document_in_ui(page, filename, data):
+    # set_input_files also dispatches change on a disabled input. Unlike a
+    # real file-picker action, it does not wait for the library/session load.
+    chooser = page.get_by_label("Dokumente hinzufügen", exact=True)
+    playwright.expect(chooser).to_be_enabled(timeout=30000)
+    with page.expect_response(lambda response: response.request.method == "POST" and
+                              response.url.endswith("/api/tools/dokumenten-assistent/documents"), timeout=30000) as uploaded:
+        chooser.set_input_files({"name": filename, "mimeType": "application/pdf", "buffer": data})
+    response = uploaded.value
+    response.finished()
+    assert response.ok, f"Document upload returned HTTP {response.status}: {response.text()[:1200]}"
+    playwright.expect(chooser).to_be_enabled(timeout=30000)
+
+
 def test_document_assistant_imports_pdf_finds_exact_source_and_preserves_library(editor):
     from test_documents import sample_pdf
     page, _, _, _ = editor
     page.get_by_role("button", name="Zum Toolhub", exact=True).click()
     page.get_by_role("button", name="Dokumenten-Assistent öffnen", exact=True).click()
     page.get_by_label("Dokumentstand für neue Dateien").fill("Testausgabe 2026")
-    page.get_by_label("Dokumente hinzufügen", exact=True).set_input_files({
-        "name": "Test-Richtlinie.pdf", "mimeType": "application/pdf", "buffer": sample_pdf()})
+    upload_document_in_ui(page, "Test-Richtlinie.pdf", sample_pdf())
     playwright.expect(page.locator(".doc-document")).to_have_count(1)
     page.get_by_label("Deine Frage", exact=True).fill("Was ist am Schutzleiter zu prüfen?")
     playwright.expect(page.get_by_role("button", name="KI-Antwort", exact=True)).to_be_disabled()
@@ -860,10 +873,19 @@ def test_document_assistant_defaults_to_free_server_and_opens_cited_pdf_page(edi
     import json
     from test_documents import sample_pdf
     page, _, _, _ = editor
+    pending = []
+    state_url = "**/api/tools/dokumenten-assistent/state"
+    page.route(state_url, lambda route: pending.append(route))
     page.get_by_role("button", name="Zum Toolhub", exact=True).click()
     page.get_by_role("button", name="Dokumenten-Assistent öffnen", exact=True).click()
-    page.get_by_label("Dokumente hinzufügen", exact=True).set_input_files({
-        "name": "Test.pdf", "mimeType": "application/pdf", "buffer": sample_pdf()})
+    # Make a cold/slow library load deterministic instead of relying on the
+    # relative speed of Windows rendering and the first state response.
+    playwright.expect(page.get_by_label("Dokumente hinzufügen", exact=True)).to_be_disabled()
+    assert pending, "The initial document-library request must still be pending."
+    for route in pending:
+        route.continue_()
+    page.unroute(state_url)
+    upload_document_in_ui(page, "Test.pdf", sample_pdf())
     playwright.expect(page.locator(".doc-document")).to_have_count(1)
     page.route("**/api/tools/dokumenten-assistent/connection", lambda route: route.fulfill(json={"ok": True, "message": "Testserver erreichbar. Keine Dokumente übertragen."}))
     page.get_by_role("button", name="KI-Verbindung", exact=True).click()
