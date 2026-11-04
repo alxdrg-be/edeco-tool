@@ -213,8 +213,8 @@ export default function ProjectView({ projectId, projects, categories, notify, o
       <div className="page-inner full">
         <div className="card project-head">
           <div className="project-breadcrumb">
-            <button className="btn small" onClick={() => navigate(onBack)}>
-              ← Alle Projekte
+            <button className="btn small project-back-button" aria-label="Zurück zur Projektübersicht" onClick={() => navigate(onBack)}>
+              ← Projekte
             </button>
             <label className="filter-label">
               Projekt wechseln
@@ -752,7 +752,7 @@ export default function ProjectView({ projectId, projects, categories, notify, o
                 </header>
                 {legendId !== null && (
                   <LegendEditor key={`${projectId}:${legendId}`} projectId={projectId} legendId={legendId || null}
-                    data={data} categories={categories} notify={notify} />
+                    data={data} categories={categories} notify={notify} onProjects={() => { void navigate(onBack); }} />
                 )}
               </section>
             )}

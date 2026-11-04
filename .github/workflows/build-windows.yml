@@ -1,4 +1,4 @@
-name: 'Toolbox: Windows-Setup bauen'
+name: 'Toolhub: Windows-Setup bauen'
 
 on:
   push:
@@ -14,6 +14,8 @@ concurrency:
 
 jobs:
   build:
+    # Code-only uploads can keep the regular checks without publishing an installer.
+    if: ${{ github.event_name == 'workflow_dispatch' || !contains(github.event.head_commit.message, '[skip release]') }}
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -56,6 +58,8 @@ jobs:
         run: |
           python -m pip install -r backend/requirements.txt -r packaging/requirements-windows.txt -r backend/requirements-browser-tests.txt
           python -m playwright install chromium
+      - name: Windows-Dateisystem und DXF prüfen
+        run: python -m pytest backend/tests/test_document_folders.py backend/tests/test_legend_a4_layout.py -q
       - name: Vollständige Offline-PDF-Laufzeit vorbereiten
         run: python packaging/prepare_pdf_runtime.py
       - name: Externe Netzverbindungen der PDF-Engine für Tests sperren
@@ -76,11 +80,6 @@ jobs:
           $kiParseErrors = $null
           [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path 'packaging/ki-server/Start-KI-Server.ps1').Path, [ref]$kiParseTokens, [ref]$kiParseErrors) | Out-Null
           if ($kiParseErrors.Count) { throw ($kiParseErrors | Out-String) }
-      - name: Backend und Browser testen
-        run: python -m pytest backend/tests -q
-      - name: BIM2STEIGER-Fachlogik testen
-        working-directory: backend/bim2steiger
-        run: python -m unittest discover -s tests -q
       - name: Toolbox-EXE bauen
         run: |
           python packaging/make_toolbox_icon.py
@@ -91,20 +90,21 @@ jobs:
           $engine = (Resolve-Path 'dist/edeco-Toolbox/_internal/pdf-runtime/java/bin/java.exe').Path
           New-NetFirewallRule -DisplayName 'edeco packaged PDF offline test' -Direction Outbound -Action Block -Program $engine -RemoteAddress '1.0.0.0-126.255.255.255','128.0.0.0-223.255.255.255','2000::/3','fc00::/7','fe80::/10' | Out-Null
           $env:NOVA_LEGENDEN_HOME = "$env:RUNNER_TEMP\toolbox-home"
+          $env:EDECO_TOOLBOX_HOME = Join-Path $env:RUNNER_TEMP 'toolbox-exe-smoke'
           $p = Start-Process -FilePath 'dist\edeco-Toolbox\edeco-Toolbox.exe' -ArgumentList '--server','--port','8799' -PassThru
           try {
             $ok = $false
             for ($i = 0; $i -lt 60; $i++) {
               try {
                 $status = Invoke-RestMethod 'http://127.0.0.1:8799/api/toolbox/status'
-                $ok = $status.name -eq 'edeco Toolbox'
+                $ok = $status.name -eq 'edeco Toolhub'
                 if ($ok) { break }
               } catch { Start-Sleep 1 }
             }
             if (-not $ok) { throw 'Toolbox startet nicht' }
             if ($status.build -ne [int]$env:GITHUB_RUN_NUMBER -or $status.commit -ne $env:GITHUB_SHA) { throw 'Falsche Buildkennung in der EXE' }
             $page = Invoke-WebRequest 'http://127.0.0.1:8799/' -UseBasicParsing
-            if ($page.Content -notmatch 'edeco Toolbox') { throw 'Toolbox-Oberfläche fehlt' }
+            if ($page.Content -notmatch 'edeco Toolhub') { throw 'Toolbox-Oberfläche fehlt' }
             $nova = Invoke-RestMethod 'http://127.0.0.1:8799/api/status'
             if (-not $nova.version) { throw 'Nova-Modul nicht verfügbar' }
             $bim = Invoke-RestMethod 'http://127.0.0.1:8799/tools/bim2steiger/api/meta'
@@ -122,17 +122,33 @@ jobs:
           '@ | python -
             if ($LASTEXITCODE -ne 0) { throw 'PDF-Testdatei konnte nicht erstellt werden' }
             $docRoot = 'http://127.0.0.1:8799/api/tools/dokumenten-assistent'
+            $toolboxSession = Invoke-RestMethod 'http://127.0.0.1:8799/api/toolbox/session'
             $docState = Invoke-RestMethod ($docRoot + '/state')
-            $docHeaders = @{ 'X-Edeco-Documents' = $docState.session_key }
+            $docHeaders = @{ 'X-Edeco-Documents' = $docState.session_key; 'X-Edeco-Session' = $toolboxSession.session_key }
             $uploaded = Invoke-RestMethod ($docRoot + '/documents') -Method Post -Headers $docHeaders -Form @{ file = Get-Item $env:DOC_SMOKE_FILE; edition = 'Synthetischer Buildtest' }
             $question = @{ question = 'Schutzleiter'; document_ids = @($uploaded.document.id); use_ai = $false } | ConvertTo-Json -Compress
             $answer = Invoke-RestMethod ($docRoot + '/ask') -Method Post -Headers $docHeaders -ContentType 'application/json' -Body $question
             if ($answer.sources.Count -ne 1 -or $answer.sources[0].page -ne 2) { throw 'PDF-Fundstelle in der EXE fehlt' }
             $original = Invoke-RestMethod ($docRoot + '/documents/' + $uploaded.document.id + '/pages/2') -Headers $docHeaders
             if ($original.image -notmatch '^data:image/png;base64,' -or -not $original.lines[0].box) { throw 'PDF-Vorschau oder Markierungskoordinaten fehlen in der EXE' }
+          } catch {
+            $smokeLogs = @((Join-Path $env:EDECO_TOOLBOX_HOME 'toolbox.log'))
+            $smokeLogs += @(Get-ChildItem (Join-Path $env:EDECO_TOOLBOX_HOME 'pdf-workshop/sessions') -Recurse -Filter 'engine.log' -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName)
+            foreach ($smokeLog in $smokeLogs) {
+              if (Test-Path -LiteralPath $smokeLog) {
+                Write-Host "Packaged PDF diagnostics: $([IO.Path]::GetFileName($smokeLog))"
+                Get-Content -LiteralPath $smokeLog -Tail 160 | Where-Object { $_ -notmatch '(?i)authorization|secret|token|session_key|api[_-]?key' }
+              }
+            }
+            throw
           } finally {
             Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue
           }
+      - name: Backend und Browser testen
+        run: python -m pytest backend/tests -q
+      - name: BIM2STEIGER-Fachlogik testen
+        working-directory: backend/bim2steiger
+        run: python -m unittest discover -s tests -q
       - name: Nativen Fensterstart mit Download-Markierung prüfen
         shell: pwsh
         run: |
@@ -158,7 +174,7 @@ jobs:
             throw 'Nativer Fensterstart fehlgeschlagen'
           }
           $report = Get-Content "$env:EDECO_TOOLBOX_HOME\desktop-smoke.json" -Raw | ConvertFrom-Json
-          if (-not $report.ok -or $report.tool_count -ne 10 -or -not $report.pdf_ready) { throw 'Toolbox oder PDF-Werkstatt wurde im Programmfenster nicht gerendert' }
+          if (-not $report.ok -or $report.tool_count -lt 1 -or $report.tool_count -ne $report.expected_tool_count -or -not $report.pdf_ready) { throw 'Toolhub oder PDF-Werkstatt wurde im Programmfenster nicht gerendert' }
       - name: Installer bauen
         shell: pwsh
         run: |
@@ -179,10 +195,15 @@ jobs:
           New-Item -ItemType Directory -Force "$env:EDECO_TOOLBOX_HOME\webview" | Out-Null
           $marker = "$env:EDECO_TOOLBOX_HOME\webview\profile-marker.txt"
           Set-Content $marker 'keep-profile'
+          # Model a real in-place upgrade: obsolete hashed assets may exist.
+          $oldUi = Join-Path $installDir '_internal\ui\dist\assets'
+          New-Item -ItemType Directory -Force $oldUi | Out-Null
+          Set-Content (Join-Path $oldUi 'previous-build-ui.js') 'window.previousBuildUi = true;'
           for ($pass = 0; $pass -lt 2; $pass++) {
             $installer = Start-Process -FilePath $setup -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/NoAutoRun=1',"/DIR=`"$installDir`"" -Wait -PassThru
             if ($installer.ExitCode -ne 0) { throw "Installation fehlgeschlagen: $($installer.ExitCode)" }
             if ((Get-Content $marker).Trim() -ne 'keep-profile') { throw 'Benutzerprofil wurde verändert' }
+            if (Test-Path (Join-Path $oldUi 'previous-build-ui.js')) { throw 'Veraltete UI-Dateien blieben beim Update erhalten' }
             if (-not (Test-Path "$installDir\_internal\packaging\toolbox.ico")) { throw 'Toolbox-Icon fehlt' }
             New-NetFirewallRule -DisplayName 'edeco installed PDF offline test' -Direction Outbound -Action Block -Program "$installDir\_internal\pdf-runtime\java\bin\java.exe" -RemoteAddress '1.0.0.0-126.255.255.255','128.0.0.0-223.255.255.255','2000::/3','fc00::/7','fe80::/10' | Out-Null
             $p = Start-Process -FilePath "$installDir\edeco-Toolbox.exe" -ArgumentList '--server','--port','8798' -PassThru
@@ -215,9 +236,13 @@ jobs:
           Add-Content release-body.md "`n`nBuild $env:GITHUB_RUN_NUMBER · Commit $env:GITHUB_SHA"
       - uses: actions/upload-artifact@v4
         if: always()
+        # Diagnostics are useful but an account storage quota must not turn a
+        # tested release into a failure. Installers are published below.
+        continue-on-error: true
         with:
           name: windows-pdf-test-results-${{ github.run_number }}
           path: output/
+          retention-days: 3
       - name: Prüfsummen erstellen
         shell: pwsh
         run: |
@@ -226,26 +251,14 @@ jobs:
             $hash = (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
             Set-Content -Path ($_.FullName + '.sha256') -Value ($hash + '  ' + $_.Name) -Encoding ascii
           }
-      - uses: actions/upload-artifact@v4
-        with:
-          name: edeco-Toolbox-Setup-Build-${{ github.run_number }}
-          path: dist-installer/edeco-Toolbox-Setup-*
-          compression-level: 0
-          if-no-files-found: error
-          retention-days: 7
-      - uses: actions/upload-artifact@v4
-        with:
-          name: edeco-Toolbox-portabel-Build-${{ github.run_number }}
-          path: dist-installer/edeco-Toolbox-Portable-*
-          compression-level: 0
-          if-no-files-found: error
-          retention-days: 7
+      # Keep the large installer/portable files in Releases rather than storing
+      # duplicate gigabyte-sized copies in the Actions artifact quota.
       - name: Toolbox unter Releases veröffentlichen
         if: github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.version.outputs.version }}-build.${{ github.run_number }}
-          name: edeco Toolbox ${{ steps.version.outputs.version }} (Build ${{ github.run_number }})
+          name: edeco Toolhub ${{ steps.version.outputs.version }} (Build ${{ github.run_number }})
           target_commitish: ${{ github.sha }}
           body_path: release-body.md
           files: dist-installer/*

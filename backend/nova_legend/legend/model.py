@@ -39,7 +39,7 @@ DEFAULT_GRID = "dicht"
 _GRID_ALIAS = {"kompakt": "dicht"}
 ROW_MIN, ROW_MAX = 3.0, 30.0
 TEXT_OFFSET_MIN, TEXT_OFFSET_MAX = 5.0, 45.0
-DEFAULT_TEXT_SIZE = 2.5
+DEFAULT_TEXT_SIZE = 2.8
 DEFAULT_SYMBOL_SCALE = 1.0
 DEFAULT_TITLE_MM = 5.0      # legend title height, until a legend sets its own
 
@@ -68,6 +68,33 @@ def template_texts() -> list[str]:
 
 def _hex(value, default: str) -> str:
     return value if isinstance(value, str) and _HEX.match(value) else default
+
+
+def original_colors(value, fallback: str = "") -> list[str]:
+    """Original effective plan colours, distinct and ordered by their occurrence.
+
+    These variants belong to one apparatus. They are independent of logical
+    combined ``parts`` and of a deliberately chosen monochrome override.
+    """
+    values = ([fallback] if fallback else []) + (value if isinstance(value, list) else [])
+    out = []
+    for color in values:
+        if isinstance(color, str) and _HEX.fullmatch(color) and color.lower() != "#ffffff":
+            color = color.lower()
+            if color not in out:
+                out.append(color)
+    return out[:256]
+
+
+def selected_original_colors(value, originals: list[str]) -> list[str]:
+    """A reversible display-only subset; empty/invalid/all means every variant.
+
+    Source colours are never removed, and a selection belongs only to one
+    logical apparatus, not to further semantic parts of a combination.
+    """
+    requested = set(original_colors(value))
+    selected = [color for color in originals if color in requested]
+    return selected if selected and len(selected) < len(originals) else []
 
 
 def _rgb(color: str) -> tuple[int, int, int]:
@@ -100,7 +127,7 @@ def section_style(color: str | None) -> dict:
     # symbols and lines take the plan colour; without a plan colour they stay black
     symbol = c if own and own.lower() != "#ffffff" else "#000000"
     return {"header": c, "header_text": readable_on(c), "background_on": False, "background": tint(c, 0.9),
-            "border_on": False, "border": c, "symbol": symbol, "text": "#000000", "padding": 1.5}
+            "border_on": False, "border": c, "symbol": symbol, "text": "#000000", "padding": 1.2}
 
 
 def _section_style(value, fallback: dict) -> dict:
@@ -119,21 +146,21 @@ def _section_style(value, fallback: dict) -> dict:
 # -- document -------------------------------------------------------------------
 
 def default_style(text_size: float = DEFAULT_TEXT_SIZE, symbol_scale: float = DEFAULT_SYMBOL_SCALE,
-                  columns: int = 2) -> dict:
+                  columns: int = 3) -> dict:
     # new legends start on the tight grid (6 mm rows), close to the edeco legend (4.55 mm)
     grid = GRIDS[DEFAULT_GRID]
     return {"font": "Arial", "text_size": text_size, "symbol_scale": symbol_scale,
             "grid": DEFAULT_GRID, "row": grid["row"], "text_offset": grid["text_offset"],
-            "columns": columns, "width": SHEET_WIDTH, "margin": MARGIN, "plan_scale": 50,
+            "columns": columns, "compact_flow": True, "width": SHEET_WIDTH, "margin": MARGIN, "plan_scale": 50,
             "section_gap": 0.0, "entry_gap": 0.0, "text_lines": 0,
             "hatch_off": False, "fill_off": False,
-            "symbol_size": "tile",
+            "symbol_size": "tile", "symbol_fit": "corridor", "general_source_look": True,
             "pdf_lines": "original",
             "normalize_size": True,
             "frame_on": False, "frame": "#000000"}
 
 
-GENERAL_HEADER = "#808080"      # grey, as the company colour of the category «Allgemein»
+GENERAL_HEADER = "#007f91"      # company accent for the general heading and its fine rule
 
 
 def _general_section(value) -> dict:
@@ -141,9 +168,9 @@ def _general_section(value) -> dict:
     v = value if isinstance(value, dict) else {}
     title = str(v.get("title") or "Allgemein").strip()[:200] or "Allgemein"
     header = _hex(v.get("header"), GENERAL_HEADER)
-    if header == "#1c7ed6":
-        header = GENERAL_HEADER          # the former blue default: «Allgemein» is grey now
+    legacy_text = _hex(v.get("header_text"), "#000000")
     return {"title": title, "header": header,
+            "text": _hex(v.get("text"), "#000000" if legacy_text.lower() == "#ffffff" else legacy_text),
             "header_text": _hex(v.get("header_text"), "#ffffff"),
             "title_scale": _scale(v.get("title_scale"))}
 
@@ -177,7 +204,16 @@ def normalize_style(value) -> dict:
     grid = GRID_CUSTOM if named == GRID_CUSTOM else named if named in GRIDS else "standard"
     style = default_style(_num(v.get("text_size"), DEFAULT_TEXT_SIZE, 1.0, 10.0),
                           _num(v.get("symbol_scale"), DEFAULT_SYMBOL_SCALE, 0.2, 5.0),
-                          3 if int(_num(v.get("columns"), 2)) >= 3 else 2)
+                          int(_num(v.get("columns"), 2, 2, 4)))
+    # An inner drawing margin is independent of the PDF's fixed outer 5 mm.
+    # Older legends have no field and keep their original five millimetres.
+    style["margin"] = _num(v.get("margin"), MARGIN, 2, 10)
+    # Saved square-cell legends stay unchanged until the user selects the new
+    # template preset. Wide luminaires may then use the full symbol corridor.
+    style["symbol_fit"] = "corridor" if v.get("symbol_fit") == "corridor" else "square"
+    style["general_source_look"] = v.get("general_source_look") is True
+    # Stored legends without the new preset keep their earlier section layout.
+    style["compact_flow"] = v.get("compact_flow") is True
     style["grid"] = grid
     if grid == GRID_CUSTOM:
         style["row"] = round(_num(v.get("row"), GRIDS["standard"]["row"], ROW_MIN, ROW_MAX), 2)
@@ -200,7 +236,7 @@ def normalize_style(value) -> dict:
     old = bool(v.get("strip_fill"))
     style["hatch_off"] = bool(v.get("hatch_off", old))
     style["fill_off"] = bool(v.get("fill_off", old))
-    # "tile" (default): every drawing fills 75 % of one tile sized from the text;
+    # "tile" (default): every drawing fills 90 % of one tile sized from the text;
     # "real": every symbol at the common scale, on its insertion point, in grid rows
     style["symbol_size"] = "real" if v.get("symbol_size") == "real" else "tile"
     style["normalize_size"] = v.get("normalize_size") is not False
@@ -297,6 +333,13 @@ def _item(it, uid) -> dict | None:
     own = it.get("color") or ""
     if isinstance(own, str) and _HEX.match(own) and own.lower() != "#ffffff":
         item["color"] = own.lower()
+    variants = original_colors(it.get("layer_colors"), item.get("color", ""))
+    if variants:
+        item["layer_colors"] = variants
+        item.setdefault("color", variants[0])
+    visible = selected_original_colors(it.get("visible_layer_colors"), variants)
+    if visible:
+        item["visible_layer_colors"] = visible
     # a colour chosen for this entry alone: the whole symbol is drawn in it
     forced = it.get("symbol_color") or ""
     if isinstance(forced, str) and _HEX.match(forced) and forced.lower() != "#ffffff":
@@ -326,6 +369,13 @@ def _part(p) -> dict | None:
     own = p.get("color") or ""
     if isinstance(own, str) and _HEX.match(own) and own.lower() != "#ffffff":
         out["color"] = own.lower()
+    variants = original_colors(p.get("layer_colors"), out.get("color", ""))
+    if variants:
+        out["layer_colors"] = variants
+        out.setdefault("color", variants[0])
+    visible = selected_original_colors(p.get("visible_layer_colors"), variants)
+    if visible:
+        out["visible_layer_colors"] = visible
     return out
 
 
@@ -374,6 +424,10 @@ def apply_company_symbols(doc: dict, company_symbols: dict) -> dict:
                     "length_mm": oi.get("length_mm"), "width_mm": oi.get("width_mm"), **_look(p)}
             if oi.get("color"):
                 part["color"] = oi["color"]
+            if oi.get("layer_colors"):
+                part["layer_colors"] = list(oi["layer_colors"])
+            if oi.get("visible_layer_colors"):
+                part["visible_layer_colors"] = list(oi["visible_layer_colors"])
             parts.append(part)
             ob["items"] = [x for x in ob["items"] if x is not oi]
             taken.add(p["family_key"])
@@ -458,8 +512,8 @@ def propose(rows: list[dict], categories: list[dict], by_category: bool,
 
     Every symbol is shown once (Legendenbesprechung 09.10.2026): a symbol on plan layers
     of several categories goes to its own category when one of those layers belongs to
-    it, else to the category whose layers hold it most often. It takes the colour it
-    has most often there. Entries with the same text in one section (variants such as
+    it, else to the category whose layers hold it most often. All original effective
+    plan colours remain variants of that one entry. Entries with the same text in one section (variants such as
     «liegend» and «liegend rechts») are shown once. The section bar uses the category colour, or, when that
     layer has none, the colour that occurs most often.
 
@@ -478,7 +532,7 @@ def propose(rows: list[dict], categories: list[dict], by_category: bool,
     «UKV»): then the group is a section of its own. The bar takes the colour most of the
     section's symbols have in the plan; a company colour (``fixed_colors``) wins.
     """
-    style = normalize_style(style)
+    style = normalize_style({"compact_flow": True, "columns": 3, **(style or {})})
     doc = empty_doc(title, style)
     colors = colors or {}
     cats = {c["id"]: c for c in categories}
@@ -518,7 +572,7 @@ def propose(rows: list[dict], categories: list[dict], by_category: bool,
         return blocks[key]
 
     has_ap = False
-    seen_texts: dict[str, set[str]] = {}
+    seen_texts: dict[str, dict[str, dict]] = {}
     for row in rows:
         if int(row.get("total") or 0) <= 0 or not row.get("symbol_key"):
             continue
@@ -551,28 +605,36 @@ def propose(rows: list[dict], categories: list[dict], by_category: bool,
             continue    # the general part already shows it
         has_ap = has_ap or any(m in ("AP", "NAP") for m in (row.get("mountings") or {}))
         for cid in targets:
-            shares = color_shares(row, cid if by_category else None, layer_categories, layer_colors)
-            # one row per symbol, in the colour of the plan layer it sits on most often
-            # (a symbol on several colours used to get one row per colour: it looked doubled)
-            chosen = shares[:1] or [("", 0)]
+            shares = color_shares(row, None, layer_categories, layer_colors)
+            section_shares = color_shares(row, cid if by_category else None, layer_categories, layer_colors)
+            # Keep one apparatus entry in its established section. Every effective
+            # source colour remains a complete visual variant of that drawing.
             block = block_for(cid)
             key = cid if by_category else "_all"
             text = descriptions.get(row["family_key"]) or tidy_title(row.get("title") or "")
             same = _same_text_key(text)
-            if same and same in seen_texts.setdefault(key, set()):
-                continue    # a variant with the same text is already in this section
-            seen_texts[key].add(same)
-            for color, count in chosen:
-                item = {"id": new_id(), "kind": "symbol", "family_key": row["family_key"],
-                        "symbol_key": row["symbol_key"],
-                        "text": text,
-                        "length_mm": None, "width_mm": None, "line_style": "solid", "line_length": 8.0,
-                        **ITEM_EXTRA}
+            variants = [color for color, _count in shares if color]
+            for color, count in section_shares:
                 if color:
-                    item["color"] = color
                     votes.setdefault(key, {})
                     votes[key][color] = votes[key].get(color, 0) + count
-                block["items"].append(item)
+            previous = seen_texts.setdefault(key, {}).get(same) if same else None
+            if previous:
+                combined_colors = original_colors(previous.get("layer_colors", []) + variants, previous.get("color", ""))
+                if combined_colors:
+                    previous["layer_colors"] = combined_colors
+                    previous.setdefault("color", combined_colors[0])
+                continue
+            item = {"id": new_id(), "kind": "symbol", "family_key": row["family_key"],
+                    "symbol_key": row["symbol_key"], "text": text,
+                    "length_mm": None, "width_mm": None, "line_style": "solid", "line_length": 8.0,
+                    **ITEM_EXTRA}
+            if variants:
+                item["color"] = variants[0]
+                item["layer_colors"] = variants
+            block["items"].append(item)
+            if same:
+                seen_texts[key][same] = item
     for key, block in blocks.items():
         cid = block.get("category_id")
         if _plan_hex(colors.get(cid)) and (fixed_colors is None or cid in fixed_colors):

@@ -47,6 +47,7 @@ test('SIA profile PV production stays separate from gross energy and raw standby
   close(pv.balance.netEnergyKWh,pv.balance.energyKWh);
   assert.ok(pv.pvYearKWh>0);
   const rows=siaReportInputs({...base(),siaRefPVArea:'100'});
-  assert.ok(rows.some(row=>row.label==='Datenquelle'&&row.value===SIA_REFERENCE_SOURCE.url));
+  assert.ok(rows.some(row=>row.label==='Datenstand'&&row.value.includes(SIA_REFERENCE_SOURCE.captured)));
+  assert.equal(SIA_REFERENCE_SOURCE.url,'https://www.elektro-rechner.ch/premium/sia2056-rechner.php');
   assert.equal(rows.filter(row=>row.value.includes('W/m² roh;')).length,7);
 });

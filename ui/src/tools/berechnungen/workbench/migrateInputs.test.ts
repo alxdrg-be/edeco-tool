@@ -53,3 +53,30 @@ test("explicit new modes stay selected and malformed stored values never become 
   assert.equal(migrated("motoranlauf", { kw: "" }).input.kw, "");
   assert.throws(() => migrated("motoranlauf", { kw: 7.5 }), /Zeichenfolge/);
 });
+
+
+test("saved short-circuit inputs retain cmax 1.05 until their voltage tolerance is confirmed", () => {
+  const { definition, input } = migrated("kurzschlussstrom", { kva: "630", uk: "4" });
+  assert.equal(input.voltageTolerance, "legacy");
+  assert.match(definition.calculate(input).status.text, /Altstand/);
+  assert.equal(defaults(definition).voltageTolerance, "plus10");
+  assert.equal(migrated("kurzschlussstrom", { voltageTolerance: "plus10" }).input.voltageTolerance, "plus10");
+  assert.equal(migrated("kurzschlussstrom", { voltageTolerance: "" }).input.voltageTolerance, "");
+  assert.throws(() => migrated("kurzschlussstrom", { voltageTolerance: 1.1 }), /Zeichenfolge/);
+});
+
+test('saved variable selectivity stages retain their original voltage factor until explicitly changed',()=>{
+  const {definition,input}=migrated('premium-selektivitaet',{selectivityMode:'stages',sourceIk:'10'});
+  assert.equal(input.selectivityMode,'stages');assert.equal(input.voltageTolerance,'legacy');
+  assert.equal(defaults(definition).voltageTolerance,'plus10');
+  assert.match(definition.calculate(input).status.text,/Altstand/);
+  assert.equal(migrated('premium-selektivitaet',{selectivityMode:'stages',voltageTolerance:'plus10'}).input.voltageTolerance,'plus10');
+});
+
+test("saved dynamic fire comparisons retain both states while new calculations start with one variant",()=>{
+  const old=migrated("premium-brandlast",{fireloadMode:"dynamic",fireloadRows:"[]",fireloadRowsAfter:"[]"});
+  assert.equal(old.input.comparisonEnabled,"yes");
+  assert.equal(defaults(old.definition).comparisonEnabled,"no");
+  assert.equal(migrated("premium-brandlast",{comparisonEnabled:"no"}).input.comparisonEnabled,"no");
+  assert.equal(migrated("premium-brandlast",{comparisonEnabled:""}).input.comparisonEnabled,"");
+});

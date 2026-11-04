@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from "react";
+import { ChevronDown } from "lucide-react";
 import type { ToolProps } from "../../toolbox/modules";
 import { buildName, DEFAULTS, nameIssue, PARTS, restoreSettings, type NamingSettings, type Part } from "./naming";
 import "./file-rename.css";
 import { notifyProjectsChanged, useProjectHub, type Project } from "../projektzentrale/projectHubState";
 import DeliveryHistory from "../planlieferung/DeliveryHistory";
+import ToolHeader from "../../toolbox/ToolHeader";
 import "../projektzentrale/project-hub.css";
 
 const API = "/api/tools/dateien-umbenennen";
@@ -18,7 +20,7 @@ async function failure(response: Response): Promise<never> {
   throw new Error(typeof data.detail === "string" ? data.detail : "Die Aktion konnte nicht abgeschlossen werden.");
 }
 
-export default function FileRename({ onHome, deliveryMode = false }: ToolProps & { deliveryMode?: boolean }) {
+export default function FileRename({ onHome, onOpenTool, deliveryMode = false }: ToolProps & { deliveryMode?: boolean }) {
   const [settings, setSettings] = useState(load);
   const [rows, setRows] = useState<Row[]>([]);
   const [session, setSession] = useState("");
@@ -26,6 +28,7 @@ export default function FileRename({ onHome, deliveryMode = false }: ToolProps &
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [exported, setExported] = useState(false);
+  const [templateOpen, setTemplateOpen] = useState(!deliveryMode);
   const { hub: projects, active: activeProject, error: projectError } = useProjectHub();
   const initialProjectApplied = useRef(false);
   const projectTouched = useRef(false);
@@ -135,16 +138,17 @@ export default function FileRename({ onHome, deliveryMode = false }: ToolProps &
     } catch (e) { setError((e as Error).message); }
     finally { setBusy(""); }
   }
-  function leave() {
+  function leave(action = onHome) {
     if (busy) return;
-    if (!rows.length || exported || window.confirm("Die Dateiliste und einzelne Korrekturen werden beim Verlassen verworfen. Die Namensvorlage bleibt gespeichert. Zur Toolbox wechseln?")) onHome();
+    if (!rows.length || exported || window.confirm("Die Dateiliste und einzelne Korrekturen werden beim Verlassen verworfen. Die Namensvorlage bleibt gespeichert. Werkzeug wechseln?")) action();
   }
   const example = buildName({ ...settings, values: { ...settings.values, project: settings.values.project || "1498", date: settings.values.date || "2026-11-01" } }, "OG02");
   return <div className="rename-tool">
-    <header className="bim-toolbox-header"><button className="btn" onClick={leave} disabled={Boolean(busy)}>← Zur Toolbox</button><strong>{deliveryMode ? "Planlieferungs-Assistent" : "Dateien umbenennen"}</strong><span>Work in progress</span></header>
+    <ToolHeader title={deliveryMode ? "Planlieferungs-Assistent" : "Dateien umbenennen"} onHome={() => leave()} onOpenTool={onOpenTool ? id => leave(() => onOpenTool(id)) : undefined} disabled={Boolean(busy)} />
     <main className="rename-main">
-      <h1>{deliveryMode ? "Eine Lieferung. Alle Pläne im Blick." : "Deine Pläne. Eure Benennung."}</h1>
-      <p>Bausteine auswählen, PDFs hinzufügen und die Namen prüfen. Anschliessend benannte Kopien als ZIP herunterladen.</p>
+      <h1>{deliveryMode ? "Planlieferung vorbereiten" : "Dateien umbenennen"}</h1>
+      <p>{deliveryMode ? "Projekt wählen, PDFs prüfen und ein Lieferpaket mit Planliste erstellen." : "PDFs hinzufügen, Dateinamen prüfen und benannte Kopien herunterladen."}</p>
+      {deliveryMode && <ol className="tool-workflow" aria-label="Ablauf"><li>Lieferangaben</li><li>PDFs & Dateinamen</li><li>Lieferpaket erstellen</li></ol>}
       {deliveryMode && <section className="rename-template" aria-label="Lieferangaben"><h2>Lieferangaben</h2><div className="delivery-fields">
         <label>Projekt<select aria-label="Lieferprojekt" disabled={Boolean(busy) || !projects} value={deliveryProject?.id ?? ""} onChange={event => {
           const project = projects?.projects.find(item => item.id === event.target.value) ?? null;
@@ -163,8 +167,9 @@ export default function FileRename({ onHome, deliveryMode = false }: ToolProps &
       </div>}
       {!deliveryMode && projects && !activeProject && <div className="rename-project">Kein aktives Projekt. Die Projektnummer kannst du unten manuell eingeben.</div>}
       {projectError && <p role="alert" className="rename-error">Projektzentrale nicht erreichbar: {projectError} Die Projektnummer kann manuell eingegeben werden.</p>}
-      <section className="rename-template" aria-label="Namensvorlage">
-        <h2>Namensvorlage</h2><p>Die Häkchen bestimmen, was im Dateinamen steht. Die Kürzel E = Elektro, G = Grundriss und APP = Apparatenplan sind vorläufig; eure Firmenliste ergänzen wir später. Eigene Kürzel kannst du bereits eintragen.</p>
+      <details className="rename-template rename-naming" aria-label="Namensvorlage" open={templateOpen} onToggle={event => setTemplateOpen(event.currentTarget.open)}>
+        <summary><span><strong>Namensvorlage</strong><small>{example}</small></span><ChevronDown size={18} aria-hidden="true" /></summary>
+        <div className="rename-naming-fields"><p>Bausteine auswählen und ihre Reihenfolge festlegen. E = Elektro, G = Grundriss, APP = Apparatenplan. Eigene Kürzel sind möglich.</p>
         <fieldset disabled={Boolean(busy)} className="rename-parts"><legend>Namensbausteine und Reihenfolge</legend>
           {settings.order.map((key, position) => {
             const part = PARTS.find(p => p.key === key)!;
@@ -181,8 +186,8 @@ export default function FileRename({ onHome, deliveryMode = false }: ToolProps &
           })}
         </fieldset>
         <p className="rename-example">Beispiel mit 2. Obergeschoss: <strong>{example}</strong></p>
-        <small>Vorlage wird auf diesem PC gespeichert. Nach der Projektnummer folgt „_“, zwischen den übrigen Bausteinen „-“.</small>
-      </section>
+        <small>Vorlage wird auf diesem PC gespeichert. Nach der Projektnummer folgt „_“, zwischen den übrigen Bausteinen „-“.</small></div>
+      </details>
       <section aria-label="Dateivorschau" className="rename-preview">
         <div className="rename-actions"><h2>Dateien & Vorschau</h2><button className="btn" disabled={!session || Boolean(busy)} onClick={() => input.current?.click()}>PDFs hinzufügen</button>
           <input ref={input} className="rename-file" aria-label="PDFs hinzufügen" type="file" accept=".pdf" multiple disabled={!session || Boolean(busy)} onChange={event => { void addFiles(Array.from(event.target.files || [])); event.target.value = ""; }} />

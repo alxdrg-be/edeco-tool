@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { calculateChargingCosts, defaultCostRows, parseCostRows, costReportInputs } from "./chargingCosts.ts";
+import { calculateChargingCosts, defaultCostRows, parseCostRows, costReportInputs, COST_MAX_ROWS } from "./chargingCosts.ts";
 import { PLANNING } from "./planning.ts";
 import { defaults } from "./types.ts";
 const definition=PLANNING.find(definition=>definition.id==="premium-ladekosten")!;
@@ -92,6 +92,23 @@ test("authenticated 2026 class-based DC and future-cohort reference cases",()=>{
   close(r.models[0].series[0].value,9200); // Every cohort's basis is paid upfront.
   close(r.models[0].series[2].value,11000);
   close(r.models[0].series[10].value,11000);
+});
+
+test("all four reference classes can be commissioned in each of the fifteen years",()=>{
+  // Fresh authenticated browser 2026-11-02: each of the 60 .lp-in cells = 1,
+  // Basic mode, unmodified reference prices; totals read from _pdfModelRaw.
+  const rows=Array.from({length:15},(_,year)=>defaultCostRows().map(row=>({...row,id:`${row.id}-${year+1}`,count:"1",commission:String(year+1)}))).flat();
+  const r=run({costAccounting:"reference",costRows:JSON.stringify(rows)});
+  assert.equal(rows.length,60);assert.equal(r.points,60);
+  [9154663.636363637,10281190.909090908,8753727.272727272,9344618.181818184].forEach((value,index)=>close(r.models[index].total,value));
+  assert.ok(r.models.every(model=>model.series.length===15));
+});
+
+test("cost-cohort capacity is bounded and shares the editor limit",()=>{
+  const rows=Array.from({length:COST_MAX_ROWS},(_,index)=>({...defaultCostRows()[0],id:`cohort-${index}`,count:"1"}));
+  assert.equal(parseCostRows(JSON.stringify(rows)).length,COST_MAX_ROWS);
+  rows.push({...rows[0],id:"one-too-many"});
+  assert.throws(()=>parseCostRows(JSON.stringify(rows)),new RegExp(`1 bis ${COST_MAX_ROWS}`));
 });
 
 test("authenticated Advanced reference includes capacity, usage mix and half LM replacement",()=>{

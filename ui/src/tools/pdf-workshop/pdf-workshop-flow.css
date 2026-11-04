@@ -1,0 +1,11 @@
+.pdf-file-choice { max-width: 640px; }
+.pdf-file-choice-heading { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.pdf-file-choice-heading h2 { margin: 0; }
+.pdf-file-choice-list { display: grid; gap: .65rem; margin: 1rem 0; max-height: 52vh; overflow: auto; }
+.pdf-file-choice-list > button { justify-content: flex-start; text-align: left; padding: .85rem; gap: .8rem; }
+.pdf-file-choice-list span { display: grid; gap: .25rem; overflow-wrap: anywhere; }
+.pdf-file-choice-list small { color: var(--muted); font-weight: 400; }
+.pdf-workshop .pdf-clear-button, .pdf-workshop .pdf-message > button { min-width: 40px; min-height: 40px; border: 1px solid var(--line); background: var(--panel); color: var(--fg); }
+.pdf-server-explanation { max-width: 780px; margin-top: .75rem; }
+.pdf-server-explanation summary { cursor: pointer; font-weight: 600; }
+.pdf-server-explanation p { margin: .65rem 0; }

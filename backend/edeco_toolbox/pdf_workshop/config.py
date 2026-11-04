@@ -53,6 +53,8 @@ class Configuration:
                            or self.personal.get("service_url") or "http://127.0.0.1:8088")
 
     def save(self, url):
+        if self.runtime:
+            raise ValueError("Diese installierte Ausgabe verwendet ihre mitgelieferte lokale PDF-Engine. Eine Firmenserver-Verbindung wird in einer separaten Serverinstallation eingerichtet.")
         if self.managed:
             raise ValueError("Die Verbindung wird von der Firma vorgegeben.")
         value = {"service_url": service_url(url)}

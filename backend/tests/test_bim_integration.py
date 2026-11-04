@@ -12,7 +12,7 @@ BASE = "/tools/bim2steiger"
 
 def test_real_catalogue_and_negative_quantity_are_available_beside_nova(env):
     original, _ = env
-    with TestClient(create_app(original.app.state.nova)) as client:
+    with TestClient(create_app(original.app.state.nova), base_url="http://127.0.0.1") as client:
         assert client.get("/api/status").status_code == 200
         meta = client.get(BASE + "/api/meta").json()
         assert meta["catalogue_articles"] == 11777
@@ -28,7 +28,8 @@ def test_real_catalogue_and_negative_quantity_are_available_beside_nova(env):
 
 def test_import_validation_aggregation_and_standalone_updates(env):
     original, _ = env
-    with TestClient(create_app(original.app.state.nova)) as client:
+    with TestClient(create_app(original.app.state.nova), base_url="http://127.0.0.1") as client:
+        assert client.get("/api/toolbox/session").status_code == 200
         valid = client.post(BASE + "/api/import", json={"filename": "test.csv", "text": "id;name;menge;einheit\na;Leuchte;1,5;Stk\n"})
         assert valid.status_code == 200
         assert valid.json()["elements"][0]["quantity"] == 1.5

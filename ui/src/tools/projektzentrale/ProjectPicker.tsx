@@ -7,7 +7,7 @@ export default function ProjectPicker() {
   const [busy, setBusy] = useState(false);
   const [failure, setFailure] = useState("");
   return <div className="project-picker">
-    <label>Aktives Projekt<select aria-label="Aktives Projekt" value={hub?.active_id ?? ""} disabled={!hub || busy} onChange={async event => {
+    <label><span className="sr-only">Aktives Projekt</span><select aria-label="Aktives Projekt" title="Aktives Projekt" value={hub?.active_id ?? ""} disabled={!hub || busy} onChange={async event => {
       const project_id = event.target.value || null;
       if (!hub) return;
       setBusy(true); setFailure("");

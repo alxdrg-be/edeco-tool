@@ -4,11 +4,12 @@ from __future__ import annotations
 import json
 import re
 
+from edeco_toolbox.documents.extract import PDF_LOCK
 from test_editor_navigation import editor, env, playwright  # noqa: F401 - shared fixtures
 
 
 def open_network(page):
-    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Zum Toolhub", exact=True).click()
     page.get_by_role("button", name="Berechnungen öffnen", exact=True).click()
     playwright.expect(page.locator(".calc-tile")).to_have_count(26)
     page.get_by_role("button", name="Netzplaner (Beta) öffnen", exact=True).click()
@@ -160,7 +161,7 @@ def test_network_json_import_roundtrip_and_actual_pdf(editor, tmp_path):
     with page.expect_download() as pending:
         page.get_by_role("button", name="Berechnung als PDF herunterladen", exact=True).click()
     pending.value.save_as(tmp_path / "Netzberechnung.pdf")
-    with pdfium.PdfDocument(pending.value.path()) as document:
+    with PDF_LOCK, pdfium.PdfDocument(tmp_path / "Netzberechnung.pdf") as document:
         assert len(document) >= 1
         with closing(document[0]) as first:
             width, height = first.get_size()

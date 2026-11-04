@@ -1,7 +1,10 @@
+import { withInputRow } from "./inputDiagnostics.ts";
 import { integer, number, type Inputs, type SeriesItem } from "./types.ts";
 
 export interface CostPointInput { id:string;label:string;preset?:string;kind:"ac"|"dc";count:string;commission:string;power:string;hardware:string;installation:string;basis:string;annualEnergy:string;replacement:string }
 export interface CostBusinessResult { id:"V1"|"V2"|"V3"|"V4";label:string;selected:boolean;initial:number;replacement:number;capex:number;annual:number;opex:number;total:number;averagePerPointYear:number;series:SeriesItem[] }
+// Four reference classes across all 15 investment years require 60 cohorts.
+export const COST_MAX_ROWS = 64;
 export const COST_MODEL_OPTIONS=[{value:"V1",label:"V1 · Eigenständiger Betrieb"},{value:"V2",label:"V2 · Betriebscontracting"},{value:"V3",label:"V3 · Stations-Contracting"},{value:"V4",label:"V4 · Vollständiges Contracting"}] as const;
 export const COST_POINT_PRESETS = [
   {id:"ac",label:"11–22 kW AC",kind:"ac",power:"11",hardware:"2000",installation:"750",basis:"2300",annualEnergy:"3500",replacement:"2750"},
@@ -17,7 +20,7 @@ export function defaultCostRows():CostPointInput[]{return COST_POINT_PRESETS.map
 const numeric=(value:unknown,label:string,max=1e9,zero=false)=>number({value:typeof value==="number"?String(value):typeof value==="string"?value:""},"value",label,0,max,zero);
 export function parseCostRows(raw:string,editing=false):CostPointInput[]{
   let rows:unknown;try{rows=JSON.parse(raw);}catch{throw new Error("Kostenpositionen: gültige gespeicherte Liste erforderlich.");}
-  if(!Array.isArray(rows)||!rows.length||rows.length>24)throw new Error("1 bis 24 Ladepunkt-Kostenpositionen erfassen.");
+  if(!Array.isArray(rows)||!rows.length||rows.length>COST_MAX_ROWS)throw new Error(`1 bis ${COST_MAX_ROWS} Ladepunkt-Kostenpositionen erfassen.`);
   const ids=new Set<string>();
   return rows.map((row,index)=>{if(!row||typeof row!=="object"||Array.isArray(row))throw new Error(`Kostenposition ${index+1}: gültige Daten erforderlich.`);const value=row as Record<string,unknown>;if(typeof value.id!=="string"||!value.id||ids.has(value.id))throw new Error("Kostenpositionen benötigen eindeutige IDs.");ids.add(value.id);if(typeof value.label!=="string"||(!editing&&!value.label.trim())||value.label.length>60)throw new Error("Kostenposition: Bezeichnung mit 1 bis 60 Zeichen eingeben.");if(!["ac","dc"].includes(String(value.kind)))throw new Error("Kostenposition: AC oder DC wählen.");return value as unknown as CostPointInput;});
 }
@@ -34,14 +37,14 @@ export function calculateChargingCosts(input:Inputs){
     usage=["costRefFleet","costRefCommuters","costRefVisitors"].map(key=>number(input,key,"Nutzergruppenanteil",0,100,true)/100);
     if(Math.abs(usage.reduce((sum,value)=>sum+value,0)-1)>1e-9)throw new Error("Die Nutzergruppenanteile müssen zusammen 100 % ergeben.");
   }
-  const rows=parseCostRows(input.costRows).map(row=>{
+  const rows=parseCostRows(input.costRows).map((row,rowIndex)=>withInputRow("costRows",row,rowIndex,()=>{
     const count=numeric(row.count,`${row.label} · Anzahl`,10000,true);if(!Number.isInteger(count))throw new Error(`${row.label}: ganze Ladepunktzahl eingeben.`);
     const commission=numeric(row.commission,`${row.label} · Inbetriebnahme-Betriebsjahr`,50);if(!Number.isInteger(commission))throw new Error(`${row.label}: ganzes Inbetriebnahme-Betriebsjahr eingeben.`);
     const preset=row.preset??"";
     if(reference&&!Object.hasOwn(COST_REFERENCE_CLASS_KW,preset))throw new Error("Im Referenzansatz jeder Position eine belegte Leistungskategorie zuweisen.");
     const referenceEnergy=reference&&detail==="advanced"?COST_REFERENCE_USAGE[preset].reduce((sum,value,index)=>sum+value*usage[index],0):null;
     return{...row,count,commission,equivalentPower:reference?COST_REFERENCE_CLASS_KW[preset]:numeric(row.power,`${row.label} · Nennleistung`,5000),power:numeric(row.power,`${row.label} · Nennleistung`,5000),hardware:numeric(row.hardware,`${row.label} · Beschaffung`,1e7,true),installation:numeric(row.installation,`${row.label} · Installation`,1e7,true),basis:detail==="basic"?numeric(row.basis,`${row.label} · Basisinfrastruktur`,1e8,true):0,annualEnergy:referenceEnergy??numeric(row.annualEnergy,`${row.label} · Jahresenergie`,1e8,true),replacement:reference?0:numeric(row.replacement,`${row.label} · Ersatz`,1e7,true)};
-  });
+  }));
   const included=rows.filter(row=>row.commission<=years),points=included.reduce((sum,row)=>sum+row.count,0);if(!points)throw new Error("Mindestens einen Ladepunkt innerhalb der Betrachtungsdauer in Betrieb nehmen.");
   const equivalent=included.reduce((sum,row)=>sum+row.count*row.equivalentPower/11,0),annualEnergy=included.reduce((sum,row)=>sum+row.count*row.annualEnergy,0),station=included.reduce((sum,row)=>sum+row.count*(row.hardware+row.installation),0),basicBasis=included.reduce((sum,row)=>sum+row.count*row.basis,0);
   let base=basicBasis,pvShare=0,pvTariff=0,referenceCapacity=0;

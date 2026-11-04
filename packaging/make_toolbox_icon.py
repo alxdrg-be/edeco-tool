@@ -1,8 +1,7 @@
-"""Render the real edeco wordmark into the common icon and installer artwork."""
+"""Render the shared Toolhub mark into Windows and installer artwork."""
 
 import io
 import os
-import xml.etree.ElementTree as ET
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
@@ -10,7 +9,6 @@ from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "packaging"
-ET.register_namespace("", "http://www.w3.org/2000/svg")
 
 
 def font(size, bold=False):
@@ -36,20 +34,15 @@ def main():
         icon = icon.resize((256, 256), Image.Resampling.LANCZOS)
         icon.save(OUT / "toolbox.ico", sizes=[(16, 16), (24, 24), (32, 32), (48, 48), (64, 64), (128, 128), (256, 256)])
         icon.save(OUT / "toolbox-icon.png")
-        logo = ET.parse(ROOT / "ui/src/assets/edeco-logo.svg").getroot()
-        for item in logo.iter():
-            if item.get("class") in {"cls-1", "cls-2", "cls-3"}:
-                item.set("style", "fill:white")
-        mark = render(ET.tostring(logo, encoding="unicode"), 520, 224)
         for scale in (1, 2):
-            image = Image.new("RGB", (164 * scale, 314 * scale), "#017c92")
-            brand = mark.resize((132 * scale, 57 * scale), Image.Resampling.LANCZOS)
-            image.paste(brand, (16 * scale, 88 * scale), brand)
+            image = Image.new("RGB", (164 * scale, 314 * scale), "#0d3038")
+            brand = icon.resize((96 * scale, 96 * scale), Image.Resampling.LANCZOS)
+            image.paste(brand, (34 * scale, 44 * scale), brand)
             draw = ImageDraw.Draw(image)
-            draw.text((82 * scale, 163 * scale), "edeco", anchor="mt", font=font(17 * scale), fill="white")
-            draw.text((82 * scale, 186 * scale), "Toolbox", anchor="mt", font=font(23 * scale, True), fill="white")
-            draw.text((82 * scale, 259 * scale), "Alle Werkzeuge.", anchor="mt", font=font(10 * scale), fill="white")
-            draw.text((82 * scale, 276 * scale), "Ein Programm.", anchor="mt", font=font(10 * scale), fill="white")
+            draw.text((82 * scale, 162 * scale), "edeco", anchor="mt", font=font(17 * scale), fill="white")
+            draw.text((82 * scale, 187 * scale), "Toolhub", anchor="mt", font=font(23 * scale, True), fill="white")
+            draw.text((82 * scale, 259 * scale), "Werkzeuge. Wissen.", anchor="mt", font=font(10 * scale), fill="white")
+            draw.text((82 * scale, 276 * scale), "Ein Arbeitsbereich.", anchor="mt", font=font(10 * scale), fill="white")
             image.save(OUT / ("toolbox-wizard-image.png" if scale == 1 else "toolbox-wizard-image-2x.png"))
             image.save(OUT / ("toolbox-wizard-image.bmp" if scale == 1 else "toolbox-wizard-image-2x.bmp"))
         small = Image.new("RGB", (55, 55), "white")
@@ -58,7 +51,7 @@ def main():
         small.save(OUT / "toolbox-wizard-small.png")
         small.save(OUT / "toolbox-wizard-small.bmp")
         browser.close()
-    print("Toolbox-Icon und edeco-Installerbilder erstellt.")
+    print("Toolhub-Icon und Installerbilder erstellt.")
 
 
 if __name__ == "__main__":

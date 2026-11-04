@@ -1,0 +1,72 @@
+/* Shared UI rhythm for the hub, project workflows and calculators. */
+body { font-synthesis: none; }
+.toolhub-loading { height:100%; background:var(--bg); }
+.toolhub-loading-main { max-width:1380px; margin:auto; padding:32px clamp(16px,3vw,46px); color:var(--muted); font-size:14px; }
+.toolhub-loading-placeholder { height:180px; max-width:700px; margin-top:24px; border:1px solid var(--line); border-radius:14px; background:var(--panel); }
+.toolhub-header[class] .toolhub-breadcrumbs>.tool-header-title { color:var(--accent); }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+html .engineering-lab[data-lab-theme] {
+  --bg: inherit;
+  --panel: inherit;
+  --panel-2: inherit;
+  --panel-sunken: inherit;
+  --fg: inherit;
+  --muted: inherit;
+  --line: inherit;
+  --line-strong: inherit;
+  --accent: inherit;
+  --accent-hover: inherit;
+  --accent-soft: inherit;
+  --on-accent: inherit;
+  --danger: inherit;
+  --ok: inherit;
+  --canvas: inherit;
+  --shadow-pop: inherit;
+  --font-ui: inherit;
+  --alert: var(--danger);
+  --wire: var(--brand-orange);
+  color-scheme: inherit;
+}
+.tool-header-context { max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); font-size: 12px; }
+.toolhub-header-actions>.btn,.toolhub-header-actions>.toolhub-nav-trigger,.toolhub-header-actions>.toolhub-knowledge,.toolhub-header-actions>.lab-knowledge-link,.toolhub-header-actions>.lab-icon { min-height:42px; height:42px; }
+.toolhub-header[class] .toolhub-header-actions>button,.toolhub-header[class] .toolhub-header-actions>a { font:500 12px/1.4 var(--font-ui); }
+.toolhub-header[class] button:disabled { opacity:.45; }
+.toolbox-categories .btn { min-height:42px; padding:9px 12px; }
+.rename-tool .rename-main,.project-hub .project-main { max-width:1380px; padding-inline:clamp(16px,3vw,46px); }
+.rename-tool .rename-main>h1,.project-hub .project-heading h1 { font-size:clamp(27px,2.8vw,36px); font-weight:600; line-height:1.25; letter-spacing:-.035em; }
+.rename-tool .rename-main>p,.project-hub .project-heading p { font-size:14px; line-height:1.7; color:var(--muted); }
+.rename-template { border-radius: 14px; }
+.rename-template>h2 { font-size: 16px; font-weight: 600; letter-spacing: -.015em; }
+.rename-template>p { font-size: 13px; line-height: 1.7; color: var(--muted); }
+@media print {
+  html .engineering-lab[data-lab-theme] { --bg:#fff; --panel:#fff; --panel-2:#f4f4f4; --fg:#111; --muted:#333; --line:#ccc; --line-strong:#aaa; --accent:#007d8c; --accent-soft:#edf5f6; --wire:#806000; --danger:#b02030; --alert:#b02030; --ok:#205a30; --canvas:#fff; color-scheme:light; }
+}
+
+.toolhub-nav-short { display:none; }
+.lab-export-actions,.lab-extra-panel { display:contents; }
+.lab-export-actions>summary { display:none; }
+.toolhub-header[class] .lab-extra-panel>.lab-icon { min-height:42px; height:42px; font:500 12px/1.4 var(--font-ui); }
+.toolhub-header[class]>.toolhub-back { display:inline-flex; align-items:center; justify-content:center; gap:7px; min-height:38px; padding:8px 11px; border:1px solid var(--line); border-radius:8px; background:transparent; color:var(--fg); font:500 12px/1.4 var(--font-ui); white-space:nowrap; cursor:pointer; }
+.toolhub-back:hover { background:var(--panel-2); border-color:var(--line-strong); }
+@media(min-width:761px) and (max-width:1450px) {
+  .toolhub-header:has(.toolhub-back) .toolhub-brand-wordmark { display:none; }
+}
+@media(max-width:760px) {
+  .toolhub-nav-full { display:none; }
+  .toolhub-nav-short { display:inline; }
+  .toolhub-header:has(.toolhub-back) .toolhub-brand-wordmark { display:none; }
+  .toolhub-header[class]>.toolhub-back { min-height:36px; padding:7px 8px; font-size:11px; }
+  .toolhub-header[class] .toolhub-header-actions { gap:3px; }
+  .toolhub-header[class] .toolhub-header-actions>button,.toolhub-header[class] .toolhub-header-actions>a { min-height:36px; height:36px; padding:7px 8px; font-size:11px; }
+  .toolhub-header[class] .toolhub-header-actions>.toolhub-nav-trigger { padding-inline:3px; gap:3px; }
+  .toolhub-header .toolhub-knowledge>span,.toolhub-header .lab-knowledge-link>span,.toolhub-header .lab-knowledge-link>svg:last-child { display:none; }
+  .toolhub-header .toolhub-knowledge,.toolhub-header .lab-knowledge-link { width:36px; justify-content:center; gap:0; }
+  .lab-export-actions { display:block; position:relative; flex:none; }
+  .lab-export-actions>summary { display:flex; align-items:center; justify-content:center; width:36px; height:36px; padding:7px; border:1px solid var(--line); border-radius:8px; list-style:none; cursor:pointer; background:var(--panel); color:var(--fg); }
+  .lab-export-actions>summary::-webkit-details-marker { display:none; }
+  .lab-export-actions>summary>span { display:none; }
+  .lab-extra-panel { position:absolute; right:0; top:calc(100% + 8px); z-index:45; display:grid; gap:6px; width:min(270px,calc(100vw - 32px)); max-height:calc(100dvh - 150px); overflow:auto; padding:10px; border:1px solid var(--line-strong); border-radius:12px; background:var(--panel); box-shadow:var(--shadow-pop); }
+  .toolhub-header[class] .lab-extra-panel>.lab-icon { justify-content:flex-start; gap:10px; width:100%; height:auto; min-height:42px; padding:10px; text-align:left; }
+  .lab-extra-panel>.lab-icon::after { content:attr(aria-label); font:500 12px/1.4 var(--font-ui); }
+  .lab-extra-panel>.lab-icon>span { display:none; }
+}

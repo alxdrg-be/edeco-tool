@@ -61,6 +61,9 @@
 .knowledge-section code{display:block;padding:17px;border:1px solid var(--line);border-radius:10px;background:var(--panel);font:13px/1.8 ui-monospace,monospace;overflow-wrap:anywhere}
 .knowledge-section ul{display:grid;gap:13px;padding:0;margin:20px 0 0;list-style:none}
 .knowledge-section a{display:inline-flex;align-items:center;gap:7px;color:var(--accent);font-size:13px;line-height:1.7;text-decoration:underline;text-underline-offset:3px;overflow-wrap:anywhere}
+.knowledge-source-group{margin-top:24px}
+.knowledge-source-group h3{margin:0;font-size:13px;font-weight:600;line-height:1.6}
+.knowledge-source-group ul{margin-top:12px}
 .knowledge-related{padding:22px;border:1px solid var(--line);border-radius:15px;background:var(--panel)}
 .knowledge-related h3{font-size:13px;font-weight:500;color:var(--muted);margin:0 0 16px}
 .knowledge-related button{display:flex;align-items:center;gap:11px;width:100%;min-height:48px;border:0;border-top:1px solid var(--line);background:transparent;padding:14px 0;color:var(--fg);text-align:left;font:inherit;font-size:13px;line-height:1.5}
@@ -72,3 +75,9 @@
 @media(max-width:540px){.knowledge-topic-grid{grid-template-columns:minmax(0,1fr)}.knowledge-section summary{font-size:14px}.knowledge-breadcrumb{font-size:12px}}
 @media(prefers-reduced-motion:reduce){.knowledge-hub *,.calc-catalog *{transition:none!important;animation:none!important}}
 @media print{.knowledge-search,.knowledge-breadcrumb,.knowledge-related{display:none}.knowledge-article-layout{display:block}.knowledge-section>div{display:block!important}.knowledge-section{break-inside:avoid}}
+
+/* Align overview headings, filters and cards to a single content edge. */
+.lab-main:has(>.calc-catalog),.lab-main:has(>.knowledge-hub){max-width:1380px}
+.calc-catalog,.knowledge-hub{max-width:none;margin-inline:0}
+.calc-shortcuts{justify-content:flex-start;align-items:center;gap:12px;margin-bottom:28px}.calc-shortcuts>div{gap:8px}
+.calc-catalog .lab-tile{padding:20px;border-radius:14px}.calc-catalog .calc-card-top{margin-bottom:16px}.calc-catalog .lab-tile h2{font-size:17px;margin-bottom:7px}.calc-catalog .lab-tile p{font-size:13px;line-height:1.6;margin-bottom:12px}.calc-catalog .lab-tile>.lab-open::after{border-radius:14px}

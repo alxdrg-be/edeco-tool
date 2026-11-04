@@ -251,7 +251,7 @@ def register(app: FastAPI, st) -> None:
                 return read_dxf(src)
             if suffix in (".n4d", ".n4m"):
                 return read_n4d(src, FORMATS[suffix])
-            return read_dwg(src, st.settings.oda_path or config.find_oda_converter())
+            return read_dwg(src, config.resolve_oda_converter(st.settings.oda_path))
         except ConverterMissing as exc:
             raise HTTPException(400, str(exc)) from None
         except Exception as exc:  # noqa: BLE001 - any unreadable file

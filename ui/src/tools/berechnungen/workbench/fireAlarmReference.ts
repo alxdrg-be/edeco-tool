@@ -74,7 +74,7 @@ export function calculateFireAlarmReference(i:Inputs):CalculationResult {
     diagram:vertical?undefined:{kind:'room',length,width,columns,rows},
     formula:`Mengen: ${count} Melder, ${horns} Hörner, ${flash} Blitzleuchten; Gruppen = ceil(ceil(${count}/${groupStoreys})/${groupMax}) × ${groupStoreys} + ceil(${manual}/10) = ${groups}. Materialkosten = Σ(Anzahl × Einzelpreis) = ${total.toFixed(2)} CHF.`,
     limitations:[
-      'Datenquelle: elektro-rechner.ch, SES-Bezug Ausgabe 01.07.2021, authentifiziert abgerufen 02.11.2026. Dies reproduziert veröffentlichte Rechenannahmen; Normtext und Anwendbarkeit wurden nicht unabhängig bestätigt.',
+      'Datierter Referenzansatz vom 02.11.2026 mit SES-Bezug Ausgabe 01.07.2021. Normtext und Anwendbarkeit wurden nicht unabhängig bestätigt; die Datenherkunft ist im Wissens-Hub dokumentiert.',
       'Hörnerzahl ist eine geometrische Näherung, kein akustischer Nachweis. Preise sind editierbare Materialannahmen ohne Montage. Gruppenbildung und Alarmierung benötigen das konkrete Anlagenkonzept.',
       ...(vertical?['Vertikaler Bereich: nur Mengenangaben. Eine rechteckige Raumgrafik wird hierfür bewusst nicht als Schachtplanung ausgegeben.']:[]),
       ...(room==='korridor'&&!corridor?['Korridor breiter als 3 m: normale Raumregel verwendet.']:[]),

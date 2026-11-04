@@ -106,3 +106,74 @@ def test_private_auth_failure_has_a_browser_fallback_and_no_token_in_status(tmp_
     state = manager.check()
     assert state["status"] == "unavailable" and "GitHub-Anmeldung" in state["message"]
     assert "test-credential" not in str(state)
+
+
+def test_download_reports_real_progress_and_preserves_verification(tmp_path):
+    payload = b"MZ" + b"x" * (1024 * 1024)
+    progress = []
+    target = tmp_path / "progress.exe"
+    updater.download_verified(io.BytesIO(payload), target, hashlib.sha256(payload).hexdigest(), len(payload),
+                              lambda written, total: progress.append((written, total)))
+    assert progress == [(0, len(payload)), (1024 * 1024, len(payload)), (len(payload), len(payload))]
+    assert target.read_bytes() == payload
+    with pytest.raises(ValueError):
+        updater.download_verified(io.BytesIO(payload), tmp_path / "invalid.exe", "0" * 64, len(payload),
+                                  lambda *_: None)
+    assert not (tmp_path / "invalid.exe").exists()
+
+
+def test_install_exposes_progress_while_the_download_is_still_running(tmp_path, monkeypatch):
+    payload = b"x" * (2 * 1024 * 1024)
+    manager = updater.UpdateManager(tmp_path)
+    manager.installed = manager.desktop = True
+    manager.state = manager._apply_release(release(payload))
+    paused, resume, closed = threading.Event(), threading.Event(), threading.Event()
+
+    class SlowResponse(io.BytesIO):
+        def read(self, size=-1):
+            if self.tell() == 1024 * 1024:
+                paused.set()
+                if not resume.wait(5):
+                    raise TimeoutError("Test download was not resumed")
+            return super().read(size)
+
+    monkeypatch.setattr(manager, "_request", lambda *a, **k: SlowResponse(payload))
+    errors = []
+
+    def install():
+        try:
+            manager.install(closed.set)
+        except Exception as exc:
+            errors.append(exc)
+
+    worker = threading.Thread(target=install)
+    worker.start()
+    try:
+        assert paused.wait(3)
+        snapshot = manager.public()
+        assert snapshot["status"] == "downloading"
+        assert snapshot["downloaded_bytes"] == 1024 * 1024
+        assert snapshot["total_bytes"] == len(payload)
+        assert snapshot["progress"] == 50
+        assert snapshot["can_install"] is False
+        assert not closed.is_set()
+    finally:
+        resume.set()
+        worker.join(timeout=5)
+    assert not worker.is_alive() and not errors
+    assert manager.public()["status"] == "installing"
+    assert manager.public()["progress"] == 100
+    assert closed.wait(2)
+
+
+def test_failed_update_resets_progress_for_an_explicit_retry(tmp_path, monkeypatch):
+    manager = updater.UpdateManager(tmp_path)
+    manager.installed = manager.desktop = True
+    manager.state = manager._apply_release(release(b"expected"))
+    monkeypatch.setattr(manager, "_request", lambda *a, **k: io.BytesIO(b"wrong"))
+    with pytest.raises(ValueError):
+        manager.install(lambda: pytest.fail("Invalid setup must not close the window"))
+    snapshot = manager.public()
+    assert snapshot["status"] == "available" and snapshot["progress"] == 0
+    assert snapshot["downloaded_bytes"] == 0 and snapshot["can_install"]
+    assert manager.pending is None

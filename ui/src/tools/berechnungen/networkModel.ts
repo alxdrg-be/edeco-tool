@@ -1,4 +1,5 @@
 import { RESISTANCE_20, REACTANCE, numeric } from "./engineering.ts";
+import { LEGACY_VOLTAGE_WARNING, shortCircuitVoltageFactors, VOLTAGE_TOLERANCE_HELP, VOLTAGE_TOLERANCE_OPTIONS } from "./voltageFactors.ts";
 import type { Field } from "./workbench/types.ts";
 import type { NetworkDocument, NetworkEdge, NetworkEdgeResult, NetworkIssue, NetworkNode, NetworkNodeKind, NetworkNodeResult, NetworkResult, NetworkTone } from "./networkTypes.ts";
 
@@ -12,6 +13,7 @@ export const NETWORK_NODE_FIELDS: Record<NetworkNodeKind, Field[]> = {
   source: [
     s("phases", "Netzsystem", "3", [["3", "3~ 400/230 V"], ["1", "1~ 230 V"]]),
     s("voltage", "Bemessungsspannung", "400", [["400", "400 V · Aussenleiter"], ["230", "230 V · L–N"]]),
+    s("voltageTolerance", "Spannungstoleranz für Ik,max", "plus10", VOLTAGE_TOLERANCE_OPTIONS, VOLTAGE_TOLERANCE_HELP),
     s("maxCurrent", "Verfügbarer Anschlussstrom", "160", ratings, "Stromgrenze je Aussenleiter; keine automatische Netzbetreiberfreigabe."),
     s("sourceMode", "Vorgelagerte Quelle", "impedance", [["impedance", "R und X vorgegeben"], ["ik", "Ik,max am Einspeisepunkt"], ["ideal", "Ideal · Vorimpedanz 0"]], "Alle Quellwerte auf die Niederspannungsseite beziehen. Das Ik-Modell nimmt für den unbekannten R/X-Anteil reine Reaktanz an."),
     visible(n("r", "Quellwiderstand R", "0.01", "Ω"), "sourceMode", ["impedance"]),
@@ -88,16 +90,28 @@ const fmt = (value: number, digits = 3) => value.toLocaleString("de-CH", { maxim
 const tol = 1e-9;
 const worst = (a: NetworkTone, b: NetworkTone): NetworkTone => (["neutral", "ok", "warning", "error"].indexOf(a) > ["neutral", "ok", "warning", "error"].indexOf(b) ? a : b);
 
+export class NetworkInputError extends Error {
+  field: string;
+  required: string;
+  constructor(field: string, message: string, required: string) {
+    super(message);
+    this.name = "NetworkInputError";
+    this.field = field;
+    this.required = required;
+  }
+}
 function read(values: Record<string, string>, key: string, label: string, max = 1e9, allowZero = false): number {
-  if (typeof values[key] !== "string") throw new Error(`${label}: Zahl eingeben.`);
-  return numeric(values[key], label, 0, max, allowZero);
+  const required = `Endliche Zahl ${allowZero ? "ab 0" : "grösser als 0"} bis ${fmt(max)}.`;
+  if (typeof values[key] !== "string") throw new NetworkInputError(key, `${label}: Zahl eingeben.`, required);
+  try { return numeric(values[key], label, 0, max, allowZero); }
+  catch (error) { throw new NetworkInputError(key, error instanceof Error ? error.message : `${label}: Zahl eingeben.`, required); }
 }
 function choice(values: Record<string, string>, key: string, valid: string[], label: string): string {
-  if (!valid.includes(values[key])) throw new Error(`${label}: gültigen Listenwert wählen.`);
+  if (!valid.includes(values[key])) throw new NetworkInputError(key, `${label}: gültigen Listenwert wählen.`, `Einen der vorhandenen Listenwerte wählen: ${valid.join(", ")}.`);
   return values[key];
 }
 function whole(values: Record<string, string>, key: string, label: string, max: number) {
-  const value = read(values, key, label, max); if (!Number.isInteger(value)) throw new Error(`${label}: ganze Zahl eingeben.`); return value;
+  const value = read(values, key, label, max); if (!Number.isInteger(value)) throw new NetworkInputError(key, `${label}: ganze Zahl eingeben.`, `Ganze Zahl von 1 bis ${max}.`); return value;
 }
 function invalid(issues: NetworkIssue[]): NetworkResult {
   return { valid: false, tone: "error", status: "Netz nicht berechenbar. Verbindungen und Eingaben prüfen.", issues, nodes: [], edges: [], totalPowerKW: 0, maxCurrent: 0, maxDropPercent: 0, formula: "Kein Ergebnis bei unvollständigem oder ungültigem Netz.", assumptions: [] };
@@ -105,73 +119,87 @@ function invalid(issues: NetworkIssue[]): NetworkResult {
 interface Demand { currents: Triple; powerKW: number; singlePhase: boolean; connectedPhases: [boolean, boolean, boolean] }
 interface Wire {
   edge: NetworkEdge; zCold: Complex; zWarm: Complex; zDrop: Complex; zNeutral: Complex; zLoop: Complex;
-  length: number; area: number; parallel: number; iz: number | null; neutralIz: number | null; temperature: number;
+  length: number; area: number; neutralArea: number; parallel: number; iz: number | null; neutralIz: number | null; temperature: number;
 }
 interface Path { cold: Complex; loopWires: Complex; transformerX: number; drop: Triple; protector?: NetworkNode }
 
 /** Original steady-state radial TN model. It never certifies an entire NIN installation. */
 function calculateNetworkModel(document: NetworkDocument): NetworkResult {
   const issues: NetworkIssue[] = [];
-  const problem = (text: string, nodeId?: string, edgeId?: string) => issues.push({ tone: "error", text, nodeId, edgeId });
-  if (!document || document.version !== 1 || typeof document.name !== "string" || !Array.isArray(document.nodes) || !Array.isArray(document.edges)) return invalid([{ tone: "error", text: "Ungültiges Netzprojektformat." }]);
-  if (document.nodes.length > 500 || document.edges.length > 1000) return invalid([{ tone: "error", text: "Maximal 500 Elemente und 1000 Leitungen im Projektmodell." }]);
+  const structuralKeys = new Set<string>();
+  const problem = (text: string, nodeId?: string, edgeId?: string, code = "structure", field = "") => {
+    const key = JSON.stringify([code, nodeId || "", edgeId || "", field]);
+    if (!structuralKeys.has(key)) { issues.push({ tone: "error", text, nodeId, edgeId, code, field }); structuralKeys.add(key); }
+  };
+  if (!document || document.version !== 1 || typeof document.name !== "string" || !Array.isArray(document.nodes) || !Array.isArray(document.edges)) return invalid([{ tone: "error", code: "project_format", text: "Ungültiges Netzprojektformat." }]);
+  if (document.nodes.length > 500 || document.edges.length > 1000) return invalid([{ tone: "error", code: "project_limits", text: "Maximal 500 Elemente und 1000 Leitungen im Projektmodell." }]);
   const nodeById = new Map<string, NetworkNode>();
   for (const node of document.nodes) {
-    if (!node || typeof node.id !== "string" || !node.id || nodeById.has(node.id)) { problem("Element-IDs müssen vorhanden und eindeutig sein."); continue; }
-    if (!Object.hasOwn(NETWORK_NODE_FIELDS, node.kind)) problem("Unbekannter Elementtyp.", node.id);
-    if (typeof node.label !== "string" || node.label.length > 300) problem("Elementbeschriftung ist ungültig.", node.id);
-    if (!Number.isFinite(node.x) || !Number.isFinite(node.y)) problem("Elementposition ist ungültig.", node.id);
-    if (!node.values || typeof node.values !== "object") problem("Elementeigenschaften fehlen.", node.id);
+    if (!node || typeof node.id !== "string" || !node.id || nodeById.has(node.id)) { problem("Element-IDs müssen vorhanden und eindeutig sein.", undefined, undefined, "node_identity"); continue; }
+    if (!Object.hasOwn(NETWORK_NODE_FIELDS, node.kind)) problem("Unbekannter Elementtyp.", node.id, undefined, "node_kind");
+    if (typeof node.label !== "string" || node.label.length > 300) problem("Elementbeschriftung ist ungültig.", node.id, undefined, "node_label");
+    if (!Number.isFinite(node.x) || !Number.isFinite(node.y)) problem("Elementposition ist ungültig.", node.id, undefined, "node_position");
+    if (!node.values || typeof node.values !== "object") problem("Elementeigenschaften fehlen.", node.id, undefined, "node_values");
     nodeById.set(node.id, node);
   }
   if (issues.some(issue => issue.tone === "error")) return invalid(issues);
   const sources = document.nodes.filter(node => node?.kind === "source");
-  if (sources.length !== 1) problem("Genau eine NS-Einspeisung ist erforderlich; Mehrfacheinspeisung wird nicht modelliert.");
-  if (!document.edges.length) problem("Keine Leitungsverbindungen vorhanden. Elemente vor der Berechnung verbinden.");
+  if (sources.length !== 1) problem("Genau eine NS-Einspeisung ist erforderlich; Mehrfacheinspeisung wird nicht modelliert.", undefined, undefined, "source_count");
+  if (!document.edges.length) problem("Keine Leitungsverbindungen vorhanden. Elemente vor der Berechnung verbinden.", undefined, undefined, "no_edges");
   const outgoing = new Map<string, NetworkEdge[]>(), incoming = new Map<string, NetworkEdge>(), edgeIds = new Set<string>();
   for (const edge of document.edges) {
-    if (!edge || typeof edge.id !== "string" || !edge.id || typeof edge.from !== "string" || typeof edge.to !== "string" || edgeIds.has(edge.id)) { problem("Leitungs-IDs müssen vorhanden und eindeutig sein."); continue; }
+    if (!edge || typeof edge.id !== "string" || !edge.id || typeof edge.from !== "string" || typeof edge.to !== "string" || edgeIds.has(edge.id)) { problem("Leitungs-IDs müssen vorhanden und eindeutig sein.", undefined, undefined, "edge_identity"); continue; }
     edgeIds.add(edge.id);
-    if (!nodeById.has(edge.from) || !nodeById.has(edge.to)) { problem("Eine Leitung verweist auf ein fehlendes Element.", undefined, edge.id); continue; }
-    if (edge.from === edge.to) problem("Ein Element kann nicht mit sich selbst verbunden sein.", edge.from, edge.id);
-    if (incoming.has(edge.to)) problem("Mehrere Einspeisepfade an einem Element: nur radiale Netze sind unterstützt.", edge.to, edge.id);
+    if (!nodeById.has(edge.from) || !nodeById.has(edge.to)) { problem("Eine Leitung verweist auf ein fehlendes Element.", undefined, edge.id, "edge_missing_node"); continue; }
+    if (edge.from === edge.to) problem("Ein Element kann nicht mit sich selbst verbunden sein.", edge.from, edge.id, "self_edge");
+    if (incoming.has(edge.to)) problem("Mehrere Einspeisepfade an einem Element: nur radiale Netze sind unterstützt.", edge.to, edge.id, "multiple_paths");
     incoming.set(edge.to, edge);
     outgoing.set(edge.from, [...(outgoing.get(edge.from) ?? []), edge]);
   }
-  if (sources[0] && incoming.has(sources[0].id)) problem("Die Einspeisung darf keine eingehende Leitung haben.", sources[0].id);
+  if (sources[0] && incoming.has(sources[0].id)) problem("Die Einspeisung darf keine eingehende Leitung haben.", sources[0].id, undefined, "source_incoming");
   const visiting = new Set<string>(), visited = new Set<string>(), order: NetworkNode[] = [];
   function visit(id: string) {
-    if (visiting.has(id)) { problem("Geschlossener Ring / Zyklus gefunden. Das Modell benötigt ein radiales Netz.", id); return; }
+    if (visiting.has(id)) { problem("Geschlossener Ring / Zyklus gefunden. Das Modell benötigt ein radiales Netz.", id, undefined, "cycle"); return; }
     if (visited.has(id)) return;
     visiting.add(id);
     for (const edge of outgoing.get(id) ?? []) visit(edge.to);
     visiting.delete(id); visited.add(id); const node = nodeById.get(id); if (node) order.push(node);
   }
   if (sources[0]) visit(sources[0].id);
-  for (const node of document.nodes) if (!visited.has(node.id)) problem("Element ist nicht mit der Einspeisung verbunden.", node.id);
-  if (!document.nodes.some(node => node.kind === "load")) problem("Mindestens ein Verbraucher ist erforderlich.");
-  for (const node of document.nodes) if (node.kind === "load" && (outgoing.get(node.id)?.length ?? 0)) problem("Ein Verbraucher ist ein Endpunkt und kann keine weitere Verteilung speisen.", node.id);
+  for (const node of document.nodes) if (!visited.has(node.id)) problem("Element ist nicht mit der Einspeisung verbunden.", node.id, undefined, "disconnected");
+  if (!document.nodes.some(node => node.kind === "load")) problem("Mindestens ein Verbraucher ist erforderlich.", undefined, undefined, "no_load");
+  for (const node of document.nodes) if (node.kind === "load" && (outgoing.get(node.id)?.length ?? 0)) problem("Ein Verbraucher ist ein Endpunkt und kann keine weitere Verteilung speisen.", node.id, undefined, "load_not_endpoint");
   if (issues.some(issue => issue.tone === "error")) return invalid(issues);
 
   const source = sources[0];
   let activeInputContext: { nodeId?: string; edgeId?: string } = { nodeId: source.id };
-  const invalidAtCurrentObject = (error: unknown) => invalid([{ tone: "error", text: error instanceof Error ? error.message : "Ungültige Netzparameter.", ...activeInputContext }]);
-  let system: string, nominalVoltage: number, maxCurrent: number, budget: number, sourceZ: Complex, sourceLoop: number | null;
+  const invalidAtCurrentObject = (error: unknown) => invalid([{
+    tone: "error", text: error instanceof Error ? error.message : "Ungültige Netzparameter.", ...activeInputContext,
+    code: error instanceof NetworkInputError ? "input" : "arithmetic",
+    field: error instanceof NetworkInputError ? error.field : "",
+    data: error instanceof NetworkInputError ? { required: error.required } : undefined,
+  }]);
+  let system: string, nominalVoltage: number, cMax: number, voltageTolerance: string, maxCurrent: number, budget: number, sourceZ: Complex, sourceLoop: number | null;
   const demands = new Map<string, Demand>(), wires = new Map<string, Wire>();
   const rated = new Map<string, number>(), device = new Map<string, string>(), transformer = new Map<string, { x: number; kva: number; rated: number }>();
   try {
     system = choice(source.values, "phases", ["1", "3"], "Netzsystem");
     nominalVoltage = read(source.values, "voltage", "Bemessungsspannung", 1000);
-    if (nominalVoltage !== (system === "3" ? 400 : 230)) throw new Error("Das NS-Modell verwendet 400 V für 3~ beziehungsweise 230 V für 1~.");
+    if (nominalVoltage !== (system === "3" ? 400 : 230)) throw new NetworkInputError("voltage", "Das NS-Modell verwendet 400 V für 3~ beziehungsweise 230 V für 1~.", system === "3" ? "400 V für das ausgewählte Drehstromnetz." : "230 V für das ausgewählte Einphasennetz.");
+    let voltageFactors: ReturnType<typeof shortCircuitVoltageFactors>;
+    try { voltageFactors = shortCircuitVoltageFactors(source.values.voltageTolerance); }
+    catch (error) { throw new NetworkInputError("voltageTolerance", error instanceof Error ? error.message : "Ungültige Spannungstoleranz.", "Eine vorhandene Spannungstoleranz wählen."); }
+    cMax = voltageFactors.cMax; voltageTolerance = voltageFactors.label;
+    if (voltageFactors.legacy) issues.push({ tone: "warning", nodeId: source.id, text: LEGACY_VOLTAGE_WARNING, code: "legacy_voltage", field: "voltageTolerance" });
     maxCurrent = read(source.values, "maxCurrent", "Anschlussstrom", 10000);
     budget = read(source.values, "limit", "Gesamtes Spannungsfallbudget", 20);
     const mode = choice(source.values, "sourceMode", ["impedance", "ik", "ideal"], "Quellenmodell");
-    sourceZ = mode === "ideal" ? c() : mode === "ik" ? c(0, 1.05 * nominalVoltage / ((system === "3" ? Math.sqrt(3) : 1) * read(source.values, "ik", "Maximaler Ik der Einspeisung", 1000) * 1000)) : c(read(source.values, "r", "Quellwiderstand", 1000, true), read(source.values, "x", "Quellreaktanz", 1000, true));
+    sourceZ = mode === "ideal" ? c() : mode === "ik" ? c(0, cMax * nominalVoltage / ((system === "3" ? Math.sqrt(3) : 1) * read(source.values, "ik", "Maximaler Ik der Einspeisung", 1000) * 1000)) : c(read(source.values, "r", "Quellwiderstand", 1000, true), read(source.values, "x", "Quellreaktanz", 1000, true));
     sourceLoop = choice(source.values, "loopKnown", ["yes", "no"], "L–PE-Quelldaten") === "yes" ? read(source.values, "loopImpedance", "L–PE-Quellenimpedanz", 1000, true) : null;
     for (const node of document.nodes) {
       activeInputContext = { nodeId: node.id };
       if (node.kind === "transformer") {
-        if (system === "1") throw new Error("Der Transformator ist als symmetrisches 3~-NS-Ersatzmodell ausgeführt.");
+        if (system === "1") throw new NetworkInputError("kva", "Der Transformator ist als symmetrisches 3~-NS-Ersatzmodell ausgeführt.", "Den Transformator nur im dreiphasigen NS-Ersatznetz einsetzen; Netzstruktur prüfen.");
         const kva = read(node.values, "kva", "Trafo-Nennleistung", 100000), uk = read(node.values, "uk", "Trafo-Kurzschlussspannung", 100);
         transformer.set(node.id, { x: computedPositive(uk / 100 * nominalVoltage ** 2 / (kva * 1000), "Trafo-Reaktanz"), kva, rated: computedPositive(kva * 1000 / (Math.sqrt(3) * nominalVoltage), "Trafo-Nennstrom") });
       }
@@ -195,12 +223,12 @@ function calculateNetworkModel(document: NetworkDocument): NetworkResult {
       const area = read(v, "area", "Aussenleiterquerschnitt", 240), parallel = whole(v, "parallel", "Parallele Leiter", 100), temperature = read(v, "temperature", "Leitertemperatur", 150, true);
       const peArea = v.peArea === "same" ? area : read(v, "peArea", "PE-Querschnitt", 240), neutralArea = v.neutralArea === "same" ? area : read(v, "neutralArea", "Neutralleiterquerschnitt", 240);
       const table = RESISTANCE_20[material], alpha = material === "cu" ? .00393 : .00403;
-      for (const section of [area, peArea, neutralArea]) if (!Object.hasOwn(table, String(section)) || !Object.hasOwn(REACTANCE, String(section))) throw new Error(`${material === "al" ? "Aluminium ab 10 mm²" : "Kupfer"}: belegten Querschnitt mit R′ und X′ wählen.`);
+      for (const [key, section] of [["area", area], ["peArea", peArea], ["neutralArea", neutralArea]] as const) if (!Object.hasOwn(table, String(section)) || !Object.hasOwn(REACTANCE, String(section))) throw new NetworkInputError(key, `${material === "al" ? "Aluminium ab 10 mm²" : "Kupfer"}: belegten Querschnitt mit R′ und X′ wählen.`, `Einen belegten ${material === "al" ? "Aluminiumquerschnitt ab 10 mm²" : "Kupferquerschnitt"} aus der Liste wählen.`);
       const path = (section: number, temp: number) => c(computedPositive(table[String(section)] * (1 + alpha * (temp - 20)) * length / (1000 * parallel), "Leiterwiderstand"), computedPositive(REACTANCE[String(section)] * length / (1000 * parallel), "Leiterreaktanz"));
       const zCold = system === "1" ? add(path(area, 20), path(neutralArea, 20)) : path(area, 20), zWarm = path(area, 80), zDrop = path(area, temperature), zNeutral = path(neutralArea, temperature), zLoop = add(zWarm, path(peArea, 80));
       const iz = choice(v, "izMode", ["manual", "open"], "Iz-Grundlage") === "manual" ? read(v, "iz", "Dokumentiertes Iz je Kreis", 100000) * parallel : null;
       const neutralIz = iz === null ? null : neutralArea === area ? iz : read(v, "neutralIz", "Dokumentiertes Iz je Neutralleiterkreis", 100000) * parallel;
-      wires.set(edge.id, { edge, zCold, zWarm, zDrop, zNeutral, zLoop, area, parallel, length, iz, neutralIz, temperature });
+      wires.set(edge.id, { edge, zCold, zWarm, zDrop, zNeutral, zLoop, area, neutralArea, parallel, length, iz, neutralIz, temperature });
     }
     for (const node of order) {
       activeInputContext = { nodeId: node.id };
@@ -210,13 +238,13 @@ function calculateNetworkModel(document: NetworkDocument): NetworkResult {
         choice(node.values, "device", ["general", "motor", "socket", "light", "heater", "fan", "cooker"], "Verbrauchertyp");
         const power = read(node.values, "power", "Verbraucher-Wirkleistung", 1e6), cos = read(node.values, "cosPhi", "Leistungsfaktor", 1), factor = read(node.values, "diversity", "Gleichzeitigkeitsanteil", 1, true);
         const connection = choice(node.values, "phases", ["1", "3"], "Verbraucheranschluss");
-        if (system === "1" && connection === "3") throw new Error("Ein 3~-Verbraucher kann nicht aus einem 1~-Netz gespeist werden.");
+        if (system === "1" && connection === "3") throw new NetworkInputError("phases", "Ein 3~-Verbraucher kann nicht aus einem 1~-Netz gespeist werden.", "Einphasigen Verbraucheranschluss wählen oder die tatsächliche dreiphasige Einspeisung modellieren.");
         powerKW = factor === 0 ? 0 : computedPositive(power * factor, "Verbraucherleistung");
         const phi = Math.acos(cos), perPhaseCurrent = connection === "3" ? powerKW * 1000 / (Math.sqrt(3) * nominalVoltage * cos) : powerKW * 1000 / (230 * cos);
         const base = c(powerKW === 0 ? 0 : computedPositive(perPhaseCurrent * cos, "Wirkstromanteil"), -perPhaseCurrent * Math.sin(phi));
         if (connection === "1") {
           const phase = ["L1", "L2", "L3"].indexOf(choice(node.values, "phase", ["L1", "L2", "L3"], "Aussenleiter"));
-          if (system === "1" && phase !== 0) throw new Error("Im 1~-Netz ist nur L1 verfügbar.");
+          if (system === "1" && phase !== 0) throw new NetworkInputError("phase", "Im 1~-Netz ist nur L1 verfügbar.", "Im ausgewählten Einphasennetz L1 wählen.");
           currents[phase] = mul(base, rotate(phase)); singlePhase = true; connectedPhases[phase] = true;
         } else { currents = [0, 1, 2].map(phase => mul(base, rotate(phase))) as Triple; connectedPhases.fill(true); }
       }
@@ -235,13 +263,13 @@ function calculateNetworkModel(document: NetworkDocument): NetworkResult {
   const sourceDemand = demands.get(source.id)!;
   const nodes: NetworkNodeResult[] = [], edges: NetworkEdgeResult[] = [];
   const nodeResultById = new Map<string, NetworkNodeResult>();
-  function record(tone: NetworkTone, text: string, nodeId?: string, edgeId?: string) {
-    issues.push({ tone, text, nodeId, edgeId });
+  function record(tone: NetworkTone, text: string, nodeId?: string, edgeId?: string, details: Partial<NetworkIssue> = {}) {
+    issues.push({ tone, text, nodeId, edgeId, ...details });
     if (nodeId && nodeResultById.has(nodeId)) { const result = nodeResultById.get(nodeId)!; result.tone = worst(result.tone, tone); result.checks.push(text); }
   }
-  if (sourceDemand.powerKW === 0) record("warning", "Der Gleichzeitigkeitsansatz ergibt keine aktive Last; keine Anlagenfreigabe aus einem Leerergebnis.", source.id);
+  if (sourceDemand.powerKW === 0) record("warning", "Der Gleichzeitigkeitsansatz ergibt keine aktive Last; keine Anlagenfreigabe aus einem Leerergebnis.", source.id, undefined, { code: "no_active_load", field: "", data: { actual: 0 } });
   const supplyCurrent = Math.max(...sourceDemand.currents.map(magnitude));
-  if (supplyCurrent > maxCurrent! + tol) record("error", `Anschlussstrom überschritten: ${fmt(supplyCurrent)} A > ${fmt(maxCurrent!)} A.`, source.id);
+  if (supplyCurrent > maxCurrent! + tol) record("error", `Anschlussstrom überschritten: ${fmt(supplyCurrent)} A > ${fmt(maxCurrent!)} A.`, source.id, undefined, { code: "source_current", field: "maxCurrent", data: { actual: supplyCurrent, limit: maxCurrent! } });
   const nominalPhase = system! === "3" ? nominalVoltage! / Math.sqrt(3) : nominalVoltage!;
   const projection = (value: Complex, phase: number) => mul(value, c(Math.cos(phases[phase]), -Math.sin(phases[phase]))).re;
   function walk(node: NetworkNode, inherited: Path) {
@@ -254,23 +282,23 @@ function calculateNetworkModel(document: NetworkDocument): NetworkResult {
     if (trafo) {
       local.cold = add(local.cold, c(0, trafo.x)); local.transformerX = computedFinite(local.transformerX + trafo.x, "Aufsummierte Trafo-Reaktanz");
       local.drop = local.drop.map((value, phase) => add(value, mul(c(0, trafo.x), demand.currents[phase]))) as Triple;
-      if (current > trafo.rated + tol) record("error", `Trafo-Nennstrom überschritten: ${fmt(current)} A > ${fmt(trafo.rated)} A.`, node.id);
-      if (demand.singlePhase) record("warning", "Unsymmetrische Trafolast: Nullsystem und Schaltgruppe sind im NS-Ersatzmodell nicht geprüft.", node.id);
+      if (current > trafo.rated + tol) record("error", `Trafo-Nennstrom überschritten: ${fmt(current)} A > ${fmt(trafo.rated)} A.`, node.id, undefined, { code: "transformer_current", field: "kva", data: { actual: current, limit: trafo.rated, requiredKva: current * (Math.sqrt(3) * nominalVoltage! / 1000) } });
+      if (demand.singlePhase) record("warning", "Unsymmetrische Trafolast: Nullsystem und Schaltgruppe sind im NS-Ersatzmodell nicht geprüft.", node.id, undefined, { code: "transformer_unbalanced", field: "" });
     }
-    if (rated.has(node.id) && current > rated.get(node.id)! + tol) record("error", `Gerätenennstrom überschritten: ${fmt(current)} A > ${fmt(rated.get(node.id)!)} A.`, node.id);
+    if (rated.has(node.id) && current > rated.get(node.id)! + tol) record("error", `Gerätenennstrom überschritten: ${fmt(current)} A > ${fmt(rated.get(node.id)!)} A.`, node.id, undefined, { code: "device_current", field: "rated", data: { actual: current, limit: rated.get(node.id)! } });
     const type = device.get(node.id);
     if (type) {
       if (["LS", "RCBO", "MCCB"].includes(type)) {
-        const icn = read(node.values, "icn", "Ausschaltvermögen", 1000), z = magnitude(local.cold), prospective = shortCircuitKA(nominalVoltage!, system === "3" ? Math.sqrt(3) : 1, z);
-        if (prospective === null) record("warning", "Ausschaltvermögen nicht geprüft: keine endliche Quellenimpedanz am Gerät.", node.id);
-        else if (icn < prospective - tol) record("error", `Ausschaltvermögen am Gerät zu klein: ${fmt(icn)} kA < ${fmt(prospective)} kA.`, node.id);
+        const icn = read(node.values, "icn", "Ausschaltvermögen", 1000), z = magnitude(local.cold), prospective = shortCircuitKA(nominalVoltage!, system === "3" ? Math.sqrt(3) : 1, z, cMax!);
+        if (prospective === null) record("warning", "Ausschaltvermögen nicht geprüft: keine endliche Quellenimpedanz am Gerät.", node.id, undefined, { code: "icn_open", field: "icn", relatedNodeId: source.id });
+        else if (icn < prospective - tol) record("error", `Ausschaltvermögen am Gerät zu klein: ${fmt(icn)} kA < ${fmt(prospective)} kA.`, node.id, undefined, { code: "icn", field: "icn", data: { actual: icn, required: prospective } });
         else result.checks.push(`Icn ${fmt(icn)} kA ≥ Ik,max ${fmt(prospective)} kA am Einbauort.`);
       }
-      if (["RCD", "RCBO"].includes(type)) record("warning", `RCD ${node.values.tripCurrent} mA: Abschaltzeit, Erdungsbedingungen und Zeitselektivität bleiben ungeprüft.`, node.id);
-      if (["NH", "MCCB", "MOTOR"].includes(type)) record("warning", "Gerätekennlinie und Abschaltzeit sind ohne konkrete Herstellerdaten nicht nachgewiesen.", node.id);
-      if (["K", "Z"].includes(node.values.curve) && ["LS", "RCBO"].includes(type)) record("warning", "K-/Z-Band ist eine Herstellerannahme und am Gerät zu belegen.", node.id);
+      if (["RCD", "RCBO"].includes(type)) record("warning", `RCD ${node.values.tripCurrent} mA: Abschaltzeit, Erdungsbedingungen und Zeitselektivität bleiben ungeprüft.`, node.id, undefined, { code: "rcd_proof", field: "tripCurrent", data: { actual: node.values.tripCurrent } });
+      if (["NH", "MCCB", "MOTOR"].includes(type)) record("warning", "Gerätekennlinie und Abschaltzeit sind ohne konkrete Herstellerdaten nicht nachgewiesen.", node.id, undefined, { code: "manufacturer_proof", field: "device" });
+      if (["K", "Z"].includes(node.values.curve) && ["LS", "RCBO"].includes(type)) record("warning", "K-/Z-Band ist eine Herstellerannahme und am Gerät zu belegen.", node.id, undefined, { code: "curve_proof", field: "curve" });
       if (!["RCD", "SWITCH"].includes(type)) {
-        if (local.protector) record("warning", "Mehrstufiger Schutz: Selektivität / Back-up benötigen passende Herstellerdaten.", node.id);
+        if (local.protector) record("warning", "Mehrstufiger Schutz: Selektivität / Back-up benötigen passende Herstellerdaten.", node.id, undefined, { code: "coordination_proof", field: "device", relatedNodeId: local.protector.id });
         local.protector = node;
       }
     }
@@ -290,37 +318,40 @@ function calculateNetworkModel(document: NetworkDocument): NetworkResult {
       const percent = volts / reference * 100, totalPercent = totalVolts / reference * 100;
       const minProjectedVoltage = Math.min(...connectedPhases.map(phase => projection(cumulative[phase], phase)));
       const cold = add(local.cold, wire.zCold), loopWires = add(local.loopWires, wire.zLoop), zCold = magnitude(cold);
-      const ikMax = shortCircuitKA(nominalVoltage!, system === "3" ? Math.sqrt(3) : 1, zCold);
+      const ikMax = shortCircuitKA(nominalVoltage!, system === "3" ? Math.sqrt(3) : 1, zCold, cMax!);
       const loopZ = sourceLoop! === null ? null : computedFinite(sourceLoop! + local.transformerX + magnitude(loopWires), "L–PE-Schleifenimpedanz");
       const ikMin = loopZ !== null && loopZ > 0 ? computedFinite(.95 * 230 / loopZ / 1000, "Ik,min-Modell") : null;
       let tone: NetworkTone = "ok"; const checks: string[] = [];
-      const check = (severity: NetworkTone, text: string) => { tone = worst(tone, severity); checks.push(text); record(severity, text, edge.to, edge.id); };
-      if (!local.protector) check("warning", "Für diesen Abschnitt ist kein Überstromschutzorgan im vorgelagerten Netz modelliert.");
-      if (downstream.powerKW === 0) check("warning", "Dieser Zweig hat keine aktive Verbraucherlast; der Betriebsstrom ist 0 A.");
-      if (minProjectedVoltage < -tol) check("warning", "Unsymmetrische Last erzeugt im Modell eine Neutralpunktverschiebung mit Spannungsanhebung auf einem Aussenleiter; Spannungsgrenzen gesondert prüfen.");
-      if (totalPercent > budget! + tol) check("error", `Spannungsfall im gesamten Pfad ${fmt(totalPercent)} % > ${fmt(budget!)} %.`);
-      else if (totalPercent >= .9 * budget!) check("warning", `Gesamter Spannungsfall nahe Budget: ${fmt(totalPercent)} % / ${fmt(budget!)} %.`);
+      const check = (severity: NetworkTone, text: string, code: string, field = "", data: Record<string, string | number> = {}, relatedNodeId = local.protector?.id) => {
+        tone = worst(tone, severity); checks.push(text); record(severity, text, edge.to, edge.id, { code, field, data, relatedNodeId });
+      };
+      if (!local.protector) check("warning", "Für diesen Abschnitt ist kein Überstromschutzorgan im vorgelagerten Netz modelliert.", "protection_missing", "", { from: edge.from });
+      if (downstream.powerKW === 0) check("warning", "Dieser Zweig hat keine aktive Verbraucherlast; der Betriebsstrom ist 0 A.", "idle_branch", "", { actual: 0 });
+      if (minProjectedVoltage < -tol) check("warning", "Unsymmetrische Last erzeugt im Modell eine Neutralpunktverschiebung mit Spannungsanhebung auf einem Aussenleiter; Spannungsgrenzen gesondert prüfen.", "neutral_shift", "neutralArea");
+      if (totalPercent > budget! + tol) check("error", `Spannungsfall im gesamten Pfad ${fmt(totalPercent)} % > ${fmt(budget!)} %.` , "drop_budget", "area", { actual: totalPercent, limit: budget! }, source.id);
+      else if (totalPercent >= .9 * budget!) check("warning", `Gesamter Spannungsfall nahe Budget: ${fmt(totalPercent)} % / ${fmt(budget!)} %.` , "drop_near", "area", { actual: totalPercent, limit: budget! }, source.id);
       else checks.push(`Spannungsfall bis hier ${fmt(totalPercent)} % ≤ ${fmt(budget!)} %.`);
-      if (totalPercent >= 100) check("error", "Spannungsfall erreicht die Bemessungsspannung; lineares Lastmodell ausserhalb des gültigen Bereichs.");
-      if (wire.iz === null) check("warning", "Strombelastbarkeit Iz ist nicht dokumentiert; Leitungsüberlastschutz bleibt offen.");
+      if (totalPercent >= 100) check("error", "Spannungsfall erreicht die Bemessungsspannung; lineares Lastmodell ausserhalb des gültigen Bereichs.", "drop_model_limit", "length", { actual: totalPercent });
+      if (wire.iz === null) check("warning", "Strombelastbarkeit Iz ist nicht dokumentiert; Leitungsüberlastschutz bleibt offen.", "iz_open", "izMode");
       else {
-        if (amperes > wire.iz + tol) check("error", `Betriebsstrom ${fmt(amperes)} A > dokumentiertes Iz ${fmt(wire.iz)} A.`);
-        if (wire.neutralIz !== null && magnitude(neutral) > wire.neutralIz + tol) check("error", `Neutralleiterstrom ${fmt(magnitude(neutral))} A > vorgegebenes N-Iz ${fmt(wire.neutralIz)} A; Neutralleiter separat dimensionieren.`);
+        if (amperes > wire.iz + tol) check("error", `Betriebsstrom ${fmt(amperes)} A > dokumentiertes Iz ${fmt(wire.iz)} A.`, "ib_iz", "iz", { actual: amperes, limit: wire.iz, parallel: wire.parallel });
+        if (wire.neutralIz !== null && magnitude(neutral) > wire.neutralIz + tol) check("error", `Neutralleiterstrom ${fmt(magnitude(neutral))} A > vorgegebenes N-Iz ${fmt(wire.neutralIz)} A; Neutralleiter separat dimensionieren.`, "neutral_iz", wire.neutralArea === wire.area ? "iz" : "neutralIz", { actual: magnitude(neutral), limit: wire.neutralIz, parallel: wire.parallel });
         const protector = local.protector;
         if (protector) {
           const inA = rated.get(protector.id)!, factor = read(protector.values, "i2factor", "Prüfstromfaktor", 10);
-          if (inA > wire.iz + tol) check("error", `Schutznennstrom ${fmt(inA)} A > Iz ${fmt(wire.iz)} A.`);
-          if (factor * inA > 1.45 * wire.iz + tol) check("error", `I₂ ${fmt(factor * inA)} A > 1.45 × Iz ${fmt(1.45 * wire.iz)} A.`);
-          if (amperes > inA + tol) check("error", `Betriebsstrom ${fmt(amperes)} A > Schutznennstrom ${fmt(inA)} A.`);
+          const protectionData = { actual: amperes, iz: wire.iz, rated: inA, factor, parallel: wire.parallel };
+          if (inA > wire.iz + tol) check("error", `Schutznennstrom ${fmt(inA)} A > Iz ${fmt(wire.iz)} A.`, "in_iz", "iz", protectionData);
+          if (factor * inA > 1.45 * wire.iz + tol) check("error", `I₂ ${fmt(factor * inA)} A > 1.45 × Iz ${fmt(1.45 * wire.iz)} A.`, "i2_iz", "iz", protectionData);
+          if (amperes > inA + tol) check("error", `Betriebsstrom ${fmt(amperes)} A > Schutznennstrom ${fmt(inA)} A.`, "ib_in", "rated", protectionData);
         }
       }
-      if (ikMin === null) check("warning", "Ik,min-Modell offen: dokumentierte L–PE-Quellenimpedanz fehlt oder ist unbestimmt.");
+      if (ikMin === null) check("warning", "Ik,min-Modell offen: dokumentierte L–PE-Quellenimpedanz fehlt oder ist unbestimmt.", "loop_open", "loopKnown", {}, source.id);
       else if (local.protector && ["LS", "RCBO"].includes(device.get(local.protector.id)!)) {
         const high: Record<string, number> = { B: 5, C: 10, D: 20, K: 14, Z: 3 }, upper = high[local.protector.values.curve] * rated.get(local.protector.id)!;
-        if (ikMin * 1000 < upper - tol) check("error", `Oberer Magnetauslöser ${fmt(upper)} A wird vom Ik,min-Modell ${fmt(ikMin * 1000)} A nicht erreicht.`);
+        if (ikMin * 1000 < upper - tol) check("error", `Oberer Magnetauslöser ${fmt(upper)} A wird vom Ik,min-Modell ${fmt(ikMin * 1000)} A nicht erreicht.`, "magnetic", "curve", { actual: ikMin * 1000, required: upper, loop: loopZ!, maxLoop: .95 * 230 / upper, source: source.id });
         else checks.push(`Ik,min-Modell ${fmt(ikMin * 1000)} A ≥ oberer Magnetauslöser ${fmt(upper)} A; verbindliche Abschaltzeit separat prüfen.`);
       }
-      const formula = `I_L1/L2/L3 = ${currents.map(value => fmt(value)).join(" / ")} A; I_N = ${fmt(magnitude(neutral))} A. Z_Leiter,${fmt(wire.temperature, 0)}°C = ${fmt(wire.zDrop.re, 6)} + j${fmt(wire.zDrop.im, 6)} Ω. ΔU_L–N = Projektion(Z_L · I_L + Z_N · ΣI_L) = ${fmt(volts)} V = ${fmt(percent)} %. Pfad bis hier: ${fmt(totalPercent)} % (Budget ${fmt(budget!)} %). ${ikMax === null ? "Ik,max nicht bestimmt." : `Ik,max,Modell = 1.05 · U / (f · |Z_Quelle + ΣZ_Leitung + ΣZ_Trafo|) = ${fmt(ikMax)} kA.`} ${ikMin === null ? "Ik,min mangels L–PE-Quelldaten nicht bestimmt." : `Ik,min,Modell = 0.95 × 230 / (${fmt(sourceLoop!, 6)} + ${fmt(local.transformerX, 6)} + ${fmt(magnitude(loopWires), 6)}) / 1000 = ${fmt(ikMin)} kA.`}`;
+      const formula = `I_L1/L2/L3 = ${currents.map(value => fmt(value)).join(" / ")} A; I_N = ${fmt(magnitude(neutral))} A. Z_Leiter,${fmt(wire.temperature, 0)}°C = ${fmt(wire.zDrop.re, 6)} + j${fmt(wire.zDrop.im, 6)} Ω. ΔU_L–N = Projektion(Z_L · I_L + Z_N · ΣI_L) = ${fmt(volts)} V = ${fmt(percent)} %. Pfad bis hier: ${fmt(totalPercent)} % (Budget ${fmt(budget!)} %). ${ikMax === null ? "Ik,max nicht bestimmt." : `Ik,max,Modell = ${cMax!.toFixed(2)} · U / (f · |Z_Quelle + ΣZ_Leitung + ΣZ_Trafo|) = ${fmt(ikMax)} kA.`} ${ikMin === null ? "Ik,min mangels L–PE-Quelldaten nicht bestimmt." : `Ik,min,Modell = 0.95 × 230 / (${fmt(sourceLoop!, 6)} + ${fmt(local.transformerX, 6)} + ${fmt(magnitude(loopWires), 6)}) / 1000 = ${fmt(ikMin)} kA.`}`;
       edges.push({ id: edge.id, currents, current: amperes, neutralCurrent: magnitude(neutral) <= amperes * 1e-12 ? 0 : magnitude(neutral), powerKW: downstream.powerKW, dropVolts: volts, dropPercent: percent, cumulativeDropPercent: totalPercent, iz: wire.iz, ikMaxKA: ikMax, ikMinKA: ikMin, tone, checks, formula });
       walk(nodeById.get(edge.to)!, { ...local, cold, loopWires, drop: cumulative });
     }
@@ -343,17 +374,17 @@ function calculateNetworkModel(document: NetworkDocument): NetworkResult {
       "3~ bei 400 V, 1~ bei 230 V; induktive sinusförmige Lasten mit Stromansatz an der Bemessungsspannung. Leistungsangaben sind Verbraucherlasten; Leitungsverluste werden nicht auf die Betriebsströme zurückgeführt. Keine iterative Lastflussrechnung oder Oberschwingungen.",
       "Spannungsfall als Längsprojektion der komplexen Leiter- und Neutralleiterspannung; sämtliche vorgeschalteten Abschnitte werden mitgeführt. Die Spannung am Einspeisepunkt ist vorgegeben; die vorgelagerte Quellenimpedanz wird nur für Kurzschlusswerte verwendet.",
       "SN-EN-60228-bezogene veröffentlichte R′₂₀-Werte; Cu α = 0.00393/K, Al α = 0.00403/K. X′ ist ein Richtwert. Aussenleiter, N und PE haben innerhalb einer Leitung dasselbe Material. Parallele Leiter werden als identisch und gleichmässig belastet betrachtet.",
-      "Ik,max mit kaltem Leiter und c = 1.05. Ik,min-Modell mit 80 °C, c = 0.95 und vorgegebener L–PE-Quelle. Trafo als reine NS-bezogene Reaktanz; keine Nullsystem-/Schaltgruppenstudie, keine garantierte Schranke oder vollständige IEC-60909-Studie.",
+      `Ik,max mit kaltem Leiter und cmax = ${cMax!.toFixed(2)} für ${voltageTolerance!}. Ein eingegebener maximaler Quellenstrom wird mit demselben Faktor in die Quellenimpedanz zurückgerechnet, ohne zweiten Aufschlag. Ik,min-Modell mit 80 °C, cmin = 0.95 und vorgegebener L–PE-Quelle. Trafo als reine NS-bezogene Reaktanz; keine Nullsystem-/Schaltgruppenstudie, keine garantierte Schranke oder vollständige IEC-60909-Studie.`,
       "Iz, Prüfstromfaktoren und Gerätewerte sind dokumentierte Projekteingaben. Herstellerkennlinien, verbindliche Abschaltzeiten, Selektivität, RCD-Erdungsbedingungen und vollständige NIN-Anwendbarkeit bleiben separat zu prüfen.",
     ],
   };
 }
 
 
-function shortCircuitKA(voltage: number, systemFactor: number, impedance: number): number | null {
+function shortCircuitKA(voltage: number, systemFactor: number, impedance: number, cMax: number): number | null {
   if (impedance === 0) return null;
   const denominator = computedPositive(systemFactor * impedance, "Kurzschlussimpedanz");
-  return computedFinite(1.05 * voltage / denominator / 1000, "Ik,max-Modell");
+  return computedFinite(cMax * voltage / denominator / 1000, "Ik,max-Modell");
 }
 function checkResultNumbers(value: unknown): void {
   if (typeof value === "number") computedFinite(value);
@@ -367,6 +398,6 @@ export function calculateNetwork(document: NetworkDocument): NetworkResult {
     checkResultNumbers(result);
     return result;
   } catch (error) {
-    return invalid([{ tone: "error", text: error instanceof Error ? error.message : "Netzberechnung ausserhalb des berechenbaren Zahlenbereichs." }]);
+    return invalid([{ tone: "error", code: "arithmetic", text: error instanceof Error ? error.message : "Netzberechnung ausserhalb des berechenbaren Zahlenbereichs." }]);
   }
 }

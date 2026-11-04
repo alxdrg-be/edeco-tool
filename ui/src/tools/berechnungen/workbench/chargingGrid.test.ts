@@ -5,6 +5,40 @@ const close=(actual:number,expected:number)=>assert.ok(Math.abs(actual-expected)
 const input=(grids:ChargingGridInput[],mode="dynamic",house="160",reserve="30")=>({house,reserve,mode,grids:JSON.stringify(grids)});
 const depot=(patch:Record<string,string>={})=>calculateDepotNetwork({feed:"630",reserve:"50",mode:"dynamic",depotUnits:JSON.stringify(defaultDepotUnits()),depotPoints:JSON.stringify(defaultDepotPoints()),...patch});
 
+test('custom station power is editable model data and custom curve semantics survive serialization',()=>{
+  const group={...defaultStationGroup(),count:'1',power:'17',powerMode:'custom' as const};
+  const grid={id:'g',label:'Grid',amps:'125',groups:[group]};
+  const r=calculateChargingNetwork(input([grid],'none','250','0'));
+  close(r.assignedKW,17);assert.equal(parseChargingGrids(JSON.stringify([grid]))[0].groups[0].powerMode,'custom');
+  for(const bad of ['', 'abc', '0', '5001'])assert.throws(()=>calculateChargingNetwork(input([{...grid,groups:[{...group,power:bad}]}],'none','250','0')),/Ladeleistung/);
+  assert.throws(()=>parseChargingGrids(JSON.stringify([{...grid,groups:[{...group,powerMode:'unknown'}]}])),/Leistungsauswahl/);
+  const visitor={...group,count:'4',power:'11',factorMode:'curve' as const,userClass:'visitors' as const};
+  assert.throws(()=>calculateChargingNetwork(input([{...grid,groups:[visitor]}],'static','250','0')),/keine veröffentlichte Referenzkurve/);
+  const legacy={...visitor};delete legacy.powerMode;
+  assert.doesNotThrow(()=>calculateChargingNetwork(input([{...grid,groups:[legacy]}],'static','250','0')));
+});
+
+test('preset and custom equal-power rows remain separate published factor groups',()=>{
+  // Fresh authenticated source: 4 standard11-kW +4 custom11-kW points,
+  // residents curve, static125-A grid => ceil(4*k4)+ceil(4*k4)=4 active.
+  const preset={...defaultStationGroup('preset'),count:'4',power:'11'};
+  const own={...preset,id:'own',powerMode:'custom' as const};
+  const grid={id:'g',label:'Grid',amps:'125',mode:'static' as const,factorMode:'curve' as const,userClass:'residents' as const,groups:[preset,own]};
+  const r=calculateChargingNetwork(input([grid],'static','250','0'));
+  assert.equal(r.activeCount,4);close(r.assignedKW,44);
+  assert.ok(planningReportInputs('premium-pkw',{...input([grid]),layout:'modular'}).some(row=>row.value.includes('eigene Leistung')));
+});
+
+test('custom137-kW AC module and412-kW dispenser retain values and efficiency exactly once',()=>{
+  // Fresh authenticated source custom case: 137kW AC ×.97 =132.89kW DC.
+  const unit={...defaultDepotUnits()[0],gridAmps:'1000',modules:'1',modulePower:'137',powerBasis:'ac',efficiency:'0.97'};
+  const point={...defaultDepotPoints()[0],ports:'1',power:'412'};
+  const common={feed:'1000',reserve:'0',depotUnits:JSON.stringify([unit]),depotPoints:JSON.stringify([point])};
+  const r=depot(common);close(r.acInputKW,137);close(r.assignedDC,132.89);close(r.points[0].nominalKW,412);
+  for(const bad of ['', 'abc', '0', '5001'])assert.throws(()=>depot({...common,depotUnits:JSON.stringify([{...unit,modulePower:bad}])}),/Modulleistung/);
+  assert.doesNotThrow(()=>depot({...common,depotUnits:JSON.stringify([{...unit,modulePower:'5000'}])}));
+});
+
 test('authenticated one-grid unmanaged cases preserve 3-phase and 1-phase currents',()=>{
   // Actual source calcGrid(), 2026-11-02; same physical load and protection.
   const group={...defaultStationGroup(),kind:'ac3' as const,count:'4',power:'11'};

@@ -12,7 +12,7 @@ export default function SelectivityControls({input,onChange,disabled=false}:{inp
   const save=(next:SelectivityStage[])=>onChange('selectivityStages',JSON.stringify(next));
   const edit=(id:string,key:keyof SelectivityStage,value:string)=>save(stages.map(s=>s.id===id?{...s,[key]:value}:s));
   return <section className="sel-stage-editor" aria-label="Schutzstufen und Zuleitungen"><div className="sel-stage-toolbar"><span>{stages.length} / 6 Stufen</span><button className="lab-open" disabled={disabled||stages.length>=6} onClick={()=>save([...stages,{...defaultSelectivityStages()[2],id:crypto.randomUUID(),name:`Stufe ${stages.length+1}`}])}><Plus size={15}/>Stufe hinzufügen</button></div>
-    {stages.map((s,j)=><details className="sel-stage-card" key={s.id} open={j===0}><summary>{j+1}. {s.name||'Schutzstufe'} · {s.rated||'–'} A</summary><div className="sel-stage-fields">
+    {stages.map((s,j)=><details data-diagnostic-field="selectivityStages" data-diagnostic-row={s.id} data-diagnostic-index={j} className="sel-stage-card" key={s.id} open={j===0}><summary>{j+1}. {s.name||'Schutzstufe'} · {s.rated||'–'} A</summary><div className="sel-stage-fields">
       <label>Bezeichnung<input value={s.name} maxLength={100} disabled={disabled} onChange={e=>edit(s.id,'name',e.target.value)}/></label>
       <label>Nennstrom (A)<input value={s.rated} inputMode="decimal" maxLength={24} disabled={disabled} onChange={e=>edit(s.id,'rated',e.target.value)}/></label>
       <div className="sel-stage-wide"><span>Schutzorgan</span><ChoiceCards label={`Stufe ${j+1} · Schutzorgan`} value={s.type} options={STAGE_DEVICES.map(([value,label])=>({value,label}))} disabled={disabled} onChange={v=>edit(s.id,'type',v)}/></div>

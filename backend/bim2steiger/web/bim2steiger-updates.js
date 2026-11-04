@@ -25,7 +25,7 @@
     byId('updateCheckedAt').textContent=data.checked_at?'Zuletzt geprüft: '+new Date(data.checked_at).toLocaleString('de-CH'):'';
     byId('installUpdate').hidden=!data.can_install;byId('installUpdate').disabled=busy;
     byId('updateInstallHint').textContent=!data.installed?'Dieser Quellcode-Ordner wird nicht vom Setup überschrieben. Für die installierte Anwendung das Windows-Setup auf GitHub verwenden.':data.can_install?'Das Setup wird heruntergeladen und vor dem Start anhand seiner SHA-256-Prüfsumme geprüft. BIM2STEIGER schliesst sich zuerst. Danach öffnet sich der Assistent.':'';
-    if(data.managed_by_toolbox){byId('updateInstallHint').textContent='Einzelprogramm-Updates sind innerhalb der Toolbox deaktiviert.';byId('settingsDialog').querySelector('.settings-note').textContent='Updates werden gemeinsam für alle Werkzeuge bereitgestellt.';}
+    if(data.managed_by_toolbox){byId('updateInstallHint').textContent='Einzelprogramm-Updates sind innerhalb des Toolhubs deaktiviert.';byId('settingsDialog').querySelector('.settings-note').textContent='Updates werden gemeinsam für alle Werkzeuge bereitgestellt.';}
     footer.textContent='BIM2STEIGER '+label(data.current)+' · '+({available:'Update verfügbar',current:'Aktuell',unchecked:'Updates ansehen',unavailable:'Updateprüfung nicht möglich',installer_started:'Installation geöffnet'}[data.status]||'Updates');
     byId('updateNotice').hidden=!['available','unavailable','installer_started'].includes(data.status);
     byId('updateNoticeText').textContent=data.status==='available'?'Neue Programmversion verfügbar: '+data.latest.tag:data.message;

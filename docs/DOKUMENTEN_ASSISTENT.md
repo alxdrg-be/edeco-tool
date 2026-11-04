@@ -5,13 +5,41 @@ neues Modell aus den Dateien: Zuerst wird in den ausgewählten Dokumenten nach
 passenden Textstellen gesucht, dann kann ein KI-Modell diese Stellen zu einer
 Antwort zusammenfassen. Jede angezeigte Quellen-ID stammt aus dem lokalen Index.
 
+## Qwen lokal auf diesem PC
+
+Die Anleitung ist direkt unter **Dokumenten-Assistent → KI-Verbindung**
+verfügbar: **Qwen auf diesem PC einrichten** aufklappen. Die Fundstellensuche
+funktioniert bereits ohne ein KI-Modell. Für lokal formulierte Antworten:
+
+1. [Ollama für Windows](https://ollama.com/download/windows) installieren und
+   starten.
+2. PowerShell öffnen und das Modell einmal herunterladen:
+   `ollama pull qwen3:4b`.
+3. Im Toolhub **Qwen / Ollama** wählen und als Adresse
+   `http://127.0.0.1:11434/api/chat`, als Modell `qwen3:4b` eintragen.
+   Für einen lokalen Ollama-Dienst ohne Zugangsschutz bleibt der Schlüssel leer.
+4. **Speichern und Verbindung prüfen** anklicken. Ollama muss während der
+   KI-Nutzung laufen.
+
+Der erste Download benötigt Internet und mehrere GB Speicher. Mit dem lokal
+installierten Modell können Suche und Antworten anschliessend auf diesem PC
+offline laufen. 16 GB RAM sind für den Einstieg sinnvoll; eine passende GPU
+beschleunigt die Antworten. Geschwindigkeit und Qualität hängen vom Modell und
+der verfügbaren Hardware ab. Bei anderen Modellen müssen der heruntergeladene
+Name und der Eintrag im Toolhub übereinstimmen.
+
+Das Öffnen oder Aufklappen der Anleitung ändert keine Verbindungseinstellungen
+und startet keine Installation. Die vorhandene Adresse wird erst durch das
+bewusste Bearbeiten und Speichern des Formulars geändert.
+
 ## Ohne laufende API-Gebühren auf mehreren PCs
 
-Die voreingestellte Variante ist ein gemeinsamer Ollama-Server mit einem freien
-Modell. Ollama und die Modellgewichte werden nur einmal auf dem Server
-installiert. Die Toolbox-PCs verbinden sich über **KI-Verbindung** mit dessen
-Adresse. Der Server braucht geeignete Hardware und muss während der Nutzung
-laufen; Hardware, Strom und Betreuung sind nicht durch das Programm abgedeckt.
+Alternativ können mehrere Toolhub-PCs einen gemeinsamen Ollama-Server mit einem
+freien Modell verwenden. Ollama und die Modellgewichte werden dafür nur einmal
+auf dem Server installiert. Die PCs verbinden sich über **KI-Verbindung** mit
+dessen Adresse. Der Server braucht geeignete Hardware und muss während der
+Nutzung laufen; Hardware, Strom und Betreuung sind nicht durch das Programm
+abgedeckt.
 
 Das Release enthält dafür `edeco-KI-Server-Einrichtung-<Version>.zip`. Die
 [Einrichtungsanleitung](../packaging/ki-server/README.md) beschreibt den einmaligen
@@ -20,7 +48,7 @@ Ein optionaler geschützter Serverzugang ist ebenfalls möglich. Die
 Verbindungsprüfung liest nur die verfügbaren Modellnamen und überträgt keine
 Dokumenttexte.
 
-Die lokale Fundstellensuche mit Quellen und Markierungen braucht keinen Server.
+Die lokale Fundstellensuche mit Quellen und Markierungen braucht keinen KI-Dienst.
 Eine OpenAI-kompatible API oder Azure OpenAI ist eine kostenpflichtige
 Alternative, kein Bestandteil der kostenlosen Voreinstellung. Dafür vollständige
 Chat-Completions-Adresse, Modell beziehungsweise Deployment und API-Schlüssel
@@ -39,10 +67,46 @@ unterstützen. Es werden keine API-Schlüssel in die EXE eingebaut.
 4. Die für die Frage geltenden Dokumente über ihre Checkboxen auswählen.
 5. **Fundstellen suchen** durchsucht lokal den extrahierten Text. **KI-Antwort**
    sendet nach eingerichteter Verbindung die Frage und bis zu sechs gefundene
-   Auszüge an den ausgewählten Server. Ganze Dateien werden nicht übertragen.
+   Auszüge an den ausgewählten Ollama-Dienst oder die KI-API. Im lokalen Modus
+   bleibt dies auf demselben PC. Ganze Dateien werden nicht übertragen.
 6. Eine Quellenkarte oder Quellen-ID anklicken: Die Originalseite mit
    Markierungen öffnet sich rechts. Pfeile blättern im Original; **Original
    speichern** lädt die unveränderte importierte Datei herunter.
+
+## Dokumentordner verbinden
+
+Über **Dokumentordner** lassen sich ein absoluter lokaler Ordnerpfad oder eine
+Windows-Freigabe wie `\\SERVER\Unterlagen` anbinden. Im Programmfenster kann der
+Ordner mit **Auswählen** gewählt werden; im Browser bleibt die Pfadeingabe.
+Die aufklappbare Anleitung erklärt die Einrichtung direkt im Dialog.
+
+- **Verbinden und einlesen** speichert die gewählte Quelle und startet den
+  ersten lesenden Abgleich. Nur dabei beziehungsweise mit **Jetzt aktualisieren**
+  wird der Quellordner durchsucht. Beim Programmstart und beim Öffnen des Dialogs
+  findet kein automatischer Scan statt.
+- Unterstützt werden PDF, UTF-8-TXT und Markdown. Grenzen pro Quelle: 200
+  Dokumente, 250 MB insgesamt, 100 MB pro Datei und 5000 Dateisystemeinträge
+  einschliesslich nicht unterstützter Dateien und Unterordner. Die vorhandenen
+  Grenzen für PDF-Seiten und extrahierten Text gelten weiterhin.
+- Quelldateien werden nur gelesen; Kopien und Suchindex liegen auf diesem PC.
+  Der Zugriff verwendet die Windows-Rechte des angemeldeten Toolhub-Benutzers.
+  Firmenfreigaben vorher im Explorer mit Firmennetz/VPN und Leserechten prüfen.
+  Verknüpfungen und Junctions werden nicht verfolgt.
+- Beim ausdrücklichen Abgleich werden neue und geänderte Dokumente übernommen.
+  Entfernte beziehungsweise ersetzte verwaltete Kopien werden aus dem lokalen
+  Index entfernt. Identische Inhalte werden über SHA-256 dedupliziert.
+  Zusätzlich manuell importierte Dokumente bleiben erhalten, auch wenn der
+  manuelle Import erst nach dem Ordnerimport erfolgt ist.
+- **Verbindung trennen** und ein Ordnerwechsel behalten die bisherigen lokalen
+  Dokumente. Ein nicht erreichbarer Quellordner oder während des Lesens
+  ausgetauschte, veränderte oder unlesbare Dateien löschen keine letzte gültige lokale Kopie.
+  Hinweise zur Aktualisierung zeigen solche Fälle an.
+
+Der Ordner und die KI sind getrennt eingerichtet: Ordnerimport und
+Fundstellensuche brauchen kein KI-Modell. Ollama liest keine Freigabe selbst;
+erst **KI-Antwort** sendet die Frage und passende Auszüge aus dem lokalen Index
+an die zuvor eingerichtete KI. Dokumentstände und Geltungsbereiche werden nicht
+aus Dateidatum oder Ordnernamen als fachlich gültig abgeleitet.
 
 ## Quellen und Genauigkeit
 
@@ -92,7 +156,9 @@ wird im Prompt ausdrücklich als Quellenmaterial behandelt.
 
 Automatisierte Prüfungen decken echte PDF-Textextraktion und Pixelpositionen in
 allen vier Seitendrehungen, leere Textschichten, Auswahl/Stand/Zeilennummern,
-Speicherung und Löschung, Zugriffsschutz, Ollama-/OpenAI-Protokoll und ungültige
+Speicherung und Löschung, lesenden Ordnerabgleich inklusive Grenzen,
+Verknüpfungen und getrennt erhaltenen manuellen Kopien, Zugriffsschutz,
+Ollama-/OpenAI-Protokoll und ungültige
 KI-Quellenangaben ab. Die KI-Protokolle werden mit simulierten Antworten geprüft;
 ein tatsächlich laufender Firmenserver und die fachliche Antwortqualität müssen
 bei der Einrichtung mit eigenen freigegebenen Unterlagen geprüft werden.

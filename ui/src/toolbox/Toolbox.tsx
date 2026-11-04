@@ -1,18 +1,22 @@
 import { Component, Suspense, useEffect, useRef, useState, type ReactNode } from "react";
-import edecoLogo from "../assets/edeco-logo.svg?raw";
-import { applyTheme, effectiveDark, loadTheme } from "../theme";
+import { Moon, Sun } from "lucide-react";
 import { filterTools, TOOLS } from "./catalog";
 import { MODULES } from "./modules";
 import ToolIcon from "./ToolIcon";
-import { api } from "../api";
 import ToolboxUpdates from "./ToolboxUpdates";
 import ProjectPicker from "../tools/projektzentrale/ProjectPicker";
-import { KnowledgeLink, openKnowledge } from "../tools/berechnungen/KnowledgeLink";
+import { openKnowledge } from "../tools/berechnungen/KnowledgeLink";
+import ToolhubHeader from "./ToolhubHeader";
+import { ToolhubLocation } from "./ToolhubNavigation";
+import { useToolhubTheme } from "./useToolhubTheme";
+import PresentationSettings, { PresentationProvider, usePresentation } from "./PresentationSettings";
+import { allowedToolId, toolAllowed } from "./presentationPolicy";
 import "./toolbox.css";
 
 function toolFromHash(): string | null | undefined {
   if (/^#wissen(?:\/|$)/.test(window.location.hash)) return "wissens-hub";
-  if (window.location.hash === "#toolbox") return null;
+  if (/^#memory(?:\/|$)/.test(window.location.hash)) return "elektro-memory";
+  if (window.location.hash === "#toolbox" || window.location.hash === "#toolhub") return null;
   const tool = window.location.hash.match(/^#rechner\/([a-z0-9-]+)$/)?.[1];
   return tool && MODULES[tool] && TOOLS.some(item => item.id === tool && item.status === "available") ? tool : undefined;
 }
@@ -24,13 +28,14 @@ class ToolBoundary extends Component<{ children: ReactNode; onHome: () => void }
     if (this.state.failed) return <main className="toolbox-message" role="alert">
       <h1>Das Tool konnte nicht geöffnet werden.</h1>
       <p>Bitte zur Übersicht zurückkehren und es erneut versuchen.</p>
-      <button className="btn" onClick={this.props.onHome}>Zur Toolbox</button>
+      <button className="btn" onClick={this.props.onHome}>Zum Toolhub</button>
     </main>;
     return this.props.children;
   }
 }
 
-export default function Toolbox() {
+function ToolboxContents() {
+  const { policy, error: policyError, refresh } = usePresentation();
   const [active, setActive] = useState<string | null>(() => {
     const linked = toolFromHash();
     if (linked !== undefined) return linked;
@@ -41,42 +46,54 @@ export default function Toolbox() {
   });
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("Alle");
-  const [theme, setTheme] = useState(loadTheme);
+  const { dark, toggle } = useToolhubTheme();
   const heading = useRef<HTMLHeadingElement>(null);
   const returning = useRef(false);
   const activeRef = useRef(active);
-  activeRef.current = active;
-  const ActiveTool = active ? MODULES[active] : undefined;
-  const tools = filterTools(query, category);
-  const categories = ["Alle", ...new Set(TOOLS.map(tool => tool.category))];
+  const effectiveActive = active && policy && allowedToolId(active, TOOLS, policy) ? active : null;
+  activeRef.current = effectiveActive;
+  const policyRef = useRef(policy);
+  policyRef.current = policy;
+  const ActiveTool = effectiveActive ? MODULES[effectiveActive] : undefined;
+  const visible = policy ? TOOLS.filter(tool => toolAllowed(tool, policy)) : [];
+  const visibleRoot = visible.filter(tool => !tool.parentId && !tool.hiddenFromHub);
+  const categories = ["Alle", ...new Set(visibleRoot.map(tool => tool.category))];
+  const filterCategory = categories.includes(category) ? category : "Alle";
+  const tools = filterTools(query, filterCategory).filter(tool => policy && toolAllowed(tool, policy));
 
   useEffect(() => {
     const navigate = () => {
       const current = activeRef.current;
-      const managed = current === null || current === "wissens-hub" || TOOLS.some(tool => tool.id === current && tool.category === "Berechnungen");
+      const managed = current === null || current === "wissens-hub" || current === "elektro-memory" || TOOLS.some(tool => tool.id === current && tool.category === "Berechnungen");
       if (!managed) {
         // Another editor owns its save/dirty-navigation contract. A hash edit
         // or browser Back must not bypass that editor's onHome callback.
-        if (/^#(?:wissen|rechner|toolbox)(?:\/|$)/.test(window.location.hash)) history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
+        if (/^#(?:wissen|memory|rechner|toolbox|toolhub)(?:\/|$)/.test(window.location.hash)) history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
         return;
       }
       const next = toolFromHash();
-      if (next !== undefined) { activeRef.current = next; setActive(next); }
+      if (next !== undefined && (next === null || policyRef.current && allowedToolId(next, TOOLS, policyRef.current))) { activeRef.current = next; setActive(next); }
+      else if (next && policyRef.current) {
+        activeRef.current = null; setActive(null);
+        history.replaceState(null, "", `${window.location.pathname}${window.location.search}#toolhub`);
+      }
     };
     window.addEventListener("hashchange", navigate);
     return () => window.removeEventListener("hashchange", navigate);
   }, []);
 
   function openTool(id: string) {
-    if (!MODULES[id]) return;
+    if (!MODULES[id] || !policy || !allowedToolId(id, TOOLS, policy)) return;
     activeRef.current = id;
     if (id === "wissens-hub") {
       if (!/^#wissen(?:\/|$)/.test(window.location.hash)) openKnowledge();
+    } else if (id === "elektro-memory") {
+      window.location.hash = "memory";
     } else if (TOOLS.some(tool => tool.id === id && tool.category === "Berechnungen")) {
       // Canonicalise even when entered from #toolbox: browser Back from an
       // article must restore this calculator rather than the toolbox.
       window.location.hash = `rechner/${id}`;
-    } else if (/^#(?:wissen|rechner|toolbox)(?:\/|$)/.test(window.location.hash)) {
+    } else if (/^#(?:wissen|memory|rechner|toolbox|toolhub)(?:\/|$)/.test(window.location.hash)) {
       // Keep other tools on their established callback-based navigation.
       // Their editors own pending-save/dirty-state checks before onHome.
       history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
@@ -85,60 +102,58 @@ export default function Toolbox() {
   }
 
   useEffect(() => {
+    if (!policy) return;
     try {
-      if (active) sessionStorage.setItem("edeco-toolbox-active", active);
+      if (effectiveActive) sessionStorage.setItem("edeco-toolbox-active", effectiveActive);
       else sessionStorage.removeItem("edeco-toolbox-active");
     } catch { /* The toolbox also works when browser storage is disabled. */ }
-    const tool = TOOLS.find(item => item.id === active);
+    const tool = TOOLS.find(item => item.id === effectiveActive);
     if (tool) document.documentElement.dataset.toolColor = tool.color;
     else delete document.documentElement.dataset.toolColor;
-    document.title = tool ? `${tool.title} · edeco Toolbox` : "edeco Toolbox";
-    if (!active && returning.current) heading.current?.focus();
-  }, [active]);
+    document.title = tool ? `${tool.title} · edeco Toolhub` : "edeco Toolhub";
+    if (!effectiveActive && active && /^#(?:wissen|memory|rechner)(?:\/|$)/.test(window.location.hash)) history.replaceState(null, "", `${window.location.pathname}${window.location.search}#toolhub`);
+    if (!effectiveActive && returning.current) heading.current?.focus();
+  }, [active, effectiveActive, policy]);
 
   const goHome = () => {
     returning.current = true;
     activeRef.current = null;
     setActive(null);
-    setTheme(loadTheme());
-    if (/^#(?:wissen|rechner)(?:\/|$)/.test(window.location.hash)) window.location.hash = "toolbox";
+    if (/^#(?:wissen|memory|rechner)(?:\/|$)/.test(window.location.hash)) window.location.hash = "toolhub";
   };
 
-  if (ActiveTool) return <ToolBoundary key={active} onHome={goHome}>
-    <Suspense fallback={<main className="toolbox-message" role="status">Tool wird geladen …</main>}>
-      <ActiveTool onHome={goHome} onOpenTool={openTool} />
+  if (!policy) return <main className="toolhub-policy-error"><h1>edeco Toolhub</h1>{policyError ? <><p role="alert">{policyError}</p><button className="btn" onClick={() => void refresh()}>Erneut versuchen</button></> : <p role="status">Toolhub wird geladen …</p>}</main>;
+
+  if (ActiveTool) return <ToolBoundary key={effectiveActive} onHome={goHome}>
+    <Suspense fallback={<div className="toolhub-loading">
+      <ToolhubHeader title={TOOLS.find(tool => tool.id === effectiveActive)?.title ?? "Werkzeug"} currentToolId={effectiveActive} onHome={goHome}>
+        <button className="btn" aria-label={dark ? "Heller Modus" : "Dunkler Modus"} onClick={toggle}>{dark ? "☀ Hell" : "☾ Dunkel"}</button>
+      </ToolhubHeader>
+      <main className="toolhub-loading-main"><p role="status">Werkzeug wird geladen …</p><div aria-hidden="true" className="toolhub-loading-placeholder" /></main>
+    </div>}>
+      <ToolhubLocation.Provider value={effectiveActive}><ActiveTool onHome={goHome} onOpenTool={openTool} /></ToolhubLocation.Provider>
     </Suspense>
   </ToolBoundary>;
 
-  return <div className="toolbox">
-    <header className="toolbox-header">
-      <div className="toolbox-brand">
-        <span role="img" aria-label="edeco ag" className="toolbox-logo"
-          dangerouslySetInnerHTML={{ __html: edecoLogo.replace(/<\?xml[^?]*\?>/, "") }} />
-        <span className="toolbox-brand-divider" />
-        <span>Toolbox</span>
-      </div>
-      <div className="toolbox-header-actions"><KnowledgeLink onOpenTool={openTool} /><ProjectPicker /><ToolboxUpdates />
-      <button className="btn" aria-label={effectiveDark(theme) ? "Heller Modus" : "Dunkler Modus"}
-        onClick={() => {
-          const next = effectiveDark(theme) ? "light" : "dark";
-          applyTheme(next);
-          setTheme(next);
-          api.saveTheme(next).catch(() => undefined);
-        }}>{effectiveDark(theme) ? "☀ Hell" : "☾ Dunkel"}</button></div>
-    </header>
+  return <div className="toolbox" data-toolhub-mode={policy.demo_enabled ? "demo" : "normal"} data-toolhub-admin={policy.is_admin ? "true" : "false"} data-toolhub-count={visibleRoot.length}>
+    <ToolhubHeader className="toolbox-header" title="Übersicht" currentToolId={null} onHome={() => { setQuery(""); setCategory("Alle"); heading.current?.focus(); }} onOpenTool={openTool}>
+      {!policy.demo_enabled && <ProjectPicker />}<ToolboxUpdates />
+      <PresentationSettings onSaved={() => { setQuery(""); setCategory("Alle"); }} />
+      <button className="btn toolhub-theme" aria-label={dark ? "Heller Modus" : "Dunkler Modus"} onClick={toggle}>
+        {dark ? <Sun size={16} aria-hidden="true" /> : <Moon size={16} aria-hidden="true" />}<span>{dark ? "Hell" : "Dunkel"}</span></button>
+    </ToolhubHeader>
     <main className="toolbox-main">
       <section className="toolbox-intro" aria-labelledby="toolbox-title">
-        <p className="toolbox-eyebrow">PLANEN. VEREINFACHEN. WEITERDENKEN.</p>
+        <p className="toolbox-eyebrow">{policy.demo_enabled ? "PRÄSENTATION" : "PLANEN. VEREINFACHEN. WEITERDENKEN."}</p>
         <h1 id="toolbox-title" ref={heading} tabIndex={-1}>Ein Ort. Deine Werkzeuge.</h1>
-        <p>Alles für deine Elektroplanung – übersichtlich an einem Ort.</p>
+        <p>{policy.demo_enabled ? "Die ausgewählten Werkzeuge für deine Präsentation." : "Alles für deine Elektroplanung – übersichtlich an einem Ort."}</p>
       </section>
       <div className="toolbox-filters">
-        <label className="toolbox-search">Werkzeug suchen
+        <label className="toolbox-search"><span className="sr-only">Werkzeug suchen</span>
           <input type="search" placeholder="Name oder Aufgabe …" value={query} onChange={e => setQuery(e.target.value)} />
         </label>
         <div className="toolbox-categories" role="group" aria-label="Kategorien">
-          {categories.map(value => <button key={value} className="btn" aria-pressed={value === category}
+          {categories.map(value => <button key={value} className="btn" aria-pressed={value === filterCategory}
             onClick={() => setCategory(value)}>{value}</button>)}
         </div>
       </div>
@@ -152,9 +167,9 @@ export default function Toolbox() {
               aria-label={available ? `${tool.title} öffnen` : `${tool.title}: noch nicht verfügbar`}
               aria-description={inProgress ? "Work in progress; kann bereits verwendet werden." : undefined}
               onClick={() => { if (available) openTool(tool.id); }}>
-              <span className={`toolbox-badge ${inProgress ? "is-in-progress" : available ? "is-ready" : ""}`}>
+              {!policy.demo_enabled && <span className={`toolbox-badge ${inProgress ? "is-in-progress" : available ? "is-ready" : ""}`}>
                 {inProgress ? "Work in progress" : available ? "Bereit" : tool.status === "awaiting-source" ? "In Vorbereitung" : "Geplant"}
-              </span>
+              </span>}
               <span className="toolbox-symbol"><ToolIcon id={tool.id} /></span>
               <h2>{tool.title}</h2>
               <span className="toolbox-category">{tool.category}</span>
@@ -167,7 +182,11 @@ export default function Toolbox() {
         <p>Versuche einen anderen Suchbegriff oder wähle eine andere Kategorie.</p>
         <button className="btn" onClick={() => { setQuery(""); setCategory("Alle"); }}>Filter zurücksetzen</button>
       </div>}
-      <footer className="toolbox-footer"><span>edeco ag · Toolbox</span><span>Eine gemeinsame Oberfläche. Schritt für Schritt erweiterbar.</span></footer>
+      <footer className="toolbox-footer"><span>edeco Toolhub</span><span>Eine gemeinsame Oberfläche für deine Elektroplanung.</span></footer>
     </main>
   </div>;
+}
+
+export default function Toolbox() {
+  return <PresentationProvider><ToolboxContents /></PresentationProvider>;
 }

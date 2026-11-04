@@ -1,0 +1,37 @@
+/* One header and navigation pattern for all Toolhub workspaces. */
+.toolhub-header[class] {display:flex;align-items:center;gap:22px;min-height:72px;padding:12px clamp(16px,2vw,32px);background:var(--panel);border-bottom:1px solid var(--line);flex-shrink:0;position:sticky;top:0;z-index:30;box-shadow:none;font:14px/1.5 var(--font-ui);color:var(--fg)}
+.toolhub-home {display:inline-flex;align-items:center;flex:none;min-height:44px;border:0;padding:4px 0;background:transparent;color:var(--fg);cursor:pointer;border-radius:6px}
+.toolhub-home:disabled {cursor:default;opacity:.5}
+.toolhub-breadcrumbs {display:flex;align-items:center;gap:10px;min-width:0;padding-left:20px;border-left:1px solid var(--line-strong)}
+.toolhub-breadcrumbs>button {border:0;background:transparent;color:var(--muted);padding:8px 0;white-space:nowrap;font:inherit;cursor:pointer}
+.toolhub-breadcrumbs>button:hover {color:var(--accent)}
+.toolhub-breadcrumbs>.tool-header-title {display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--fg);font:600 13px/1.4 var(--font-ui)}
+.toolhub-breadcrumbs>svg {color:var(--muted);flex:none}
+.toolhub-header-actions {display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-left:auto;flex-wrap:wrap;min-width:0}
+.toolhub-nav-trigger,.toolhub-knowledge {display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:38px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--fg);font:500 12px/1.4 var(--font-ui);cursor:pointer;white-space:nowrap}
+.toolhub-nav-trigger:hover,.toolhub-knowledge:hover {background:var(--panel-2);border-color:var(--line-strong)}
+.toolhub-nav-trigger:disabled,.toolhub-knowledge:disabled {opacity:.4;cursor:default}
+.toolhub-header .lab-knowledge-link {font:500 12px/1.4 var(--font-ui);min-height:38px;padding:8px 10px;border-color:var(--line);border-radius:8px;white-space:nowrap;color:var(--fg);background:transparent}
+.toolhub-nav-overlay {position:fixed;inset:0;z-index:6000;background:#0000000a;color:var(--fg);font:14px/1.5 var(--font-ui)}
+.toolhub-nav-panel {position:fixed;display:flex;flex-direction:column;border:1px solid var(--line-strong);border-radius:14px;background:var(--panel);box-shadow:0 20px 65px #0004;overflow:hidden;outline:0}
+.toolhub-nav-heading {display:flex;align-items:center;justify-content:space-between;gap:15px;padding:16px 16px 10px}
+.toolhub-nav-heading h2 {margin:0;font:600 15px/1.4 var(--font-ui);letter-spacing:-.015em}
+.toolhub-nav-close {display:grid;place-items:center;width:30px;height:30px;border:0;border-radius:6px;background:transparent;color:var(--muted);cursor:pointer}
+.toolhub-nav-close:hover {background:var(--panel-2);color:var(--fg)}
+.toolhub-nav-search {display:flex;align-items:center;gap:8px;margin:0 16px 12px;padding:10px 11px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--muted)}
+.toolhub-nav-search input {width:100%;min-width:0;border:0;padding:0;background:transparent;color:var(--fg);outline:0;font:13px/1.5 var(--font-ui)}
+.toolhub-nav-search:focus-within {border-color:var(--accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 12%,transparent)}
+.toolhub-nav-results {overflow:auto;overscroll-behavior:contain;min-height:0;padding:0 8px 8px}
+.toolhub-nav-results section>h3 {margin:9px 9px 5px;font:600 10px/1.5 var(--font-ui);letter-spacing:.04em;color:var(--muted)}
+.toolhub-nav-option {display:flex;align-items:center;gap:10px;width:100%;min-height:47px;padding:8px 9px;text-align:left;border:0;border-radius:8px;background:transparent;color:var(--fg);font:500 13px/1.4 var(--font-ui);cursor:pointer}
+.toolhub-nav-option:hover:not(:disabled),.toolhub-nav-option[aria-current=page] {background:var(--accent-soft)}
+.toolhub-nav-option>span:nth-child(2) {flex:1;min-width:0;overflow-wrap:anywhere}
+.toolhub-nav-option small {display:block;color:var(--muted);font-size:10px;margin-top:2px;font-weight:400}
+.toolhub-nav-option:disabled {opacity:.45;cursor:default}
+.toolhub-nav-symbol {display:grid;place-items:center;flex:none;width:30px;height:30px;border:1px solid var(--line);border-radius:8px;color:var(--tool,var(--accent));background:var(--panel-2)}
+.toolhub-nav-symbol>svg {width:16px;height:16px;stroke-width:1.7}
+.toolhub-nav-empty {padding:15px 10px;text-align:center;color:var(--muted);font-size:13px}
+.toolhub-header :focus-visible,.toolhub-nav-panel :focus-visible {outline:2px solid var(--accent);outline-offset:3px}
+@media(max-width:1200px) {.toolhub-header[class]{gap:14px;flex-wrap:wrap}.toolhub-breadcrumbs{padding-left:14px;max-width:calc(100% - 205px)}.toolhub-header-actions{flex:1 1 100%;justify-content:flex-start;margin-left:0}.toolhub-header-actions>.toolhub-nav-trigger:first-child{margin-left:0}}
+@media(max-width:600px) {.toolhub-header[class]{padding:10px 16px;gap:10px}.toolhub-breadcrumbs{gap:6px;max-width:calc(100% - 172px);padding-left:10px}.toolhub-breadcrumbs>button{font-size:11px}.toolhub-breadcrumbs>.tool-header-title{font-size:12px}.toolhub-header-actions{gap:6px}.toolhub-header .toolhub-brand{max-width:150px}.toolhub-header-actions .btn{font-size:11px;min-height:36px;padding:7px 9px}.toolhub-nav-trigger,.toolhub-knowledge{min-height:36px;font-size:11px;padding:7px 8px}.toolhub-header .lab-knowledge-link{font-size:11px;min-height:36px;padding:7px 8px}}
+@media print {.toolhub-header,.toolhub-nav-overlay{display:none!important}}

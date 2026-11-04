@@ -13,6 +13,7 @@ import sys
 import tempfile
 from pathlib import Path
 
+from .. import config
 from .dxf import read_dxf
 from .model import ImportResult
 
@@ -26,8 +27,12 @@ class ConverterMissing(RuntimeError):
 
 
 def convert_dwg_to_dxf(dwg: Path, oda_exe: str, out_dir: Path, version: str = "ACAD2013") -> Path:
-    if not oda_exe or not Path(oda_exe).exists():
+    if not oda_exe:
         raise ConverterMissing(MISSING_MESSAGE)
+    try:
+        oda_exe = config.validate_oda_converter(oda_exe)
+    except config.InvalidODAPath as exc:
+        raise ConverterMissing(str(exc)) from None
     in_dir = Path(tempfile.mkdtemp(prefix="nl_dwg_in_"))
     try:
         src = in_dir / dwg.name

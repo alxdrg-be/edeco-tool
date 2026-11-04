@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { Check, ChevronDown, Download, FolderOpen, Info, Moon, MoreHorizontal, Printer, Save, Search, Sun, X } from "lucide-react";
 import { calculatorPurpose } from "./purpose";
-import { ArrowLeft, Check, ChevronDown, Download, FolderOpen, Info, Moon, Printer, Save, Search, Sun, X } from "lucide-react";
 import type { ToolProps } from "../../toolbox/modules";
 import { useDialogFocus } from "../../useDialogFocus";
 import "./lab.css";
@@ -9,6 +9,9 @@ import type { ArchivePayload } from "./ablage/api";
 import { exportCalculationPDF, type CalculationPDFReport } from "./pdfExport";
 import { KnowledgeLink } from "./KnowledgeLink";
 import "@fontsource-variable/inter";
+import ToolhubHeader from "../../toolbox/ToolhubHeader";
+import { useToolhubLocation } from "../../toolbox/ToolhubNavigation";
+import { useToolhubTheme } from "../../toolbox/useToolhubTheme";
 
 export interface Help { title: string; content: ReactNode }
 export function InfoButton({ title, onClick }: { title: string; onClick: () => void }) {
@@ -30,21 +33,21 @@ export function InfoDrawer({ help, onClose, busy = false, footer }: { help: Help
   }, []);
   return <div className="lab-overlay calc-no-print" onClick={event => { if (!busy && event.target === event.currentTarget) onClose(); }}>
     <aside ref={ref} className="lab-drawer" role="dialog" aria-modal="true" aria-labelledby={id} tabIndex={-1}>
-      <div className="edeco:flex edeco:items-center edeco:justify-between edeco:gap-4"><span className="lab-eyebrow">EDECO · INFORMATION</span><button className="lab-icon" disabled={busy} aria-label="Information schliessen" onClick={onClose}><X size={20} /></button></div>
+      <div className="edeco:flex edeco:items-center edeco:justify-between edeco:gap-4"><span className="lab-eyebrow">Information</span><button className="lab-icon" disabled={busy} aria-label="Information schliessen" onClick={onClose}><X size={20} /></button></div>
       <h2 id={id}>{help.title}</h2><div className="lab-prose">{help.content}</div>{footer && <div className="lab-drawer-footer">{footer}</div>}
     </aside></div>;
 }
-export function Parameter({ label, value, onChange, min, max, step = 1, unit, info, disabled = false }: {
-  label: string; value: string; onChange: (value: string) => void; min: number; max: number; step?: number; unit?: string; info: () => void; disabled?: boolean;
+export function Parameter({ label, value, onChange, min, max, step = 1, unit, info, disabled = false, fieldKey }: {
+  label: string; value: string; onChange: (value: string) => void; min: number; max: number; step?: number; unit?: string; info: () => void; disabled?: boolean; fieldKey?: string;
 }) {
   const id = useId(), parsed = Number(value.replace(",", ".")), valid = value.trim() !== "" && Number.isFinite(parsed);
-  return <div className="lab-parameter"><div className="edeco:flex edeco:items-center edeco:justify-between edeco:gap-3"><label htmlFor={id}>{label}</label><InfoButton title={label} onClick={info} /></div>
+  return <div className="lab-parameter" data-field-key={fieldKey}><div className="edeco:flex edeco:items-center edeco:justify-between edeco:gap-3"><label htmlFor={id}>{label}</label><InfoButton title={label} onClick={info} /></div>
     <div className="lab-number"><input id={id} aria-label={label} inputMode="decimal" autoComplete="off" maxLength={24} disabled={disabled} value={value} onChange={event => onChange(event.target.value)} /><span>{unit}</span></div>
     <input className="lab-range" type="range" aria-label={`${label} Slider`} disabled={disabled} min={min} max={max} step={step} value={valid ? Math.max(min, Math.min(max, parsed)) : min} onChange={event => onChange(event.target.value)} />
   </div>;
 }
-export function Segments<T extends string>({ label, value, options, onChange, disabled = false }: { label: string; value: T; options: { value: T; label: string }[]; onChange: (value: T) => void; disabled?: boolean }) {
-  return <ChoiceCards label={label} value={value} options={options} onChange={onChange} disabled={disabled} />;
+export function Segments<T extends string>({ label, value, options, onChange, disabled = false, fieldKey }: { label: string; value: T; options: { value: T; label: string }[]; onChange: (value: T) => void; disabled?: boolean; fieldKey?: string }) {
+  return <ChoiceCards fieldKey={fieldKey} label={label} value={value} options={options} onChange={onChange} disabled={disabled} />;
 }
 /** Small visual choices use buttons; ratings and long lists stay compact. */
 export function ChoiceCards<T extends string>({ label, value, options, onChange, disabled = false, id, fieldKey, presentation = "auto" }: {
@@ -70,14 +73,43 @@ export function ChoiceCards<T extends string>({ label, value, options, onChange,
 export function Explanation({ title, children, className = "" }: { title: string; children: ReactNode; className?: string }) {
   return <details className={`lab-explanation ${className}`}><summary>{title}<ChevronDown size={16} aria-hidden="true" /></summary><div className="lab-prose">{children}</div></details>;
 }
+function CalculatorActions({ children }: { children: ReactNode }) {
+  const [small, setSmall] = useState(() => window.matchMedia("(max-width: 760px)").matches);
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDetailsElement>(null);
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 760px)");
+    const sync = () => { setSmall(media.matches); setOpen(false); };
+    media.addEventListener("change", sync);
+    // The viewport may change between the first render and this subscription.
+    sync();
+    return () => media.removeEventListener("change", sync);
+  }, []);
+  useEffect(() => {
+    if (!small || !open) return;
+    const closeOutside = (event: PointerEvent) => { if (event.target instanceof Node && !ref.current?.contains(event.target)) setOpen(false); };
+    document.addEventListener("pointerdown", closeOutside);
+    return () => document.removeEventListener("pointerdown", closeOutside);
+  }, [small, open]);
+  return <details ref={ref} className="lab-export-actions" open={!small || open}
+    onKeyDown={event => { if (small && event.key === "Escape") { event.preventDefault(); setOpen(false); ref.current?.querySelector("summary")?.focus(); } }}>
+    <summary aria-label="Berechnungsaktionen" title="Speichern und exportieren" onClick={event => {
+      // Keep one owner of the state: delayed native toggle events must not undo Escape.
+      event.preventDefault();
+      if (small) setOpen(value => !value);
+    }}><MoreHorizontal size={18} aria-hidden="true" /><span>Aktionen</span></summary>
+    <div className="lab-extra-panel">{children}</div>
+  </details>;
+}
+
 export function LabShell({ title, subtitle, children, help, setHelp, onHome, onOpenTool, knowledgeId, exportData, canExport, canArchive, report, pdfReport, archive, reviewLabel = "Rechenhilfe · Freigabe offen" }: ToolProps & {
   title: string; subtitle: string; children: ReactNode; help: Help | null; setHelp: (help: Help | null) => void; knowledgeId?: string; exportData?: () => void; canExport?: boolean; canArchive?: boolean; report?: ReactNode; pdfReport?: CalculationPDFReport | null; archive?: ArchivePayload; reviewLabel?: string;
 }) {
   const purpose = calculatorPurpose(knowledgeId);
   const [saveOpen, setSaveOpen] = useState(false);
   const [pdfBusy, setPDFBusy] = useState(false), [pdfError, setPDFError] = useState("");
-  const [dark, setDark] = useState(() => { try { return localStorage.getItem("edeco.calculations.theme") !== "light"; } catch { return true; } });
-  function toggle() { setDark(old => { try { localStorage.setItem("edeco.calculations.theme", old ? "light" : "dark"); } catch { /* theme still works in memory */ } return !old; }); }
+  const { dark, toggle } = useToolhubTheme();
+  const active = useToolhubLocation();
   async function downloadPDF() {
     if (!canExport || !pdfReport || pdfBusy) return;
     setPDFBusy(true); setPDFError("");
@@ -87,15 +119,18 @@ export function LabShell({ title, subtitle, children, help, setHelp, onHome, onO
   }
   return <div className={`calc-workspace engineering-lab ${canExport ? "lab-export-ready" : ""}`} data-lab-theme={dark ? "dark" : "light"}>
     <div className="lab-shell" inert={Boolean(help || saveOpen)}>
-      <header className="lab-header calc-no-print"><button className="lab-back" onClick={() => onOpenTool ? onOpenTool("berechnungen") : onHome()}><ArrowLeft size={17} /><span>Berechnungen</span></button><span className="lab-brand">edeco<span> / {title}</span></span>
-        <div className="lab-header-actions">{onOpenTool && <KnowledgeLink onOpenTool={onOpenTool} />}<button className="lab-icon" onClick={toggle} aria-label={dark ? "Heller Rechnermodus" : "Dunkler Rechnermodus"}>{dark ? <Sun size={18} /> : <Moon size={18} />}</button>
+      <ToolhubHeader className="lab-header calc-no-print" title={title} onHome={onHome} onOpenTool={onOpenTool}
+        knowledge={onOpenTool ? <KnowledgeLink calculatorId={knowledgeId} onOpenTool={onOpenTool} /> : undefined}
+        parent={onOpenTool && active !== "berechnungen" ? { label: "Berechnungen", onClick: () => onOpenTool("berechnungen") } : undefined}>
+        <button className="lab-icon toolhub-theme" onClick={toggle} aria-label={dark ? "Heller Modus" : "Dunkler Modus"}>{dark ? <Sun size={18} /> : <Moon size={18} />}</button>
+        <CalculatorActions>
           {archive && <button className="lab-icon" disabled={!(canArchive ?? canExport)} aria-label="Projektbezogen auf Server speichern" title="Gemeinsam speichern" onClick={() => setSaveOpen(true)}><Save size={18} /></button>}
           {onOpenTool && <button className="lab-icon" aria-label="Gemeinsame Berechnungsablage öffnen" title="Gemeinsame Ablage" onClick={() => onOpenTool("berechnungsablage")}><FolderOpen size={18} /></button>}
           {pdfReport !== undefined && <button className="lab-icon lab-pdf" disabled={!canExport || !pdfReport || pdfBusy} aria-label="Berechnung als PDF herunterladen" onClick={downloadPDF}><Download size={17} /><span>{pdfBusy ? "PDF …" : "PDF"}</span></button>}
           {exportData && <><button className="lab-icon" disabled={!canExport} aria-label="Ergebnis als JSON sichern" title="JSON sichern" onClick={exportData}><Download size={18} /></button><button className="lab-icon" disabled={!canExport} aria-label="Drucken / als PDF speichern" title="Drucken / PDF" onClick={() => window.print()}><Printer size={18} /></button></>}
-          <button className="lab-home" onClick={onHome}>Zur Toolbox</button></div>
-      </header>
-      <main className="lab-main"><div className="lab-heading"><div><p className="lab-eyebrow">EDECO ENGINEERING</p><h1>{title}</h1><span className="lab-subtitle">{subtitle}</span>{purpose && <div className="lab-purpose"><p><strong>Wofür?</strong> {purpose.use}</p><p><strong>Du brauchst:</strong> {purpose.needs}</p></div>}</div><span className="lab-review">{reviewLabel}</span></div>
+        </CalculatorActions>
+      </ToolhubHeader>
+      <main className="lab-main"><div className="lab-heading"><div><h1>{title}</h1><span className="lab-subtitle">{subtitle}</span>{purpose && <div className="lab-purpose"><p><strong>Wofür?</strong> {purpose.use}</p><p><strong>Du brauchst:</strong> {purpose.needs}</p></div>}</div>{!["berechnungen", "wissens-hub", "berechnungsablage"].includes(active ?? "") && reviewLabel && <span className="lab-review">{reviewLabel}</span>}</div>
         {pdfError && <p className="lab-error" role="alert">{pdfError}</p>}
         {children}
         <div className="lab-print-only lab-prose">{report}</div>

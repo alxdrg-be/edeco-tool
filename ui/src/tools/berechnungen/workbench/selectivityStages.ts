@@ -1,5 +1,7 @@
 import { number as readNumber, type CalculationResult, type Inputs } from './types.ts';
+import { withInputRow } from './inputDiagnostics.ts';
 import { SELECTIVITY_CABLE_RX } from './selectivityCableData.ts';
+import { LEGACY_VOLTAGE_WARNING, shortCircuitVoltageFactors } from '../voltageFactors.ts';
 
 export const STAGE_DEVICES = [
   ['nh','NH gG/gL'],['ls_b','LS B'],['ls_c','LS C'],['ls_d','LS D'],['ls_k','LS K'],
@@ -35,10 +37,11 @@ export interface StageCurrent { stage:SelectivityStage; ikMax:number; ikLoop:num
 export function selectivityStageCurrents(input:Inputs):StageCurrent[] {
   const stages=parseSelectivityStages(input.selectivityStages);
   if(!['400','230'].includes(input.supplyVoltage)||!['TN','TT','IT'].includes(input.earthing))throw Error('Gültige Netzspannung und Netzform wählen.');
+  const factors=shortCircuitVoltageFactors(input.voltageTolerance);
   const single=input.supplyVoltage==='230',uPhase=single?230:400/Math.sqrt(3),ikSource=readNumber(input,'sourceIk','Kurzschlussstrom am Anschluss',0,1000)*1000;
-  const z=1.05*uPhase/(ikSource*(single?2:1)),x0=z/Math.sqrt(1.01);
+  const z=factors.cMax*uPhase/(ikSource*(single?2:1)),x0=z/Math.sqrt(1.01);
   let r=.1*x0,x=x0,singlePath=single;
-  return stages.map((stage,index)=>{
+  return stages.map((stage,index)=>withInputRow('selectivityStages',stage,index,()=>{
     const prefix=`Stufe ${index+1}`;
     const rated=readNumber(stage as unknown as Inputs,'rated',`${prefix}: Nennstrom`,0,100000);
     if(!rated||!STAGE_DEVICES.some(([id])=>id===stage.type)||!['Cu','Al'].includes(stage.material)||!['5p','4p','3p'].includes(stage.system))throw Error(`${prefix}: Auswahl prüfen.`);
@@ -51,12 +54,13 @@ export function selectivityStageCurrents(input:Inputs):StageCurrent[] {
     x+=pair[1]*length/1000;
     const impedance=Math.hypot(r,x);
     if(stage.type==='fi'&&(!['10','30','100','300','500'].includes(stage.delta)||!['A','S','G','B'].includes(stage.fiType)))throw Error(`${prefix}: RCD-Auswahl prüfen.`);
-    return {stage,ikMax:1.05*uPhase/(impedance*(singlePath?2:1))/1000,ikLoop:input.earthing==='TN'?.95*uPhase/(2*impedance)/1000:null,resistance:r,reactance:x};
-  });
+    return {stage,ikMax:factors.cMax*uPhase/(impedance*(singlePath?2:1))/1000,ikLoop:input.earthing==='TN'?factors.cMin*uPhase/(2*impedance)/1000:null,resistance:r,reactance:x};
+  }));
 }
 export function calculateSelectivityStages(input:Inputs):CalculationResult {
+  const factors=shortCircuitVoltageFactors(input.voltageTolerance);
   const nodes=selectivityStageCurrents(input);
-  const pairs=nodes.slice(1).map((node,j)=>{
+  const pairs=nodes.slice(1).map((node,j)=>withInputRow('selectivityStages',node.stage,j+1,()=>{
     const upper=nodes[j].stage,lower=node.stage,ratio=Number(upper.rated)/Number(lower.rated);
     if(lower.pairLimitKA.trim()) {
       const limit=readNumber(lower as unknown as Inputs,'pairLimitKA',`Paar ${j+1}→${j+2}: Herstellergrenze`,0,1000);
@@ -70,15 +74,17 @@ export function calculateSelectivityStages(input:Inputs):CalculationResult {
     if(upper.type==='fi'&&lower.type==='fi')text=`RCD: Differenzstromverhältnis ${(Number(upper.delta)/Number(lower.delta)).toFixed(2)}; vorgelagert Typ ${upper.fiType}. Strom- und Zeitstaffelung mit Herstellerdaten prüfen.`;
     if(upper.type==='fi'&&lower.type!=='fi')text='Vorgelagerter RCD kann bei Erdschluss vor dem nachgelagerten Überstromschutz auslösen. Keine Selektivität nachgewiesen.';
     return {tone:'warning' as const,documented:false,text};
-  });
+  }));
   const last=nodes[nodes.length-1],passes=pairs.filter(p=>p.documented).length;
   return {
     metrics:[{label:'Erfasste Schutzstufen',value:nodes.length},{label:'Ik am letzten Gerät · Modell',value:last.ikMax,unit:'kA',digits:3},{label:'L–PE-Schleifenstrom am Ende · Modell',value:last.ikLoop??'Netzform erfordert weitere Angaben',unit:last.ikLoop===null?undefined:'kA',digits:3},{label:'Paare innerhalb dokumentierter Grenze',value:`${passes} / ${pairs.length}`}],
-    status:{tone:pairs.some(p=>p.tone==='error')?'error':'warning',text:pairs.some(p=>p.tone==='error')?'Eine dokumentierte Herstellergrenze wird überschritten.':'Kurzschlussmodell berechnet. Selektivität und Abschaltzeiten benötigen passende Herstellerdaten.'},
-    rows:[...nodes.flatMap((node,j)=>[{label:`Stufe ${j+1} · Ik max`,value:node.ikMax,unit:'kA'},{label:`Stufe ${j+1} · L–PE kalt, cmin`,value:node.ikLoop??'nicht ermittelt',unit:node.ikLoop===null?undefined:'kA'}]),...pairs.map((pair,j)=>({label:`Paar ${j+1} → ${j+2}`,value:pair.text}))],
+    status:{tone:pairs.some(p=>p.tone==='error')?'error':'warning',text:pairs.some(p=>p.tone==='error')?'Eine dokumentierte Herstellergrenze wird überschritten.':factors.legacy?LEGACY_VOLTAGE_WARNING:'Kurzschlussmodell berechnet. Selektivität und Abschaltzeiten benötigen passende Herstellerdaten.'},
+    rows:[{label:'Spannungstoleranz / cmax',value:`${factors.label} · ${factors.cMax.toFixed(2)}`},...nodes.flatMap((node,j)=>[{label:`Stufe ${j+1} · Ik max`,value:node.ikMax,unit:'kA'},{label:`Stufe ${j+1} · L–PE kalt, cmin`,value:node.ikLoop??'nicht ermittelt',unit:node.ikLoop===null?undefined:'kA'}]),...pairs.map((pair,j)=>({label:`Paar ${j+1} → ${j+2}`,value:pair.text}))],
     diagram:{kind:'chain',nodes:nodes.map((node,j)=>({label:node.stage.name||`Stufe ${j+1}`,value:`${STAGE_DEVICES.find(([id])=>id===node.stage.type)?.[1]} · ${node.stage.rated} A`,detail:`${node.stage.length} m · ${node.stage.area} mm² · Ik ${node.ikMax.toFixed(3)} kA`,tone:pairs[j-1]?.tone??'neutral'}))},
-    formula:`ZQ = 1.05 · UPhase / (IkQuelle${input.supplyVoltage==='230'?' · 2':''}); RQ/XQ = 0.1; RΣ = RQ + Σ(R′ · L / 1000), XΣ = XQ + Σ(X′ · L / 1000); Ik = 1.05 · UPhase / (k · √(RΣ²+XΣ²)), k = 1 (3~) oder 2 (1~). L–PE bei TN: 0.95 · UPhase / (2 · |ZΣ|).`,
+    formula:`ZQ = ${factors.cMax.toFixed(2)} · UPhase / (IkQuelle${input.supplyVoltage==='230'?' · 2':''}); RQ/XQ = 0.1; RΣ = RQ + Σ(R′ · L / 1000), XΣ = XQ + Σ(X′ · L / 1000); Ik = ${factors.cMax.toFixed(2)} · UPhase / (k · √(RΣ²+XΣ²)), k = 1 (3~) oder 2 (1~). L–PE bei TN: ${factors.cMin.toFixed(2)} · UPhase / (2 · |ZΣ|).`,
     limitations:[
+      ...(factors.legacy?[LEGACY_VOLTAGE_WARNING]:[]),
+      `cmax ${factors.cMax.toFixed(2)} für ${factors.label}. Der bereits maximale Quellenstrom wird mit demselben Faktor zurückgerechnet und erhält keinen zweiten Zuschlag.`,
       'R/X-Kabeldaten: datierter veröffentlichter Anbieterstand 02.11.2026; Cu 20 °C, Al-Widerstand als Faktor 1.63. Keine unabhängig bestätigte vollständige Norm-/Herstellertabelle.',
       'Das Kurzschlussmodell entspricht dem veröffentlichten kalten Pfadansatz. Der cmin-Schleifenwert bei 20 °C ist kein garantierter thermisch ungünstiger Ik-min-Nachweis. PE-Querschnitt wird gleich dem Phasenquerschnitt angenommen.',
       'TT und IT benötigen weitere Erdungs-/Isolationsangaben; L–PE-Schleifenstrom wird dort nicht aus einem TN-Modell vorgetäuscht.',

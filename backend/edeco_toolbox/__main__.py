@@ -1,4 +1,4 @@
-"""Toolbox desktop lifecycle, persistent browser profile and common updates."""
+"""Toolhub desktop lifecycle, persistent browser profile and common updates."""
 
 import argparse
 import json
@@ -19,6 +19,8 @@ from nova_legend.__main__ import free_port
 from . import APP_NAME, version_label
 from .app import create_app
 from .paths import local_home
+from .desktop_zoom import attach_desktop_zoom_guard
+from .ui_cache import desktop_ui_url
 
 
 def wait_until_up(url: str, timeout: float = 60.0) -> bool:
@@ -62,19 +64,31 @@ def probe_desktop(window, home: Path):
     try:
         deadline = time.monotonic() + 60
         while time.monotonic() < deadline:
-            if window.evaluate_js("Boolean(document.querySelector('.toolbox-header') && document.querySelectorAll('.toolbox-card').length === 10)"):
-                report = {"ok": True, "tool_count": 10}
+            surface = window.evaluate_js("""(() => {
+              const hub = document.querySelector('.toolbox[data-toolhub-count]');
+              const count = hub?.querySelectorAll('.toolbox-card').length ?? 0;
+              const expected = Number(hub?.dataset.toolhubCount ?? 0);
+              return {ready: Boolean(hub && document.querySelector('.toolbox-header') && count > 0 && count === expected),
+                tool_count: count, expected_tool_count: expected, mode: hub?.dataset.toolhubMode};
+            })()""")
+            if isinstance(surface, dict) and surface.get("ready"):
+                report = {"ok": True, "tool_count": surface["tool_count"],
+                          "expected_tool_count": surface["expected_tool_count"],
+                          "mode": surface.get("mode")}
                 break
             time.sleep(.25)
         if not report["ok"]:
-            report["error"] = "Das native Fenster hat die Toolbox nicht gerendert."
+            report["error"] = "Das native Fenster hat den Toolhub nicht gerendert."
         elif getattr(sys, 'frozen', False):
             report['ok'] = False
             window.evaluate_js("document.querySelector('button[aria-label=\"PDF-Werkstatt öffnen\"]').click()")
             deadline = time.monotonic() + 160
+            selected = False
             while time.monotonic() < deadline:
-                if window.evaluate_js("Boolean(document.querySelector('.pdf-stirling-frame')?.contentDocument?.querySelector('input[type=file]'))"):
-                    report.update(ok=True, pdf_ready=True)
+                if not selected:
+                    selected = bool(window.evaluate_js("(() => { const tool = document.querySelector('[data-pdf-tool=merge]'); if (!tool || tool.getAttribute('aria-disabled') === 'true' || tool.disabled) return false; tool.click(); return true; })()"))
+                if selected and window.evaluate_js("Boolean([...document.querySelectorAll('.pdf-desk')].some(el => el.getClientRects().length && el.querySelector('input[type=file]')))"):
+                    report.update(ok=True, pdf_ready=True, pdf_tool_selected="merge", pdf_mode="native-pages")
                     break
                 time.sleep(.5)
             if not report['ok']:
@@ -112,7 +126,7 @@ def main(argv=None):
     thread = threading.Thread(target=server.run, daemon=True)
     thread.start()
     if not wait_until_up(url):
-        logging.error("Toolbox-Server startet nicht")
+        logging.error("Toolhub-Server startet nicht")
         return 1
     if not args.browser:
         try:
@@ -132,8 +146,9 @@ def main(argv=None):
                 os.environ['WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS'] = '--disable-background-networking --disable-component-update --disable-domain-reliability --no-pings'
             webview.settings["OPEN_EXTERNAL_LINKS_IN_BROWSER"] = True
             icon = config.resource_dir() / "packaging" / "toolbox.ico"
-            window = webview.create_window(f"{APP_NAME} {version_label()}", url,
-                                           width=1400, height=900, min_size=(900, 600))
+            window = webview.create_window(f"{APP_NAME} {version_label()}", desktop_ui_url(url),
+                                           width=1400, height=900, min_size=(900, 600), zoomable=False)
+            attach_desktop_zoom_guard(window)
             dialogs.attach(window)
             app.state.shutdown = window.destroy
             app.state.updates.desktop = True
@@ -147,11 +162,11 @@ def main(argv=None):
                     options["func"] = lambda: probe_desktop(window, home)
                 webview.start(**options)
             except Exception:
-                logging.exception("Toolbox window could not start")
+                logging.exception("Toolhub window could not start")
                 if not args.desktop_smoke_test and sys.platform == "win32":
                     import ctypes
                     ctypes.windll.user32.MessageBoxW(None,
-                        "Das Toolbox-Fenster konnte nicht gestartet werden. Bitte das vollständige Setup verwenden.\n\n"
+                        "Das Toolhub-Fenster konnte nicht gestartet werden. Bitte das vollständige Setup verwenden.\n\n"
                         f"Fehlerprotokoll: {home / 'toolbox.log'}", APP_NAME, 0x10)
                 return 1
             finally:
@@ -162,7 +177,7 @@ def main(argv=None):
                 return 0 if report.is_file() and json.loads(report.read_text(encoding="utf-8")).get("ok") else 1
             app.state.updates.launch_pending()
             return 0
-    webbrowser.open(url)
+    webbrowser.open(desktop_ui_url(url))
     try:
         while thread.is_alive():
             time.sleep(.3)

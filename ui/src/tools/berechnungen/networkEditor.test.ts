@@ -45,7 +45,7 @@ test("vertical layout stays available and old saved positions imply their orient
   assert.ok(Math.abs(vertical.nodes[1].x - vertical.nodes[2].x) >= 280);
   const legacy = { ...vertical, orientation: undefined };
   assert.equal(networkOrientation(legacy), "vertical");
-  assert.deepEqual(parseNetworkDocument(legacy).nodes, legacy.nodes);
+  assert.deepEqual(parseNetworkDocument(legacy).nodes, legacy.nodes.map(node => node.kind === "source" ? { ...node, values: { ...node.values, voltageTolerance: "legacy" } } : node));
   assert.throws(() => parseNetworkDocument({ ...example(), orientation: "diagonal" }));
 });
 
@@ -76,7 +76,7 @@ test("click placement uses the selected parent next column and leaves occupied b
 
 test("150-node chains and parallel leaves remain editable and survive JSON round trips",()=>{
  for(const topology of ["chain","leaves"]){
-  const nodes=Array.from({length:150},(_,index)=>({id:`node-${index}`,kind:index===0?"source" as const:"distribution" as const,label:`Bauteil ${index}`,x:0,y:0,values:{}}));
+  const nodes: NetworkDocument["nodes"]=Array.from({length:150},(_,index)=>({id:`node-${index}`,kind:index===0?"source" as const:"distribution" as const,label:`Bauteil ${index}`,x:0,y:0,values:index===0?{voltageTolerance:"plus10"}:{}}));
   const edges=nodes.slice(1).map((node,index)=>({id:`edge-${index}`,from:topology==="chain"?nodes[index].id:nodes[0].id,to:node.id,values:{}}));
   for(const orientation of ["horizontal","vertical"] as const){
    const arranged=arrangeNetwork({version:1,name:"Grosses Netz",nodes,edges},orientation);
@@ -86,4 +86,15 @@ test("150-node chains and parallel leaves remain editable and survive JSON round
   }
  }
  const outside=example();outside.nodes[0].x=NETWORK_COORDINATE_LIMIT+1;assert.throws(()=>parseNetworkDocument(outside));
+});
+
+
+test("imported networks retain the historical voltage factor until the user selects a tolerance", () => {
+  const old = example(), imported = parseNetworkDocument(old);
+  assert.equal(imported.nodes[0].values.voltageTolerance, "legacy");
+  assert.equal(Object.hasOwn(old.nodes[0].values, "voltageTolerance"), false);
+  imported.nodes[0].values.voltageTolerance = "plus10";
+  assert.equal(parseNetworkDocument(imported).nodes[0].values.voltageTolerance, "plus10");
+  imported.nodes[0].values.voltageTolerance = "";
+  assert.equal(parseNetworkDocument(imported).nodes[0].values.voltageTolerance, "", "invalid editable values are not silently migrated");
 });

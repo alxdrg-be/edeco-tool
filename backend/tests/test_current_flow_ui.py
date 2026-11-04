@@ -7,7 +7,7 @@ from test_editor_navigation import choose_card, editor, env, named_cards, playwr
 def test_ev_flow_stops_for_waiting_invalid_and_reduced_motion_and_reverses_known_export(editor):
     page, _, _, _ = editor
     page.emulate_media(reduced_motion="no-preference")
-    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Zum Toolhub", exact=True).click()
     page.get_by_role("button", name="Berechnungen öffnen", exact=True).click()
     page.get_by_role("button", name="E-Mobilität · AC-Vorplanung öffnen", exact=True).click()
     count = page.get_by_label("Anzahl Ladepunkte", exact=True)
@@ -56,7 +56,7 @@ def test_ev_flow_stops_for_waiting_invalid_and_reduced_motion_and_reverses_known
 
 def test_network_flow_requires_valid_nonzero_branch_current(editor):
     page, _, _, _ = editor
-    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Zum Toolhub", exact=True).click()
     page.get_by_role("button", name="Berechnungen öffnen", exact=True).click()
     page.get_by_role("button", name="Netzplaner (Beta) öffnen", exact=True).click()
     playwright.expect(page.get_by_label("Name des Netzplans", exact=True)).to_be_enabled()

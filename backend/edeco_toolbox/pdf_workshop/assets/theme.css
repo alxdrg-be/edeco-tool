@@ -55,3 +55,17 @@ html[data-edeco-theme="dark"] {
    available through Info / Lizenzen rather than repeated workspace branding. */
 .sui-logo, .sui-brandmark { display: none !important; }
 .file-sidebar-header { display: none !important; }
+/* Local Core runs without accounts. Keep React's subtree intact and use the
+   unambiguous settings button in the Toolhub header. Server accounts stay visible. */
+.edeco-settings-control { display: none !important; }
+
+/* A close action remains a normal Core control, with a usable hit area and
+   contrast. React still owns the control and its lifecycle. */
+:root .edeco-close-control { min-width: 34px !important; min-height: 34px !important; border: 1px solid var(--c-border-strong) !important; color: var(--c-text) !important; background: var(--c-surface-raised) !important; opacity: 1 !important; }
+:root .edeco-close-control:hover { border-color: var(--c-primary) !important; background: color-mix(in srgb, var(--c-primary) 18%, var(--c-surface)) !important; }
+:root .edeco-close-control:focus-visible { outline: 2px solid var(--c-primary) !important; outline-offset: 2px; }
+:root .edeco-close-control:disabled { opacity: .5 !important; cursor: not-allowed; }
+::selection { background: rgba(232, 80, 121, .52); color: #10191f; }
+.textLayer ::selection, .textLayer span::selection { background: rgba(232, 80, 121, .58) !important; }
+.textLayer .highlight { background: rgba(232, 80, 121, .44) !important; outline: 1px solid #a62c50; }
+.textLayer .highlight.selected { background: rgba(232, 80, 121, .65) !important; outline: 2px solid #a62c50; }

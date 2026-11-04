@@ -22,7 +22,17 @@ export interface NetworkDocument {
   orientation?: NetworkOrientation;
 }
 export type NetworkTone = "ok" | "warning" | "error" | "neutral";
-export interface NetworkIssue { tone: NetworkTone; text: string; nodeId?: string; edgeId?: string }
+export interface NetworkIssue {
+  tone: NetworkTone;
+  text: string;
+  nodeId?: string;
+  edgeId?: string;
+  /** Stable calculation condition, independent of translated message text. */
+  code?: string;
+  field?: string;
+  relatedNodeId?: string;
+  data?: Record<string, string | number>;
+}
 export interface NetworkEdgeResult {
   id: string;
   currents: [number, number, number];

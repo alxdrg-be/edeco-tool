@@ -3,6 +3,7 @@
 import hmac
 import html
 import json
+import logging
 import os
 import re
 import secrets
@@ -20,11 +21,32 @@ from pydantic import BaseModel, Field
 from . import API, ROOT
 from .client import PdfFile, StirlingClient
 from .config import Configuration
+from .crop import register_crop
+from .operations import register_operations
+from .processing import register_processing
+from .marks import register_marks
+from .workbench import register_workbench
 from .runtime import PdfRuntime, runtime_root
 
 ASSETS = Path(__file__).parent / "assets"
 MAX_UPLOAD = 250 * 1024 * 1024
+MAX_FRONTEND_RESPONSE = 32 * 1024 * 1024
 HOP_HEADERS = {"host", "connection", "keep-alive", "transfer-encoding", "te", "trailer", "upgrade", "proxy-authorization", "proxy-authenticate"}
+LOGGER = logging.getLogger(__name__)
+
+
+async def frontend_bytes(upstream, *, decoded=False):
+    """Finish small boot resources before sending successful response headers."""
+    data = bytearray()
+    try:
+        chunks = upstream.aiter_bytes() if decoded else upstream.aiter_raw()
+        async for chunk in chunks:
+            if len(data) + len(chunk) > MAX_FRONTEND_RESPONSE:
+                raise ValueError("Die PDF-Oberfläche liefert eine zu grosse Startdatei.")
+            data.extend(chunk)
+        return bytes(data)
+    finally:
+        await upstream.aclose()
 
 
 class Connection(BaseModel):
@@ -77,6 +99,12 @@ def register(app):
         value = request.headers.get("X-Edeco-Pdf", "") if key else request.cookies.get(cookie_name(request), "")
         if not valid or ((key or cookie) and not hmac.compare_digest(value.encode(), session_key.encode())):
             raise HTTPException(403, "Die PDF-Werkstatt bitte direkt in der Toolbox öffnen.")
+
+    register_crop(app, authorize)
+    register_workbench(app, authorize, config)
+    register_operations(app, authorize, config)
+    register_processing(app, authorize, config)
+    register_marks(app, authorize, config)
 
     @app.get(API + "/state")
     def state(request: Request):
@@ -174,10 +202,11 @@ def register(app):
             raise HTTPException(400, "Ungültiger Dienstpfad.")
         target = config.url + ROOT + "/" + path
         headers = {key: value for key, value in request.headers.items()
-                   if key.lower() not in HOP_HEADERS | {"origin", "referer", "accept-encoding", "cookie"}}
+                   if key.lower() not in HOP_HEADERS | {"origin", "referer", "accept-encoding", "cookie"}
+                   and not key.lower().startswith("x-edeco-")}
         # The local Toolbox session must never be forwarded to the service.
         remote_cookies = "; ".join(part.strip() for part in request.headers.get("cookie", "").split(";")
-                                   if part.strip() and not part.strip().startswith("edeco_pdf_session_"))
+                                   if part.strip() and not part.strip().split("=", 1)[0].lower().startswith("edeco_"))
         headers["cookie"] = remote_cookies
         headers["accept-encoding"] = "identity"
         headers["origin"] = config.url
@@ -186,19 +215,49 @@ def register(app):
         if config.api_key:
             headers["X-API-KEY"] = config.api_key
         client = get_proxy_client()
-        try:
-            async def body():
-                total = 0
-                async for chunk in request.stream():
-                    total += len(chunk)
-                    if total > MAX_UPLOAD:
-                        raise ValueError("Die Verarbeitung überschreitet 250 MB.")
-                    yield chunk
-            upstream_request = client.build_request(request.method, target, params=request.query_params,
-                                                    headers=headers, content=body())
-            upstream = await client.send(upstream_request, stream=True)
-        except (httpx.HTTPError, ValueError):
-            return HTMLResponse("<h2>Stirling-PDF ist nicht erreichbar.</h2><p>Bitte über die Toolbox die Verbindung prüfen.</p>", status_code=502)
+
+        def unavailable():
+            return HTMLResponse("<h2>Stirling-PDF ist nicht erreichbar.</h2><p>Bitte über die Toolbox die Verbindung prüfen.</p>",
+                                status_code=502, headers={"Cache-Control": "no-store"})
+
+        async def body():
+            total = 0
+            async for chunk in request.stream():
+                total += len(chunk)
+                if total > MAX_UPLOAD:
+                    raise ValueError("Die Verarbeitung überschreitet 250 MB.")
+                yield chunk
+
+        # An empty async generator makes HTTPX send Transfer-Encoding: chunked
+        # even for GET/HEAD. Boot resource reads need no request body at all.
+        has_body = request.method not in {"GET", "HEAD"} or length > 0 or bool(request.headers.get("transfer-encoding"))
+        safe_read = request.method in {"GET", "HEAD"} and not has_body
+        attempts = 2 if safe_read else 1
+        buffered = None
+        for attempt in range(attempts):
+            upstream = None
+            try:
+                upstream_request = client.build_request(request.method, target, params=request.query_params,
+                                                        headers=headers, content=body() if has_body else None)
+                upstream = await client.send(upstream_request, stream=True)
+                is_html = "text/html" in upstream.headers.get("content-type", "")
+                if safe_read and (is_html or path.startswith(("assets/", "api/v1/config/"))):
+                    # A mid-stream failure after HTTP 200 leaves the browser with
+                    # incomplete scripts/config and can break Core's file import.
+                    # Preserve raw encodings for binary assets; HTML is rewritten.
+                    buffered = await frontend_bytes(upstream, decoded=is_html)
+                break
+            except httpx.HTTPError:
+                if upstream is not None:
+                    await upstream.aclose()
+                LOGGER.warning("PDF proxy read failed: %s %s (attempt %s/%s)", request.method, path,
+                               attempt + 1, attempts, exc_info=True)
+                if attempt + 1 == attempts:
+                    return unavailable()
+            except ValueError:
+                if upstream is not None:
+                    await upstream.aclose()
+                return unavailable()
         response_headers = {key: value for key, value in upstream.headers.items()
                             if key.lower() not in HOP_HEADERS | {"content-length"}}
         if "location" in response_headers:
@@ -209,7 +268,7 @@ def register(app):
                 await upstream.aclose()
                 raise HTTPException(502, "Eine Weiterleitung zu einem anderen Dienst wurde nicht geöffnet.")
         if "text/html" in upstream.headers.get("content-type", ""):
-            raw = await upstream.aread()
+            raw = buffered if buffered is not None else await upstream.aread()
             await upstream.aclose()
             text = raw.decode("utf-8")
             title = html.escape(config.public()["title"])
@@ -222,6 +281,10 @@ def register(app):
             if config.runtime:
                 response_headers['Content-Security-Policy'] = "default-src 'self' blob: data:; connect-src 'self' blob: data:; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; font-src 'self' data:; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'"
             return HTMLResponse(text, status_code=upstream.status_code, headers=response_headers)
+        if buffered is not None:
+            if request.method == "HEAD" and "content-length" in upstream.headers:
+                response_headers["content-length"] = upstream.headers["content-length"]
+            return Response(buffered, status_code=upstream.status_code, headers=response_headers)
         async def stream():
             try:
                 async for chunk in upstream.aiter_raw():

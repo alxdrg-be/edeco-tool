@@ -23,7 +23,12 @@ export function parseNetworkDocument(value: unknown): NetworkDocument {
     if (!edge || typeof edge !== "object" || !identifier(edge.id) || edgeIds.has(edge.id) || !ids.has(edge.from) || !ids.has(edge.to) || !values(edge.values)) throw new Error("Ungültige Leitung oder fehlendes Anschluss-Bauteil.");
     edgeIds.add(edge.id);
   }
-  return JSON.parse(JSON.stringify(candidate)) as NetworkDocument;
+  const document = JSON.parse(JSON.stringify(candidate)) as NetworkDocument;
+  // Existing files predate the tolerance selector: preserve their factor and mark it.
+  for (const node of document.nodes) {
+    if (node.kind === "source" && !Object.hasOwn(node.values, "voltageTolerance")) node.values.voltageTolerance = "legacy";
+  }
+  return document;
 }
 
 export interface NetworkHistory { present: NetworkDocument; past: NetworkDocument[]; future: NetworkDocument[] }

@@ -5,7 +5,7 @@ import { lookupPublishedIz, publishedAreas, publishedTemperatureFactor, publishe
 import { FIRE_CABLE_FACTS, fireCableSelection, fireCprState } from "./fireCableData.ts";
 import { defaults, type Inputs, type CalculationResult } from "./types.ts";
 const definition = (id: string) => { const found=INSTALLATION.find(d=>d.id===id);assert.ok(found);return found; };
-const calculate = (id: string, patch: Inputs={}) => { const d=definition(id);return d.calculate({...defaults(d),...(id==="strombelastbarkeit"&&patch.tableMode==="manual"?{circuits:"2"}:{}),...patch}); };
+const calculate = (id: string, patch: Inputs={}) => { const d=definition(id);return d.calculate({...defaults(d),...(id==="strombelastbarkeit"&&patch.tableMode==="manual"?{circuits:"2"}:{}),...(id==='nin-kabelrechner'&&patch.method&&patch.conductorKind===undefined?{conductorKind:'all'}:{}),...patch}); };
 const projectPV = (patch:Inputs={}) => calculate("pva-rechner",{roof:"manual",modulePreset:"manual",tariffPreset:"manual",feedPreset:"manual",grantMode:"manual",headlineBasis:"net",...patch});
 const metric = (r: CalculationResult, label: string) => { const m=r.metrics.find(m=>m.label===label);assert.ok(m);return m.value; };
 const near=(actual:unknown,expected:number,tolerance=1e-9)=>{assert.equal(typeof actual,"number");assert.ok(Math.abs((actual as number)-expected)<tolerance,`${actual} vs ${expected}`);};

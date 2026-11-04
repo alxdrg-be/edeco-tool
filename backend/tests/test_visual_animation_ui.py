@@ -14,7 +14,7 @@ def cable_endpoint(page):
 def test_cable_geometry_interpolates_cancels_and_respects_reduced_motion(editor):
     page, _, _, _ = editor
     page.emulate_media(reduced_motion="no-preference")
-    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Zum Toolhub", exact=True).click()
     page.get_by_role("button", name="Berechnungen öffnen", exact=True).click()
     page.get_by_role("button", name="Kabelberechnung öffnen", exact=True).click()
     current = page.get_by_label("Laststrom I (A)", exact=True)

@@ -1,0 +1,26 @@
+/* Page-specific additions keep task/crop workspaces independent. */
+.pdf-desk .pdf-desk-intro { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 18px; }
+.pdf-desk .pdf-desk-intro h1 { font-size: clamp(20px, 2vw, 27px); }
+.pdf-desk .pdf-merge-all { white-space: nowrap; font-size: 12px; }
+.pdf-desk .pdf-page-action-message { color: var(--muted); font-size: 11px; line-height: 1.6; margin: 10px 0 0; min-height: 18px; }
+.pdf-desk .pdf-row-actions .pdf-close-document { display: grid; place-items: center; min-width: 32px; min-height: 32px; padding: 0; font-size: 23px; line-height: 1; color: var(--fg); border-color: var(--line-strong); }
+.pdf-desk .pdf-row-actions .pdf-close-document:hover { color: var(--danger); background: color-mix(in srgb, var(--danger) 12%, var(--panel)); border-color: var(--danger); }
+.pdf-desk .pdf-page-strip { overflow-y: visible; padding-block: 22px; }
+.pdf-desk .pdf-page-card.is-dragging { opacity: .4; cursor: grabbing; }
+.pdf-desk .pdf-drop-indicator { position: absolute; top: 3px; bottom: 3px; width: 4px; left: -9px; border-radius: 4px; background: var(--accent); box-shadow: 0 0 0 2px var(--panel); z-index: 5; pointer-events: none; }
+.pdf-desk .pdf-drop-indicator.is-after { left: auto; right: -9px; }
+.pdf-desk .pdf-drop-indicator > span { position: absolute; bottom: 10px; left: 6px; display: flex; align-items: center; gap: 7px; padding: 6px 8px; border: 1px solid var(--accent); border-radius: 7px; background: var(--panel); color: var(--accent); box-shadow: var(--shadow); white-space: nowrap; font-size: 10px; }
+.pdf-desk .pdf-drop-indicator.is-after > span { left: auto; right: 6px; }
+.pdf-desk .pdf-drop-indicator img { width: 30px; height: 40px; object-fit: contain; }
+.pdf-desk .pdf-row-drop.is-drop-target { color: var(--accent); background: var(--accent-soft); border: 2px dashed var(--accent); }
+.pdf-desk .pdf-row-drop img { width: 48px; height: 65px; object-fit: contain; box-shadow: var(--shadow); }
+.pdf-desk .pdf-new-document-drop { position: sticky; bottom: 10px; z-index: 8; display: flex; align-items: center; justify-content: center; gap: 14px; min-height: 94px; padding: 14px 20px; margin-top: 18px; border: 2px dashed var(--accent); border-radius: 12px; color: var(--accent); background: var(--panel); box-shadow: var(--shadow-pop); }
+.pdf-desk .pdf-new-document-drop[hidden] { display: none; }
+.pdf-desk .pdf-new-document-drop.is-drop-target { background: var(--accent-soft); border-style: solid; }
+.pdf-desk .pdf-new-document-drop img { width: 44px; height: 60px; object-fit: contain; box-shadow: 0 2px 6px #0002; }
+.pdf-desk .pdf-new-document-drop > span { display: flex; flex-direction: column; gap: 6px; }
+.pdf-desk .pdf-new-document-drop strong { font-size: 15px; }
+.pdf-desk .pdf-new-document-drop small { color: var(--muted); font-size: 11px; }
+.pdf-desk .pdf-result > span { color: var(--muted); font-size: 11px; }
+@media (max-width: 1100px) { .pdf-desk .pdf-desk-intro { flex-wrap: wrap; } }
+@media (prefers-reduced-motion: reduce) { .pdf-desk .pdf-page-card { transition: none; } }

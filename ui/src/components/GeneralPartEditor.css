@@ -1,0 +1,4 @@
+.general-template-choice{margin-bottom:16px;padding:12px;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:8px;background:var(--panel-2)}
+.general-template-preview{margin-top:12px}
+.general-template-preview img{display:block;width:100%;max-width:1050px;height:auto;border:1px solid var(--line);border-radius:4px;background:white}
+.general-template-choice .btn{white-space:normal}

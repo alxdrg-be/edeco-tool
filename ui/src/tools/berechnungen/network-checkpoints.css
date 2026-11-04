@@ -1,0 +1,21 @@
+.np-checkpoints { margin:16px 0 22px; }
+.np-checkpoints>h3 { display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:6px; font-size:13px; }
+.np-checkpoints>h3>span { color:var(--muted); font-size:10px; font-weight:400; }
+.np-checkpoint-counts,.np-checkpoint-scope { color:var(--muted); font-size:10px; line-height:1.7; }
+.np-checkpoint { border-bottom:1px solid var(--line); }
+.np-checkpoint>summary { display:grid; grid-template-columns:16px minmax(0,1fr) auto 13px; align-items:center; gap:7px; padding:11px 0; cursor:pointer; list-style:none; font-size:11px; line-height:1.5; }
+.np-checkpoint>summary::-webkit-details-marker { display:none; }
+.np-checkpoint>summary>svg:first-child { color:var(--warn); }
+.np-checkpoint-passed>summary>svg:first-child { color:var(--ok); }
+.np-checkpoint-failed>summary>svg:first-child { color:var(--danger); }
+.np-checkpoint>summary>strong { font-size:9px; font-weight:500; color:var(--muted); }
+.np-checkpoint>summary>svg:last-child { color:var(--muted); transition:transform 160ms ease; }
+.np-checkpoint[open]>summary>svg:last-child { transform:rotate(180deg); }
+.np-checkpoint>summary:focus-visible { outline:2px solid var(--accent); outline-offset:3px; border-radius:3px; }
+.np-checkpoint-body { padding:0 0 12px 23px; font-size:11px; line-height:1.7; overflow-wrap:anywhere; }
+.np-checkpoint-body>p { margin:5px 0 10px; }
+.np-checkpoint-label { display:block; color:var(--muted); font-size:10px; }
+.np-inspector .np-checkpoint-issue { display:flex; align-items:flex-start; gap:7px; width:100%; margin-top:8px; padding:9px; background:var(--bg); border:1px solid var(--line); border-radius:7px; text-align:left; font-size:10px; line-height:1.7; }
+.np-checkpoint-issue>svg { flex:none; margin-top:2px; }
+.np-checkpoint-issue small { display:block; color:var(--accent); font-size:10px; margin-top:4px; }
+@media(prefers-reduced-motion:reduce) { .np-checkpoint>summary>svg:last-child { transition:none; } }

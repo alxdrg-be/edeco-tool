@@ -160,18 +160,18 @@ test("AC loss voltage drop includes cos phi and reactance while the thermal loss
 
 test("short-circuit c factors and conservative warm magnitude sum remain explicit model assumptions", () => {
   const r = calculate("kurzschlussstrom");
-  close(row(r, "Spannungsfaktor c_max · Modell"), 1.05);
+  close(row(r, "Spannungsfaktor c_max · Modell"), 1.10);
   close(row(r, "Spannungsfaktor c_min · Modell"), .95);
-  close(metric(r, "3~-Kurzschluss · Modell"), 7.729090730864311);
+  close(metric(r, "3~-Kurzschluss · Modell"), 7.729090730864311 * 1.10 / 1.05);
   close(metric(r, "L–PE-Schleife · Modell"), 2.6849624032193047);
   close(row(r, "Schleifenimpedanz im Modell"), row(r, "Quellenimpedanz · Betrag") + row(r, "Warme L–PE-Schleife · Betrag"));
   assert.match(r.status.text, /keine garantierte Schranke/);
   assert.match(r.limitations.join(" "), /keine garantierte Untergrenze/);
-  assert.match(r.formula, /1.05 × 400/);
+  assert.match(r.formula, /1.10 × 400/);
   assert.throws(() => calculate("kurzschlussstrom", { temperature: "" }));
   const single = calculate("kurzschlussstrom", { voltage: "230", kva: "250" });
   const expectedR = 2 * 1.15 * 25 / 1000, expectedX = .04 * 230 ** 2 / 250000 + 2 * .096 * 25 / 1000;
-  close(metric(single, "L–N-Kurzschluss · Modell"), 1.05 * 230 / Math.hypot(expectedR, expectedX) / 1000);
+  close(metric(single, "L–N-Kurzschluss · Modell"), 1.10 * 230 / Math.hypot(expectedR, expectedX) / 1000);
 });
 
 test("motor standard choices and additional start models keep assumptions and manual Iz evidence explicit", () => {
@@ -271,8 +271,8 @@ test("observed 300 square millimetres Cu loss case works without inventing react
   assert.throws(()=>calculate("verlustleistung",{area:"300",material:"al"}));
 });
 
-test("short source modes and additional stress indicators do not turn model assumptions into proofs", () => {
-  const direct = calculate("kurzschlussstrom", { sourceMode: "impedance", sourceImpedance: "25.6", kva: "", uk: "", trafos: "" });
+test("historical short source modes and stress indicators retain their numbers without claiming proofs", () => {
+  const direct = calculate("kurzschlussstrom", { voltageTolerance: "legacy", sourceMode: "impedance", sourceImpedance: "25.6", kva: "", uk: "", trafos: "" });
   assert.equal(metric(direct, "3~-Kurzschluss · Modell").toFixed(3), "6.042");
   assert.equal(row(direct, "Stossstrom · Näherung").toFixed(2), "9.10");
   assert.equal(row(direct, "Thermischer I√t-Ansatz · 0.1 s").toFixed(3), "1.911");
@@ -305,4 +305,20 @@ test("parallel loss paths preserve the entered section and show the installation
   assert.match(r.status.text, /NIN 5.2.3.7/);
   close(row(r, "Effektiver Leiterquerschnitt je Phase"), 32);
   close(row(r, "Widerstand je Aussenleiterpfad"), 1.15 * (1 + .00393 * 35) * .025 / 2);
+});
+
+
+test("short-circuit voltage tolerances share cmax rules and preserve cmin", () => {
+  const ten = calculate("kurzschlussstrom"), six = calculate("kurzschlussstrom", { voltageTolerance: "plus6" });
+  close(metric(ten, "3~-Kurzschluss · Modell"), metric(six, "3~-Kurzschluss · Modell") * 1.10 / 1.05);
+  close(metric(ten, "L–PE-Schleife · Modell"), metric(six, "L–PE-Schleife · Modell"));
+  close(row(six, "Spannungsfaktor c_max · Modell"), 1.05);
+  assert.equal(six.rows!.find(item => item.label === "Gewählte Netz-Spannungstoleranz")!.value, "+6 %");
+  assert.match(ten.limitations.join(" "), /IEC 60909-0/);
+  const legacy = calculate("kurzschlussstrom", { voltageTolerance: "legacy" });
+  close(metric(legacy, "3~-Kurzschluss · Modell"), metric(six, "3~-Kurzschluss · Modell"));
+  assert.match(legacy.status.text, /Altstand/);
+  assert.throws(() => calculate("kurzschlussstrom", { voltageTolerance: "" }), /Spannungstoleranz/);
+  assert.throws(() => calculate("kurzschlussstrom", { voltageTolerance: "plus20" }), /Spannungstoleranz/);
+  assert.throws(() => calculate("kurzschlussstrom", { voltage: "690" }), /voltage/);
 });

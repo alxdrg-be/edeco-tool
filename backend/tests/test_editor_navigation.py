@@ -64,8 +64,9 @@ def open_app(page, port):
 def expand_card_options(root):
     """Use the visible disclosure, keeping keyboard/button semantics under test."""
     playwright.expect(root).to_be_attached()
-    for summary in root.locator("xpath=ancestor::details[not(@open)]/summary").all():
-        summary.click()
+    for summary in root.locator("xpath=ancestor::details/summary").all():
+        if summary.locator("..").get_attribute("open") is None:
+            summary.click()
     more = root.locator('.lab-choice-expand[aria-expanded="false"]')
     if more.count():
         more.click()
@@ -97,7 +98,7 @@ def named_cards(page, label):
 @pytest.fixture()
 def editor(env):
     client, tmp = env
-    ui = Path(__file__).resolve().parents[2] / "ui" / "dist"
+    ui = Path(os.environ["NOVA_TEST_UI_DIR"]) if os.environ.get("NOVA_TEST_UI_DIR") else Path(__file__).resolve().parents[2] / "ui" / "dist"
     if not (ui / "index.html").is_file():
         pytest.skip("Build the UI with npm run build before browser tests")
     ids = []
@@ -111,8 +112,10 @@ def editor(env):
     sock = socket.socket()
     sock.bind(("127.0.0.1", 0))
     port = sock.getsockname()[1]
-    server = uvicorn.Server(uvicorn.Config(
-        create_app(client.app.state.nova, ui_dir=ui), log_level="error"))
+    served_app = create_app(client.app.state.nova, ui_dir=ui)
+    # Browser role tests replace the OS identity on this isolated server only.
+    client.app.state.toolhub_presentation = served_app.state.presentation
+    server = uvicorn.Server(uvicorn.Config(served_app, log_level="error"))
     thread = threading.Thread(target=server.run, kwargs={"sockets": [sock]}, daemon=True)
     thread.start()
     deadline = time.monotonic() + 10
@@ -150,7 +153,7 @@ LEGEND_URL = re.compile(r"/legend(\?.*)?$")
 def test_returning_to_toolbox_saves_the_open_legend_and_filters_tools(editor):
     page, field, client, (pid, _) = editor
     field.fill("Aus der Toolbox gespeichert")
-    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Zum Toolhub", exact=True).click()
     playwright.expect(page.get_by_role("heading", name="Ein Ort. Deine Werkzeuge.")).to_be_visible()
     assert title(client, pid) == "Aus der Toolbox gespeichert"
     playwright.expect(page.get_by_role("button", name="BIM2STEIGER öffnen")).to_be_enabled()
@@ -174,18 +177,18 @@ def test_failed_save_keeps_the_user_in_the_module_when_returning_to_toolbox(edit
         status=500, content_type="application/json", body='{"detail":"Test-Speicherfehler"}')
         if route.request.method == "PUT" else route.continue_())
     field.fill("Darf nicht verloren gehen")
-    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Zum Toolhub", exact=True).click()
     playwright.expect(field).to_have_value("Darf nicht verloren gehen")
     playwright.expect(page.get_by_role("heading", name="Ein Ort. Deine Werkzeuge.")).not_to_be_visible()
     assert title(client, pid) == before
     page.unroute(LEGEND_URL)
-    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Zum Toolhub", exact=True).click()
     playwright.expect(page.get_by_role("heading", name="Ein Ort. Deine Werkzeuge.")).to_be_visible()
     assert title(client, pid) == "Darf nicht verloren gehen"
 
 
 def open_bim_from_editor(page):
-    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Zum Toolhub", exact=True).click()
     page.get_by_role("button", name="BIM2STEIGER öffnen", exact=True).click()
     frame = page.frame_locator('iframe[title="BIM2STEIGER"]')
     playwright.expect(frame.locator("#catalogueCoverage")).to_contain_text(re.compile(r"11.777"))
@@ -209,7 +212,7 @@ def test_bim_catalogue_favorites_and_tender_survive_returning_to_toolbox(editor)
     form.locator('[name="bkp"]').fill("232.5")
     form.locator('[name="room"]').fill("R1")
     form.get_by_role("button", name="Position übernehmen", exact=True).click()
-    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Zum Toolhub", exact=True).click()
     playwright.expect(page.get_by_role("heading", name="Ein Ort. Deine Werkzeuge.")).to_be_visible()
     assert page.evaluate("JSON.parse(localStorage.getItem('steiger2bim.tender.v1'))[0].quantity") == 2
     page.get_by_role("button", name="BIM2STEIGER öffnen", exact=True).click()
@@ -223,7 +226,7 @@ def test_bim_open_dialog_and_storage_failure_prevent_leaving(editor):
     page, _, _, _ = editor
     frame = open_bim_from_editor(page)
     frame.locator("#openSearch").click()
-    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Zum Toolhub", exact=True).click()
     playwright.expect(frame.locator("#toast")).to_contain_text("offenen Dialog")
     frame.get_by_role("button", name="Suche schliessen", exact=True).click()
     child = page.frames[1]
@@ -232,31 +235,29 @@ def test_bim_open_dialog_and_storage_failure_prevent_leaving(editor):
       window.originalSetItem = Storage.prototype.setItem;
       Storage.prototype.setItem = () => { throw new Error('Test quota failure'); };
     }""")
-    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Zum Toolhub", exact=True).click()
     playwright.expect(frame.locator("#toast")).to_contain_text("Speicherung fehlgeschlagen")
     child.evaluate("() => { Storage.prototype.setItem = window.originalSetItem; }")
-    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Zum Toolhub", exact=True).click()
     playwright.expect(page.get_by_role("heading", name="Ein Ort. Deine Werkzeuge.")).to_be_visible()
 
 
-def test_toolbox_shows_all_tiles_without_scroll_and_greys_only_planned_tools(editor):
+@pytest.mark.parametrize("font_family", [None, "DejaVu Sans, sans-serif"], ids=["system-font", "wide-system-font"])
+def test_toolbox_shows_core_tiles_without_scroll_and_hides_removed_extras(editor, font_family):
     page, _, _, _ = editor
+    if font_family:
+        page.evaluate("font => document.documentElement.style.setProperty('--font-ui', font)", font_family)
     page.set_viewport_size({"width": 1400, "height": 900})
-    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
-    playwright.expect(page.locator(".toolbox-card")).to_have_count(10)
+    page.get_by_role("button", name="Zum Toolhub", exact=True).click()
+    playwright.expect(page.locator(".toolbox-card")).to_have_count(8)
     assert page.locator(".toolbox").evaluate("el => el.scrollHeight <= el.clientHeight")
     # A 900px native window also needs space for its Windows title bar.
     page.set_viewport_size({"width": 1400, "height": 860})
     assert page.locator(".toolbox").evaluate("el => el.scrollHeight <= el.clientHeight")
-    planned = ["Änderungsbericht", "Anlagetool"]
-    for name in planned:
-        tile = page.locator(".toolbox-card").filter(has=page.get_by_role("heading", name=name, exact=True))
-        playwright.expect(tile).to_be_visible()
-        playwright.expect(tile.locator(".toolbox-badge")).to_have_text("Geplant")
+    for name in ["Änderungsbericht", "Anlagetool", "Planlieferungs-Assistent"]:
+        playwright.expect(page.get_by_role("heading", name=name, exact=True)).to_have_count(0)
     playwright.expect(page.get_by_role("heading", name="Blitzschutz", exact=True)).to_have_count(0)
-    for tile in page.locator(".toolbox-card:not(.is-available)").all():
-        playwright.expect(tile.get_by_role("button")).to_be_disabled()
-        assert tile.locator(".toolbox-symbol").evaluate("el => getComputedStyle(el).filter") == "grayscale(1)"
+    playwright.expect(page.locator(".toolbox-card:not(.is-available)")).to_have_count(0)
     playwright.expect(page.get_by_role("button", name="NOVA-Legenden öffnen", exact=True)).to_be_enabled()
     playwright.expect(page.get_by_role("button", name="BIM2STEIGER öffnen", exact=True)).to_be_enabled()
     playwright.expect(page.get_by_role("button", name="Dokumenten-Assistent öffnen", exact=True)).to_be_enabled()
@@ -266,20 +267,26 @@ def test_toolbox_shows_all_tiles_without_scroll_and_greys_only_planned_tools(edi
     page.set_viewport_size({"width": 390, "height": 844})
     assert page.locator(".toolbox").evaluate("el => el.scrollWidth <= el.clientWidth")
     assert page.locator(".toolbox").evaluate("el => el.scrollHeight > el.clientHeight")
-    page.get_by_role("heading", name="Anlagetool", exact=True).scroll_into_view_if_needed()
-    playwright.expect(page.get_by_role("heading", name="Anlagetool", exact=True)).to_be_in_viewport()
+    page.get_by_role("heading", name="Berechnungen", exact=True).scroll_into_view_if_needed()
+    playwright.expect(page.get_by_role("heading", name="Berechnungen", exact=True)).to_be_in_viewport()
 
 
 def test_plan_delivery_downloads_manifest_and_records_only_explicitly_confirmed_sends(editor, tmp_path):
     import io
     import zipfile
     from test_documents import sample_pdf
-    page, _, _, _ = editor
+    page, _, client, _ = editor
+    client.app.state.toolhub_presentation.identity = "EDECO\\aduerger"
+    client.app.state.toolhub_presentation.windows = True
+    page.reload()
     prefix = page.url.rstrip("/") + "/api/tools/projektzentrale"
     state = page.request.get(prefix + "/state").json()
     project = page.request.post(prefix + "/projects", headers={"X-Edeco-Projects": state["session_key"]}, data={"number": "1498", "name": "Planlieferung Test"}).json()
-    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
-    page.get_by_role("button", name="Planlieferungs-Assistent öffnen", exact=True).click()
+    page.get_by_role("button", name="Zum Toolhub", exact=True).click()
+    page.get_by_role("button", name="Werkzeuge", exact=True).click()
+    menu = page.get_by_role("dialog", name="Werkzeug wechseln", exact=True)
+    menu.get_by_role("searchbox", name="Werkzeug suchen", exact=True).fill("Planlieferungs-Assistent")
+    menu.get_by_role("button", name="Planlieferungs-Assistent", exact=True).click()
     playwright.expect(page.get_by_label("Lieferprojekt", exact=True)).to_have_value(project["id"])
     page.get_by_label("Lieferempfänger", exact=True).fill("Bauleitung Test")
     page.get_by_label("Lieferdatum", exact=True).fill("2026-11-01")
@@ -299,7 +306,7 @@ def test_plan_delivery_downloads_manifest_and_records_only_explicitly_confirmed_
     page.once("dialog", lambda dialog: dialog.accept())
     page.get_by_role("button", name="Als versendet bestätigen", exact=True).click()
     playwright.expect(page.get_by_text("Versand bestätigt", exact=True)).to_be_visible()
-    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Zum Toolhub", exact=True).click()
     page.get_by_role("button", name="Projektzentrale öffnen", exact=True).click()
     playwright.expect(page.get_by_text("Versand bestätigt", exact=True)).to_be_visible()
     page.set_viewport_size({"width": 390, "height": 844})
@@ -308,7 +315,7 @@ def test_plan_delivery_downloads_manifest_and_records_only_explicitly_confirmed_
 
 def test_calculations_hub_and_lightning_visualisation_validate_and_restore_inputs(editor, tmp_path):
     page, _, _, _ = editor
-    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Zum Toolhub", exact=True).click()
     page.get_by_role("button", name="Berechnungen öffnen", exact=True).click()
     playwright.expect(page.locator(".calc-tile")).to_have_count(26)
     playwright.expect(page.get_by_role("button", name="Demnächst")).to_have_count(1)
@@ -351,9 +358,10 @@ def test_calculations_hub_and_lightning_visualisation_validate_and_restore_input
     page.get_by_label("Berechnungsbemerkung", exact=True).fill("Dachaufbau prüfen")
     page.set_viewport_size({"width": 1400, "height": 1000})
     page.locator(".calc-workspace").evaluate("el => el.scrollTop = 0")
-    page.get_by_role("button", name="Heller Rechnermodus", exact=True).click()
+    if page.get_by_role("button", name="Heller Modus", exact=True).is_visible():
+        page.get_by_role("button", name="Heller Modus", exact=True).click()
     page.screenshot(path=str(tmp_path / "lightning.png"), full_page=True)
-    page.get_by_role("button", name="Dunkler Rechnermodus", exact=True).click()
+    page.get_by_role("button", name="Dunkler Modus", exact=True).click()
     page.screenshot(path=str(tmp_path / "lightning-dark.png"), full_page=True)
     page.emulate_media(media="print")
     assert page.locator(".calc-panel").first.evaluate("el => getComputedStyle(el).backgroundColor") == "rgb(255, 255, 255)"
@@ -383,7 +391,7 @@ def test_calculations_hub_and_lightning_visualisation_validate_and_restore_input
 def test_swiss_cable_live_controls_recommendation_drawer_and_export(editor, tmp_path):
     import json
     page, _, _, _ = editor
-    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Zum Toolhub", exact=True).click()
     page.get_by_role("button", name="Berechnungen öffnen", exact=True).click()
     page.get_by_role("button", name="Kabelberechnung öffnen", exact=True).click()
     playwright.expect(page.get_by_label("Leitungslänge L (m)", exact=True)).to_be_enabled()
@@ -426,7 +434,7 @@ def test_shared_calculation_archive_settings_save_notes_restore_and_import(edito
     state = page.request.get(base + "/api/tools/projektzentrale/state").json()
     page.request.post(base + "/api/tools/projektzentrale/projects", headers={"X-Edeco-Projects": state["session_key"]}, data={"number":"1498","name":"Gemeinsames Projekt"})
     server = tmp_path / "server"; server.mkdir()
-    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Zum Toolhub", exact=True).click()
     page.get_by_role("button", name="Berechnungen öffnen", exact=True).click()
     page.get_by_role("button", name="Gemeinsame Ablage & Einstellungen", exact=True).click()
     page.get_by_role("button", name="Ablage-Einstellungen", exact=True).click()
@@ -479,7 +487,7 @@ def test_every_calculator_has_review_image_without_overlapping_labels(editor, tm
     page, _, _, _ = editor
     page.set_viewport_size({"width": 1600, "height": 1200})
     page.emulate_media(reduced_motion="reduce")
-    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Zum Toolhub", exact=True).click()
     page.get_by_role("button", name="Berechnungen öffnen", exact=True).click()
     playwright.expect(page.locator(".calc-tile")).to_have_count(26)
     launchers = page.locator(".calc-tile button:not([disabled])").evaluate_all("nodes => nodes.map(node => node.getAttribute('aria-label'))")
@@ -559,9 +567,10 @@ def test_every_calculator_has_review_image_without_overlapping_labels(editor, tm
         if title == "E-Mobilität · AC-Vorplanung":
             page.locator(".engineering-lab").evaluate("el=>el.scrollTop=0")
             page.screenshot(path=str(tmp_path / f"{filename}-mobil.png"), full_page=True)
-        page.get_by_role("button", name="Heller Rechnermodus", exact=True).click()
+        if page.get_by_role("button", name="Heller Modus", exact=True).is_visible():
+            page.get_by_role("button", name="Heller Modus", exact=True).click()
         assert page.locator(".engineering-lab").get_attribute("data-lab-theme") == "light"
-        page.get_by_role("button", name="Dunkler Rechnermodus", exact=True).click()
+        page.get_by_role("button", name="Dunkler Modus", exact=True).click()
         page.set_viewport_size({"width": 1600, "height": 1200})
         page.get_by_role("button", name="Berechnungen", exact=True).click()
     (tmp_path / "review-images.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -581,7 +590,7 @@ def test_native_workbench_calculation_can_be_saved_and_restored_with_project_not
     server.mkdir()
     response = page.request.post(archive_api + "/settings", headers=headers, data={"root": str(server), "subfolder": "Berechnungen", "revision": archive_state["settings"]["revision"]})
     assert response.ok
-    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Zum Toolhub", exact=True).click()
     page.get_by_role("button", name="Berechnungen öffnen", exact=True).click()
     page.get_by_role("button", name="Ohmsches Gesetz öffnen", exact=True).click()
     voltage = page.locator('input[data-field-key="voltage"]')
@@ -631,7 +640,7 @@ def test_native_workbench_calculation_can_be_saved_and_restored_with_project_not
 def test_project_hub_persists_contacts_and_references_and_passes_active_number_to_rename(editor, tmp_path):
     from test_documents import sample_pdf
     page, _, _, _ = editor
-    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Zum Toolhub", exact=True).click()
     page.get_by_role("button", name="Projektzentrale öffnen", exact=True).click()
     page.get_by_role("button", name="Neues Projekt", exact=True).click()
     page.get_by_label("Projektnummer", exact=True).fill("1498")
@@ -672,7 +681,7 @@ def test_project_hub_persists_contacts_and_references_and_passes_active_number_t
     apply.click()
     playwright.expect(page.get_by_role("textbox", name="Projektnummer", exact=True)).to_have_value("3000")
     page.once("dialog", lambda dialog: dialog.accept())
-    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Zum Toolhub", exact=True).click()
     picker = page.get_by_label("Aktives Projekt", exact=True)
     playwright.expect(picker).to_have_value(second["id"])
     first_id = next(project["id"] for project in state["projects"] if project["number"] == "1498")
@@ -697,12 +706,12 @@ def test_project_hub_persists_contacts_and_references_and_passes_active_number_t
 
 def test_project_hub_failed_save_keeps_draft_and_can_retry_before_leaving(editor):
     page, _, _, _ = editor
-    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Zum Toolhub", exact=True).click()
     page.get_by_role("button", name="Projektzentrale öffnen", exact=True).click()
     page.get_by_role("button", name="Neues Projekt", exact=True).click()
     page.get_by_label("Projektnummer", exact=True).fill("2000")
     page.get_by_label("Projektname", exact=True).fill("Ungespeichertes Projekt")
-    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Zum Toolhub", exact=True).click()
     dialog = page.get_by_role("alertdialog", name="Projektänderungen speichern?")
     playwright.expect(dialog).to_be_visible()
     page.route("**/api/tools/projektzentrale/projects", lambda route: route.fulfill(status=503, json={"detail": "Test: Speichern fehlgeschlagen."}))
@@ -722,7 +731,7 @@ def test_file_rename_template_detects_floors_blocks_duplicates_and_downloads_ori
     from test_documents import sample_pdf
 
     page, _, _, _ = editor
-    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Zum Toolhub", exact=True).click()
     page.get_by_role("button", name="Dateien umbenennen öffnen", exact=True).click()
     page.get_by_role("textbox", name="Projektnummer", exact=True).fill("1498")
     page.get_by_label("PDFs hinzufügen", exact=True).set_input_files([
@@ -753,7 +762,7 @@ def test_file_rename_template_detects_floors_blocks_duplicates_and_downloads_ori
     with zipfile.ZipFile(io.BytesIO(path.read_bytes())) as archive:
         assert archive.namelist() == ["1498_E-G-APP-OG02-C-50.pdf", "1498_E-G-APP-EG00-C-50.pdf"]
         assert archive.read(archive.namelist()[0]) == sample_pdf([["2. Obergeschoss"]])
-    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Zum Toolhub", exact=True).click()
     page.get_by_role("button", name="Dateien umbenennen öffnen", exact=True).click()
     playwright.expect(page.get_by_role("textbox", name="Projektnummer", exact=True)).to_have_value("1498")
     playwright.expect(page.get_by_role("button", name="PDFs hinzufügen", exact=True)).to_be_enabled()
@@ -779,18 +788,21 @@ def test_stirling_embedded_keeps_original_ui_and_merges_two_real_pdfs(editor):
     page.on("request", lambda request: external_requests.append(request.url)
             if urlsplit(request.url).scheme in {"http", "https"} and urlsplit(request.url).hostname not in {"127.0.0.1", "localhost"} else None)
     page.set_viewport_size({"width": 1400, "height": 900})
-    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Zum Toolhub", exact=True).click()
     page.get_by_role("button", name="PDF-Werkstatt öffnen", exact=True).click()
+    playwright.expect(page.locator('[data-pdf-tool="merge"]')).to_have_attribute("aria-disabled", "false")
+    page.locator('[data-pdf-tool="merge"]').click()
+    page.get_by_role("button", name="Erweiterte Funktionen", exact=True).click()
     frame = page.frame_locator("iframe[title='Stirling-PDF · edeco PDF-Werkstatt']")
     picker = frame.locator("input[type=file]").first
     picker.wait_for(state="attached", timeout=60000)
-    playwright.expect(frame.locator(".sui-logo").first).to_have_css("background-image", re.compile("edeco/logo.svg"))
+    playwright.expect(frame.locator(".sui-logo").first).to_be_hidden()
+    playwright.expect(page.get_by_role("img", name="edeco Toolhub", exact=True)).to_have_count(1)
     picker.set_input_files([
         {"name": "Plan-A.pdf", "mimeType": "application/pdf", "buffer": sample_pdf([["FIRST PLAN"]])},
         {"name": "Plan-B.pdf", "mimeType": "application/pdf", "buffer": sample_pdf([["SECOND PLAN"]])},
     ])
     frame.get_by_text("Plan-B.pdf", exact=True).first.wait_for(timeout=30000)
-    frame.get_by_text("Zusammenführen", exact=True).first.click()
     with page.expect_response(lambda response: response.url.endswith("/api/v1/general/merge-pdfs"), timeout=60000) as processing:
         frame.get_by_role("button", name="Zusammenführen (2 Dateien)", exact=True).click()
     response = processing.value
@@ -799,20 +811,20 @@ def test_stirling_embedded_keeps_original_ui_and_merges_two_real_pdfs(editor):
         assert len(result) == 2
     frame.get_by_text("merged_Plan-A.pdf", exact=True).first.wait_for(timeout=30000)
     assert not external_requests, "PDF processing must not make browser requests to public services"
-    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Zum Toolhub", exact=True).click()
     dialog = page.get_by_role("alertdialog", name="Ergebnisse gespeichert?")
     playwright.expect(dialog).to_be_visible()
     dialog.get_by_role("button", name="Hier bleiben", exact=True).click()
     playwright.expect(page.locator("iframe")).to_be_visible()
-    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
-    page.get_by_role("button", name="Zur Toolbox wechseln", exact=True).click()
+    page.get_by_role("button", name="Zum Toolhub", exact=True).click()
+    page.get_by_role("button", name="Werkzeug wechseln", exact=True).click()
     playwright.expect(page.get_by_role("heading", name="Ein Ort. Deine Werkzeuge.")).to_be_visible()
 
 
 def test_document_assistant_imports_pdf_finds_exact_source_and_preserves_library(editor):
     from test_documents import sample_pdf
     page, _, _, _ = editor
-    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Zum Toolhub", exact=True).click()
     page.get_by_role("button", name="Dokumenten-Assistent öffnen", exact=True).click()
     page.get_by_label("Dokumentstand für neue Dateien").fill("Testausgabe 2026")
     page.get_by_label("Dokumente hinzufügen", exact=True).set_input_files({
@@ -848,7 +860,7 @@ def test_document_assistant_defaults_to_free_server_and_opens_cited_pdf_page(edi
     import json
     from test_documents import sample_pdf
     page, _, _, _ = editor
-    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Zum Toolhub", exact=True).click()
     page.get_by_role("button", name="Dokumenten-Assistent öffnen", exact=True).click()
     page.get_by_label("Dokumente hinzufügen", exact=True).set_input_files({
         "name": "Test.pdf", "mimeType": "application/pdf", "buffer": sample_pdf()})
@@ -858,7 +870,7 @@ def test_document_assistant_defaults_to_free_server_and_opens_cited_pdf_page(edi
     dialog = page.get_by_role("dialog", name="KI-Verbindung einrichten")
     playwright.expect(dialog.get_by_label("Betriebsart")).to_have_value("ollama")
     dialog.get_by_label("KI-Serveradresse", exact=True).fill("http://ki-server:11434/api/chat")
-    dialog.get_by_role("button", name="Speichern und Server prüfen").click()
+    dialog.get_by_role("button", name="Speichern und Verbindung prüfen").click()
     playwright.expect(dialog).to_contain_text("Testserver erreichbar")
     dialog.get_by_role("button", name="Schliessen", exact=True).click()
     def answer(route):
@@ -892,25 +904,78 @@ def test_common_updater_checks_and_requires_confirmation_before_install(editor):
              "can_install": False, "packaged": True, "automatic": False,
              "release_url": "https://github.com/alxdrg-be/edeco-tool/releases", "session_key": "test-session"}
     actions = []
+    notes = """## Version 0.2.0 Build 5
+- Neue Rechnerauswahl
+- Verbesserte Grafiken
+- Wissens-Hub ergänzt
+- Fehlerkorrekturen
+- Ruhigere Schrift
+- Weitere Eingaben ergänzt
+
+## Frühere Version
+- Veraltete Änderung
+"""
     page.route("**/api/toolbox/updates", lambda route: route.fulfill(json=state))
     def action(route):
         assert route.request.headers.get("x-edeco-update") == "test-session"
         kind = route.request.url.rsplit("/", 1)[1]
         actions.append(kind)
         if kind == "check":
-            route.fulfill(json={**state, "status": "available", "latest": "v0.2.0-build.5", "can_install": True, "message": "Ein Toolbox-Update ist verfügbar."})
+            state.update(status="available", latest="v0.2.0-build.5", notes=notes,
+                         can_install=True, message="Ein Toolhub-Update ist verfügbar.")
+            route.fulfill(json=state)
         else:
             assert kind == "install" and json.loads(route.request.post_data) == {}
-            route.fulfill(json={**state, "status": "installing", "message": "Setup geprüft. Die Toolbox schliesst sich."})
+            state.update(status="installing", can_install=False,
+                         message="Setup geprüft. Der Toolhub schliesst sich.")
+            route.fulfill(json=state)
     page.route("**/api/toolbox/updates/check", action)
     page.route("**/api/toolbox/updates/install", action)
-    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Zum Toolhub", exact=True).click()
     page.get_by_role("button", name="Nach Updates suchen", exact=True).click()
+    changes = page.locator(".toolbox-update-changes")
+    playwright.expect(changes.get_by_role("heading", name="Was sich geändert hat")).to_be_visible()
+    playwright.expect(changes.get_by_text("Neue Rechnerauswahl", exact=True)).to_be_visible()
+    playwright.expect(changes.get_by_text("Ruhigere Schrift", exact=True)).to_be_visible()
+    playwright.expect(changes.get_by_text("Weitere Eingaben ergänzt", exact=True)).not_to_be_visible()
+    playwright.expect(changes).not_to_contain_text("Veraltete Änderung")
+    page.get_by_role("button", name="Schliessen", exact=True).focus()
+    page.keyboard.press("Tab")
+    playwright.expect(changes.locator("summary")).to_be_focused()
+    page.keyboard.press("Enter")
+    playwright.expect(changes.get_by_text("Weitere Eingaben ergänzt", exact=True)).to_be_visible()
+    full_notes = page.locator(".toolbox-update-full-notes")
+    playwright.expect(full_notes.locator("pre")).not_to_be_visible()
+    page.keyboard.press("Tab")
+    playwright.expect(full_notes.locator("summary")).to_be_focused()
+    page.keyboard.press("Enter")
+    playwright.expect(full_notes.locator("pre")).to_contain_text("Veraltete Änderung")
+    assert actions == ["check"]
     page.get_by_role("button", name="Update installieren", exact=True).click()
     assert actions == ["check"]
     page.get_by_role("button", name="Jetzt aktualisieren", exact=True).click()
-    playwright.expect(page.get_by_role("status").filter(has_text="Setup geprüft")).to_be_visible()
+    installing = page.get_by_role("dialog", name="Der Toolhub wird aktualisiert", exact=True)
+    playwright.expect(installing.get_by_role("status")).to_contain_text("Download geprüft")
+    playwright.expect(installing.locator('[aria-current="step"]')).to_have_text("Setup starten")
     assert actions == ["check", "install"]
+
+
+def test_common_updater_shows_when_release_has_no_change_notes(editor):
+    page, _, _, _ = editor
+    state = {"current": "v0.2.0-build.4", "latest": "v0.2.0-build.5",
+             "status": "available", "message": "Ein Toolbox-Update ist verfügbar.",
+             "can_install": False, "packaged": False, "automatic": False,
+             "release_url": "https://github.com/alxdrg-be/edeco-tool/releases", "session_key": "test-session"}
+    page.route("**/api/toolbox/updates", lambda route: route.fulfill(json=state))
+    page.route("**/api/toolbox/updates/check", lambda route: route.fulfill(json=state))
+    page.get_by_role("button", name="Zum Toolhub", exact=True).click()
+    page.get_by_role("button", name="Update verfügbar", exact=True).click()
+    changes = page.locator(".toolbox-update-changes")
+    playwright.expect(changes).to_be_visible()
+    playwright.expect(changes).to_contain_text("keine Änderungsnotizen")
+    playwright.expect(page.get_by_role("link", name="Releases öffnen", exact=True)).to_have_attribute(
+        "href", state["release_url"])
+    playwright.expect(page.get_by_role("button", name="Update installieren", exact=True)).to_have_count(0)
 
 
 def title(client, pid):
@@ -922,8 +987,9 @@ def test_the_view_menu_floats_the_settings_and_opens_the_wide_view(editor):
     page.locator("summary").filter(has_text="Ansicht").click()
     view = page.get_by_role("group", name="Ansicht", exact=True)
     playwright.expect(view.get_by_role("button", name="Einstellungen schwebend")).to_be_visible()
-    view.get_by_role("button", name="Als Fenster", exact=True).click()
-    close = page.locator("button.btn", has_text="Grossansicht beenden")
+    page.keyboard.press("Escape")
+    page.get_by_role("button", name="Editor gross öffnen", exact=True).click()
+    close = page.get_by_role("button", name="Kompakt", exact=True)
     playwright.expect(close).to_be_visible()
     close.click()
     playwright.expect(page.locator(".legend-editor.windowed")).not_to_be_visible()
@@ -932,12 +998,15 @@ def test_the_view_menu_floats_the_settings_and_opens_the_wide_view(editor):
 def test_the_toolbar_shows_what_this_computer_chose(editor):
     page, _field, _client, _ids = editor
     toolbar = page.locator(".legend-toolbar")
-    playwright.expect(toolbar.get_by_role("combobox", name="Rastermass")).to_be_visible()
+    playwright.expect(toolbar.get_by_role("combobox", name="Rastermass")).to_have_count(0)
     playwright.expect(toolbar.get_by_label("Schriftgrösse in mm")).to_have_count(0)
     page.locator("summary").filter(has_text="Ansicht").click()
+    playwright.expect(page.get_by_role("group", name="Ansicht", exact=True).get_by_role("combobox", name="Rastermass")).to_be_visible()
     page.get_by_role("group", name="Sichtbar in der Leiste").get_by_label("Schrift, Symbole, gleiche Fläche").check()
+    page.get_by_role("group", name="Sichtbar in der Leiste").get_by_label("Raster", exact=True).check()
     page.keyboard.press("Escape")
     playwright.expect(toolbar.get_by_label("Schriftgrösse in mm")).to_be_visible()
+    playwright.expect(toolbar.get_by_role("combobox", name="Rastermass")).to_be_visible()
     # kept on this computer for the next time
     assert "sizes" in page.evaluate("() => window.localStorage.getItem('nl.legend.toolbar')")
 
@@ -949,7 +1018,7 @@ def test_a_symbol_can_take_the_section_colour(editor):
     item = page.locator("button.outline-item").filter(has_not_text="T Titel").first
     playwright.expect(item).to_be_visible()
     item.click()
-    take = page.get_by_role("button", name="Farbe von Abschnitt übernehmen")
+    take = page.get_by_role("button", name="Abschnittsfarbe", exact=True)
     playwright.expect(take).to_be_visible()
     playwright.expect(page.get_by_label("Symbolfarbe")).to_be_visible()
     with page.expect_response(LEGEND_URL) as saved:
@@ -993,7 +1062,7 @@ def test_immediate_navigation_saves_to_the_original_project(editor, destination)
         page.get_by_role("button", name="Gesamtliste", exact=False).click()
         playwright.expect(field).not_to_be_visible()
     elif destination == "back":
-        page.get_by_role("button", name="← Alle Projekte", exact=True).click()
+        page.get_by_role("button", name="Zurück zu Projekten", exact=True).click()
         playwright.expect(page.get_by_role("button", name="Legende erstellen", exact=True)).to_be_visible()
     else:
         page.get_by_role("combobox", name="Projekt wechseln", exact=True).select_option(b)
@@ -1111,6 +1180,7 @@ def test_dragging_onto_an_empty_cell_places_the_entry_there(editor):
     doc = client.get(f"/api/projects/{a}/legend").json()["legend"]["doc"]
     entries = [{"id": f"e{k}", "kind": "text", "text": f"Eintrag {k}"} for k in range(4)]
     doc["style"]["columns"] = 3
+    doc["style"]["compact_flow"] = False  # This regression exercises classic empty raster cells.
     doc["blocks"] = [{"id": "blk", "title": "Test", "items": entries}]
     assert client.put(f"/api/projects/{a}/legend", json={"doc": doc}).status_code == 200
     # The open editor still shows the previous document. Leave and return so it
@@ -1397,8 +1467,7 @@ def test_editor_space_and_view_options_do_not_change_the_exported_document(edito
     page.get_by_role("button", name="Raster anzeigen", exact=True).click()
     page.get_by_role("button", name="Dunkler Modus", exact=True).click()
     assert page.locator(".legend-paper > rect").first.evaluate("node => getComputedStyle(node).fill") == "rgb(255, 255, 255)"
-    page.locator("summary").filter(has_text="Ansicht").click()
-    page.get_by_role("button", name="Als Fenster", exact=True).click()
+    page.get_by_role("button", name="Editor gross öffnen", exact=True).click()
     playwright.expect(page.locator(".legend-editor.windowed")).to_be_visible()
     page.locator("summary").filter(has_text="Ansicht").click()
     view_menu = page.get_by_role("group", name="Ansicht", exact=True)
@@ -1409,7 +1478,7 @@ def test_editor_space_and_view_options_do_not_change_the_exported_document(edito
     playwright.expect(view_menu).not_to_be_visible()
     playwright.expect(page.locator("summary").filter(has_text="Ansicht")).to_be_focused()
     playwright.expect(page.locator(".legend-editor.windowed")).to_be_visible()
-    page.get_by_role("button", name="Fenster schliessen", exact=True).click()
+    page.get_by_role("button", name="Kompakt", exact=True).click()
     playwright.expect(page.locator(".legend-editor.windowed")).not_to_be_visible()
     page.set_viewport_size({"width": 390, "height": 844})
     page.locator("summary").filter(has_text="Ansicht").click()
@@ -1420,6 +1489,40 @@ def test_editor_space_and_view_options_do_not_change_the_exported_document(edito
     playwright.expect(view_menu).not_to_be_visible()
     playwright.expect(page.locator("summary").filter(has_text="Ansicht")).to_be_focused()
     page.set_viewport_size({"width": 1440, "height": 960})
+    page.get_by_role("button", name="Editor gross öffnen", exact=True).click()
+    sheet = page.locator(".legend-paper")
+    holder = page.locator(".legend-canvas")
+    initial_width = float(sheet.get_attribute("width"))
+    bounds = holder.bounding_box()
+    point = {"x": bounds["x"] + bounds["width"] / 2, "y": bounds["y"] + min(100, bounds["height"] / 2)}
+    before_world = sheet.evaluate("(el,p) => (p.x-el.getBoundingClientRect().left)/Number(el.getAttribute('width'))", point)
+    page.mouse.move(point["x"], point["y"])
+    page.keyboard.down("Control")
+    page.mouse.wheel(0, -180)
+    page.keyboard.up("Control")
+    page.wait_for_function("w => Number(document.querySelector('.legend-paper').getAttribute('width')) > w", arg=initial_width)
+    after_world = sheet.evaluate("(el,p) => (p.x-el.getBoundingClientRect().left)/Number(el.getAttribute('width'))", point)
+    assert abs(before_world-after_world) < 0.01
+    assert page.evaluate("window.visualViewport.scale") == 1
+    holder.focus()
+    page.keyboard.press("Control+0")
+    playwright.expect(sheet).to_have_attribute("width", str(int(initial_width)))
+    page.keyboard.press("Control+-")
+    assert float(sheet.get_attribute("width")) < initial_width
+    page.keyboard.press("Control+0")
+    page.keyboard.press("Control++")
+    page.wait_for_function("Number(document.querySelector('.legend-paper').getAttribute('width')) > 800")
+    holder.evaluate("el => {el.scrollLeft=80}")
+    old_scroll = holder.evaluate("el => el.scrollLeft")
+    page.keyboard.down("Space")
+    page.mouse.move(point["x"], point["y"])
+    page.mouse.down()
+    page.mouse.move(point["x"]-40, point["y"], steps=4)
+    page.mouse.up()
+    page.keyboard.up("Space")
+    assert holder.evaluate("el => el.scrollLeft") > old_scroll
+    page.get_by_role("button", name="Ganzes Blatt", exact=True).click()
+    page.get_by_role("button", name="Kompakt", exact=True).click()
     with page.expect_download() as downloaded:
         page.get_by_role("button", name="DXF herunterladen", exact=True).click()
     import ezdxf
@@ -1441,7 +1544,7 @@ def test_the_list_shows_one_line_per_section_until_opened(editor):
 
 def test_charging_schema_updates_topology_values_and_each_budget_colour(editor, tmp_path):
     page, _, _, _ = editor
-    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Zum Toolhub", exact=True).click()
     page.get_by_role("button", name="Berechnungen öffnen", exact=True).click()
     page.get_by_role("button", name="Ladegrid PKW öffnen", exact=True).click()
     playwright.expect(page.get_by_role("button", name="Ergebnis als JSON sichern", exact=True)).to_be_enabled()
@@ -1483,7 +1586,7 @@ def test_charging_schema_updates_topology_values_and_each_budget_colour(editor, 
 
 def test_electrical_ratings_use_compact_dropdowns_and_short_cards(editor):
     page, _, _, _ = editor
-    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Zum Toolhub", exact=True).click()
     page.get_by_role("button", name="Berechnungen öffnen", exact=True).click()
     page.get_by_role("button", name="E-Mobilität · AC-Vorplanung öffnen", exact=True).click()
     house = named_cards(page, "Hausanschluss (A)")
@@ -1537,7 +1640,7 @@ def test_electrical_ratings_use_compact_dropdowns_and_short_cards(editor):
 def test_reference_style_graphics_and_short_explanations_are_visible(editor):
     page, _, _, _ = editor
     page.set_viewport_size({"width":1600,"height":1500})
-    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Zum Toolhub", exact=True).click()
     page.get_by_role("button", name="Berechnungen öffnen", exact=True).click()
     page.get_by_role("button", name="Ladeinfrastruktur-Kosten öffnen", exact=True).click()
     playwright.expect(page.get_by_role("button", name="Ergebnis als JSON sichern", exact=True)).to_be_enabled()
@@ -1580,7 +1683,7 @@ def test_reference_style_graphics_and_short_explanations_are_visible(editor):
 def test_reference_ev_activity_waiting_and_single_phase_warning(editor, tmp_path):
     page, _, _, _ = editor
     page.set_viewport_size({"width": 1600, "height": 1600})
-    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Zum Toolhub", exact=True).click()
     page.get_by_role("button", name="Berechnungen öffnen", exact=True).click()
     page.get_by_role("button", name="E-Mobilität · AC-Vorplanung öffnen", exact=True).click()
     playwright.expect(page.get_by_label("Anzahl Ladepunkte", exact=True)).to_be_enabled()
@@ -1609,7 +1712,7 @@ def test_actual_calculation_pdf_download_is_a4_and_invalid_inputs_cannot_export(
     import pypdfium2 as pdfium
     from contextlib import closing
     page, _, _, _ = editor
-    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Zum Toolhub", exact=True).click()
     page.get_by_role("button", name="Berechnungen öffnen", exact=True).click()
     page.get_by_role("button", name="Kabelberechnung öffnen", exact=True).click()
     pdf_button = page.get_by_role("button", name="Berechnung als PDF herunterladen", exact=True)
@@ -1645,13 +1748,14 @@ def test_actual_calculation_pdf_download_is_a4_and_invalid_inputs_cannot_export(
 
 def test_technical_diagrams_distinguish_device_states_and_cable_inventory(editor):
     page, _, _, _ = editor
-    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Zum Toolhub", exact=True).click()
     page.get_by_role("button", name="Berechnungen öffnen", exact=True).click()
     page.get_by_role("button", name="Motoranlauf öffnen", exact=True).click()
     playwright.expect(page.locator('[data-symbol="motor"]')).to_have_count(1)
     playwright.expect(page.locator('[data-motor-state]')).to_have_count(2)
     page.get_by_role("button", name="Berechnungen", exact=True).click()
     page.get_by_role("button", name="Brandlast Fluchtweg öffnen", exact=True).click()
+    choose_field(page, "comparisonEnabled", "yes")
     inventory = page.locator(".technical-figure")
     playwright.expect(inventory).to_contain_text("30 Kabel erfasst")
     playwright.expect(inventory).to_contain_text("15 Kabel erfasst")
@@ -1690,7 +1794,7 @@ def test_sia_keyboard_entry_preserves_decimal_zeros_and_invalid_fields(editor):
     import json
     page, _, _, _ = editor
     page.set_viewport_size({"width": 1600, "height": 1300})
-    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Zum Toolhub", exact=True).click()
     page.get_by_role("button", name="Berechnungen öffnen", exact=True).click()
     page.get_by_role("button", name="SIA 2056 · Zonenbilanz öffnen", exact=True).click()
     choose_field(page, "siaMode", "manual")
@@ -1747,7 +1851,7 @@ def test_sia_keyboard_entry_preserves_decimal_zeros_and_invalid_fields(editor):
 
 def test_knowledge_roundtrip_keeps_edited_calculator_and_browser_back(editor):
     page, _, _, _ = editor
-    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Zum Toolhub", exact=True).click()
     page.evaluate("location.hash='toolbox'")
     page.get_by_role("button", name="Berechnungen öffnen", exact=True).click()
     page.get_by_role("button", name="LS-Schalter öffnen", exact=True).click()
@@ -1769,7 +1873,7 @@ def test_knowledge_roundtrip_keeps_edited_calculator_and_browser_back(editor):
 
 def test_variable_selectivity_adds_real_stages_and_rejects_invalid_topology(editor):
     page, _, _, _ = editor
-    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Zum Toolhub", exact=True).click()
     page.get_by_role("button", name="Berechnungen öffnen", exact=True).click()
     page.get_by_role("button", name="Selektivität öffnen", exact=True).click()
     choose_field(page, "selectivityMode", "stages")
@@ -1813,7 +1917,7 @@ def test_hash_navigation_cannot_discard_an_open_noncalculator_editor(editor):
 def test_mixed_grid_generation_and_depot_waiting_are_integrated(editor):
     import json
     page, _, _, _ = editor
-    page.get_by_role("button", name="← Zur Toolbox", exact=True).click()
+    page.get_by_role("button", name="Zum Toolhub", exact=True).click()
     page.get_by_role("button", name="Berechnungen öffnen", exact=True).click()
     page.get_by_role("button", name="Ladegrid PKW öffnen", exact=True).click()
     choose_field(page, "layout", "modular")

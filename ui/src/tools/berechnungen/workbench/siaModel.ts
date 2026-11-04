@@ -1,3 +1,5 @@
+import { withInputRow } from "./inputDiagnostics.ts";
+import { InputError } from "./types.ts";
 import { SIA_GROUPS, type SIAGroupId } from "./siaData.ts";
 
 export interface SIAConsumerInput { groupId: SIAGroupId; powerDensity: number; energyDensity: number }
@@ -45,7 +47,7 @@ export function createSIAZone(id = "zone-1", name = "Zone 1"): SIAZoneInput {
 export function calculateSIABalance(input: SIAInput): SIABalance {
   if (!input || !Array.isArray(input.zones) || input.zones.length === 0 || input.zones.length > 20) throw new Error("Eine bis 20 Nutzungszonen erfassen.");
   const ids = new Set<string>();
-  const zones = input.zones.map((zone, index): SIAZoneBalance => {
+  const zones = input.zones.map((zone, index): SIAZoneBalance => withInputRow("siaZones",zone,index,()=>{
     if (!zone || typeof zone !== "object") throw new Error(`Zone ${index + 1}: gültige Daten erfassen.`);
     const id = label(zone.id, "Zonen-ID"), name = label(zone.label, "Zonenname");
     if (ids.has(id)) throw new Error("Zonen-IDs müssen eindeutig sein."); ids.add(id);
@@ -65,7 +67,7 @@ export function calculateSIABalance(input: SIAInput): SIABalance {
     const powerDensity = powerKW * 1000 / area, energyDensity = energyKWh / area;
     return { id, label: name, area, kcor, yearGlz, groups: SIA_GROUPS.map(group => balances.find(item => item.groupId === group.id)!), rawPowerKW, powerKW, rawEnergyKWh, energyKWh, powerDensity, energyDensity, powerTarget, energyTarget,
       powerExceeded: powerTarget !== undefined && powerDensity > powerTarget + 1e-9, energyExceeded: energyTarget !== undefined && energyDensity > energyTarget + 1e-9 };
-  });
+  }));
   const area = add(zones, zone => zone.area), rawPowerKW = add(zones, zone => zone.rawPowerKW), powerKW = add(zones, zone => zone.powerKW), rawEnergyKWh = add(zones, zone => zone.rawEnergyKWh), energyKWh = add(zones, zone => zone.energyKWh);
   const pv = nonnegative(input.pvYearKWh, "PV-Jahresertrag", 1e12), self = nonnegative(input.pvSelfConsumptionPercent, "PV-Eigenverbrauchsanteil", 100);
   const pvConsumedKWh = Math.min(energyKWh, pv * self / 100);
@@ -85,20 +87,20 @@ export function parseSIAZones(raw: string): SIAZoneInput[] {
   let parsed: unknown;
   try { parsed = JSON.parse(raw); } catch { throw new Error("Nutzungszonen konnten nicht gelesen werden. Eingaben prüfen."); }
   if (!Array.isArray(parsed)) throw new Error("Nutzungszonen als Liste erfassen.");
-  const read = (value: unknown): number => {
+  const read = (value: unknown, field = "value"): number => {
     if (typeof value === "number") return value;
     if (typeof value === "string" && /^\d+(?:[.,]\d+)?$/.test(value.trim())) return Number(value.trim().replace(",", "."));
-    throw new Error("Alle Kennwerte und Faktoren explizit ausfüllen; leere Felder sind keine Nullwerte.");
+    throw new InputError(field,"Alle Kennwerte und Faktoren explizit ausfüllen; leere Felder sind keine Nullwerte.","Eine explizite endliche Zahl eingeben; ungenutzte Verbraucher mit 0 erfassen.",typeof value === "string"?value||"leer":String(value));
   };
-  return parsed.map(zone => {
+  return parsed.map((zone,index) => {
     if (!zone || typeof zone !== "object" || Array.isArray(zone)) throw new Error("Ungültige Nutzungszone.");
     const item = zone as Record<string, unknown>;
-    return { id: item.id as string, label: item.label as string, area: read(item.area), kcor: read(item.kcor), yearGlz: read(item.yearGlz),
-      ...(item.powerTarget === undefined ? {} : { powerTarget: read(item.powerTarget) }), ...(item.energyTarget === undefined ? {} : { energyTarget: read(item.energyTarget) }),
+    return withInputRow("siaZones",{id:typeof item.id === "string" ? item.id : ""},index,()=>({ id: item.id as string, label: item.label as string, area: read(item.area,"area"), kcor: read(item.kcor,"kcor"), yearGlz: read(item.yearGlz,"yearGlz"),
+      ...(item.powerTarget === undefined ? {} : { powerTarget: read(item.powerTarget,"powerTarget") }), ...(item.energyTarget === undefined ? {} : { energyTarget: read(item.energyTarget,"energyTarget") }),
       consumers: Array.isArray(item.consumers) ? item.consumers.map(value => {
         if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Ungültige Verbrauchergruppe.");
         const consumer = value as Record<string, unknown>;
-        return { groupId: consumer.groupId as SIAGroupId, powerDensity: read(consumer.powerDensity), energyDensity: read(consumer.energyDensity) };
-      }) : [] };
+        return { groupId: consumer.groupId as SIAGroupId, powerDensity: read(consumer.powerDensity,`${consumer.groupId}.powerDensity`), energyDensity: read(consumer.energyDensity,`${consumer.groupId}.energyDensity`) };
+      }) : [] }));
   });
 }

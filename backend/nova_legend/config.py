@@ -195,14 +195,118 @@ def find_datasets(roots: list[str] | None = None, max_depth: int = 7,
     return found
 
 
+ODA_PATH_MESSAGE = (
+    "ODA File Converter bitte lokal im Standardordner Programme/ODA/ODAFileConverter… "
+    "installieren. Netzwerkpfade und andere Programme werden nicht ausgeführt. "
+    "Alternativ eine DXF-Datei verwenden."
+)
+
+
+class InvalidODAPath(ValueError):
+    """A configured executable is not a trusted local converter installation."""
+
+
+def _network_or_device_path(value: str) -> bool:
+    # Check the spelling before any filesystem lookup, including on non-Windows
+    # hosts. UNC and Win32 device paths must never trigger a network lookup.
+    return value.replace("\\", "/").startswith("//")
+
+
+def _nonlocal_drive(path: Path) -> bool:
+    if sys.platform != "win32":
+        return False
+    import ctypes
+
+    try:
+        get_drive_type = ctypes.windll.kernel32.GetDriveTypeW
+        get_drive_type.argtypes = [ctypes.c_wchar_p]
+        get_drive_type.restype = ctypes.c_uint
+        drive_type = get_drive_type(str(path.anchor))
+    except (AttributeError, OSError, TypeError):
+        return True
+    # Reject mapped network drives, unknown drives and inaccessible roots.
+    # DRIVE_REMOVABLE, DRIVE_FIXED and DRIVE_RAMDISK are local storage.
+    return drive_type not in {2, 3, 6}
+
+
+def _oda_installation_roots() -> list[Path]:
+    roots: list[Path] = []
+    for name in ("ProgramFiles", "ProgramW6432", "ProgramFiles(x86)"):
+        base = os.environ.get(name, "")
+        if not base or _network_or_device_path(base):
+            continue
+        root = Path(base) / "ODA"
+        if root.is_absolute() and not _nonlocal_drive(root) and root not in roots:
+            roots.append(root)
+    return roots
+
+
+def _canonical_oda_root(root: Path) -> Path:
+    program_root = root.parent.resolve(strict=True)
+    installed_root = root.resolve(strict=True)
+    if (installed_root.parent != program_root or installed_root.name.casefold() != "oda"
+            or _network_or_device_path(str(installed_root)) or _nonlocal_drive(installed_root)):
+        raise InvalidODAPath(ODA_PATH_MESSAGE)
+    return installed_root
+
+
+def validate_oda_converter(value: str | Path) -> str:
+    """Allow only the installed converter in an OS-protected vendor directory.
+
+    Neither a matching filename in a writable download folder nor a network
+    executable is trusted. Revalidate at execution time so old settings and
+    symlinks cannot bypass the installation boundary. Program Files roots come
+    from the desktop process environment, never from an API request.
+    """
+    raw = str(value)
+    if not raw or _network_or_device_path(raw):
+        raise InvalidODAPath(ODA_PATH_MESSAGE)
+    candidate = Path(raw)
+    if (not candidate.is_absolute() or candidate.name.casefold() != "odafileconverter.exe"
+            or _nonlocal_drive(candidate)):
+        raise InvalidODAPath(ODA_PATH_MESSAGE)
+    for root in _oda_installation_roots():
+        try:
+            # Reject arbitrary paths before resolving or checking their files.
+            relative = candidate.relative_to(root)
+            if len(relative.parts) != 2 or not relative.parts[0].casefold().startswith("odafileconverter"):
+                continue
+            installed_root = _canonical_oda_root(root)
+            resolved = candidate.resolve(strict=True)
+            actual = resolved.relative_to(installed_root)
+            if (len(actual.parts) == 2 and actual.parts[0].casefold().startswith("odafileconverter")
+                    and actual.parts[1].casefold() == "odafileconverter.exe"
+                    and not _network_or_device_path(str(resolved)) and not _nonlocal_drive(resolved)
+                    and resolved.is_file()):
+                return str(resolved)
+        except (OSError, RuntimeError, ValueError):
+            continue
+    raise InvalidODAPath(ODA_PATH_MESSAGE)
+
+
 def find_oda_converter() -> str:
-    """Return the path of ODAFileConverter.exe or '' if not installed."""
-    candidates = []
-    for env in ("ProgramFiles", "ProgramFiles(x86)"):
-        base = os.environ.get(env)
-        if base:
-            candidates.extend(Path(base, "ODA").glob("ODAFileConverter*/ODAFileConverter.exe"))
-    for c in sorted(candidates, reverse=True):
-        if c.exists():
-            return str(c)
+    """Return a validated standard ODA installation, or '' if not installed."""
+    candidates: list[Path] = []
+    for root in _oda_installation_roots():
+        try:
+            # Do not enumerate a vendor directory redirected outside Program Files.
+            _canonical_oda_root(root)
+            candidates.extend(root.glob("ODAFileConverter*/ODAFileConverter.exe"))
+        except (OSError, RuntimeError, ValueError):
+            continue
+    for candidate in sorted(candidates, reverse=True):
+        try:
+            return validate_oda_converter(candidate)
+        except InvalidODAPath:
+            continue
     return ""
+
+
+def resolve_oda_converter(configured: str = "") -> str:
+    """Ignore unsafe legacy settings and rediscover only a trusted installation."""
+    if configured:
+        try:
+            return validate_oda_converter(configured)
+        except InvalidODAPath:
+            pass
+    return find_oda_converter()

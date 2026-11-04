@@ -179,7 +179,7 @@ def create_app(state: AppState | None = None, ui_dir: Path | None = None, *,
             "datasets": st.library.datasets(),
             "symbol_count": len(st.library.symbols()),
             "sync": st.sync_report,
-            "oda": st.settings.oda_path or config.find_oda_converter(),
+            "oda": config.resolve_oda_converter(st.settings.oda_path),
             "local_home": str(config.local_home()),
             "dialogs": dialogs.available(),
             "is_admin": st.company.is_legend_admin(config.current_user()),
@@ -202,7 +202,13 @@ def create_app(state: AppState | None = None, ui_dir: Path | None = None, *,
     def put_settings(body: SettingsIn) -> dict:
         if body.update_channel is not None and not st.company.is_legend_admin(config.current_user()):
             raise HTTPException(403, "Nur Admins dürfen den Update-Kanal ändern.")
-        st.apply_settings(body.model_dump())
+        values = body.model_dump()
+        if body.oda_path:
+            try:
+                values["oda_path"] = config.validate_oda_converter(body.oda_path)
+            except config.InvalidODAPath as exc:
+                raise HTTPException(400, str(exc)) from None
+        st.apply_settings(values)
         return status()
 
     @app.put("/api/settings/theme")
@@ -247,7 +253,7 @@ def create_app(state: AppState | None = None, ui_dir: Path | None = None, *,
     @app.post("/api/update/install")
     def update_install() -> dict:
         if not updates_enabled:
-            raise HTTPException(409, "Bitte die gesamte edeco Toolbox aktualisieren.")
+            raise HTTPException(409, "Bitte den gesamten edeco Toolhub aktualisieren.")
         info = updater.check(channel=update_channel())
         if not info.available:
             raise HTTPException(400, info.message or "Kein Update verfügbar")

@@ -52,3 +52,26 @@ test('wrapping preserves pre-existing saved comparison when mode is absent',()=>
   assert.equal(wrapped.fields[0].default,'stages');
   assert.throws(()=>wrapped.calculate({selectivityMode:'BROKEN'}),/Aufbau/);
 });
+
+test('new selectivity models use +10 percent while missing saved tolerance retains the observed source case',()=>{
+  const legacy:CalculatorDefinition={id:'test',title:'test',description:'',source:'',scope:'',fields:[],calculate:()=>({metrics:[],status:{tone:'neutral',text:'legacy'},formula:'legacy',limitations:[]})};
+  const wrapped=withSelectivityStages(legacy);
+  assert.equal(wrapped.fields.find(field=>field.key==='voltageTolerance')?.default,'plus10');
+  const historic=calculateSelectivityStages(make());
+  assert.match(historic.status.text,/Altstand/);assert.match(historic.formula,/1\.05/);
+  assert.match(calculateSelectivityStages({...make(),voltageTolerance:'plus10'}).formula,/1\.10/);
+  assert.throws(()=>selectivityStageCurrents({...make(),voltageTolerance:''}),/Spannungstoleranz/);
+});
+
+test('source maximum is not raised twice and an explicit downstream manufacturer boundary uses the selected factor',()=>{
+  for(const supplyVoltage of ['400','230'])for(const voltageTolerance of ['plus6','plus10']){
+    const stages=[{...defaultSelectivityStages()[0],length:'0',system:supplyVoltage==='230'?'3p':'5p'}];
+    const current=selectivityStageCurrents({...make(),supplyVoltage,voltageTolerance,selectivityStages:JSON.stringify(stages)})[0].ikMax;
+    assert.ok(Math.abs(current-10)<1e-9);
+  }
+  const stages=defaultSelectivityStages();
+  stages[2]={...stages[2],pairLimitKA:'0.4',pairReference:'Project documented exact device pair at 400 V'};
+  const input={...make(),selectivityStages:JSON.stringify(stages)};
+  assert.equal(calculateSelectivityStages({...input,voltageTolerance:'plus6'}).status.tone,'warning');
+  assert.equal(calculateSelectivityStages({...input,voltageTolerance:'plus10'}).status.tone,'error');
+});

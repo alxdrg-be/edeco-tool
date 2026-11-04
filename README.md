@@ -1,7 +1,8 @@
-# edeco Toolbox
+# edeco Toolhub
 
-Gemeinsame, erweiterbare Desktopanwendung für die Elektroplanung: edeco-Logo,
-farbige Werkzeugkacheln, Suche, Kategorien und Hell-/Dunkelmodus.
+Gemeinsame Desktopanwendung für die Elektroplanung mit einheitlichem Logo,
+Kopfleiste, Schrift und Hell-/Dunkelmodus. Werkzeuge und Rechner lassen sich
+direkt über die Kopfzeile wechseln; „Zum Toolhub“ führt zur Übersicht zurück.
 
 ## Werkzeuge
 
@@ -9,26 +10,70 @@ farbige Werkzeugkacheln, Suche, Kategorien und Hell-/Dunkelmodus.
 | --- | --- | --- |
 | NOVA-Legenden | Nutzbar, Work in progress | Petrol |
 | BIM2STEIGER | Nutzbar, Work in progress; lokaler Katalog integriert | Blau |
-| Dokumenten-Assistent | Nutzbar, Work in progress; lokale Suche, KI über gemeinsamen Server | Violett |
+| Dokumenten-Assistent | Lokale Suche; KI mit Ollama auf dem PC oder über einen Firmenserver; optionale Dokumentordner | Violett |
 | Dateien umbenennen | Nutzbar, Work in progress | Grün |
 | PDF-Werkstatt | Stirling Core mit vollständig mitgelieferter Windows-Offline-Laufzeit | Rosé |
-| Projektzentrale | Nutzbar, Work in progress | Petrol |
-| Planlieferungs-Assistent | Nutzbar, Work in progress; ZIP, Planlisten und Projektverlauf | Grün |
-| Berechnungen | 26 native Schweizer Rechenhilfen inklusive Netzplaner (Beta) | Blau |
+| Projektzentrale | Nutzbar, Work in progress | Gold |
+| Planlieferungs-Assistent | Aus der Startübersicht ausgeblendet; für Admins über „Werkzeuge“ erreichbar | Koralle |
+| Berechnungen | 26 native Schweizer Rechenhilfen inklusive Netzplaner (Beta) | Orange |
+| Elektro-Memory | 16 Quellseiten als durchsuchbare Themen, Formeln, Tabellen und SVG-Grundlagen; integrierter Formelrechner | Indigo |
 | ↳ Blitzschutz | Trennungsabstand; fachliche Freigabe offen | Orange |
-| Änderungsbericht | Geplant | Orange |
-| Leistungsbilanz | Geplant | Violett |
+| ↳ Leistungsbilanz | Geplant im Bereich Berechnungen | Violett |
 | ↳ Kabelberechnung | Schweizer Spannungsfall-Vorprüfung; fachliche Freigabe offen | Blau |
-| Anlagetool | Geplant | Grün |
 
 BIM2STEIGER verwendet seinen vorhandenen Katalog mit 11’777 Katalogartikeln,
 Originalbildern, Favoriten, Modellimport und Ausschreibungen. Es läuft unter
 `/tools/bim2steiger/` im selben lokalen Server und Desktopfenster wie Nova.
-Die drei geplanten Erweiterungen sind als ausgegraute, deaktivierte Kacheln
-vorbereitet; Leistungsbilanz liegt im Bereich Berechnungen.
-Alle zehn Hauptkacheln sind im normalen Desktopfenster (1400 × 900)
+Änderungsbericht und Anlagentool erscheinen nicht mehr in der Oberfläche.
+Die geplante Leistungsbilanz liegt weiterhin im Bereich Berechnungen.
+Die acht Hauptkacheln sind im normalen Desktopfenster (1400 × 900)
 ohne Scrollen sichtbar; kleinere Fenster können scrollen. Umfang und Reihenfolge
 der Erweiterungen stehen im [Ausbauplan](docs/TOOLBOX_AUSBAUPLAN.md).
+
+Der neue Produktname ändert keine bestehenden Datenpfade, AppId oder
+Update-Dateinamen. Installierte Vorversionen können weiter aktualisiert werden.
+Die Namensvorlage im Planlieferungs-Assistenten startet geschlossen; PDFs und
+Lieferangaben bleiben dadurch direkt erreichbar.
+
+## Vorführung, Memory und bestehende Legenden
+
+Die Einstellungen der Hubübersicht enthalten den Demo-Modus. Voreingestellt sind
+NOVA-Legenden, Berechnungen, Dateien umbenennen und PDF-Werkstatt. Der normale
+Hub enthält zusätzlich die übrigen verfügbaren Werkzeuge und das Elektro-Memory.
+Die Adminzuordnung verwendet unter Windows die tatsächliche Anmeldung; vorbelegt
+sind `aduerger` und `nstrauss`. Es entsteht kein zusätzliches Benutzerkonto.
+
+Im NOVA-Editor öffnet **Editor gross öffnen** die grosse Bearbeitungsansicht.
+Bestehende Layouts werden bewusst mit **Dichte wie Entwurf** oder **A4 kompakt**
+umgestellt; Undo stellt den vorherigen Stil wieder her. A4 kompakt verwendet vier
+Spalten und proportionale Konturen, ohne die Symbolgeometrie zu verändern. Die
+Seitenhöhe folgt dem Inhalt; nicht jede beliebig lange Legende passt auf A4.
+Farbvarianten lassen sich je logischem Symbol auswählen; die Originalvarianten
+bleiben gespeichert.
+
+Das **Elektro-Memory** setzt alle 16 Seiten der bereitgestellten Rastervorlage neu
+als Text, Tabellen und mathematische Vektorgrafiken. Die 70 Quelleneinträge und
+25 Formeleinträge sind mit den Quellseiten verbunden. Drei ergänzende Themen
+erklären Einheiten, Stromsysteme sowie Reihen- und Parallelschaltungen. Der Reiter
+**Formelrechner** ist auch über die Berechnungsübersicht erreichbar. Normbezogene
+Quellangaben sind Referenzen; der Formelrechner ersetzt keine Anlagenfreigabe.
+
+Die PDF-Werkstatt beginnt mit der Werkzeugwahl. Dateien können schon dort
+bereitgelegt und anschliessend im gewählten grossen Arbeitsbereich bearbeitet
+werden. Lokale Einstellungen benötigen kein Stirling-Benutzerkonto. Der Updater
+zeigt Download-MB, Prozent und Übergabe an das Setup. Ein versionsabhängiger
+Startlink und nicht zwischengespeicherte HTML-Einstiege verhindern eine alte
+Oberfläche nach dem Update, während das Benutzerprofil erhalten bleibt.
+
+Der erneute angemeldete Quellenabgleich vom 2. November 2026 ist getrennt für
+[Installation und Schutz](docs/REAUDIT_INSTALLATION_20261102.md),
+[Energie und Gebäude](docs/REAUDIT_ENERGIE_20261102.md) sowie
+[Ladeinfrastruktur](docs/REAUDIT_EMOBILITAET_20261102.md) dokumentiert.
+Konkrete Ergänzungen betreffen die Verlegeartführung, Selektivitätsfaktoren,
+eigene Ladeleistungen, 64 Kostenpositionen, PV-Analysen und den optionalen
+Brandlastvergleich. Der Netzplaner bleibt ein begrenztes radiales TN-Modell;
+zusätzliche Netzformen und der umfangreichere Verbraucherkatalog der Quelle
+sind damit nicht vollständig nachgebildet.
 
 **Dateien umbenennen** bereitet PDF-Namen nach einer gespeicherten Vorlage vor,
 zum Beispiel `1498_E-G-APP-OG02-C-50.pdf`. Projektnummer, Fachbereich,
@@ -94,9 +139,10 @@ Tabellenwert oder übereinstimmender Zahlenfall bestätigt weder die gesamte
 Referenzfunktion noch die normative Zuordnung. Aktueller Umfang und offene
 Funktionen: [Rechnerinventar](docs/RECHNER_INVENTAR.md),
 [Rechner und Grenzen](docs/RECHNER_UMFANG.md),
-[Quellenabgleich](docs/RECHNER_QUELLENABGLEICH.md). Der angekündigte zusätzliche
-Vergleich mit den Electrosuisse-Werkzeugen steht bis zur Bereitstellung durch
-den Nutzer aus.
+[Quellenabgleich](docs/RECHNER_QUELLENABGLEICH.md). Das Electrosuisse-Programm und
+ein Screenshot der NIN-2025-Prüfung wurden bereitgestellt. Die elf Prüfthemen
+sind als Modellprüfungen beziehungsweise offene Nachweise dargestellt. Eine
+vollständige numerische Gleichwertigkeit ist noch nicht durch Referenzfälle belegt.
 
 Die gemeinsame Ablage speichert Rechenstände und Notizen nach Berechnungstyp
 und Projekt in einem einstellbaren Serverordner, einschliesslich importierter
@@ -146,19 +192,47 @@ fachliche Freigabe bleiben ausserhalb dieses Prototyps.
 Der **Dokumenten-Assistent** liest eigene PDF-, TXT- und Markdown-Dateien ein.
 Fundstellen enthalten Dokumentstand, PDF-Seite beziehungsweise Blattlabel und
 Textzeilen. Ein Klick zeigt die Stelle im Original markiert. Die Fundstellensuche
-funktioniert ohne KI-Server. Formulierte Antworten können über einen gemeinsamen
-Ollama-Server mit freiem Modell erzeugt werden: keine API-Gebühren und keine
-Modellinstallation auf den einzelnen Toolbox-PCs. Die Dokumentbibliothek bleibt
+funktioniert ohne KI-Server. Formulierte Antworten können mit Qwen/Ollama auf
+dem eigenen PC oder einem gemeinsamen Firmenserver erzeugt werden. Die
+aufklappbare Einrichtungshilfe ist direkt unter **KI-Verbindung** erreichbar.
+Bei gemeinsamem Betrieb ist keine Modellinstallation auf den einzelnen PCs
+nötig; bei lokalem Betrieb läuft das Modell auf diesem PC. Die Dokumentbibliothek bleibt
 zunächst pro PC; sie wird nicht automatisch zwischen Rechnern geteilt.
 Eine kostenpflichtige OpenAI-kompatible API ist optional. Details und Grenzen:
 [Dokumenten-Assistent](docs/DOKUMENTEN_ASSISTENT.md).
 
-Die **edeco PDF-Werkstatt** verwendet die originale kostenlose Stirling-Core-Oberfläche.
+Die **edeco PDF-Werkstatt** öffnet zuerst eine durchsuchbare Werkzeugauswahl und
+danach den Import des gewählten Werkzeugs. Die 57 Einträge entsprechen der
+Stirling-Core-Registry 3.2.2; im lokalen Paket sind 49 auswählbar und acht
+deaktivierte Funktionen mit Begründung sichtbar. Der Umfang entspricht nicht der
+gesamten PDF24-Sammlung. Geöffnete Dateien bleiben beim Werkzeugwechsel erhalten.
+Die Verarbeitung verwendet die originale kostenlose Stirling-Core-Oberfläche.
+Ein eigener grosser Zuschneideeditor bietet Griffpunkte, mm-Ränder, Seitenauswahl,
+Zoom und Verschieben; PDF-Text und Vektoren bleiben beim Export erhalten.
 Ab 0.5.0 enthalten Windows-Setup und Portable-Paket Java, Windows-PDFium, qpdf,
 Tesseract und OCR-Sprachdaten für Deutsch/Englisch. Der Dienst startet automatisch
 auf 127.0.0.1 und benötigt weder Internet noch Firmenserver, VPN, Docker oder
 zusätzliche Installationen. Lizenztexte und mitgelieferte Quellen sind unter
 **Info / Lizenzen** zugänglich. [Offline-Build, Tests und Einschränkungen](docs/PDF_OFFLINE_WINDOWS.md).
+
+Der **NOVA-Legendeneditor** bietet einen grossen Arbeitsbereich innerhalb des
+Toolhubs und einen klaren Rückweg zu den Projekten. Das kompakte Vorlagenlayout
+stellt den Allgemeinteil zweispaltig dar, die Farbcodes direkt darunter und die
+Apparate in fortlaufenden Spalten. Gespeicherte klassische Layouts bleiben
+erhalten; die kompakte Vorlage ist im Editor wählbar. Kategorien und
+Kombinationslogik bleiben bestehen. Layerfarben werden separat erhalten, auch
+an kombinierten Symbolen. Die Exporthöhe folgt dem tatsächlichen Inhalt.
+
+Die **Rechnerfehlerhilfe** erklärt Modellbedingungen anhand der aktuellen
+Eingaben und führt zur betroffenen Eingabe oder Positionszeile. Fehlende Mess-,
+Hersteller- oder Projektgrundlagen erhalten keine erfundenen Ersatzwerte und
+gelten weiterhin als offene Nachweise. Die Modellhinweise ersetzen keine
+vollständige Fachfreigabe der Anlage.
+
+Ein Commit mit **`[skip release]`** im Titel überspringt den automatischen
+Windows-Installer-/Release-Workflow bei einem reinen Code-Upload. Die normalen
+Linux-Prüfungen laufen weiterhin. Ein manueller Start des Windows-Workflows ist
+davon unabhängig.
 
 Die gemeinsame Anwendung liegt auf `main`. Die Branches `Nova-Legenden` und
 `BIM2STEIGER` enthalten die ursprünglichen Programme; `toolbox` hält den bisherigen
@@ -185,15 +259,40 @@ Arbeitslisten im Einzelprogramm als JSON sichern und in der Toolbox laden.
 Die gemeinsame Toolbox-Oberfläche startet mit `python -m edeco_toolbox`
 (bei gesetztem `PYTHONPATH=backend`).
 
+Die Toolbox prüft lokale Hosts, Herkunft und Sitzung zentral, auch für die
+eingebetteten Werkzeuge. Der Browser erhält beim Laden automatisch ein
+portbezogenes Sitzungscookie. Eigene API-Clients laden zuerst
+`GET /api/toolbox/session` und behalten das Cookie oder senden den erhaltenen
+Schlüssel bei Schreibzugriffen als `X-Edeco-Session`; zusätzliche Werkzeugschlüssel
+bleiben erforderlich. Schlüssel gelten nur bis zum nächsten Serverstart.
+
+DWG-Import und -Export verwenden nur den ODA File Converter in einer lokalen
+Standardinstallation unter `Program Files/ODA/ODAFileConverter…`.
+Netzwerkpfade und beliebige eigene EXE-Pfade werden abgewiesen; unsichere
+Altpfade werden ignoriert. DXF bleibt ohne Converter nutzbar.
+
+Neue Kurzschlussberechnungen verwenden standardmässig +10 % Spannungstoleranz
+und `cmax = 1.10`; +6 % mit `1.05` ist wählbar. Gespeicherte Altstände behalten
+`1.05` mit ausdrücklichem Hinweis, bis die Netzannahme bestätigt wird.
+Ein vorgegebener maximaler Quellenstrom wird nicht nochmals erhöht.
+Details: [Absicherung und Rechenfaktoren](docs/ABSICHERUNG_20261102.md).
+
 ## Entwicklung und Tests
 
 ```sh
-.venv/bin/python -m pytest backend/tests -q
+.venv/bin/python -m ruff check backend
+PYTHONPATH=backend .venv/bin/python -m pytest backend/tests -q
 (cd backend/bim2steiger && ../../.venv/bin/python -m unittest discover -s tests -q)
 cd ui
+npm run lint
 npm test
 npm run build
 ```
+
+Ruff wird mit `backend/requirements-quality.txt` installiert. `npm test` findet
+alle verschachtelten `.test.ts` automatisch. Der Linux-Workflow prüft Pull
+Requests und `main`; die vollständigen Windows-/Offline-PDF- und
+Installerprüfungen bleiben im Windows-Build.
 
 Browser-Tests benötigen zusätzlich `backend/requirements-browser-tests.txt` und
 Chromium (`python -m playwright install chromium` oder `NOVA_TEST_CHROMIUM`
@@ -240,6 +339,8 @@ sie sind kein Bestandteil des Quellcode-Imports.
 Im Toolbox-Startbildschirm **Nach Updates suchen** öffnen. Installierte und
 portable Windows-Versionen prüfen standardmässig beim Start nach neuen Releases;
 im Quellcode erfolgt die Prüfung manuell. Die Option lässt sich ausschalten.
+Im Updatefenster stehen die Änderungen der angebotenen Version direkt sichtbar;
+weitere Punkte und der vollständige Release-Text lassen sich aufklappen.
 Die installierte Windows-Version bietet nach Bestätigung den Download des
 Setups an, prüft Grösse und SHA-256 aus GitHub und schliesst die Toolbox.
 Ein unabhängiger Helfer wartet auf das Prozessende, installiert am bisherigen

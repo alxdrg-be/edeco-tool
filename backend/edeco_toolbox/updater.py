@@ -15,6 +15,7 @@ import threading
 import time
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Callable
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlsplit
 from urllib.request import HTTPRedirectHandler, Request, build_opener
@@ -79,17 +80,22 @@ class ReleaseRedirect(HTTPRedirectHandler):
         return redirected
 
 
-def download_verified(response, target: Path, digest: str, size: int) -> None:
+def download_verified(response, target: Path, digest: str, size: int,
+                      progress: Callable[[int, int], None] | None = None) -> None:
     checksum, written, created = hashlib.sha256(), 0, False
     try:
         with target.open("xb") as stream:
             created = True
+            if progress:
+                progress(0, size)
             while chunk := response.read(1024 * 1024):
                 written += len(chunk)
                 if written > size or written > MAX_SETUP:
                     raise ValueError("Download ist grösser als angekündigt")
                 checksum.update(chunk)
                 stream.write(chunk)
+                if progress:
+                    progress(written, size)
         if written != size or not hmac.compare_digest(checksum.hexdigest(), digest):
             raise ValueError("Die Prüfsumme des Setups stimmt nicht. Installation abgebrochen.")
     except Exception:
@@ -171,7 +177,7 @@ class UpdateManager:
                     and isinstance(asset.get("size"), int) and 0 < asset["size"] <= MAX_SETUP):
                 self.asset = {"name": expected_name, "url": asset["url"], "sha256": digest[1], "size": asset["size"]}
         available = latest > current
-        message = "Ein Toolbox-Update ist verfügbar." if available else "Die Toolbox ist aktuell."
+        message = "Ein Toolhub-Update ist verfügbar." if available else "Der Toolhub ist aktuell."
         if available and not self.asset:
             message = "Neue Version verfügbar. Ein eindeutig geprüftes Setup fehlt; bitte die Release-Seite öffnen."
         elif available and not self.installed:
@@ -212,6 +218,7 @@ class UpdateManager:
         if not self.lock.acquire(blocking=False):
             raise ValueError("Eine Updateaktion läuft bereits.")
         folder = None
+        started = False
         try:
             if self.pending or not self.asset or self.state["status"] != "available":
                 raise ValueError("Zuerst ein verfügbares Update prüfen.")
@@ -220,10 +227,20 @@ class UpdateManager:
             if shutil.disk_usage(folder).free < asset['size'] * 4:
                 raise ValueError('Für Download und Entpacken des Offline-Pakets ist zu wenig freier Speicher verfügbar. Bitte mindestens 6 GB freigeben.')
             target = folder / asset["name"]
+            started = True
+
+            def progress(written, total):
+                verifying = written == total
+                self.state = {**self.state, "status": "verifying" if verifying else "downloading",
+                              "message": "Download vollständig. Prüfsumme wird geprüft …" if verifying else "Update wird heruntergeladen …",
+                              "downloaded_bytes": written, "total_bytes": total,
+                              "progress": round(100 * written / total, 1)}
+
+            progress(0, asset["size"])
             with self._request(asset["url"], binary=True) as response:
-                download_verified(response, target, asset["sha256"], asset["size"])
+                download_verified(response, target, asset["sha256"], asset["size"], progress)
             self.pending = (target, asset["sha256"], asset["size"])
-            self.state = {**self.state, "status": "installing", "message": "Setup geprüft. Die Toolbox schliesst sich und startet nach dem Update neu."}
+            self.state = {**self.state, "status": "installing", "message": "Setup geprüft. Der Toolhub schliesst sich und startet nach dem Update neu."}
 
             def close():
                 time.sleep(.8)  # Let the HTTP response reach the window first.
@@ -231,7 +248,7 @@ class UpdateManager:
                     shutdown()
                 except Exception:
                     self.pending = None
-                    self.state = {**self.state, "status": "unavailable", "message": "Bitte die Toolbox schliessen und das Setup über Releases starten."}
+                    self.state = {**self.state, "status": "unavailable", "message": "Bitte den Toolhub schliessen und das Setup über Releases starten."}
                     log.exception("Toolbox window could not close for update")
 
             threading.Thread(target=close, daemon=True).start()
@@ -239,6 +256,10 @@ class UpdateManager:
         except Exception:
             if folder:
                 shutil.rmtree(folder, ignore_errors=True)
+            if started:
+                self.state = {**self.state, "status": "available", "progress": 0,
+                              "downloaded_bytes": 0,
+                              "message": "Das Update konnte nicht vorbereitet werden. Bitte erneut versuchen."}
             raise
         finally:
             self.lock.release()

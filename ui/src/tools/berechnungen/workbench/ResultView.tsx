@@ -6,6 +6,7 @@ import TechnicalGraphics, { hasTechnicalGraphic } from "./TechnicalGraphics";
 import CostModelView from "./CostModelView";
 import SIABreakdownCharts from "./SIABreakdownCharts";
 import PoeRouteView from "./PoeRouteView";
+import PVAnalysisView from "./PVAnalysisView";
 import "./result-view.css";
 
 export function metricValue(metric: Pick<Metric, "value" | "digits" | "unit">) {
@@ -28,8 +29,9 @@ export default function ResultView({ result, calculatorId, input }: { result: Ca
       {(result.charging || result.chargingNetwork || result.depotNetwork) && <ChargingView result={result} />}
       {technical && <TechnicalGraphics calculatorId={calculatorId} result={result} input={input} />}
       {diagram?.kind === "room" && <MeasuredRoomPlan room={diagram} />}
+      {result.pvAnalysis && <PVAnalysisView analysis={result.pvAnalysis} series={result.series} />}
       {result.comparisons?.map((comparison, index) => <TargetComparisonChart key={`${comparison.title}-${index}`} comparison={comparison} />)}
-      {hasSeries && (annualCosts ? <AnnualCostChart series={result.series!} title={result.seriesLabel ?? "Jährlicher Kostenverlauf"} labels={result.seriesLabels!} /> : <section className="wb-chart" aria-label={result.seriesLabel ?? "Ergebnisvergleich"}><h2>{result.seriesLabel ?? "Vergleich"}</h2>{result.seriesLabels && <div className="wb-legend"><span><i />{result.seriesLabels[0]}</span><span><i />{result.seriesLabels[1]}</span></div>}<div>{result.series!.map((item, i) => <div className="wb-chart-row" key={`${item.label}-${i}`}><span>{item.label}</span><div className="wb-bar-track"><div className="wb-bar-primary" style={{ width: `${100 * Math.max(0, item.value) / max}%` }} /><div className="wb-bar-secondary" style={{ width: `${100 * Math.max(0, item.secondary ?? 0) / max}%` }} /></div><strong>{metricValue({ value: item.value + (item.secondary ?? 0), unit: result.seriesUnit })}</strong></div>)}</div></section>)}
+      {hasSeries && !result.pvAnalysis && (annualCosts ? <AnnualCostChart series={result.series!} title={result.seriesLabel ?? "Jährlicher Kostenverlauf"} labels={result.seriesLabels!} /> : <section className="wb-chart" aria-label={result.seriesLabel ?? "Ergebnisvergleich"}><h2>{result.seriesLabel ?? "Vergleich"}</h2>{result.seriesLabels && <div className="wb-legend"><span><i />{result.seriesLabels[0]}</span><span><i />{result.seriesLabels[1]}</span></div>}<div>{result.series!.map((item, i) => <div className="wb-chart-row" key={`${item.label}-${i}`}><span>{item.label}</span><div className="wb-bar-track"><div className="wb-bar-primary" style={{ width: `${100 * Math.max(0, item.value) / max}%` }} /><div className="wb-bar-secondary" style={{ width: `${100 * Math.max(0, item.secondary ?? 0) / max}%` }} /></div><strong>{metricValue({ value: item.value + (item.secondary ?? 0), unit: result.seriesUnit })}</strong></div>)}</div></section>)}
     </div>}
     <div className="wb-metrics" data-testid="workbench-metrics">{result.metrics.map((metric, i) => <div key={`${metric.label}-${i}`} className={`wb-metric wb-${metric.tone ?? "neutral"}`}><span>{metric.label}</span><strong>{metricValue(metric)}</strong></div>)}</div>
     {result.rows?.length ? <details className="wb-details"><summary>Rechenwerte im Detail</summary><dl>{result.rows.map((row, i) => <div key={`${row.label}-${i}`}><dt>{row.label}</dt><dd>{metricValue(row)}</dd></div>)}</dl></details> : null}

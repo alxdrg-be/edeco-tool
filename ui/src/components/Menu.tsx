@@ -2,7 +2,7 @@ import { ReactNode, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 /** Small drop-down menu for rarer actions. Closes after a choice, on Escape and on a click outside. */
-export default function Menu({ label, disabled, children }: { label: string; disabled?: boolean; children: ReactNode }) {
+export default function Menu({ label, disabled, children, portalContainer }: { label: string; disabled?: boolean; children: ReactNode; portalContainer?: () => HTMLElement | null }) {
   const ref = useRef<HTMLDetailsElement>(null);
   const popRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
@@ -92,7 +92,7 @@ export default function Menu({ label, disabled, children }: { label: string; dis
           }}
         >
           {children}
-        </div>, document.body
+        </div>, portalContainer?.() ?? document.body
       )}
     </details>
   );

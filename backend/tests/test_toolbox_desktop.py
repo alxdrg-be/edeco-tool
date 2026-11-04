@@ -27,10 +27,14 @@ def test_local_desktop_probe_ignores_dead_system_proxy(monkeypatch):
 
 def test_native_probe_requires_rendered_tiles_and_records_success(tmp_path):
     events = []
-    window = SimpleNamespace(evaluate_js=lambda script: True, destroy=lambda: events.append("closed"))
+    window = SimpleNamespace(evaluate_js=lambda script: {
+        "ready": True, "tool_count": 7, "expected_tool_count": 7, "mode": "normal",
+    }, destroy=lambda: events.append("closed"))
     desktop.probe_desktop(window, tmp_path)
     import json
-    assert json.loads((tmp_path / "desktop-smoke.json").read_text())["ok"] is True
+    report = json.loads((tmp_path / "desktop-smoke.json").read_text())
+    assert report["ok"] is True
+    assert report["tool_count"] == report["expected_tool_count"] == 7
     assert events == ["closed"]
 
 
@@ -42,6 +46,31 @@ def test_native_probe_reports_renderer_errors_as_failures(tmp_path):
     import json
     assert json.loads((tmp_path / "desktop-smoke.json").read_text())["ok"] is False
     assert events == ["closed"]
+
+
+def test_packaged_native_probe_checks_the_visible_page_editor(tmp_path, monkeypatch):
+    import json
+    monkeypatch.setattr(desktop.sys, "frozen", True, raising=False)
+    calls = []
+
+    def evaluate(script):
+        calls.append(script)
+        if "data-toolhub-count" in script:
+            return {"ready": True, "tool_count": 8, "expected_tool_count": 8, "mode": "normal"}
+        if "PDF-Werkstatt öffnen" in script:
+            return None
+        if "data-pdf-tool=merge" in script:
+            return True
+        if ".pdf-desk" in script:
+            assert "getClientRects" in script
+            return True
+        raise AssertionError("A hidden Core iframe cannot prove the visible page editor is ready")
+
+    desktop.probe_desktop(SimpleNamespace(evaluate_js=evaluate, destroy=lambda: None), tmp_path)
+    report = json.loads((tmp_path / "desktop-smoke.json").read_text())
+    assert report["ok"] and report["pdf_ready"]
+    assert report["pdf_mode"] == "native-pages"
+    assert not any("pdf-stirling-frame" in script for script in calls)
 
 
 def test_failed_native_start_does_not_pass_smoke_test_or_launch_setup(tmp_path, monkeypatch):

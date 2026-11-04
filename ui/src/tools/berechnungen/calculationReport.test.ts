@@ -45,12 +45,21 @@ test("every workbench report carries an explicit normative reference or planning
 
 test("dynamic fire comparison reports both actual cable lists with distinct before/after context", () => {
   const definition = CALCULATORS.find(item => item.id === "premium-brandlast")!;
-  const input = { ...defaults(definition), fireloadRows: JSON.stringify([{ id: "before", name: "Kabel X", mjPerMeter: "2", quantity: "7", length: "10", evidence: "open" }]), fireloadRowsAfter: JSON.stringify([{ id: "after", name: "Kabel X", mjPerMeter: "1", quantity: "3", length: "10", evidence: "documented" }]) };
+  const input = { ...defaults(definition), comparisonEnabled: "yes", fireloadRows: JSON.stringify([{ id: "before", name: "Kabel X", mjPerMeter: "2", quantity: "7", length: "10", evidence: "open" }]), fireloadRowsAfter: JSON.stringify([{ id: "after", name: "Kabel X", mjPerMeter: "1", quantity: "3", length: "10", evidence: "documented" }]) };
   const report = workbenchReport(definition, input, definition.calculate(input));
   assert.ok(report.inputs.some(row => row.label === "Vorher · Kabel X · Bestand" && row.value === "7 × 10 m · 2 MJ/m"));
   assert.ok(report.inputs.some(row => row.label === "Nachher · Kabel X · Bestand" && row.value === "3 × 10 m · 1 MJ/m"));
   assert.ok(report.inputs.every(row => !row.value.startsWith("[{")));
   assert.ok(report.results.some(row => row.label === "Kabel vorher" && row.value === "7 Stk."));
+});
+
+test("single fire variant reports A only and never reads the hidden saved B list",()=>{
+  const definition=CALCULATORS.find(item=>item.id==="premium-brandlast")!;
+  const input={...defaults(definition),comparisonEnabled:"no",fireloadRowsAfter:"not JSON"};
+  const result=definition.calculate(input),report=workbenchReport(definition,input,result,"",null);
+  assert.ok(report.inputs.some(row=>row.label.startsWith("Variante A · Kabelposition")));
+  assert.ok(!report.inputs.some(row=>row.label.startsWith("Nachher · ")));
+  assert.ok(!result.metrics.some(metric=>metric.label==="Reduktion"));
 });
 
 test("fire report preserves selected supplier/CPR provenance and effective critical status", () => {

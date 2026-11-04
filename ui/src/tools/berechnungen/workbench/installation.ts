@@ -1,6 +1,9 @@
-import { number, integer, type CalculatorDefinition, type Field, type Inputs } from "./types.ts";
+import { withInputRow } from "./inputDiagnostics.ts";
+import { InputError, number, integer, type CalculatorDefinition, type Field, type Inputs } from "./types.ts";
 import { lookupPublishedIz, publishedAreas, publishedTemperatureFactor, publishedGroupingFactor, lookupPublishedTrayIz, publishedTrayGroupingFactor, publishedHagerBackup, HAGER_BACKUP_REFERENCE, type PublishedHagerFamily, type PublishedIzConfig, type PublishedTrayType, POE_CABLE_REFERENCES, PV_BUY_TARIFFS, PV_FEED_TARIFFS, PV_DIRECTIONS, PV_TILTS, PV_MODULES, publishedMinimumFeedRp, publishedPvGrant } from "./referenceInstallationData.ts";
 import { fireCprState, fireCableFact } from "./fireCableData.ts";
+import { pvSensitivity } from "./pvAnalysis.ts";
+import { NIN_INSTALLATION_METHODS, ninMethodOptions } from './installationMethodChoices.ts';
 
 const source = (file: string) => `https://www.elektro-rechner.ch/Rechner/${file}`;
 const n = (key: string, label: string, value: string, unit: string, help: string, group?: string): Field => ({ key, label, default: value, unit, help, group });
@@ -11,7 +14,7 @@ const fmt = (value: number, digits = 3) => value.toLocaleString("de-CH", { maxim
 const sections = [1.5, 2.5, 4, 6, 10, 16, 25, 35, 50, 70, 95, 120, 150, 185, 240, 300, 400, 500, 630];
 function sectionAtLeast(area: number) { const value = sections.find(s => s >= area - 1e-12); if (!value) throw new Error("Benötigter Querschnitt liegt ausserhalb der hinterlegten Standardreihe."); return value; }
 
-const methodOptions: [string,string][] = [["A1","A1"],["A2","A2"],["B1","B1"],["B2","B2"],["C","C"],["D","D · direkt in Erde"],["E","E · Mehrleiter in Luft"],["F","F · Einzelleiter im Dreieck"],["F-eben","F · Einzelleiter eben"],["G-h","G · Abstand horizontal"],["G-v","G · Abstand vertikal"],["D1","D1 · nur manuelle Tabelle"],["D2","D2 · nur manuelle Tabelle"]];
+const methodOptions: [string,string][] = NIN_INSTALLATION_METHODS.map(({value,label})=>[value,label]);
 const onPublished = [{key:"tableMode", values:["published"]}];
 const onManual = [{key:"tableMode", values:["manual"]}];
 const nin: CalculatorDefinition = {
@@ -20,6 +23,7 @@ const nin: CalculatorDefinition = {
   fields: [
     select("tableMode","Datengrundlage","published",[["published","Publizierter Cu-Referenzdatensatz"],["manual","Manueller Tabellenwert und Faktoren"]],"Der Datensatz bildet veröffentlichte Zahlen der Referenz ab. Er ersetzt keine Prüfung der zutreffenden Normausgabe und Anwendungsbedingungen."),
     {...select("search","Gesucht","capacity",[["capacity","Strombelastbarkeit aus Querschnitt"],["section","Querschnitt aus Betriebsstrom"]],"Die Querschnittssuche nutzt Iᵦ; die eingegebenen Schutzbedingungen werden zusätzlich separat geprüft."),visibleWhen:onPublished},
+    select("conductorKind","Leiter-/Kabelbauart","multi",[["single","Einadrig"],["multi","Mehradrig"],["all","Alle · Bestandsansicht"]],"Grenzt die Verlegearten ein. Beim bewussten Wechsel wird eine entsprechende Verlegeart gewählt; C/D bleiben erhalten. Altstände behalten ihre bisherige Verlegeart in der vollständigen Ansicht."),
     select("method", "Verlegeart", "B2", methodOptions, "D1/D2 benötigen einen manuellen Tabellenwert. Für nicht publizierte Kombinationen wird kein Ersatzwert verwendet."),
     n("area","Gewählter Querschnitt","6","mm²","Standardquerschnitt aus der veröffentlichten Auswahl."),
     select("isolation", "Isolation", "pvc", [["pvc","PVC · 70 °C"],["xlpe","XLPE · 90 °C"]], "Getrennte Datenreihen, kein pauschaler Isolationsfaktor."),
@@ -38,6 +42,8 @@ const nin: CalculatorDefinition = {
   ],
   calculate(input) {
     const tableMode=choice(input,"tableMode",["published","manual"]), method=choice(input,"method",methodOptions.map(item=>item[0]));
+    const conductorKind=input.conductorKind??'all';
+    if(!ninMethodOptions(conductorKind).some(option=>option.value===method))throw Error('Die Verlegeart passt nicht zur gewählten Leiter-/Kabelbauart. Passende Verlegeart oder vollständige Bestandsansicht wählen.');
     const ib=number(input,"ib","Betriebsstrom",0,10000), rated=number(input,"in","Schutznennstrom",0,10000), factor=number(input,"i2factor","Prüfstromfaktor",0,10);
     const isolation=choice(input,"isolation",["pvc","xlpe"]) as "pvc"|"xlpe", cores=Number(choice(input,"cores",["2","3"])) as 2|3;
     const parallel=integer(input,"parallel","Parallele Leiter",0,tableMode==="published"?4:50), arrangement=choice(input,"arrangement",["twisted","unlaid"]);
@@ -237,6 +243,8 @@ const pv: CalculatorDefinition = {
     n("batteryCycles","Vollzyklen pro Jahr","250","1/a","Projektannahme; für den einfachen Vergleich werden keine stündlichen Lastgänge modelliert."),n("batteryEfficiency","Speicher-Rundlaufwirkungsgrad","90","%","Wird im diskontierten LCOS berücksichtigt."),
     n("batteryDegradation","Speicher-Kapazitätsabnahme","2","%/a","Annahme für die diskontierte Speicherenergie."),n("batteryYears","Speicher-Betrachtungsdauer","15","Jahre","Eigene Lebensdauerannahme des Speichers."),
     n("om","Betriebskosten pro Jahr","1","% Invest.","Konstanter Anteil der Bruttoinvestition."),n("degradation","Ertragsabnahme pro Jahr","0.5","%","Jährliche relative Abnahme des PV-Ertrags."),n("years","Betrachtungsdauer","25","Jahre","Ganzjährige Betrachtung bei konstanten Tarifen."),n("discount","Kalkulationszins","3","%","Für Kapitalwert und diskontierte Kosten."),
+    select("emissionMode","CO₂-Vergleich","none",[["none","Ohne Emissionsvergleich"],["project","Mit eigenem Projektfaktor"]],"Optionaler Rechenvergleich aus Jahresertrag und einem selbst bestätigten Faktor, keine Klimabilanz."),
+    {...n("emissionFactor","Angenommene vermiedene Emissionen","128","g CO₂e/kWh","128 g/kWh ist nur der datierte Vergleichsansatz. Den zum Projekt passenden Ersatz-/Bilanzfaktor bestätigen; keine pauschale Schweizer Vorgabe."),visibleWhen:[{key:"emissionMode",values:["project"]}]},
   ],
   calculate(input) {
     const sizing=choice(input,"sizing",["modules","power","area","existing"]),roof=choice(input,"roof",["flat","pitched","manual"]);
@@ -286,6 +294,12 @@ const pv: CalculatorDefinition = {
       const denominator=(1+discount)**year;npv+=cash/denominator;discountedCosts+=operating/denominator;discountedEnergy+=production/denominator;totalEnergy+=production;
       series.push({label:`Jahr ${year}`,value:production});
     }
+    const pvAnalysis=pvSensitivity({investment,grant,basis:basis as "gross"|"net",annualEnergy:energy,buyPrice:tariff,feedPrice:feed,selfShare:self,operatingShare:om,degradation,years});
+    const sensitivityRows=pvAnalysis.scenarios.map(row=>({label:`Sensitivität ±20 % · ${row.label}`,value:`−20 %: ${row.minus===null?`über ${years}`:fmt(row.minus,2)} / +20 %: ${row.plus===null?`über ${years}`:fmt(row.plus,2)} Jahre`}));
+    const historyRows=pvAnalysis.history.map(point=>({label:`Tarifhistorie · ${point.year} · Bezug / Einspeisung`,value:`${fmt(point.buyRp,1)} / ${fmt(point.feedRp,1)} Rp./kWh · datierter Vergleich`}));
+    const emissionMode=choice({...input,emissionMode:input.emissionMode??"none"},"emissionMode",["none","project"]);
+    const emissionFactor=emissionMode==="project"?number(input,"emissionFactor","Vermiedener Emissionsfaktor",0,100000,true):null;
+    const emissionRows=emissionFactor===null?[]:[{label:"Vermiedene Emissionen · Projektansatz",value:energy*emissionFactor/1e6,unit:"t CO₂e/a"},{label:"Angenommener vermiedener Emissionsfaktor",value:emissionFactor,unit:"g CO₂e/kWh"}];
     let pastNet:number|null=null;
     if(age!==null)pastNet=Array.from({length:age},(_,index)=>energy*rate*(1-degradation)**index-operating).reduce((sum,value)=>sum+value,0);
     const battery=choice(input,"battery",["no","yes"])==="yes",storageRows:NonNullable<ReturnType<CalculatorDefinition["calculate"]>["rows"]>=[];
@@ -296,17 +310,24 @@ const pv: CalculatorDefinition = {
       storageRows.push({label:"Speicherinvestition · separat",value:cost,unit:"CHF"},{label:"Zusätzlicher Eigenverbrauch · einfacher Ansatz",value:shifted,unit:"kWh/a"},{label:"Eigenverbrauch mit Speicher · einfacher Ansatz",value:(self+shifted/energy)*100,unit:"%"},{label:"Mehrnutzen Speicher pro Jahr",value:gain,unit:"CHF/a"},{label:"Amortisation Speicher · einfacher Ansatz",value:gain>0?cost/gain:"kein positiver Mehrnutzen",unit:gain>0?"Jahre":undefined},{label:"Diskontierter LCOS",value:cost/storedDiscounted*100,unit:"Rp./kWh"});
     }
     return {
+      pvAnalysis,
       metrics:[{label:"Anlageleistung · STC",value:power,unit:"kWp",digits:2},{label:"Jahresertrag · Jahr 1",value:energy/1000,unit:"MWh",digits:2},{label:"Nettoinvestition",value:net,unit:"CHF",digits:0},{label:"Amortisation",value:payback===null?`über ${years} Jahre`:payback,unit:payback===null?undefined:"Jahre",digits:1},{label:"Gestehungskosten · nominal",value:(investment+operating*years)/totalEnergy*100,unit:"Rp./kWh",digits:1},{label:"Diskontierte Gestehungskosten",value:discountedCosts/discountedEnergy*100,unit:"Rp./kWh",digits:1},{label:"Kapitalwert",value:npv,unit:"CHF",digits:0,tone:npv>=0?"ok":"warning"}],
-      rows:[{label:"Leistungsansatz",value:moduleCount!==null?`${moduleCount} ganze Module · ${fmt(moduleArea!*efficiency!*1000)} Wp je Modul`:sizing==="existing"?"Bestandesanlage mit historischem Gesamtpreis":sizing==="power"?"Direkte kWp-Eingabe":"Kontinuierlicher Flächenansatz"},{label:"Belegungs- / Lagefaktor",value:`${fmt(usable*100)} % / ${fmt(orientation)}`},{label:"Bruttoinvestition",value:investment,unit:"CHF"},{label:"Förderung",value:grant,unit:"CHF"},{label:"Fördergrundlage",value:estimatedGrant?`${estimatedGrant.program} · Ansätze 01.04.2025 / Boni 01.01.2026`:"Manuell bestätigter Beitrag"},{label:"Amortisationsbasis",value:basis==="gross"?"Bruttoinvestition":"Netto nach Förderung"},{label:"Amortisation brutto",value:grossPayback??`über ${years} Jahre`,unit:grossPayback===null?undefined:"Jahre"},{label:"Amortisation netto",value:netPayback??`über ${years} Jahre`,unit:netPayback===null?undefined:"Jahre"},{label:"Bezug / Einspeisung",value:`${fmt(tariff*100)} / ${fmt(feed*100)} Rp./kWh`},{label:"Eigenverbrauch · Jahr 1",value:energy*self,unit:"kWh"},{label:"Einspeisung · Jahr 1",value:energy*(1-self),unit:"kWh"},{label:"Nettoertrag · Jahr 1",value:firstNet,unit:"CHF"},...(age===null?[]:[{label:"Alter im Bewertungsjahr",value:age,unit:"Jahre"},{label:"Bisheriger kumulierter Nettoertrag",value:pastNet!,unit:"CHF"}]),...storageRows],
+      rows:[{label:"Leistungsansatz",value:moduleCount!==null?`${moduleCount} ganze Module · ${fmt(moduleArea!*efficiency!*1000)} Wp je Modul`:sizing==="existing"?"Bestandesanlage mit historischem Gesamtpreis":sizing==="power"?"Direkte kWp-Eingabe":"Kontinuierlicher Flächenansatz"},{label:"Belegungs- / Lagefaktor",value:`${fmt(usable*100)} % / ${fmt(orientation)}`},{label:"Bruttoinvestition",value:investment,unit:"CHF"},{label:"Förderung",value:grant,unit:"CHF"},{label:"Fördergrundlage",value:estimatedGrant?`${estimatedGrant.program} · Ansätze 01.04.2025 / Boni 01.01.2026`:"Manuell bestätigter Beitrag"},{label:"Amortisationsbasis",value:basis==="gross"?"Bruttoinvestition":"Netto nach Förderung"},{label:"Amortisation brutto",value:grossPayback??`über ${years} Jahre`,unit:grossPayback===null?undefined:"Jahre"},{label:"Amortisation netto",value:netPayback??`über ${years} Jahre`,unit:netPayback===null?undefined:"Jahre"},{label:"Bezug / Einspeisung",value:`${fmt(tariff*100)} / ${fmt(feed*100)} Rp./kWh`},{label:"Eigenverbrauch · Jahr 1",value:energy*self,unit:"kWh"},{label:"Einspeisung · Jahr 1",value:energy*(1-self),unit:"kWh"},{label:"Nettoertrag · Jahr 1",value:firstNet,unit:"CHF"},...(age===null?[]:[{label:"Alter im Bewertungsjahr",value:age,unit:"Jahre"},{label:"Bisheriger kumulierter Nettoertrag",value:pastNet!,unit:"CHF"}]),...storageRows,...emissionRows,...sensitivityRows,...historyRows],
       status:{tone:firstNet<=0||grant>investment?"warning":npv>=0?"ok":"neutral",text:firstNet<=0?"Mit diesen Annahmen ist der jährliche Nettoertrag nicht positiv.":grant>investment?"Der unverbindliche Förderansatz übersteigt die Investition; Förderfähigkeit und Kostengrundlage prüfen.":"Ertrag und Wirtschaftlichkeit aus den ausgewählten Referenz-/Projektannahmen berechnet."},
       formula:`${moduleCount!==null?`n_Module = floor(${fmt(area!)} × ${fmt(usable)} / ${fmt(moduleArea!)}) = ${moduleCount}; P_STC = ${moduleCount} × ${fmt(moduleArea!)} × ${fmt(efficiency!)} = ${fmt(power)} kWp`:sizing==="area"?`P_STC = ${fmt(area!)} × ${fmt(usable)} × ${fmt(efficiency!)} = ${fmt(power)} kWp`:`P_STC = ${fmt(power)} kWp (direkte Eingabe)`}; E₁ = P_STC × Ertrag × Lagefaktor = ${fmt(power)} × ${fmt(specific)} × ${fmt(orientation)} = ${fmt(energy)} kWh; CF₁ = ${fmt(energy)} × (${fmt(self)} × ${fmt(tariff)} + ${fmt(1-self)} × ${fmt(feed)}) − ${fmt(operating)} = ${fmt(firstNet)} CHF; Kapitalwert = −${fmt(capital)} + Σ CF_y/(1+${fmt(discount)})^y = ${fmt(npv)} CHF`,
       series,seriesLabel:"Jahresertrag über die Betrachtungsdauer",seriesUnit:"kWh/Jahr",
-      limitations:["Dachbelegung, Lage, Modulparameter und Speicherzyklen sind vereinfachte Referenz-/Projektannahmen. Es ist kein aktueller PVGIS-, Netzbetreiber- oder Pronovo-Dienst angebunden. Tarifsnapshot 2026, Minimalvergütung EnV Art. 12 Referenzstand 01.01.2026; EIV-Ansätze 01.04.2025 / Boni 01.01.2026 unverbindlich bestätigen.","PV-Hauptwerte enthalten den optionalen Speicher nicht. Der einfache Speicher-Zusatznutzen setzt idealisierte Energieverschiebung ohne Rundlaufverluste an; LCOS berücksichtigt dagegen den eingegebenen Wirkungsgrad und die Alterung. Keine Lastgang-, Verschattungs-, Einspeisespitzen-, Wechselrichter-, Steuer- oder Finanzierungsplanung."],
+      limitations:["Dachbelegung, Lage, Modulparameter und Speicherzyklen sind vereinfachte Referenz-/Projektannahmen. Es ist kein aktueller PVGIS-, Netzbetreiber- oder Pronovo-Dienst angebunden. Tarifsnapshot 2026, Minimalvergütung EnV Art. 12 Referenzstand 01.01.2026; EIV-Ansätze 01.04.2025 / Boni 01.01.2026 unverbindlich bestätigen.","Sensitivität variiert jeweils einen Parameter um ±20 % bei den aktuellen Projektannahmen. Unveränderte Förderung bleibt im Nettofall separat; Eigenverbrauch höchstens 100 %. Fehlende Amortisation wird nicht als null Jahre dargestellt. Tarifhistorie 2020–2026 aus datierten Vergleichsdaten, keine aktuelle Tarifauskunft oder Prognose. Ein optionaler CO₂-Vergleich multipliziert den Jahresertrag mit dem ausdrücklich eingegebenen Projektfaktor; ohne Lebenszyklus-, Zusätzlichkeits- oder Herkunftsnachweis.","PV-Hauptwerte enthalten den optionalen Speicher nicht. Der einfache Speicher-Zusatznutzen setzt idealisierte Energieverschiebung ohne Rundlaufverluste an; LCOS berücksichtigt dagegen den eingegebenen Wirkungsgrad und die Alterung. Keine Lastgang-, Verschattungs-, Einspeisespitzen-, Wechselrichter-, Steuer- oder Finanzierungsplanung."],
     };
   },
 };
 for(const inputField of pv.fields) {
   const key=inputField.key;
+  if(["sizing","roof","modulePreset","moduleArea","efficiency","power","area","usable","orientation","direction","tilt","commissionedYear","valuationYear"].includes(key))inputField.group="Dach & Anlage";
+  else if(["yield","tariffPreset","tariff","feedPreset","feed","self"].includes(key))inputField.group="Ertrag & Tarife";
+  else if(key.startsWith("grant"))inputField.group="Förderung";
+  else if(key.startsWith("battery"))inputField.group="Speicher";
+  else if(key.startsWith("emission"))inputField.group="CO₂-Projektvergleich";
+  else inputField.group="Wirtschaftlichkeit";
   if(["modulePreset","area"].includes(key))inputField.visibleWhen=[{key:"sizing",values:["modules","area"]}];
   if(key==="moduleArea")inputField.visibleWhen=[{key:"sizing",values:["modules"]},{key:"modulePreset",values:["manual"]}];
   if(key==="efficiency")inputField.visibleWhen=[{key:"sizing",values:["modules","area"]},{key:"modulePreset",values:["manual"]}];
@@ -361,7 +382,7 @@ export function createFireLoadRow(id:string,name="Neue Kabelposition"):FireLoadR
   if(!id.trim()||id.length>120)throw new Error("Eine eindeutige Zeilenkennung ist erforderlich.");
   return {id,name,mjPerMeter:"",quantity:"1",length:"",evidence:"open"};
 }
-export function parseFireLoadRows(raw:string,editing=false):FireLoadRow[] {
+export function parseFireLoadRows(raw:string,editing=false,diagnosticField="fireloadRows"):FireLoadRow[] {
   if(typeof raw!=="string"||raw.length>500000)throw new Error("Kabelpositionsliste ist ungültig oder zu gross.");
   let parsed:unknown;
   try {parsed=JSON.parse(raw);} catch {throw new Error("Kabelpositionsliste konnte nicht gelesen werden.");}
@@ -382,9 +403,11 @@ export function parseFireLoadRows(raw:string,editing=false):FireLoadRow[] {
       if(supplier&&!fact.suppliers.some(item=>item.supplier===supplier))throw new Error(`Position ${index+1}: Lieferant hat keinen plausiblen Katalogwert.`);
     }
     if(!editing) {
-      const input={q:mjPerMeter,n:quantity,l:length};
-      const q=number(input,"q",`Brandlast Position ${index+1}`,0,100000,true),n=integer(input,"n",`Anzahl Position ${index+1}`,0,100000,true),l=number(input,"l",`Länge Position ${index+1}`,0,100000,true);
-      if(n>0&&(q===0||l===0))throw new Error(`Position ${index+1}: vorhandene Kabel benötigen positive Brandlast und Länge.`);
+      withInputRow(diagnosticField,{id},index,()=>{
+        const values={mjPerMeter,quantity,length};
+        const q=number(values,"mjPerMeter",`Brandlast Position ${index+1}`,0,100000,true),n=integer(values,"quantity",`Anzahl Position ${index+1}`,0,100000,true),l=number(values,"length",`Länge Position ${index+1}`,0,100000,true);
+        if(n>0&&(q===0||l===0))throw new InputError(q===0?"mjPerMeter":"length",`Position ${index+1}: vorhandene Kabel benötigen positive Brandlast und Länge.`,"Bei vorhandenen Kabeln müssen Brandlast je Meter und betrachtete Kabellänge grösser als null sein.",q===0?mjPerMeter:length);
+      });
     }
     return {id,name,mjPerMeter,quantity,length,evidence,...(catalogId!==undefined?{catalogId}:{}),...(supplier!==undefined?{supplier}:{}),...(cpr!==undefined?{cpr}:{})};
   });

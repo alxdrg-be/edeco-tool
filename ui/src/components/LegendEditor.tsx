@@ -56,6 +56,10 @@ import { Icon, TrashIcon } from "./Icons";
 import { SaveSession } from "../saveSession";
 import { useNavigation } from "../Navigation";
 import Menu from "./Menu";
+import { ArrowLeft, Hand, Maximize2, Minimize2, Minus, Plus } from "lucide-react";
+import { a4CompactLegendDocument, alignLegendSectionColors, compactLegendDocument, legendItemColors, legendLayerColors, legendVisibleItemColors, legendVisibleLayerColors, type LayerColorSource } from "../legendViewport";
+import { useLegendViewport } from "../useLegendViewport";
+import "./LegendEditor.css";
 
 interface Props {
   projectId: string;
@@ -64,6 +68,7 @@ interface Props {
   notify: (text: string, error?: boolean) => void;
   /** The named legend to edit; null opens the first legend of the project. */
   legendId?: number | null;
+  onProjects?: () => void;
 }
 
 type SaveState = "idle" | "saving" | "saved" | "error";
@@ -92,11 +97,10 @@ const TOOLBAR_ITEMS = [
   { id: "columns", label: "Spalten" },
   { id: "sizes", label: "Schrift, Symbole, gleiche Fläche" },
   { id: "general", label: "Allgemeinteil ein/aus" },
-  { id: "zoom", label: "Zoom" },
   { id: "gridlines", label: "Raster anzeigen" },
   { id: "export", label: "DXF herunterladen" },
 ] as const;
-const TOOLBAR_DEFAULT = ["history", "insert", "grid", "columns", "general", "zoom", "gridlines", "export"];
+const TOOLBAR_DEFAULT = ["history", "insert", "columns", "general", "gridlines", "export"];
 
 function readBarPref(): Set<string> {
   try {
@@ -131,7 +135,7 @@ function readPanes(): { outline: number; props: number } {
   }
 }
 
-export default function LegendEditor({ projectId, data, categories, notify, legendId = null }: Props) {
+export default function LegendEditor({ projectId, data, categories, notify, legendId = null, onProjects }: Props) {
   const [hist, setHist] = useState<History<LegendDoc> | null>(null);
   const [info, setInfo] = useState<LegendInfo | null>(null);
   const [placed, setPlaced] = useState<LegendLayout | null>(null);
@@ -152,7 +156,6 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
     });
   }, []);
   const [generalRev, setGeneralRev] = useState(0);
-  const [zoom, setZoom] = useState(4);
   const [symbols, setSymbols] = useState<Record<string, SymbolRender>>({});
   const [busy, setBusy] = useState(false);
   const [search, setSearch] = useState("");
@@ -238,6 +241,45 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
   const layoutGate = useRef({ generation: 0 });
   const fieldBefore = useRef<LegendDoc | null>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
+  const editorRef = useRef<HTMLDivElement>(null);
+  const viewLayout = dropAt?.cell !== undefined && preview ? preview.layout : placed;
+  const viewport = useLegendViewport(canvasRef, paperRef, viewLayout?.width ?? 200, viewLayout?.height ?? 100, Boolean(info && hist));
+  const { zoom } = viewport;
+
+  useEffect(() => {
+    const editor = editorRef.current;
+    if (!windowed || !editor) return;
+    const previousFocus = document.activeElement as HTMLElement | null;
+    const oldOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    // Keep the project/header behind the enlarged editor out of keyboard navigation.
+    const changed: { node: HTMLElement; inert: boolean }[] = [];
+    let branch: HTMLElement = editor;
+    while (branch.parentElement) {
+      for (const child of branch.parentElement.children) {
+        if (child === branch || !(child instanceof HTMLElement) || child.classList.contains("legend-window-back")) continue;
+        changed.push({ node: child, inert: child.inert }); child.inert = true;
+      }
+      branch = branch.parentElement;
+      if (branch === document.body) break;
+    }
+    const controls = () => [...editor.querySelectorAll<HTMLElement>("button:not(:disabled),input:not(:disabled),select:not(:disabled),textarea:not(:disabled),[tabindex='0']")].filter(node => node.getClientRects().length > 0);
+    (controls()[0] ?? editor).focus();
+    const trap = (event: KeyboardEvent) => {
+      if (event.key !== "Tab") return;
+      const nodes = controls(), first = nodes[0] ?? editor, last = nodes[nodes.length - 1] ?? editor;
+      if (!editor.contains(document.activeElement) || (event.shiftKey ? document.activeElement === first : document.activeElement === last)) {
+        event.preventDefault(); (event.shiftKey ? last : first).focus();
+      }
+    };
+    document.addEventListener("keydown", trap);
+    return () => {
+      document.body.style.overflow = oldOverflow;
+      changed.forEach(({ node, inert }) => { node.inert = inert; });
+      document.removeEventListener("keydown", trap);
+      if (previousFocus?.isConnected) previousFocus.focus();
+    };
+  }, [windowed]);
 
   const doc = hist?.present ?? null;
   const colorByCat = useMemo(() => Object.fromEntries(data.category_colors.map((c) => [c.id, c.color])), [data.category_colors]);
@@ -399,10 +441,10 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
     }
     for (const b of doc?.blocks ?? []) {
       for (const it of b.items) {
-        if (it.kind !== "symbol" || !it.symbol_key || !it.symbol_color) continue;
-        const key = symbolRequestKey({ symbol_key: it.symbol_key, length_mm: null, width_mm: null, flat: true });
-        if (!known[key] && !need.has(key)) {
-          need.set(key, { t: "symbol", key: it.symbol_key, family_key: it.family_key, length_mm: null, width_mm: null, flat: true });
+        if (it.kind !== "symbol" || !it.symbol_key) continue;
+        for (const part of [it, ...(it.parts ?? [])]) {
+          const key = symbolRequestKey({ symbol_key: part.symbol_key, length_mm: null, width_mm: null, flat: Boolean(it.symbol_color) });
+          if (!known[key] && !need.has(key)) need.set(key, { t: "symbol", key: part.symbol_key, family_key: part.family_key, length_mm: null, width_mm: null, flat: Boolean(it.symbol_color) });
         }
       }
     }
@@ -795,13 +837,7 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
     return () => window.removeEventListener("keydown", onKey);
   });
 
-  function fitWidth() {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const padding = getComputedStyle(canvas);
-    const width = canvas.clientWidth - parseFloat(padding.paddingLeft) - parseFloat(padding.paddingRight);
-    setZoom(Math.max(0.5, Math.min(12, round(width / W))));
-  }
+  function fitWidth() { viewport.fitView("width"); }
 
   const generalOpen = openBlocks.has("__general__") || sel?.type === "general-row";
 
@@ -836,7 +872,12 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
         Vorlage wählen
       </button>
     </p>
-  ) : null;
+  ) : general?.scope_warning ? <details className="legend-help"><summary>ⓘ Mehrspaltige Firmenvorlage</summary><div>{general.scope_warning}</div></details>
+    : general?.kind && general.source !== "edeco:allgemein-2026" && (general.rows || []).filter(row => row.picture === "swatch").length > 0
+      ? <details className="legend-help"><summary>ⓘ Allgemeinvorlage · {(general.rows || []).filter(row => row.picture === "swatch").length} Farbcodes</summary>
+        <p>Diese Legende nutzt die eingestellte Firmenquelle. Die neue edeco-Vorlage mit 21 allgemeinen Zeilen und 12 Farbcodes lässt sich in den Einstellungen vor der Übernahme ansehen und wieder zurücksetzen.</p>
+        <button className="btn small" onClick={() => window.dispatchEvent(new CustomEvent("nl:open-settings"))}>Allgemeinvorlage ansehen</button>
+      </details> : null;
 
   if (!doc) {
     return (
@@ -846,11 +887,7 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
         <button className="btn primary" disabled={busy} onClick={proposal}>
           Vorschlag aus dem Projekt erstellen
         </button>
-        <p className="hint" style={{ marginTop: 12 }}>
-          Der Vorschlag enthält alle Apparate der aktuellen Importe, gegliedert nach Kategorien, mit den Firmentexten oder dem Namen aus der Bibliothek.
-          Schriftgrösse {String(info.style.text_size).replace(".", ",")} mm und Symbolmassstab {String(info.style.symbol_scale).replace(".", ",")} kommen aus
-          dem Firmen-Standard bzw. der Vorlage.
-        </p>
+        <details className="legend-help"><summary>ⓘ Vorschlag und Vorgaben</summary><div>Der Vorschlag enthält die Apparate der aktuellen Importe nach Kategorien und übernimmt Firmentexte oder Bibliotheksnamen. Schriftgrösse {String(info.style.text_size).replace(".", ",")} mm und Symbolmassstab {String(info.style.symbol_scale).replace(".", ",")} kommen aus dem Firmenstandard beziehungsweise der Vorlage.</div></details>
       </div>
     );
   }
@@ -861,6 +898,7 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
   const missing = missingRows(doc, data.rows, covered);
   const inGeneralRows = coveredRows(data.rows, covered);
   const dups = duplicateItems(doc);
+  const multicolorIds = new Set(doc.blocks.flatMap(block => block.items.filter(item => legendItemColors(item).length > 1 && !item.symbol_color).map(item => item.id)));
   const selBlock = sel && "block" in sel ? doc.blocks.find((b) => b.id === sel.block) : undefined;
   const selItem = sel?.type === "item" ? selBlock?.items.find((i) => i.id === sel.item) : undefined;
   // during a drag onto a cell the sheet shows the preview, so the others visibly make room
@@ -868,25 +906,40 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
   const W = shown?.width ?? 200;
   const H = shown?.height ?? 100;
   const setStyle = (patch: Partial<LegendDoc["style"]>) => change({ ...doc, style: { ...style, ...patch } });
+  const applyCompact = () => change(compactLegendDocument(doc));
+  const alignSectionColors = () => {
+    const next = alignLegendSectionColors(doc);
+    const amount = next.blocks.filter((block, index) => block !== doc.blocks[index]).length;
+    change(next);
+    notify(`${amount} Rubrikfarben angeglichen. Die Originalfarben der Symbole bleiben erhalten. Rückgängig mit Strg+Z.`);
+  };
+  const applyA4 = () => change(a4CompactLegendDocument(doc));
 
   return (
     <>
     {windowed && (
       <button type="button" className="legend-window-back" aria-label="Grossansicht beenden" title="Grossansicht beenden" onClick={() => setWindowed(false)} />
     )}
-    <div className={`legend-editor ${windowed ? "windowed" : ""}`}>
-      {(generalBox || windowed) && (
-        <div className="legend-head">
-          <div className="legend-head-info">{generalBox}</div>
-          {windowed && (
-            <div className="legend-head-actions">
-              <button className="btn small primary" onClick={() => setWindowed(false)} title="Grossansicht schliessen. Esc geht auch.">
-                ✕ Grossansicht beenden
-              </button>
-            </div>
-          )}
+    <div ref={editorRef} className={`legend-editor ${windowed ? "windowed" : ""}`} role={windowed ? "dialog" : undefined} aria-modal={windowed || undefined} aria-label={windowed ? "Legendeneditor" : undefined} tabIndex={-1}>
+      <div className="legend-editor-heading">
+        <div className="legend-editor-heading-main">
+          {onProjects && <button type="button" className="btn primary legend-projects-back" aria-label="Zurück zu Projekten" onClick={onProjects}><ArrowLeft size={15} /> Projekte</button>}
+          <div><strong>{info.legend?.name || "Legende"}</strong><span className="hint legend-sheet-size">PDF {Math.round((W + 10) * 10) / 10} × {Math.round((H + 10) * 10) / 10} mm</span>
+            {H + 10 > 297.1 && <span className="legend-paper-warning" title="Die Ausgabe ist höher als A4. Das Layout folgt dem Inhalt und schneidet keine Zeilen ab.">Höher als A4</span>}</div>
+          <InfoTip text="Die Blatthöhe folgt dem Inhalt. Änderungen werden automatisch gespeichert. Der Ansichtzoom verändert weder die Zeichnungsmasse noch den Export." />
         </div>
-      )}
+        <button type="button" className="btn legend-expand-button" aria-pressed={windowed} onClick={() => setWindowed(value => !value)} title={windowed ? "Zur eingebetteten Ansicht zurückkehren" : "Grosse Arbeitsfläche für die Legende innerhalb des Toolhubs öffnen"}>
+          {windowed ? <Minimize2 size={16} /> : <Maximize2 size={16} />}{windowed ? "Kompakt" : "Editor gross öffnen"}
+        </button>
+      </div>
+      {(!style.compact_flow || style.row > 9 || style.symbol_fit !== "corridor") && <div className="legend-layout-notice">
+        <span>Gespeichertes Layout <InfoTip text="Diese Legende verwendet ihre bisherigen Abstände und Grössen. Die kompakte Vorlage setzt drei Apparatespalten, ein dichtes Raster, 2,8 mm Schrift und kleinere Abstände. Inhalte, Zuordnungen und Originalfarben bleiben erhalten. Die Änderung lässt sich mit Rückgängig zurücknehmen." /></span>
+        <div className="row" style={{ gap: 6, flexWrap: "wrap" }}>
+          <button className="btn small" onClick={applyCompact}>Kompakte Vorlage anwenden</button>
+          <button className="btn small" onClick={applyA4} title="Vier Spalten, kompakte Abstände. Die Seitenhöhe folgt dem Inhalt.">A4 kompakt</button>
+        </div>
+      </div>}
+      {generalBox}
       <div className="legend-toolbar">
         {bar.has("history") && (
           <div className="tool-group" role="group" aria-label="Verlauf">
@@ -900,7 +953,7 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
           </div>
         )}
         {bar.has("insert") && (
-          <Menu label="Einfügen">
+          <Menu label="Einfügen" portalContainer={() => editorRef.current}>
             <button className="btn small" onClick={() => addKind("text")} title={FREE_TEXT_HINT}>+ Freier Text</button>
             <button className="btn small" onClick={() => addKind("line")} title="Linienmuster, z. B. für Leitungen und Trassen">+ Linie</button>
             <button className="btn small" onClick={() => addKind("note")}>+ Hinweis</button>
@@ -964,6 +1017,7 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
                 <select className="select" value={style.columns} onChange={(e) => setStyle({ columns: Number(e.target.value) })}>
                   <option value={2}>2</option>
                   <option value={3}>3</option>
+                  <option value={4}>4</option>
                 </select>
               </label>
             )}
@@ -985,8 +1039,8 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
                   onCommit={(v) => setStyle({ symbol_scale: Math.max(0.2, Math.min(5, v)) })} />
               </span>
             </label>
-            {(style.symbol_size ?? "tile") === "tile" && (
-              <label className="toggle" title="Jedes Symbol bekommt dieselbe Fläche, höchstens 75 % der Kachel">
+            {(style.symbol_size ?? "tile") === "tile" && style.symbol_fit !== "corridor" && (
+              <label className="toggle" title="Jedes Symbol bekommt dieselbe Fläche, mit einem kleinen freien Rand">
                 <input type="checkbox" checked={style.normalize_size !== false} onChange={(e) => setStyle({ normalize_size: e.target.checked })} />
                 Gleiche Fläche
               </label>
@@ -999,21 +1053,13 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
             Allgemeinteil
           </label>
         )}
-        {bar.has("zoom") && (
-          <div className="tool-group" role="group" aria-label="Zoom">
-            <button className="btn small" onClick={() => setZoom((z) => Math.max(0.5, round(z / 1.25)))} aria-label="Verkleinern" title="Verkleinern">−</button>
-            <span className="hint zoom-value">{Math.round((zoom / 4) * 100)} %</span>
-            <button className="btn small" onClick={() => setZoom((z) => Math.min(12, round(z * 1.25)))} aria-label="Vergrössern" title="Vergrössern">+</button>
-            <button className="btn small" onClick={fitWidth} title="Die Ansicht an die verfügbare Breite anpassen. Ändert nur den Zoom.">An Breite</button>
-          </div>
-        )}
         {bar.has("gridlines") && (
           <button className={`btn small ${showGrid ? "is-on" : ""}`} aria-pressed={showGrid} onClick={toggleGrid} aria-label="Raster anzeigen"
             title="Rasterlinien im gewählten Mass einblenden. Sie erscheinen nicht im Export.">
             ▦ Raster
           </button>
         )}
-        <Menu label="Ansicht">
+        <Menu label="Ansicht" portalContainer={() => editorRef.current}>
           <div className="menu-fields">
             <label className="filter-label">
               Raster
@@ -1046,10 +1092,18 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
           {!bar.has("gridlines") && (
             <button className={`btn small ${showGrid ? "is-on" : ""}`} aria-pressed={showGrid} onClick={toggleGrid}>Raster anzeigen</button>
           )}
+          <button className={`btn small ${style.compact_flow && style.columns !== 4 ? "is-on" : ""}`} aria-pressed={Boolean(style.compact_flow && style.columns !== 4)} onClick={applyCompact}>
+            Dichte wie Entwurf
+          </button>
+          <button className={`btn small ${style.compact_flow && style.columns === 4 ? "is-on" : ""}`} aria-pressed={Boolean(style.compact_flow && style.columns === 4)} onClick={applyA4} title="Vier Spalten, kompakte Abstände. Die Seitenhöhe folgt dem Inhalt.">
+            A4 kompakt
+          </button>
+          <button className="btn small" onClick={alignSectionColors} title="Rubrikmarkierung und Trennlinie auf die häufigste Originalfarbe ihrer Symbole setzen. Quellfarben, Farbvarianten und eigene Symbolfarben bleiben unverändert.">
+            Rubrikfarben aus Symbolen
+          </button>
           <button className={`btn small ${detached ? "is-on" : ""}`} aria-pressed={detached} onClick={() => setDetached((v) => !v)}>
             {detached ? "Einstellungen andocken" : "Einstellungen schwebend"}
           </button>
-          {!windowed && <button className="btn small" onClick={() => setWindowed(true)} title="Den Editor über das ganze Programmfenster öffnen. Esc schliesst ihn.">Als Fenster</button>}
           <div className="menu-divider" />
           <div className="menu-fields bar-choice" role="group" aria-label="Sichtbar in der Leiste">
             <span className="hint">In der Leiste zeigen:</span>
@@ -1062,7 +1116,6 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
             <button className="btn small" onClick={() => saveBar(new Set(TOOLBAR_DEFAULT))}>Standard</button>
           </div>
         </Menu>
-        {windowed && <button className="btn small" onClick={() => setWindowed(false)}>Fenster schliessen</button>}
 
         <span style={{ flex: 1 }} />
         <span className={saveState === "error" ? "dirty" : saveState === "saving" ? "hint" : "saved"} role="status"
@@ -1077,11 +1130,7 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
           </button>
         )}
       </div>
-      {windowed && (
-        <div className="legend-window-bar">
-          <span><span className="le-badge small" aria-hidden>✎</span> <strong>Legendeneditor</strong> · {info?.legend?.name || "Legende"} · Grossansicht, Esc kehrt zurück.</span>
-        </div>
-      )}
+
 
       <div className={`legend-body ${detached ? "detached" : ""}`}
         style={{ ["--outline-w" as string]: `${panes.outline}px`, ["--props-w" as string]: `${panes.props}px` }}>
@@ -1102,7 +1151,7 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
               <div className={`outline-row ${sel?.type === "general" ? "active" : ""}`}>
                 <button className="fold-btn" aria-label={generalOpen ? "Einklappen" : "Aufklappen"} aria-expanded={generalOpen}
                   onClick={() => toggleOpen("__general__")}>{generalOpen ? "▾" : "▸"}</button>
-                <span className="swatch" style={{ background: doc.general_section?.header || "#808080", width: 12, height: 12 }} />
+                <span className="swatch" style={{ background: "#b8bec4", width: 12, height: 2 }} />
                 <button className="outline-title" onClick={() => { setSel({ type: "general" }); toggleOpen("__general__"); }} title="Kategorie des Allgemeinteils">
                   <span className="outline-text">{doc.general_section?.title || "Allgemein"}</span>
                   <span className="outline-count">{general.rows?.length ?? ""}</span>
@@ -1144,18 +1193,19 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
                 b.items.filter((it) => it.kind !== "gap").map((it) => (
                   <button
                     key={it.id}
-                    className={`outline-item ${sel?.type === "item" && sel.item === it.id ? "active" : ""} ${it.hidden ? "hidden-entry" : ""} ${dropAt?.block === b.id && dropAt.before === it.id ? "drop-before" : ""}`}
+                    className={`outline-item ${sel?.type === "item" && sel.item === it.id ? "active" : ""} ${it.hidden ? "hidden-entry" : ""} ${multicolorIds.has(it.id) ? "has-layer-variants" : ""} ${dropAt?.block === b.id && dropAt.before === it.id ? "drop-before" : ""}`}
                     onClick={(e) => selectOnSheet({ type: "item", block: b.id, item: it.id }, e.ctrlKey || e.metaKey || e.shiftKey)}
                     title={`${entryText(it)} · ziehen zum Verschieben · Strg+Klick: zweites Kästchen zum Kombinieren`}
                     {...dragProps({ type: "move", block: b.id, item: it.id })}
                     {...dropProps({ block: b.id, before: it.id })}
                   >
-                    {it.kind === "symbol" && it.symbol_key ? <SymIcon r={symbols[symbolRequestKey({ symbol_key: it.symbol_key, length_mm: null, width_mm: null, flat: Boolean(it.symbol_color) })]} color={it.symbol_color || it.color || b.style.symbol} /> : null}
+                    {it.kind === "symbol" && it.symbol_key ? <span className="legend-outline-symbols">{[it, ...(it.parts ?? [])].flatMap((part, partIndex) => (it.symbol_color ? [it.symbol_color] : legendVisibleLayerColors(part).length ? legendVisibleLayerColors(part) : [b.style.symbol]).map(color => <SymIcon key={`${partIndex}:${color}`} r={symbols[symbolRequestKey({ symbol_key: part.symbol_key, length_mm: null, width_mm: null, flat: Boolean(it.symbol_color) })]} color={color} />))}</span> : null}
                     {it.kind === "line" ? "― " : it.kind === "note" ? "◐ " : it.kind === "text" ? "¶ " : ""}
                     <span className="outline-text">{entryText(it) || "(ohne Text)"}</span>
                     {companyKey(it) && descriptions[companyKey(it)!] === it.text.trim() && (
                       <span className="badge company" title="Dieser Text ist der Firmentext">F</span>
                     )}
+                    {multicolorIds.has(it.id) && <span className="badge layer-variant-badge">{legendVisibleItemColors(it).length < legendItemColors(it).length ? `${legendVisibleItemColors(it).length}/${legendItemColors(it).length}` : legendItemColors(it).length} Farben</span>}
                     {it.hidden && <span className="badge">im Allgemeinteil</span>}
                     {dups.has(it.id) && <span className="badge warn">doppelt</span>}
                     {stale.has(it.id) && <span className="badge weg">nicht im Projekt</span>}
@@ -1164,9 +1214,9 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
             </div>
           ))}
 
-          <div className="section">Im Projekt, nicht in der Legende ({missing.length})</div>
+          <div className="section">Fehlende Einträge ({missing.length}) <InfoTip text="Apparate aus den aktuellen Importen, die weder die Legende noch der Allgemeinteil zeigen. Ein Klick fügt sie hinzu; Ziehen legt sie im gewünschten Abschnitt ab." /></div>
           {missing.length === 0 ? (
-            <p className="hint">Alle Apparate der aktuellen Importe sind in der Legende.</p>
+            <p className="hint">✓ Vollständig</p>
           ) : (
             <>
               <p className="hint">Anklicken oder auf einen Abschnitt ziehen.</p>
@@ -1194,7 +1244,7 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
           {inGeneralRows.length > 0 && (
             <>
               <div className="section">Im Allgemeinteil ({inGeneralRows.length})</div>
-              <p className="hint">Der Allgemeinteil zeigt diese Apparate schon. Sie kommen nicht in den Vorschlag. Ziehen geht trotzdem.</p>
+              <details className="legend-help"><summary>ⓘ Bereits im Allgemeinteil</summary><div>Diese Apparate zeigt der Allgemeinteil bereits. Sie werden im Vorschlag nicht doppelt aufgenommen. Bei Bedarf trotzdem in einen Abschnitt ziehen.</div></details>
               {inGeneralRows.map((r) => {
                 const text = describe(r.family_key, r.title, descriptions, stencilNames);
                 return (
@@ -1235,10 +1285,11 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
 
           <div className="section">Benutzerschablone{stencil?.nova ? ` · Nova ${stencil.nova}` : ""}</div>
           {stencil && !stencil.sets.length && (
-            <p className="hint" style={{ wordBreak: "break-all" }}>
-              {stencil.found ? "Im Ordner liegt keine lesbare Schablone (.n5q)." : "Ordner nicht gefunden."} {stencil.folder}
-              <br />Pfad ändern: Einstellungen → Benutzerschablonen.
-            </p>
+            <details className="legend-help">
+              <summary>{stencil.found ? "Keine Schablone" : "Ordner fehlt"}</summary>
+              <div><p>{stencil.found ? "Im Ordner liegt keine lesbare Schablone (.n5q)." : "Der konfigurierte Ordner wurde nicht gefunden."}</p><p className="legend-folder-path">{stencil.folder}</p>
+              <button className="btn small" onClick={() => window.dispatchEvent(new CustomEvent("nl:open-settings"))}>Einstellungen öffnen</button></div>
+            </details>
           )}
           {stencil?.sets.map((sset, si) => (
             <div key={`${sset.name}${si}`} className="stencil-set">
@@ -1283,9 +1334,12 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
           ))}
         </aside>
 
+        <div className="legend-canvas-shell">
         <div
           ref={canvasRef}
-          className="legend-canvas"
+          className={`legend-canvas ${viewport.hand ? "hand-mode" : ""} ${viewport.space ? "space-pan" : ""} ${viewport.panning ? "is-panning" : ""}`}
+          data-document-zoom="true" tabIndex={0} aria-label="Legendenblatt: Strg und Mausrad zum Zoomen, Leertaste zum Verschieben"
+          {...viewport.canvasEvents}
           onClick={() => !justDragged.current && setSel({ type: "legend" })}
           onDragOver={(e) => {
             if (!dragPayload.current) return;
@@ -1316,24 +1370,36 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
             {(shown?.prims ?? [])
               .filter((p) => p.t === "rect" && p.role === "background")
               .map((p, i) => (
-                <Prim key={`bg${i}`} p={p} symbols={symbols} general={general} sel={sel} pick={pick?.item} stale={stale} dups={dups} onSelect={selectOnSheet} />
+                <Prim key={`bg${i}`} p={p} symbols={symbols} general={general} sel={sel} pick={pick?.item} stale={stale} dups={dups} variants={multicolorIds} onSelect={selectOnSheet} />
               ))}
-            {showGrid && (shown?.prims ?? []).filter((p) => p.t === "grid").map((g) => <GridLines key={`g${g.block}`} g={g} />)}
+            {showGrid && (shown?.prims ?? []).filter((p) => p.t === "grid").map((g) => <GridLines key={`g${g.block}:${g.flow_column ?? ""}:${g.y}`} g={g} />)}
             {groupByEntry((shown?.prims ?? []).filter((p) => !(p.t === "rect" && p.role === "background") && p.t !== "grid")).map((g, i) =>
               g.item ? (
                 // one group per entry, keyed by its id: it glides to a new place (see the FLIP effect)
                 <g key={`e:${g.item}`} data-entry={g.item} className="lg-entry">
                   {g.prims.map((p, j) => (
-                    <Prim key={j} p={p} symbols={symbols} general={general} sel={sel} pick={pick?.item} stale={stale} dups={dups} onSelect={selectOnSheet} onDragStart={startSheetDrag} />
+                    <Prim key={j} p={p} symbols={symbols} general={general} sel={sel} pick={pick?.item} stale={stale} dups={dups} variants={multicolorIds} onSelect={selectOnSheet} onDragStart={startSheetDrag} />
                   ))}
                 </g>
               ) : (
-                <Prim key={`p${i}`} p={g.prims[0]} symbols={symbols} general={general} sel={sel} pick={pick?.item} stale={stale} dups={dups} onSelect={selectOnSheet} onDragStart={startSheetDrag} />
+                <Prim key={`p${i}`} p={g.prims[0]} symbols={symbols} general={general} sel={sel} pick={pick?.item} stale={stale} dups={dups} variants={multicolorIds} onSelect={selectOnSheet} onDragStart={startSheetDrag} />
               ),
             )}
             {dropAt && dropAt.cell !== undefined && preview && <DropCell layout={preview.layout} id={preview.id} />}
             {dropAt && dropAt.cell === undefined && placed && <DropMarker placed={placed} target={dropAt} doc={doc} />}
           </svg>
+        </div>
+        <div className="legend-zoom-dock" role="group" aria-label="Dokumentzoom">
+          <button type="button" className="btn small icon-btn" aria-label="Ansicht verschieben" aria-pressed={viewport.hand} onClick={() => viewport.setHand(value => !value)}><Hand size={15} /></button>
+          <span className="legend-dock-divider" />
+          <button type="button" className="btn small icon-btn" aria-label="Verkleinern" onClick={() => viewport.zoomTo(zoom / 1.2)}><Minus size={14} /></button>
+          <button type="button" className="btn small legend-zoom-value" aria-label="Ansicht auf 100 Prozent" onClick={() => viewport.zoomTo(4)}>{Math.round(zoom / 4 * 100)} %</button>
+          <button type="button" className="btn small icon-btn" aria-label="Vergrössern" onClick={() => viewport.zoomTo(zoom * 1.2)}><Plus size={14} /></button>
+          <span className="legend-dock-divider" />
+          <button type="button" className="btn small" onClick={fitWidth}>Breite</button>
+          <button type="button" className="btn small" onClick={() => viewport.fitView("page")}><Maximize2 size={14} /> Ganzes Blatt</button>
+          <InfoTip text="Strg + Mausrad zoomt am Mauszeiger. Strg + Plus/Minus/0 verändert nur dieses Blatt. Leertaste halten oder die Hand wählen und ziehen verschiebt die Ansicht." />
+        </div>
         </div>
 
         <aside className={`legend-props ${detached ? "floating" : ""}`}>
@@ -1362,6 +1428,8 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
             <GeneralRowProps
               row={general?.rows?.find((r) => r.id === sel.id) ?? null}
               admin={info.company.is_admin}
+              sourceLook={Boolean(doc.style.general_source_look)}
+              onCompanyLook={() => setStyle({ general_source_look: false })}
               onSave={async (patch) => {
                 const row = general?.rows?.find((r) => r.id === sel.id);
                 if (!row?.key) return;
@@ -1420,6 +1488,8 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
               info={info}
               field={field}
               setStyle={setStyle}
+              onCompact={applyCompact}
+              onA4={applyA4}
               projectId={projectId}
               notify={notify}
               exportBlock={exportBlock}
@@ -1448,6 +1518,7 @@ function Prim({
   pick,
   stale,
   dups,
+  variants,
   onSelect,
   onDragStart,
   inert,
@@ -1459,6 +1530,7 @@ function Prim({
   pick?: string;
   stale: Set<string>;
   dups?: Set<string>;
+  variants?: Set<string>;
   onSelect: (s: Selection, add?: boolean) => void;
   onDragStart?: (e: ReactPointerEvent, block: string, item: string) => void;
   inert?: boolean;
@@ -1527,6 +1599,12 @@ function Prim({
       // cut at the tile, so the symbol itself stays as large as the other sections.
       const r = general?.row_svgs?.[p.row];
       if (!r) return null;
+      if (p.draw_w && p.draw_h) {
+        return <g transform={`translate(${p.x + p.w / 2} ${p.y + p.h / 2}) rotate(${-Number(p.rot || 0)})`} pointerEvents="none">
+          <svg x={-p.draw_w / 2} y={-p.draw_h / 2} width={p.draw_w} height={p.draw_h} viewBox={r.vb}
+            preserveAspectRatio="xMidYMid meet" overflow="visible" dangerouslySetInnerHTML={{ __html: r.svg }} />
+        </g>;
+      }
       const fullW = Number(p.full_w) || p.w;
       const fullH = Number(p.full_h) || p.h;
       const crop = fullW > p.w + 0.05 || fullH > p.h + 0.05;
@@ -1561,6 +1639,7 @@ function Prim({
       const isStale = p.kind === "item" && stale.has(p.id);
       const picked = p.kind === "item" && pick === p.id;
       const isDup = p.kind === "item" && Boolean(dups?.has(p.id));
+      const multiColor = p.kind === "item" && Boolean(variants?.has(p.id));
       if (p.kind === "section")
         return (
           <rect
@@ -1584,13 +1663,14 @@ function Prim({
           width={p.w}
           height={p.h}
           fill={selected || picked ? "rgba(11,107,203,0.10)" : "transparent"}
-          stroke={selected || picked ? "#0b6bcb" : isDup ? "#e8590c" : isStale ? "#c92a2a" : "none"}
+          stroke={multiColor ? "#e8590c" : selected || picked ? "#0b6bcb" : isDup ? "#e8590c" : isStale ? "#c92a2a" : "none"}
           strokeWidth={0.3}
           strokeDasharray={picked ? "1 0.5" : (isStale || isDup) && !selected ? "0.8 0.5" : undefined}
           className="lg-hit"
           data-hit={p.kind}
           data-block={p.block ?? undefined}
           data-id={p.id}
+          data-layer-variants={multiColor || undefined}
           onPointerDown={p.kind === "item" && onDragStart ? (e) => onDragStart(e, p.block, p.id) : undefined}
           onClick={(e) => {
             e.stopPropagation();
@@ -1746,6 +1826,37 @@ function SymIcon({ r, color = "#000000" }: { r?: SymbolRender; color?: string })
     <svg className="sym-icon" viewBox={r.box.join(" ")} aria-hidden style={{ color, ["--sym-layer" as string]: tint(color, 0.45) }}
       dangerouslySetInnerHTML={{ __html: innerSvg(r.svg) }} />
   );
+}
+
+/** Source-colour repetitions belong to one logical apparatus. Semantic parts
+ * get independent controls, so choosing red never removes its UP/AP partner. */
+function ColorVariantChoice({ source, label, onChoose, overridden = false }: {
+  source: LayerColorSource;
+  label: string;
+  onChoose: (colors: string[]) => void;
+  overridden?: boolean;
+}) {
+  const colors = legendLayerColors(source);
+  if (colors.length < 2) return null;
+  const visible = legendVisibleLayerColors(source);
+  const selected = overridden ? "override" : visible.length === colors.length ? "all" : visible.length === 1 ? visible[0] : "subset";
+  const colorName = (index: number) => `Farbe ${index < 26 ? String.fromCharCode(65 + index) : index + 1}`;
+  return <div className="field legend-color-variant-field">
+    <span>Farbvarianten <InfoTip text="Alle zeigt die Originalfarben nebeneinander. Mit Nur Farbe A/B zeigst du eine Quellfarbe dieses Symbols. Die Auswahl wird in dieser Legende gespeichert und auch exportiert. Die anderen Originalfarben bleiben erhalten; weitere kombinierte Apparate werden nicht entfernt. Eine eigene Symbolfarbe wird bei dieser Auswahl zurückgesetzt." /></span>
+    <div className="legend-color-options" role="group" aria-label={label}>
+      {colors.length > 4 ? <select className="select" aria-label={label} value={selected} onChange={event => onChoose(event.target.value === "all" ? [] : [event.target.value])}>
+        <option value="all">Alle Farben</option>
+        {(selected === "override" || selected === "subset") && <option value={selected} disabled>{selected === "override" ? "Eigene Symbolfarbe aktiv" : `${visible.length} Farben gewählt`}</option>}
+        {colors.map((color, index) => <option key={color} value={color}>Nur {colorName(index)} · {color.toUpperCase()}</option>)}
+      </select> : <>
+        <button type="button" aria-pressed={selected === "all"} onClick={() => onChoose([])}>Alle</button>
+        {colors.map((color, index) => <button key={color} type="button" aria-pressed={selected === color} title={color.toUpperCase()} onClick={() => onChoose([color])}>
+          <span className="legend-choice-swatch" style={{ background: color }} aria-hidden="true" />Nur {colorName(index)}
+        </button>)}
+      </>}
+    </div>
+    {overridden && <small className="hint">Eigene Symbolfarbe aktiv</small>}
+  </div>;
 }
 
 /** Mix a colour with white (share 0 = colour, 1 = white). */
@@ -1950,7 +2061,7 @@ function ItemProps({
       <h4>{title}</h4>
       {tabs}
       {splitBox}
-      {item.kind === "text" && <p className="hint">{FREE_TEXT_HINT}</p>}
+      {item.kind === "text" && <details className="legend-help"><summary>ⓘ Freier Text</summary><div>{FREE_TEXT_HINT}</div></details>}
       {stale && <p className="warn-text">Dieser Apparat kommt in den aktuellen Importen nicht vor.</p>}
       {duplicate && <p className="warn-text">doppelt: Dieses Symbol steht schon weiter oben in der Legende.</p>}
       {item.hidden && (
@@ -1962,7 +2073,7 @@ function ItemProps({
         </div>
       )}
       {item.kind === "symbol" && !parts.length && (
-        <p className="hint">Strg+Klick auf ein zweites Kästchen: beide zu einem Eintrag kombinieren, z. B. «Decke / Wand».</p>
+        <details className="legend-help"><summary>Symbole kombinieren</summary><div>Strg+Klick auf ein zweites Kästchen wählt beide Einträge. Die Symbole stehen nach dem Kombinieren vollständig nebeneinander, zum Beispiel «Decke / Wand».</div></details>
       )}
       <label className="field">
         <span>{item.kind === "text" ? "Text" : parts.length ? "Text 1" : "Beschreibung"}</span>
@@ -2001,7 +2112,7 @@ function ItemProps({
             </>
           ) : (
             <>
-              <span className="company-state muted">Noch kein Firmentext. Der Text kommt aus der Schablone.</span>
+              <span className="company-state muted">Text aus Schablone <InfoTip text="Ein Firmentext wird für zukünftige Vorschläge und neu hinzugefügte Einträge verwendet. Bestehende Projekte werden nicht automatisch überschrieben." /></span>
               <button className="btn small" onClick={saveCompanyText} title="Gilt beim Hinzufügen und bei neuen Vorschlägen in allen Projekten">
                 Als Firmentext speichern
               </button>
@@ -2039,9 +2150,8 @@ function ItemProps({
           </div>
         )}
       </div>
-      <p className="hint">
-        Faktor 1 = gemeinsame Schriftgrösse bzw. gemeinsamer Symbolmassstab. 1,2 macht nur diesen Eintrag grösser, die Zeile wächst um ganze Rasterzeilen.
-      </p>
+      <details className="legend-help"><summary>Grösse und Massstab</summary><div>Faktor 1 verwendet die gemeinsame Grösse. Faktor 1,2 vergrössert diesen Eintrag; seine Zeile wächst bei Bedarf mit.</div></details>
+      {item.kind === "symbol" && <ColorVariantChoice source={item} label="Farbvarianten Symbol 1" overridden={Boolean(item.symbol_color)} onChoose={colors => set({ visible_layer_colors: colors, symbol_color: "" })} />}
       {(item.kind === "symbol" || item.kind === "line" || item.kind === "note") && (
         <div className="field">
           <span>Symbolfarbe</span>
@@ -2049,7 +2159,7 @@ function ItemProps({
             <input
               type="color"
               aria-label="Symbolfarbe"
-              value={item.symbol_color || item.color || block.style.symbol || "#000000"}
+              value={item.symbol_color || legendVisibleLayerColors(item)[0] || block.style.symbol || "#000000"}
               onChange={(e) => set({ symbol_color: e.target.value })}
             />
             <button
@@ -2057,18 +2167,19 @@ function ItemProps({
               onClick={() => set({ symbol_color: block.style.symbol })}
               title="Das ganze Symbol in der Farbe dieses Abschnitts zeichnen"
             >
-              Farbe von Abschnitt übernehmen
+              Abschnittsfarbe
             </button>
             {item.symbol_color && (
               <button className="btn small" onClick={() => set({ symbol_color: "" })} title="Zurück zur automatischen Farbe">
-                Automatisch
+                Layerfarben
               </button>
             )}
           </div>
-          <p className="hint">
-            Automatisch bleiben Schwarz, Grau und Weiss in der Abschnittsfarbe. Eine eigene Farbe im Symbol, zum Beispiel Rot, bleibt.
-            Eine gewählte Farbe oder «Farbe von Abschnitt übernehmen» färbt das ganze Symbol.
-          </p>
+          {legendItemColors(item).length > 0 && <div className="legend-layer-variants" aria-label="Original-Layerfarben">
+            <span className={legendItemColors(item).length > 1 ? "badge layer-variant-badge" : "hint"}>{legendItemColors(item).length} Layerfarbe{legendItemColors(item).length === 1 ? "" : "n"}</span>
+            <span className="legend-layer-swatches">{legendItemColors(item).map(color => <span key={color} className={`legend-layer-swatch ${legendVisibleItemColors(item).includes(color) ? "" : "is-omitted"}`} style={{ background: color }} title={`${color}${legendVisibleItemColors(item).includes(color) ? "" : " · nicht dargestellt"}`} />)}</span>
+          </div>}
+          <details className="legend-help"><summary>Layerfarben und eigene Farbe</summary><div>Die Originalfarben bleiben gespeichert. Unter Farbvarianten wählst du für dieses Symbol alle Farben oder eine einzelne Farbe; die Auswahl gilt auch im Export. Kombinierte Apparate behalten ihre jeweils eigene Auswahl. Eine eigene Symbolfarbe überschreibt die Darstellung; «Layerfarben» stellt die gewählten Originalfarben wieder her. Der orange Hinweisrahmen wird nicht exportiert.</div></details>
         </div>
       )}
       {item.kind === "symbol" && item.family_key && (
@@ -2176,11 +2287,7 @@ function BlockProps({
   const setStyle = (patch: Partial<SectionStyle>) => change(updateSectionStyle(doc, block.id, patch));
   return (
     <>
-      <h4>Abschnitt</h4>
-      <p className="hint">
-        {block.category_id ? `Kategorie: ${catTitle[block.category_id] ?? block.category_id}. ` : ""}
-        {block.layer ? `Ebene im Export: ${block.layer}. ` : ""}Änderungen gelten nur für diese Legende.
-      </p>
+      <h4>Abschnitt <InfoTip text={`${block.category_id ? `Kategorie: ${catTitle[block.category_id] ?? block.category_id}. ` : ""}${block.layer ? `Ebene im Export: ${block.layer}. ` : ""}Änderungen gelten nur für diese Legende. Die Symbole behalten ihre ursprünglichen Planfarben.`} /></h4>
       <label className="field">
         <span>Überschrift</span>
         <input className="input" list="lg-headings" value={block.title} {...field((d, v) => updateBlock(d, block.id, { title: v }))} />
@@ -2191,15 +2298,19 @@ function BlockProps({
         </datalist>
       </label>
       <div className="color-grid">
-        {COLOR_FIELDS.map(([key, label]) => (
+        {COLOR_FIELDS.filter(([key]) => !doc.style.compact_flow || key !== "header_text").map(([key, label]) => (
           <label key={key} className="color-field">
             <input type="color" value={String(block.style[key])} onChange={(e) => setStyle({ [key]: e.target.value } as Partial<SectionStyle>)} />
-            <span>{label}</span>
+            <span>{doc.style.compact_flow && key === "header" ? "Rubrikfarbe" : label}</span>
           </label>
         ))}
       </div>
-      <p className="hint">Symbole behalten die Farben aus der Nova-Zeichnung.</p>
-      <div className="color-grid">
+      <details className="legend-help"><summary>ⓘ Rubrik und Originalfarben</summary><div>Die Rubrikfarbe markiert Überschrift und Trennlinie. Die Symbole behalten ihre eigenen Planfarben; ein roter Rubrikmarker bedeutet deshalb nicht, dass ein blauer Schalter umgefärbt wurde. Die folgende Aktion gleicht nur diese Rubrik an die häufigste Originalfarbe ihrer sichtbaren Symbole an. Bei gleich häufigen Farben bleibt die Rubrik unverändert.</div></details>
+      <button className="btn small" onClick={() => {
+        const selected = alignLegendSectionColors({ ...doc, blocks: [block] }).blocks[0];
+        change({ ...doc, blocks: doc.blocks.map(item => item.id === block.id ? selected : item) });
+      }}>Rubrikfarbe aus Symbolen</button>
+      {!doc.style.compact_flow && <div className="color-grid">
         <label className="color-field">
           <input type="checkbox" checked={block.style.background_on} onChange={(e) => setStyle({ background_on: e.target.checked })} aria-label="Hintergrundfarbe an" />
           <input type="color" value={block.style.background} onChange={(e) => setStyle({ background: e.target.value })} aria-label="Hintergrundfarbe" />
@@ -2210,15 +2321,15 @@ function BlockProps({
           <input type="color" value={block.style.border} onChange={(e) => setStyle({ border: e.target.value })} aria-label="Farbe Umrandung" />
           <span>Umrandung</span>
         </label>
-      </div>
+      </div>}
       <label className="field" style={{ marginTop: 6 }}>
         <span>Textgrösse Überschrift (Faktor)</span>
         <NumberInput value={block.title_scale ?? 1} step={0.1} onCommit={(v) => change(updateBlock(doc, block.id, { title_scale: Math.max(0.5, Math.min(3, v)) }))} />
       </label>
-      <label className="field" style={{ marginTop: 6 }}>
+      {!doc.style.compact_flow && <label className="field" style={{ marginTop: 6 }}>
         <span>Innenabstand (mm)</span>
         <NumberInput value={block.style.padding} step={0.5} onCommit={(v) => setStyle({ padding: Math.max(0, Math.min(10, v)) })} />
-      </label>
+      </label>}
       <div className="row" style={{ marginTop: 6 }}>
         <button className="btn small" onClick={() => onMove(-1)}>
           ↑ Nach oben
@@ -2278,7 +2389,7 @@ function TitleProps({ doc, field, change }: { doc: LegendDoc; field: FieldFn; ch
 }
 
 function generalSectionOf(doc: LegendDoc): GeneralSection {
-  return doc.general_section ?? { title: "Allgemein", header: "#1c7ed6", header_text: "#ffffff", title_scale: 1 };
+  return doc.general_section ?? { title: "Allgemein", header: "#007f91", header_text: "#ffffff", text: "#000000", title_scale: 1 };
 }
 
 function GeneralProps({
@@ -2298,19 +2409,19 @@ function GeneralProps({
     <>
       <h4>
         Allgemein
-        <InfoTip text={"Kategorie über dem Allgemeinteil, wie die anderen Abschnitte.\nEine Zeile anklicken, um Text und Grösse zu ändern. Eine Zwischenüberschrift wie «Farbcodes» sitzt unten auf der Rasterlinie.\nDie Zeichnung selbst bleibt die Firmenvorlage. N4D wird nicht gelesen."} />
+        <InfoTip text={"Der Allgemeinteil beginnt mit einer Überschrift mit Farbakzent. Die Farbcodes stehen kompakt direkt darunter. Eine Zeile anklicken, um Text und Grösse zu ändern. Die Zeichnung selbst bleibt die Firmenvorlage."} />
       </h4>
       <label className="field">
-        <span>Kategorientitel</span>
+        <span>Titel</span>
         <input className="input" aria-label="Kategorientitel Allgemeinteil" value={section.title} onChange={(e) => set({ title: e.target.value })} />
       </label>
       <div className="color-grid">
         <label className="color-field">
-          <input type="color" value={section.header} onChange={(e) => set({ header: e.target.value })} aria-label="Farbe Kopfleiste Allgemeinteil" />
-          <span>Kopfleiste</span>
+          <input type="color" value={section.header || "#007f91"} onChange={event => set({ header: event.target.value })} aria-label="Akzentfarbe Allgemeinteil" />
+          <span>Akzent</span>
         </label>
         <label className="color-field">
-          <input type="color" value={section.header_text} onChange={(e) => set({ header_text: e.target.value })} aria-label="Schriftfarbe Kopfleiste Allgemeinteil" />
+          <input type="color" value={section.text || (section.header_text !== "#ffffff" ? section.header_text : "#000000")} onChange={(e) => set({ text: e.target.value })} aria-label="Schriftfarbe Überschrift Allgemeinteil" />
           <span>Schrift</span>
         </label>
       </div>
@@ -2318,7 +2429,7 @@ function GeneralProps({
         <span>Textgrösse Überschrift (Faktor)</span>
         <NumberInput value={section.title_scale} step={0.1} onCommit={(v) => set({ title_scale: Math.max(0.5, Math.min(3, v)) })} />
       </label>
-      <dl className="kv">
+      <details className="legend-help"><summary>ⓘ Quelle und Berechtigung</summary><div><dl className="kv">
         <dt>Quelle</dt>
         <dd style={{ wordBreak: "break-all" }}>{general?.source || "–"}</dd>
         <dt>Admins</dt>
@@ -2328,7 +2439,7 @@ function GeneralProps({
             <span key={name} className="admin-chip">★ {name}{name.toLocaleLowerCase("de-CH") === company.user.toLocaleLowerCase("de-CH") ? " (du)" : ""}</span>
           )) : "noch keine"}
         </dd>
-      </dl>
+      </dl></div></details>
     </>
   );
 }
@@ -2336,11 +2447,15 @@ function GeneralProps({
 function GeneralRowProps({
   row,
   admin,
+  sourceLook,
+  onCompanyLook,
   onSave,
   notify,
 }: {
   row: { id: string; key?: string; text: string; heading: boolean; text_scale?: number; symbol_factor?: number; rotation?: number; text_place?: "top" | "middle" | "bottom"; line?: boolean; picture?: "line" | "swatch" | "symbol" } | null;
   admin: boolean;
+  sourceLook: boolean;
+  onCompanyLook: () => void;
   onSave: (patch: { text?: string; text_scale?: number; symbol_factor?: number; rotation?: number; text_place?: "top" | "middle" | "bottom" }) => Promise<void>;
   notify: (text: string, error?: boolean) => void;
 }) {
@@ -2362,7 +2477,7 @@ function GeneralRowProps({
   return (
     <>
       <h4>{row.heading ? "Zwischenüberschrift" : "Zeile im Allgemeinteil"}</h4>
-      <p className="hint">
+      <details className="legend-help"><summary>ⓘ Darstellung und Geltungsbereich</summary><div>
         {row.heading
           ? "Zwischenüberschrift ohne Symbol, zum Beispiel «Farbcodes». Die Lage in der Rasterzeile stellst du unten ein."
           : row.picture === "swatch"
@@ -2371,22 +2486,25 @@ function GeneralRowProps({
               ? "Eine Linie bleibt immer gleich lang, damit Strich, Punkt und Farbe lesbar bleiben. Die Symbolgrösse ändert sie nicht."
               : "Das Symbol wird vollständig in die Kachel gesetzt, ohne Führungslinie und ohne Beschriftung aus der Vorlage. Der Text bleibt waagrecht."}
         {admin ? " Die Änderung gilt in allen Projekten." : " Nur Admins können das ändern."}
-      </p>
+      </div></details>
       <label className="field">
         <span>Text</span>
         <input className="input" aria-label="Text der Allgemeinteil-Zeile" value={text} disabled={!admin || busy} onChange={(e) => setText(e.target.value)}
           onBlur={() => { if (admin && text.trim() && text !== row.text) save({ text }); }} />
       </label>
+      {sourceLook && <div className="legend-source-look"><p className="hint">Diese Legende verwendet die Vorlagenwerte: Faktor 1 und keine zusätzliche Drehung. Texte und Zuordnungen bleiben erhalten.</p>
+        <button className="btn small" onClick={onCompanyLook}>Gespeicherte Darstellung verwenden</button></div>}
+      <fieldset disabled={sourceLook} style={{ border: 0, margin: 0, padding: 0 }}>
       <div className="form two">
         <label className="field">
           <span>Textgrösse (Faktor)</span>
-          <NumberInput label="Textgrösse Faktor Allgemeinteil" value={row.text_scale ?? 1} step={0.1} disabled={!admin}
+          <NumberInput label="Textgrösse Faktor Allgemeinteil" value={sourceLook ? 1 : row.text_scale ?? 1} step={0.1} disabled={!admin}
             onCommit={(v) => save({ text_scale: Math.max(0.5, Math.min(3, v)) })} />
         </label>
         {!row.heading && !row.line && row.picture !== "swatch" && (
           <label className="field">
             <span>Symbolgrösse (Faktor)</span>
-            <NumberInput label="Symbolgrösse Faktor Allgemeinteil" value={row.symbol_factor ?? 1} step={0.1} disabled={!admin}
+            <NumberInput label="Symbolgrösse Faktor Allgemeinteil" value={sourceLook ? 1 : row.symbol_factor ?? 1} step={0.1} disabled={!admin}
               onCommit={(v) => save({ symbol_factor: Math.max(0.5, Math.min(2, v)) })} />
           </label>
         )}
@@ -2404,7 +2522,7 @@ function GeneralRowProps({
       )}
       {!row.heading && !row.line && row.picture !== "swatch" && (
         <div className="field">
-          <span>Drehung {row.rotation || 0}°</span>
+          <span>Drehung {sourceLook ? 0 : row.rotation || 0}°</span>
           <div className="row" style={{ gap: 4, flexWrap: "wrap" }}>
             <button className="btn small" disabled={!admin || busy} onClick={() => save({ rotation: ((row.rotation || 0) + 45) % 360 })} title="Um 45 Grad drehen. Der Text bleibt waagrecht.">
               ↻ 45°
@@ -2413,13 +2531,14 @@ function GeneralRowProps({
               ↻ 90°
             </button>
             {(row.rotation || 0) !== 0 && (
-              <button className="btn small" disabled={!admin || busy} onClick={() => save({ rotation: 0 })}>
-                Zurück
+              <button className="btn small" disabled={!admin || busy} onClick={() => save({ rotation: 0 })} title="Nur die zusätzliche Drehung aufheben. Die Geometrie aus der Firmenvorlage bleibt erhalten.">
+                Vorlagendrehung
               </button>
             )}
           </div>
         </div>
       )}
+      </fieldset>
     </>
   );
 }
@@ -2429,6 +2548,8 @@ function DocProps({
   info,
   field,
   setStyle,
+  onCompact,
+  onA4,
   projectId,
   notify,
   exportBlock,
@@ -2443,6 +2564,8 @@ function DocProps({
   info: LegendInfo;
   field: FieldFn;
   setStyle: (patch: Partial<LegendDoc["style"]>) => void;
+  onCompact: () => void;
+  onA4: () => void;
   projectId: string;
   notify: (text: string, error?: boolean) => void;
   exportBlock: string;
@@ -2455,10 +2578,14 @@ function DocProps({
 }) {
   const s = doc.style;
   const company = info.company;
-  const tileMm = String(Math.round(s.text_size * 3.6 * s.symbol_scale * 10) / 10).replace(".", ",");
+  const fitted = s.symbol_fit === "corridor";
+  const effectiveRow = s.compact_flow && s.grid !== "custom" ? 5 : s.row;
+  const tileHeight = Math.min(s.text_size * 3.6 * s.symbol_scale, s.grid === "standard" && !s.compact_flow ? Infinity : Math.max(2.4, effectiveRow - .4));
+  const tileMm = String(Math.round(tileHeight * .9 * 10) / 10).replace(".", ",");
   const sizeTip = (s.symbol_size ?? "tile") === "real"
     ? "Jedes Symbol im gemeinsamen Massstab, Einfügepunkt auf der Achse. Ein grosses Symbol belegt mehr Zeilen."
-    : `Kachel ${tileMm} mm, aus der Schriftgrösse. Jedes Symbol füllt 75 % davon.`;
+    : fitted ? `Bis ${tileMm} mm Höhe und rund 13 mm Breite. Lange Leuchten und Leitungen nutzen den breiten Symbolkorridor; Proportionen und gespeicherte Drehrichtung bleiben erhalten. Grössenfaktoren vergrössern nur bis zur Feldgrenze.`
+    : `Quadratische Kachel mit bis ${tileMm} mm sichtbarer Symbolhöhe. Lange schmale Zeichnungen werden durch die Quadratbreite begrenzt.`;
   return (
     <>
       <h4>Legende <InfoTip text="Eintrag oder Kopfleiste anklicken. Ziehen oder ↑ ↓ verschiebt." /></h4>
@@ -2467,6 +2594,14 @@ function DocProps({
         <input className="input" value={doc.title.text} {...field((d, v) => ({ ...d, title: { ...d.title, text: v } }))} />
       </label>
       <div className="form two">
+        <label className="field">
+          <span>Layout <InfoTip text="Dichte wie Entwurf: drei Apparatespalten mit 2,8 mm Schrift. A4 kompakt: vier Spalten mit 2,6 mm Schrift und kleineren Rändern. Beide verwenden breite Symbolfelder statt Quadratbegrenzung. Der Allgemeinteil nutzt die Geometrie der Vorlage ohne zusätzliche gespeicherte Faktoren oder Drehungen; diese bleiben für die frühere Darstellung erhalten. Inhalte, Quellfarben und Zuordnungen bleiben erhalten. Rückgängig stellt alle vorherigen Werte wieder her. Die Höhe folgt dem Inhalt." /></span>
+          <select className="select" aria-label="Legendenlayout" value={s.compact_flow ? s.columns === 4 ? "a4" : "compact" : "classic"} onChange={event => event.target.value === "compact" ? onCompact() : event.target.value === "a4" ? onA4() : setStyle({ compact_flow: false })}>
+            <option value="compact">Dichte wie Entwurf</option>
+            <option value="a4">A4 kompakt</option>
+            <option value="classic">Klassische Abschnitte</option>
+          </select>
+        </label>
         <label className="field">
           <span>Schriftgrösse (mm)</span>
           <NumberInput label="Schriftgrösse" value={s.text_size} step={0.25} onCommit={(v) => setStyle({ text_size: Math.max(1, Math.min(10, v)) })} />
@@ -2481,16 +2616,17 @@ function DocProps({
         </label>
         <label className="field">
           <span>Symbolgrösse <InfoTip text={sizeTip} /></span>
-          <select className="select" aria-label="Symbolgrösse" value={s.symbol_size ?? "tile"} onChange={(e) => setStyle({ symbol_size: e.target.value as "real" | "tile" })}>
-            <option value="tile">Gleiche Kacheln</option>
-            <option value="real">Echte Grösse</option>
+          <select className="select" aria-label="Symbolgrösse" value={s.symbol_size === "real" ? "real" : fitted ? "fit" : "tile"} onChange={(e) => setStyle({ symbol_size: e.target.value === "real" ? "real" : "tile", symbol_fit: e.target.value === "fit" ? "corridor" : "square" })}>
+            <option value="fit">Breites Symbolfeld</option>
+            <option value="tile">Quadratische Kacheln</option>
+            <option value="real">Originalmassstab</option>
           </select>
         </label>
-        {(s.symbol_size ?? "tile") === "tile" && (
+        {(s.symbol_size ?? "tile") === "tile" && !fitted && (
           <label className="toggle field" style={{ alignSelf: "end" }}>
             <input type="checkbox" checked={s.normalize_size !== false}
               onChange={(e) => setStyle({ normalize_size: e.target.checked })} />
-            Gleiche Fläche <InfoTip text="Jedes Symbol bekommt dieselbe Fläche, höchstens 75 % der Kachel. Ein Kreis wirkt so nicht grösser als ein langer Balken. Aus: die längere Seite füllt 75 % der Kachel." />
+            Gleiche Fläche <InfoTip text="Jedes Symbol bekommt dieselbe Fläche, mit einem kleinen freien Rand. Ein Kreis wirkt so nicht grösser als ein langer Balken. Aus: die längere Seite bestimmt die Grösse." />
           </label>
         )}
         <label className="field">
@@ -2509,11 +2645,16 @@ function DocProps({
         <label className="field">
           <span>
             Blattbreite (mm)
-            <InfoTip text={`Inkl. 5 mm Rand. Standard 200 mm, höchstens 210 mm. Firmen-Standard: Schrift ${String(company.text_size).replace(".", ",")} mm, Massstab ${String(company.symbol_scale).replace(".", ",")}.`} />
+            <InfoTip text={`Zeichnungsbreite inklusive Innenrand. Das PDF ergänzt aussen 5 mm je Seite: 200 mm ergeben 210 mm PDF-Breite. Firmen-Standard: Schrift ${String(company.text_size).replace(".", ",")} mm, Massstab ${String(company.symbol_scale).replace(".", ",")}.`} />
           </span>
           <NumberInput label="Blattbreite" value={s.width} step={5} min={80} max={210} onCommit={(v) => setStyle({ width: v })} />
         </label>
+        <label className="field">
+          <span>Innenrand (mm)</span>
+          <NumberInput label="Innenrand" value={s.margin ?? 5} step={0.5} min={2} max={10} onCommit={value => setStyle({ margin: Math.max(2, Math.min(10, value)) })} />
+        </label>
       </div>
+      {hasGeneral && <label className="toggle"><input type="checkbox" checked={Boolean(s.general_source_look)} onChange={event => setStyle({ general_source_look: event.target.checked })} />Allgemeinteil mit Vorlagenwerten <InfoTip text="Nur diese Legende: ursprüngliche Symbolausrichtung, Faktor 1 und gemeinsame Schriftgrösse. Gespeicherte zusätzliche Drehungen und Vergrösserungen bleiben in der Firmenkonfiguration erhalten und werden nach Ausschalten wieder verwendet. Die Quelldatei wird nicht verändert." /></label>}
       <div className="row">
         <label className="toggle" style={{ color: "var(--fg)" }}>
           <input type="checkbox" checked={Boolean(s.hatch_off)} onChange={(e) => setStyle({ hatch_off: e.target.checked })} />
@@ -2557,7 +2698,7 @@ function DocProps({
 
       <div className="section">
         Export
-        <InfoTip text={"Speichert zuerst die Legende.\nDateiname aus Bezeichnung und Abschnitt.\nPDF ist dieselbe Zeichnung, 1:1 in mm, 10 mm Rand.\nDXF R2013, Truecolor, Symbole als Blöcke. Das Blatt bleibt weiss."} />
+        <InfoTip text={"Speichert zuerst die Legende.\nDateiname aus Bezeichnung und Abschnitt.\nPDF ist dieselbe Zeichnung, 1:1 in mm, 5 mm Rand.\nDXF R2013, Truecolor, Symbole als Blöcke. Das Blatt bleibt weiss."} />
       </div>
       <label className="field">
         <span>Was exportieren</span>
@@ -2617,10 +2758,6 @@ function DocProps({
   );
 }
 
-function round(v: number): number {
-  return Math.round(v * 1000) / 1000;
-}
-
 function formatStamp(iso: string): string {
   const m = /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})/.exec(iso || "");
   return m ? `${m[3]}.${m[2]}. ${m[4]}:${m[5]}` : "";
@@ -2675,7 +2812,7 @@ function CompanyCategoryField({ familyKey, notify }: { familyKey: string; notify
           <option key={c.id} value={c.id}>{c.parent ? `${byId[c.parent]?.title ?? ""} › ` : ""}{c.title}</option>
         ))}
       </select>
-      <p className="hint">Wirkt in allen Projekten beim nächsten Vorschlag. Diese Legende bleibt, bis du sie neu vorschlagen lässt.</p>
+      <InfoTip text="Die firmenweite Kategorie wird beim nächsten Vorschlag verwendet. Bestehende Legenden werden nicht automatisch geändert." />
     </label>
   );
 }
@@ -2722,6 +2859,10 @@ function PartProps({ part, index, item, block, doc, field, change }: {
         <span>Text {n}</span>
         <input className="input" value={part.text} {...field((d, v) => updatePart(d, block.id, item.id, index, { text: v }))} />
       </label>
+      <ColorVariantChoice source={part} label={`Farbvarianten Symbol ${n}`} overridden={Boolean(item.symbol_color)} onChoose={colors => {
+        const next = updatePart(doc, block.id, item.id, index, { visible_layer_colors: colors });
+        change(updateItem(next, block.id, item.id, { symbol_color: "" }));
+      }} />
       <div className="form two">
         <label className="field">
           <span>Symbol {n}: Grösse (Faktor)</span>

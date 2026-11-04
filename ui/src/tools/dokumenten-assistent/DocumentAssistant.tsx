@@ -1,11 +1,14 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
+import { BookOpen } from "lucide-react";
 import ToolHeader from "../../toolbox/ToolHeader";
 import type { ToolProps } from "../../toolbox/modules";
 import { request, sourceLabel, ROOT, type Answer, type DocumentInfo, type DocumentPage, type LibraryState, type Source } from "./api";
 import Settings from "./Settings";
+import QwenGuide from "./QwenGuide";
+import FolderSettings from "./FolderSettings";
 import "./documents.css";
 
-export default function DocumentAssistant({ onHome }: ToolProps) {
+export default function DocumentAssistant({ onHome, onOpenTool }: ToolProps) {
   const [library, setLibrary] = useState<LibraryState | null>(null);
   const [selected, setSelected] = useState<string[]>([]);
   const [edition, setEdition] = useState("");
@@ -19,6 +22,7 @@ export default function DocumentAssistant({ onHome }: ToolProps) {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [folderOpen, setFolderOpen] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
   const pageRequest = useRef(0);
   const controller = useRef<AbortController | null>(null);
@@ -121,7 +125,8 @@ export default function DocumentAssistant({ onHome }: ToolProps) {
   const highlighted = (number: number) => Boolean(source && page && source.document_id === page.document.id && source.page === page.number && number >= source.start_line && number <= source.end_line);
 
   return <div className="document-assistant">
-    <ToolHeader title="Dokumenten-Assistent" onHome={onHome} disabled={busy === "upload" || busy === "delete"}>
+    <ToolHeader title="Dokumenten-Assistent" onHome={onHome} onOpenTool={onOpenTool} disabled={busy === "upload" || busy === "delete"}>
+      <button className="btn" disabled={!library || Boolean(busy)} onClick={() => setFolderOpen(true)}>Dokumentordner</button>
       <button className="btn" disabled={!library || Boolean(busy)} onClick={() => setSettingsOpen(true)}>KI-Verbindung</button>
     </ToolHeader>
     <div className="doc-workspace">
@@ -133,7 +138,7 @@ export default function DocumentAssistant({ onHome }: ToolProps) {
         <label className={`btn doc-add ${busy ? "is-disabled" : ""}`}>{busy === "upload" ? "Dokumente werden eingelesen …" : "+ Dokumente hinzufügen"}
           <input ref={upload} type="file" accept=".pdf,.txt,.md" multiple disabled={!library || Boolean(busy)}
             aria-label="Dokumente hinzufügen" onChange={e => void addFiles(e.target.files)} /></label>
-        <p className="doc-help">Max. 100 MB und 2000 PDF-Seiten pro Datei. Originale werden im persönlichen Toolbox-Datenordner aufbewahrt.</p>
+        <p className="doc-help">Max. 100 MB und 2000 PDF-Seiten pro Datei. Originale werden im persönlichen Toolhub-Datenordner aufbewahrt.</p>
         {!documents.length && <div className="doc-empty-library">Füge dein erstes Dokument hinzu. Danach kannst du Fundstellen suchen und Fragen stellen.</div>}
         <div className="doc-document-list">{documents.map(doc => <article key={doc.id} className="doc-document">
           <label className="doc-checkbox"><input type="checkbox" checked={selected.includes(doc.id)}
@@ -145,7 +150,7 @@ export default function DocumentAssistant({ onHome }: ToolProps) {
           <div className="doc-document-actions"><button className="btn" disabled={Boolean(busy)} onClick={() => void openPage(doc.id, 1)}>Ansehen</button>
             <button className="btn" disabled={Boolean(busy)} onClick={() => setDeleting(doc.id)}>Entfernen</button></div>
           {deleting === doc.id && <div className="doc-delete" role="group" aria-label={`${doc.title} entfernen`}>
-            <p>Dieses Dokument und seinen Suchindex aus der Toolbox entfernen? Die ursprüngliche Datei ausserhalb der Toolbox bleibt erhalten.</p>
+            <p>Dieses Dokument und seinen Suchindex aus dem Toolhub entfernen? Die ursprüngliche Datei ausserhalb des Toolhubs bleibt erhalten.</p>
             <button className="btn danger" disabled={Boolean(busy)} onClick={() => void remove(doc.id)}>Jetzt entfernen</button>
             <button className="btn" disabled={Boolean(busy)} onClick={() => setDeleting(null)}>Abbrechen</button>
           </div>}
@@ -154,6 +159,7 @@ export default function DocumentAssistant({ onHome }: ToolProps) {
       <main className="doc-conversation">
         <p className="toolbox-eyebrow">WISSEN MIT QUELLEN.</p><h2>Was möchtest du wissen?</h2>
         <p className="doc-intro">Frage zu deinen ausgewählten Unterlagen. Jede Antwort führt zurück zur Fundstelle.</p>
+        <QwenGuide onOpenSettings={() => setSettingsOpen(true)} disabled={!library || Boolean(busy)} />
         <form onSubmit={submit} className="doc-question-form">
           <label htmlFor="doc-question">Deine Frage</label>
           <textarea id="doc-question" rows={4} maxLength={2000} value={question} disabled={Boolean(busy)}
@@ -163,7 +169,7 @@ export default function DocumentAssistant({ onHome }: ToolProps) {
             <button type="button" className="btn primary" disabled={!canAsk || !library?.settings.configured} onClick={() => void ask(true)}>
               {busy === "ai" ? "Antwort wird erstellt …" : "KI-Antwort"}</button>
             {(busy === "ai" || busy === "search") && <button className="btn" type="button" onClick={() => controller.current?.abort()}>Abbrechen</button>}</div>
-          {!library?.settings.configured && <p className="doc-help">Die Fundstellensuche ist kostenlos nutzbar. Für formulierte Antworten zuerst den <button type="button" className="doc-text-button" disabled={!library || Boolean(busy)} onClick={() => setSettingsOpen(true)}>gemeinsamen KI-Server verbinden</button>.</p>}
+          {!library?.settings.configured && <p className="doc-help">Die Fundstellensuche ist kostenlos nutzbar. Für formulierte Antworten zuerst die <button type="button" className="doc-text-button" disabled={!library || Boolean(busy)} onClick={() => setSettingsOpen(true)}>KI-Verbindung einrichten</button> – lokal auf diesem PC oder mit einem gemeinsamen KI-Server.</p>}
         </form>
         {error && <p role="alert" className="doc-error">{error}</p>}
         {notice && <p role="status" className="doc-notice">{notice}</p>}
@@ -202,10 +208,17 @@ export default function DocumentAssistant({ onHome }: ToolProps) {
             })}</div> : <ol className="doc-text-page">{page.lines.map(line => <li key={line.number} value={line.number}
               data-highlight={highlighted(line.number) || undefined} className={highlighted(line.number) ? "is-highlighted" : ""}>{line.text || " "}</li>)}</ol>}
           {!page.lines.length && <p className="doc-warning">Diese Seite enthält keinen durchsuchbaren Text. Für Fundstellen ist eine Texterkennung (OCR) nötig.</p>}
-        </> : <div className="doc-preview-empty"><span aria-hidden="true">↗</span><h3>Quellen direkt nachlesen</h3><p>Klicke auf eine Fundstelle, um die Seite mit markiertem Text zu öffnen. Über „Ansehen“ kannst du auch ohne Frage im Dokument blättern.</p></div>}
+        </> : <div className="doc-preview-empty"><span aria-hidden="true"><BookOpen size={36} /></span><h3>Quellen direkt nachlesen</h3><p>Klicke auf eine Fundstelle, um die Seite mit markiertem Text zu öffnen. Über „Ansehen“ kannst du auch ohne Frage im Dokument blättern.</p></div>}
       </section>
     </div>
     {settingsOpen && library && <Settings value={library.settings} sessionKey={library.session_key}
       onSave={settings => setLibrary({ ...library, settings })} onClose={() => setSettingsOpen(false)} />}
+    {folderOpen && library && <FolderSettings sessionKey={library.session_key} onClose={() => setFolderOpen(false)} onDocuments={next => {
+      const existing = new Set(library.documents.map(document => document.id));
+      const readable = new Set(next.filter(document => document.empty_pages < document.pages).map(document => document.id));
+      setLibrary({ ...library, documents: next });
+      setSelected(old => [...new Set([...old.filter(id => readable.has(id)), ...next.filter(document => !existing.has(document.id) && readable.has(document.id)).map(document => document.id)])]);
+      resetAnswer();
+    }} />}
   </div>;
 }
