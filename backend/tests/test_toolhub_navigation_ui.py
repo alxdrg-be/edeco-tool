@@ -12,6 +12,9 @@ def switch_tool(page, title):
     menu.get_by_role("searchbox", name="Werkzeug suchen", exact=True).fill(title)
     menu.get_by_role("button", name=title, exact=True).click()
     playwright.expect(menu).not_to_be_visible()
+    # Closing the chooser commits the location before the lazy workspace is
+    # ready. Wait for its real header before callers measure fonts/geometry.
+    playwright.expect(page.locator(".toolhub-loading")).to_have_count(0)
 
 
 def switch_calculator(page, title, query=None):
@@ -20,13 +23,18 @@ def switch_calculator(page, title, query=None):
     menu.get_by_role("searchbox", name="Rechner suchen", exact=True).fill(query or title)
     menu.get_by_role("button", name=title, exact=True).click()
     playwright.expect(menu).not_to_be_visible()
+    playwright.expect(page.locator(".toolhub-loading")).to_have_count(0)
 
 
 def test_loading_workspace_does_not_offer_a_disappearing_switcher(editor):
     page, _, _, _ = editor
     pending = []
     page.route("**/Calculations-*.js", lambda route: pending.append(route))
-    switch_tool(page, "Berechnungen")
+    # Inspect the loading state deliberately; switch_tool waits for completion.
+    page.get_by_role("button", name="Werkzeuge", exact=True).click()
+    menu = page.get_by_role("dialog", name="Werkzeug wechseln", exact=True)
+    menu.get_by_role("button", name="Berechnungen", exact=True).click()
+    playwright.expect(menu).not_to_be_visible()
     playwright.expect(page.get_by_text("Werkzeug wird geladen …", exact=True)).to_be_visible()
     playwright.expect(page.get_by_role("button", name="Rechner wechseln", exact=True)).to_have_count(0)
     playwright.expect(page.get_by_role("button", name="Werkzeuge", exact=True)).to_have_count(0)
