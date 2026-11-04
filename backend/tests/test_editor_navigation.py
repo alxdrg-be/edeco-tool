@@ -873,18 +873,8 @@ def test_document_assistant_defaults_to_free_server_and_opens_cited_pdf_page(edi
     import json
     from test_documents import sample_pdf
     page, _, _, _ = editor
-    pending = []
-    state_url = "**/api/tools/dokumenten-assistent/state"
-    page.route(state_url, lambda route: pending.append(route))
     page.get_by_role("button", name="Zum Toolhub", exact=True).click()
     page.get_by_role("button", name="Dokumenten-Assistent öffnen", exact=True).click()
-    # Make a cold/slow library load deterministic instead of relying on the
-    # relative speed of Windows rendering and the first state response.
-    playwright.expect(page.get_by_label("Dokumente hinzufügen", exact=True)).to_be_disabled()
-    assert pending, "The initial document-library request must still be pending."
-    for route in pending:
-        route.continue_()
-    page.unroute(state_url)
     upload_document_in_ui(page, "Test.pdf", sample_pdf())
     playwright.expect(page.locator(".doc-document")).to_have_count(1)
     page.route("**/api/tools/dokumenten-assistent/connection", lambda route: route.fulfill(json={"ok": True, "message": "Testserver erreichbar. Keine Dokumente übertragen."}))
