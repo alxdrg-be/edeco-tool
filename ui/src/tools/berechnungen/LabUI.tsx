@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { calculatorPurpose } from "./purpose";
 import { ArrowLeft, Check, ChevronDown, Download, FolderOpen, Info, Moon, Printer, Save, Search, Sun, X } from "lucide-react";
 import type { ToolProps } from "../../toolbox/modules";
 import { useDialogFocus } from "../../useDialogFocus";
@@ -72,6 +73,7 @@ export function Explanation({ title, children, className = "" }: { title: string
 export function LabShell({ title, subtitle, children, help, setHelp, onHome, onOpenTool, knowledgeId, exportData, canExport, canArchive, report, pdfReport, archive, reviewLabel = "Rechenhilfe · Freigabe offen" }: ToolProps & {
   title: string; subtitle: string; children: ReactNode; help: Help | null; setHelp: (help: Help | null) => void; knowledgeId?: string; exportData?: () => void; canExport?: boolean; canArchive?: boolean; report?: ReactNode; pdfReport?: CalculationPDFReport | null; archive?: ArchivePayload; reviewLabel?: string;
 }) {
+  const purpose = calculatorPurpose(knowledgeId);
   const [saveOpen, setSaveOpen] = useState(false);
   const [pdfBusy, setPDFBusy] = useState(false), [pdfError, setPDFError] = useState("");
   const [dark, setDark] = useState(() => { try { return localStorage.getItem("edeco.calculations.theme") !== "light"; } catch { return true; } });
@@ -93,7 +95,7 @@ export function LabShell({ title, subtitle, children, help, setHelp, onHome, onO
           {exportData && <><button className="lab-icon" disabled={!canExport} aria-label="Ergebnis als JSON sichern" title="JSON sichern" onClick={exportData}><Download size={18} /></button><button className="lab-icon" disabled={!canExport} aria-label="Drucken / als PDF speichern" title="Drucken / PDF" onClick={() => window.print()}><Printer size={18} /></button></>}
           <button className="lab-home" onClick={onHome}>Zur Toolbox</button></div>
       </header>
-      <main className="lab-main"><div className="lab-heading"><div><p className="lab-eyebrow">EDECO ENGINEERING</p><h1>{title}</h1><span className="lab-subtitle">{subtitle}</span></div><span className="lab-review">{reviewLabel}</span></div>
+      <main className="lab-main"><div className="lab-heading"><div><p className="lab-eyebrow">EDECO ENGINEERING</p><h1>{title}</h1><span className="lab-subtitle">{subtitle}</span>{purpose && <div className="lab-purpose"><p><strong>Wofür?</strong> {purpose.use}</p><p><strong>Du brauchst:</strong> {purpose.needs}</p></div>}</div><span className="lab-review">{reviewLabel}</span></div>
         {pdfError && <p className="lab-error" role="alert">{pdfError}</p>}
         {children}
         <div className="lab-print-only lab-prose">{report}</div>

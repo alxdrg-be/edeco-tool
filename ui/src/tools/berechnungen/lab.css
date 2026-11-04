@@ -54,3 +54,4 @@
 @keyframes lab-explain-in{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
 @media(max-width:760px){.engineering-lab .lab-heading h1{font-size:26px}.engineering-lab .lab-header-actions{flex-wrap:wrap}.engineering-lab .lab-header-actions>.lab-knowledge-link{font-size:12px}.lab-choice-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,100px),1fr))}}
 @media print{.engineering-lab .lab-explanation{display:none}.lab-choice-expand,.lab-choice-search{display:none}}
+.lab-purpose{max-width:780px;margin-top:10px;font-size:14px;line-height:1.55;color:var(--fg)}.lab-purpose p{margin:0 0 4px}.lab-purpose strong{font-weight:650;color:var(--accent)}@media print{.lab-purpose{color:#000}}
