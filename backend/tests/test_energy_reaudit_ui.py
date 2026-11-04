@@ -9,7 +9,7 @@ from test_editor_navigation import choose_field, editor, env, playwright  # noqa
 
 def open_calculator(page, tool_id):
     page.get_by_role('button', name='Zum Toolhub', exact=True).click()
-    playwright.expect(page.locator('.toolbox-card')).to_have_count(8)
+    playwright.expect(page.locator('.toolbox-card')).to_have_count(9)
     page.evaluate('tool => { location.hash = `rechner/${tool}`; }', tool_id)
     playwright.expect(page.get_by_role('button', name='Ergebnis als JSON sichern', exact=True)).to_be_enabled()
 

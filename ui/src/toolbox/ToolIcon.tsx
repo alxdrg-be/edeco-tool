@@ -1,6 +1,7 @@
 import CalculatorIcon, { CALCULATOR_ICONS } from "../tools/berechnungen/CalculatorIcon";
-import { BookOpen, Sigma } from "lucide-react";
+import { BookOpen, Server, Sigma } from "lucide-react";
 export default function ToolIcon({ id }: { id: string }) {
+  if (id === "rack-dispo") return <Server size={48} strokeWidth={1.6} aria-hidden="true" />;
   if (id === "elektro-memory") return <BookOpen size={48} strokeWidth={1.6} aria-hidden="true" />;
   if (id === "formelrechner") return <Sigma size={48} strokeWidth={1.6} aria-hidden="true" />;
   if (CALCULATOR_ICONS[id]) return <CalculatorIcon id={id} size={48} />;

@@ -1,3 +1,13 @@
+## Rack-Dispo mit Portlisten und Vektorexport · 4. November 2026
+
+- Neues eigenständiges Werkzeug für 19-Zoll-Racks. Geräte rasten im von unten nummerierten HE-Raster ein; Vorderseite, Rückseite und 0-HE-Zubehör sind getrennt. Neutrale 24-/48-Port-Panels, Switches, LWL, Rangierpanels und Zubehör lassen sich ergänzen und bearbeiten.
+- Technische Zeichnung mit grauem Rack und weissen Geräteflächen wie in der Planungsvorlage. Eigene Darstellungsfarben bleiben in Hell-/Dunkelmodus und Vektorexport erhalten; Auswahl und Fehler verwenden getrennte Rahmen.
+- Kollisionsvorschau beim Ziehen, Mehrfachauswahl, Kopieren, Rack-Kopie sowie Rückgängig/Wiederholen. Dokumentzoom und Handmodus verändern die Rackansicht; Breite und Ganzansicht bleiben direkt erreichbar.
+- Mechanische Vorprüfung von HE, dokumentierter Einbautiefe samt Kabelraum, Türfreiheit, 0-HE-Lage, Rack- und Fachbodenlast. Bekannte Leistung wird in W summiert; fehlende Masse und Nachweise bleiben offen. Hinweise nennen die betroffenen Geräte und öffnen die passende Eingabe.
+- Portlisten mit Ziel, Dose, Raum und getrennten Zuständen für unbekannt, nicht ausgebaut, ausgebaut und belegt. Patchpanel-, Switch- und LWL-Kapazitäten werden nicht als gemeinsame Dosenanzahl ausgegeben.
+- PDF mit Vorder-/Rückansicht, Massstab und lesbarem Geräte-/Hinweisanhang; SVG und DXF als eigene Vektoren in Millimetern. Port- und Stücklisten stehen als Excel-lesbares CSV bereit. Entfallene Geräte bleiben dokumentiert und können reaktiviert werden.
+- Lokaler Entwurf, versionierte Rack-JSON-Datei und bewusst übernommener Projektbezug. Fertige PDFs lassen sich ausdrücklich an PDF-Werkstatt oder Dateien umbenennen übergeben. Keine Verbindung zu BIM2STEIGER; bestehende Demo-Auswahl bleibt erhalten.
+
 ## Geschossbezogene Legenden und verständliche Prüfungen · 4. November 2026
 
 - NOVA-Legenden mit Mehrfachauswahl der Geschosse. Bauteile, erkannte Symbolarten und Ausgabezeilen werden getrennt gezählt. Vorschau und Export verwenden dieselbe Auswahl; gespeicherte Originaleinträge bleiben erhalten.

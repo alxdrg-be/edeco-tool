@@ -22,6 +22,8 @@ export const TOOLS: readonly ToolInfo[] = [
     description: "Modulare Einlinienschemas mit Einspeisung, Verteilung, Schutzorganen, Lasten und abschnittsbezogenen Modellprüfungen.", status: "available", developmentStatus: "in-progress" },
   { id: "nova-legenden", title: "NOVA-Legenden", category: "Elektroplanung", symbol: "NL", color: "petrol",
     description: "Pläne importieren, Symbole zuordnen und elektrische Legenden erstellen.", status: "available", developmentStatus: "in-progress" },
+  { id: "rack-dispo", title: "Rack-Dispo", category: "Elektroplanung", symbol: "HE", color: "steel",
+    description: "19-Zoll-Racks mit HE-Raster planen, Geräte einrasten, Tiefen prüfen und Portlisten sowie Ansichten exportieren.", status: "available", developmentStatus: "in-progress" },
   { id: "bim2steiger", title: "BIM2STEIGER", category: "BIM", symbol: "B2S", color: "blue",
     description: "Steiger-Katalog durchsuchen, BIM-Objekte zuordnen und Ausschreibungen erstellen.", status: "available", developmentStatus: "in-progress" },
   { id: "dokumenten-assistent", title: "Dokumenten-Assistent", category: "Dokumente", symbol: "KI", color: "violet",

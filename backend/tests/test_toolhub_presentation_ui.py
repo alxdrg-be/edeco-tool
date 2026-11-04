@@ -13,7 +13,7 @@ def admin_hub(editor):
     store.identity, store.windows = "EDECO\\aduerger", True
     page.reload()
     page.get_by_role("button", name="Zum Toolhub", exact=True).click()
-    playwright.expect(page.locator(".toolbox-card")).to_have_count(8)
+    playwright.expect(page.locator(".toolbox-card")).to_have_count(9)
     return page, store
 
 
@@ -58,7 +58,7 @@ def test_demo_five_tools_persist_and_hidden_restore_cannot_bypass_scope(editor, 
     screenshot = Path(tmp_path) / "demo-fuenf-werkzeuge.png"
     page.screenshot(path=str(screenshot), full_page=True)
     page.get_by_role("button", name="Demo beenden", exact=True).click()
-    playwright.expect(page.locator(".toolbox-card")).to_have_count(8)
+    playwright.expect(page.locator(".toolbox-card")).to_have_count(9)
     assert not store.snapshot()["demo_enabled"]
 
 
@@ -82,7 +82,7 @@ def test_non_admin_settings_are_read_only_and_delivery_is_hidden(editor):
     client.app.state.toolhub_presentation.windows = True
     page.reload()
     page.get_by_role("button", name="Zum Toolhub", exact=True).click()
-    playwright.expect(page.locator(".toolbox-card")).to_have_count(8)
+    playwright.expect(page.locator(".toolbox-card")).to_have_count(9)
     playwright.expect(page.get_by_role("button", name="Planlieferungs-Assistent öffnen", exact=True)).to_have_count(0)
     page.get_by_role("button", name="Toolhub-Einstellungen", exact=True).click()
     dialog = page.get_by_role("dialog", name="Toolhub-Einstellungen", exact=True)
