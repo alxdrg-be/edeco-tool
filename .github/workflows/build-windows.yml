@@ -90,6 +90,7 @@ jobs:
           $engine = (Resolve-Path 'dist/edeco-Toolbox/_internal/pdf-runtime/java/bin/java.exe').Path
           New-NetFirewallRule -DisplayName 'edeco packaged PDF offline test' -Direction Outbound -Action Block -Program $engine -RemoteAddress '1.0.0.0-126.255.255.255','128.0.0.0-223.255.255.255','2000::/3','fc00::/7','fe80::/10' | Out-Null
           $env:NOVA_LEGENDEN_HOME = "$env:RUNNER_TEMP\toolbox-home"
+          $env:EDECO_TOOLBOX_HOME = Join-Path $env:RUNNER_TEMP 'toolbox-exe-smoke'
           $p = Start-Process -FilePath 'dist\edeco-Toolbox\edeco-Toolbox.exe' -ArgumentList '--server','--port','8799' -PassThru
           try {
             $ok = $false
@@ -130,6 +131,16 @@ jobs:
             if ($answer.sources.Count -ne 1 -or $answer.sources[0].page -ne 2) { throw 'PDF-Fundstelle in der EXE fehlt' }
             $original = Invoke-RestMethod ($docRoot + '/documents/' + $uploaded.document.id + '/pages/2') -Headers $docHeaders
             if ($original.image -notmatch '^data:image/png;base64,' -or -not $original.lines[0].box) { throw 'PDF-Vorschau oder Markierungskoordinaten fehlen in der EXE' }
+          } catch {
+            $smokeLogs = @((Join-Path $env:EDECO_TOOLBOX_HOME 'toolbox.log'))
+            $smokeLogs += @(Get-ChildItem (Join-Path $env:EDECO_TOOLBOX_HOME 'pdf-workshop/sessions') -Recurse -Filter 'engine.log' -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName)
+            foreach ($smokeLog in $smokeLogs) {
+              if (Test-Path -LiteralPath $smokeLog) {
+                Write-Host "Packaged PDF diagnostics: $([IO.Path]::GetFileName($smokeLog))"
+                Get-Content -LiteralPath $smokeLog -Tail 160 | Where-Object { $_ -notmatch '(?i)authorization|secret|token|session_key|api[_-]?key' }
+              }
+            }
+            throw
           } finally {
             Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue
           }

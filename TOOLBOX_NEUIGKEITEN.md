@@ -8,6 +8,7 @@
 - Sichtbare Signaturvorlagen mit Logo, Bild oder Zeichnung sowie Name, Datum, Grund und Ort. Zertifikatssignatur bleibt ein eigener Schritt; eine qualifizierte Signatur nach ZertES wird damit nicht behauptet.
 - Sicheres Schwärzen von Bereichen und Textzeilen erzeugt ausdrücklich ein neues Bild-PDF. Die bisherigen Text-, Objekt-, Anhangs- und Metadaten werden nicht übernommen; Textsuche und Vektoren entfallen in dieser Ausgabe. Anschliessende OCR übernimmt das geschwärzte Ergebnis.
 - Fertige Ergebnisse bleiben bei einem fehlgeschlagenen Folgeschritt erhalten. Formularwerte sind in Vorschauen sichtbar und bleiben beim Zusammenstellen und Teilen erhalten. Die kompakte Formatänderung lehnt Formulare und Anmerkungen mit Erklärung ab, bevor deren Positionen verloren gehen.
+- Die erweiterte PDF-Oberfläche erhält Startdateien und Konfiguration vollständig. Unterbrochene Lesezugriffe werden einmal wiederholt; Verarbeitungsaufträge bleiben davon ausgenommen. Das verhindert unvollständige Module beim Laden der PDF-Ansicht.
 - Deutlichere Schliessen-Knöpfe, kräftigere Auswahlmarkierungen und klare Trennung von Werkzeug- und Dokumentsuche. Hinweise auf zusätzliche Serverfunktionen erklären die tatsächlich benötigte Zusatzsoftware; die installierte PDF-Werkstatt läuft lokal.
 
 ## Präsentation, A4-Legenden und verlässliche Updates · 3. November 2026
