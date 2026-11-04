@@ -225,9 +225,13 @@ jobs:
           Add-Content release-body.md "`n`nBuild $env:GITHUB_RUN_NUMBER · Commit $env:GITHUB_SHA"
       - uses: actions/upload-artifact@v4
         if: always()
+        # Diagnostics are useful but an account storage quota must not turn a
+        # tested release into a failure. Installers are published below.
+        continue-on-error: true
         with:
           name: windows-pdf-test-results-${{ github.run_number }}
           path: output/
+          retention-days: 3
       - name: Prüfsummen erstellen
         shell: pwsh
         run: |
@@ -236,20 +240,8 @@ jobs:
             $hash = (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
             Set-Content -Path ($_.FullName + '.sha256') -Value ($hash + '  ' + $_.Name) -Encoding ascii
           }
-      - uses: actions/upload-artifact@v4
-        with:
-          name: edeco-Toolbox-Setup-Build-${{ github.run_number }}
-          path: dist-installer/edeco-Toolbox-Setup-*
-          compression-level: 0
-          if-no-files-found: error
-          retention-days: 7
-      - uses: actions/upload-artifact@v4
-        with:
-          name: edeco-Toolbox-portabel-Build-${{ github.run_number }}
-          path: dist-installer/edeco-Toolbox-Portable-*
-          compression-level: 0
-          if-no-files-found: error
-          retention-days: 7
+      # Keep the large installer/portable files in Releases rather than storing
+      # duplicate gigabyte-sized copies in the Actions artifact quota.
       - name: Toolbox unter Releases veröffentlichen
         if: github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2

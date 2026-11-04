@@ -1,6 +1,7 @@
 """Embedded production UI with public browser traffic blocked, against the real EXE."""
 import os
 import json
+import re
 from contextlib import contextmanager, closing
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -8,6 +9,20 @@ from urllib.parse import urlsplit
 import pytest
 
 from test_documents import sample_pdf
+
+
+def safe_failure_url(value):
+    """Actions logs must not expose URL queries, credentials or blob identifiers."""
+    parsed = urlsplit(value)
+    if parsed.scheme not in ('http', 'https'):
+        return parsed.scheme + ':' if parsed.scheme else '[relative URL]'
+    return f'{parsed.scheme}://{parsed.netloc.rsplit("@", 1)[-1]}{parsed.path}'
+
+
+def safe_failure_text(value):
+    value = re.sub(r'https?://[^\s\'"<>]+', lambda match: safe_failure_url(match[0]), str(value))
+    value = re.sub(r'(?i)(authorization|token|secret|session_key|api[_-]?key)(\s*[:=]\s*)\S+', r'\1\2[redacted]', value)
+    return value[:350]
 
 
 @contextmanager
@@ -48,10 +63,35 @@ def capture_pdf_ui_failure(page):
                   views:[...document.querySelectorAll('label[for$="-fileEditor"],label[for$="-viewer"]')].map(node=>({for:node.htmlFor,active:node.dataset.active,text:node.textContent})),
                   preferences:Object.fromEntries(Object.entries(localStorage).filter(([key])=>/view|thumb|sidebar|pdfjs|worker/i.test(key)&&!/auth|token|secret|session/i.test(key)))
                 })''')
+                # These are UI controls and file names only: never PDF text layers,
+                # full DOM, localStorage values, file bytes or request headers.
+                item['log_state'] = frame.evaluate('''() => {
+                  const visible = node => Boolean(node.getClientRects().length) && getComputedStyle(node).visibility !== 'hidden';
+                  return {
+                    input_files:[...document.querySelectorAll('input[type="file"]')].flatMap(node=>[...node.files].map(file=>file.name)).slice(0,12),
+                    file_names:[...document.querySelectorAll('.file-sidebar-file-name')].slice(0,12).map(node=>({name:node.textContent.trim().slice(0,160),visible:visible(node)})),
+                    previews:[...document.images].filter(node=>/^Vorschau von |^Preview of /.test(node.alt)).slice(0,12).map(node=>({name:node.alt.slice(0,180),visible:visible(node),complete:node.complete,width:node.naturalWidth})),
+                    views:[...document.querySelectorAll('label[for$="-fileEditor"],label[for$="-viewer"],button[aria-current="true"]')].map(node=>({name:(node.getAttribute('aria-label')||node.textContent||'').trim().slice(0,80),active:node.dataset.active||node.getAttribute('aria-current'),visible:visible(node)})),
+                    visible_controls:[...document.querySelectorAll('.quick-nav-rail-item, [data-tour="run-button"], [role="alert"]')].filter(visible).slice(0,16).map(node=>(node.getAttribute('aria-label')||node.textContent||'').trim().slice(0,120))
+                  };
+                }''')
             except Exception as frame_error:
                 item['capture_error'] = repr(frame_error)
             trace['frames'].append(item)
         (folder / 'diagnostics.json').write_text(json.dumps(trace, ensure_ascii=False, indent=2), encoding='utf-8')
+        compact = {
+            'exception': safe_failure_text(type(exc).__name__),
+            'frames': [{'url': safe_failure_url(item['url']), **item.get('log_state', {}),
+                        **({'capture_error': safe_failure_text(item['capture_error'])} if item.get('capture_error') else {})}
+                       for item in trace['frames']],
+            'page_errors': [safe_failure_text(value) for value in trace['page_errors'][-8:]],
+            'console_errors': [safe_failure_text(item['text']) for item in trace['console'] if item['level'] == 'error'][-8:],
+            'request_failures': [{'url': safe_failure_url(item['url']), 'error': safe_failure_text(item['error'])}
+                                 for item in trace['request_failures'][-12:]],
+            'asset_failures': [{'url': safe_failure_url(item['url']), 'status': item['status']}
+                               for item in trace['asset_responses'] if item['status'] >= 400][-12:],
+        }
+        print('EDECO_PDF_UI_FAILURE ' + json.dumps(compact, ensure_ascii=True, separators=(',', ':')), flush=True)
         raise
 
 
