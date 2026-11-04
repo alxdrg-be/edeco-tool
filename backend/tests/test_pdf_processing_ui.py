@@ -19,6 +19,7 @@ import pypdfium2 as pdfium
 from pypdf import PdfReader, PdfWriter
 import pytest
 
+from edeco_toolbox.documents.extract import PDF_LOCK
 from test_documents import sample_pdf
 from test_pdf_entry_ui import pdf_entry, playwright  # noqa: F401
 from test_phase3 import env  # noqa: F401
@@ -128,7 +129,7 @@ def test_ocr_independent_options_real_word_count_search_download_and_close(pdf_e
     with page.expect_download(timeout=120000) as event:
         page.get_by_role("button", name="Erkennen & herunterladen", exact=True).click()
     output = tmp_path / event.value.suggested_filename; event.value.save_as(output)
-    with pdfium.PdfDocument(output) as document, closing(document[0]) as sheet, closing(sheet.get_textpage()) as text:
+    with PDF_LOCK, pdfium.PdfDocument(output) as document, closing(document[0]) as sheet, closing(sheet.get_textpage()) as text:
         assert "conductor" in text.get_text_range().lower()
         assert len(document) == 1
     result = page.get_by_role("region", name="PDF-Ergebnis", exact=True)
@@ -181,7 +182,7 @@ def test_compression_shows_actual_size_change_and_downloads_immediately(pdf_entr
         page.get_by_role("button", name="Komprimieren & herunterladen", exact=True).click()
     output = tmp_path / event.value.suggested_filename; event.value.save_as(output)
     assert output.stat().st_size < len(source)
-    with pdfium.PdfDocument(output) as document, closing(document[0]) as sheet, closing(sheet.get_textpage()) as text:
+    with PDF_LOCK, pdfium.PdfDocument(output) as document, closing(document[0]) as sheet, closing(sheet.get_textpage()) as text:
         assert "original text" in text.get_text_range()
     result = page.get_by_role("region", name="PDF-Ergebnis", exact=True)
     playwright.expect(result).to_contain_text("Vorher")

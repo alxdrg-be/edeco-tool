@@ -7,6 +7,7 @@ import ezdxf
 import pypdfium2 as pdfium
 import pytest
 
+from edeco_toolbox.documents.extract import PDF_LOCK
 from nova_legend.legend import general
 from test_phase3 import env  # noqa: F401
 from test_editor_navigation import editor, playwright  # noqa: F401
@@ -67,7 +68,7 @@ def test_preview_apply_restore_leave_original_file_and_saved_legend_intact(env):
     assert state.company.legend_settings()["legend_general_previous"] == settings
     exported = client.get("/api/company/general/export/Allgemein.pdf?format=pdf")
     assert exported.status_code == 200, exported.text
-    with pdfium.PdfDocument(exported.content) as pdf, closing(pdf[0]) as page, closing(page.get_textpage()) as text:
+    with PDF_LOCK, pdfium.PdfDocument(exported.content) as pdf, closing(pdf[0]) as page, closing(page.get_textpage()) as text:
         assert "Farbcodes" in text.get_text_range()
         assert "KNX" in text.get_text_range()
     result = client.post("/api/company/general/builtin/restore", json={"expected_source": general.BUILTIN_SOURCE})

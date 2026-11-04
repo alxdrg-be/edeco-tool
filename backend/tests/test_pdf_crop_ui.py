@@ -4,6 +4,7 @@ from contextlib import closing
 
 import pytest
 
+from edeco_toolbox.documents.extract import PDF_LOCK
 from test_documents import sample_pdf
 from test_editor_navigation import editor, playwright  # noqa: F401
 from test_phase3 import env  # noqa: F401
@@ -93,7 +94,7 @@ def test_native_crop_large_selection_document_zoom_and_vector_export(editor, tmp
         page.get_by_role("button", name="Zuschneiden & speichern", exact=True).click()
     path = tmp_path / saved.value.suggested_filename
     saved.value.save_as(path)
-    with pdfium.PdfDocument(path) as result:
+    with PDF_LOCK, pdfium.PdfDocument(path) as result:
         assert len(result) == 2
         for index in range(2):
             with closing(result[index]) as pdf_page, closing(pdf_page.get_textpage()) as text:
@@ -140,5 +141,5 @@ def test_rotated_userunit_page_uses_physical_millimetres(editor, tmp_path):
         page.get_by_role("button", name="Zuschneiden & speichern", exact=True).click()
     path = tmp_path / "physical.pdf"
     saved.value.save_as(path)
-    with pdfium.PdfDocument(path) as result, closing(result[0]) as pdf_page:
+    with PDF_LOCK, pdfium.PdfDocument(path) as result, closing(result[0]) as pdf_page:
         assert pdf_page.get_size()[0] == pytest.approx(842 - 10 * 72 / 25.4 / 2, abs=.01)

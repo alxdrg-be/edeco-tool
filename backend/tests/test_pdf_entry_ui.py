@@ -12,6 +12,7 @@ import pytest
 import uvicorn
 
 from edeco_toolbox.app import create_app
+from edeco_toolbox.documents.extract import PDF_LOCK
 from test_documents import sample_pdf
 from test_editor_navigation import launch_chromium, playwright
 from test_phase3 import env  # noqa: F401
@@ -84,7 +85,7 @@ def test_catalog_drop_waits_for_tool_then_opens_large_native_crop(pdf_entry, tmp
         page.get_by_role("button", name="Zuschneiden & speichern", exact=True).click()
     output = tmp_path / saved.value.suggested_filename
     saved.value.save_as(output)
-    with pdfium.PdfDocument(output) as document:
+    with PDF_LOCK, pdfium.PdfDocument(output) as document:
         assert len(document) == 1
         with closing(document[0]) as pdf_page, closing(pdf_page.get_textpage()) as text:
             assert "ORIGINAL VECTOR TEXT" in text.get_text_range()
