@@ -9,7 +9,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.testclient import TestClient
 
 from edeco_toolbox.local_security import register as register_security
-from edeco_toolbox.presentation import DEMO_TOOLS, PREFIX, PresentationBody, PresentationStore, is_admin
+from edeco_toolbox.presentation import DEMO_TOOLS, LEGACY_DEMO_TOOLS, PREFIX, PresentationBody, PresentationStore, is_admin
 
 
 def body(snapshot, **changes):
@@ -35,6 +35,48 @@ def test_defaults_and_demo_scope_survive_restart(tmp_path):
     assert saved["revision"] != "0"
     assert PresentationStore(tmp_path, ("EDECO\\nstrauss", True)).snapshot()["demo_enabled"]
     assert json.loads(store.path.read_text())["demo_tools"] == DEMO_TOOLS
+
+
+def test_legacy_default_adds_memory_without_get_writes_and_explicit_opt_out_survives(tmp_path):
+    store = PresentationStore(tmp_path, ("EDECO\\aduerger", True))
+    legacy = {"revision": "legacy-default", "demo_enabled": True,
+              "demo_tools": list(LEGACY_DEMO_TOOLS), "admins": ["aduerger", "nstrauss"]}
+    store.path.write_text(json.dumps(legacy), encoding="utf-8")
+    original = store.path.read_bytes()
+    migrated = store.snapshot()
+    assert migrated["demo_tools"] == DEMO_TOOLS and migrated["demo_enabled"]
+    assert migrated["revision"] != legacy["revision"]
+    assert store.path.read_bytes() == original
+    with pytest.raises(HTTPException) as stale:
+        store.save(body(legacy))
+    assert stale.value.status_code == 409
+    store.save(body(migrated, demo_tools=list(LEGACY_DEMO_TOOLS)))
+    stored = json.loads(store.path.read_text())
+    assert stored["schema_version"] == 2
+    assert PresentationStore(tmp_path, ("EDECO\\nstrauss", True)).snapshot()["demo_tools"] == LEGACY_DEMO_TOOLS
+
+
+def test_reduced_legacy_demo_selection_is_preserved(tmp_path):
+    store = PresentationStore(tmp_path, ("EDECO\\aduerger", True))
+    legacy = {"revision": "deliberate-selection", "demo_enabled": True,
+              "demo_tools": ["nova-legenden", "pdf-werkzeuge"], "admins": ["aduerger"]}
+    store.path.write_text(json.dumps(legacy), encoding="utf-8")
+    original = store.path.read_bytes()
+    snapshot = store.snapshot()
+    assert snapshot["demo_tools"] == legacy["demo_tools"]
+    assert snapshot["revision"] == legacy["revision"]
+    assert store.path.read_bytes() == original
+
+
+def test_unknown_preferences_version_is_preserved(tmp_path):
+    store = PresentationStore(tmp_path, ("EDECO\\aduerger", True))
+    raw = {**body(store.snapshot()).model_dump(), "schema_version": 99}
+    store.path.write_text(json.dumps(raw), encoding="utf-8")
+    original = store.path.read_bytes()
+    with pytest.raises(HTTPException) as failure:
+        store.snapshot()
+    assert failure.value.status_code == 500
+    assert store.path.read_bytes() == original
 
 
 def test_non_admin_cannot_write_or_invent_client_role(tmp_path):

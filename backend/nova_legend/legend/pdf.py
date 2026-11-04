@@ -9,6 +9,8 @@ No package beyond ezdxf is needed.
 
 from __future__ import annotations
 
+from io import BytesIO
+import math
 import zlib
 
 PT_PER_MM = 72 / 25.4
@@ -20,7 +22,8 @@ DEFAULT_LINEWEIGHT = 0.25                             # mm, what CAD plots for �
 _STROKES = ("LINE", "LWPOLYLINE", "POLYLINE", "ARC", "CIRCLE", "ELLIPSE", "SPLINE")
 
 
-def build_pdf(doc, width_mm: float, height_mm: float, title: str = "", lines: str = "original") -> bytes:
+def build_pdf(doc, width_mm: float, height_mm: float, title: str = "", lines: str = "original",
+              *, searchable: bool = True) -> bytes:
     """``doc`` is the legend DXF (millimetres, origin bottom left, legend in
     0..width × 0..height). ``lines``: «original» keeps the line weights of the drawings,
     «proportional» makes them thinner or thicker with the size of each symbol."""
@@ -44,7 +47,99 @@ def build_pdf(doc, width_mm: float, height_mm: float, title: str = "", lines: st
         x1, y1 = max(x1, box.extmax.x), max(y1, box.extmax.y)
     writer = _PdfPage(x0 - MARGIN_MM, y0 - MARGIN_MM)
     player.replay(writer)
-    return writer.document(x1 - x0 + 2 * MARGIN_MM, y1 - y0 + 2 * MARGIN_MM, title)
+    data = writer.document(x1 - x0 + 2 * MARGIN_MM, y1 - y0 + 2 * MARGIN_MM, title)
+    # The visible text remains the same CAD outlines. The matching text layer
+    # makes the actual generated captions searchable without rasterising them.
+    return _caption_text_layer(data, doc, writer.ox, writer.oy) if searchable else data
+
+
+def _caption_text_layer(data: bytes, cad, ox: float, oy: float) -> bytes:
+    """Add the existing modelspace captions at their real CAD baselines.
+
+    These are source labels, not OCR guesses. A ToUnicode map retains German
+    accents, Greek units and other Unicode names while the outline appearance
+    and all page coordinates remain unchanged. Internal symbol text stays in
+    the original drawing; it is not invented as catalogue metadata.
+    """
+    from ezdxf.fonts.fonts import make_font
+    from pypdf import PdfReader, PdfWriter
+    from pypdf.generic import ArrayObject, DecodedStreamObject, DictionaryObject, NameObject
+
+    labels = [entity for entity in cad.modelspace().query("TEXT") if entity.dxf.text]
+    if not labels:
+        return data
+    mappings: list[dict[str, int]] = [{}]
+    codes = [*range(32, 127), *[code for code in range(128, 256) if code not in (129, 141, 143, 144, 157)]]
+    assigned: dict[str, tuple[int, int]] = {}
+    for char in dict.fromkeys("".join(entity.dxf.text for entity in labels)):
+        try:
+            preferred = char.encode("cp1252")[0]
+        except UnicodeEncodeError:
+            preferred = -1
+        mapping = mappings[-1]
+        available = [code for code in codes if code not in mapping.values()]
+        if not available:
+            mappings.append({})
+            mapping, available = mappings[-1], codes
+        code = preferred if preferred in available else available[0]
+        mapping[char] = code
+        assigned[char] = len(mappings) - 1, code
+    reader = PdfReader(BytesIO(data))
+    result = PdfWriter()
+    result.clone_document_from_reader(reader)
+    result.pdf_header = reader.pdf_header
+    page = result.pages[0]
+    fonts = DictionaryObject()
+    for index, mapping in enumerate(mappings):
+        pairs = [f"<{code:02x}> <{char.encode('utf-16-be').hex()}>" for char, code in mapping.items()]
+        cmap = ["/CIDInit /ProcSet findresource begin", "12 dict begin", "begincmap",
+                "/CIDSystemInfo << /Registry (Adobe) /Ordering (UCS) /Supplement 0 >> def",
+                f"/CMapName /NOVAUnicode{index} def", "/CMapType 2 def",
+                "1 begincodespacerange", "<00> <FF>", "endcodespacerange"]
+        for start in range(0, len(pairs), 100):
+            chunk = pairs[start:start + 100]
+            cmap += [f"{len(chunk)} beginbfchar", *chunk, "endbfchar"]
+        cmap += ["endcmap", "CMapName currentdict /CMap defineresource pop", "end", "end"]
+        unicode_map = DecodedStreamObject()
+        unicode_map.set_data("\n".join(cmap).encode("ascii"))
+        font = DictionaryObject({NameObject("/Type"): NameObject("/Font"),
+                                 NameObject("/Subtype"): NameObject("/Type1"),
+                                 NameObject("/BaseFont"): NameObject("/Helvetica"),
+                                 NameObject("/Encoding"): NameObject("/WinAnsiEncoding"),
+                                 NameObject("/ToUnicode"): result._add_object(unicode_map)})
+        fonts[NameObject(f"/NLText{index}")] = result._add_object(font)
+    page["/Resources"][NameObject("/Font")] = fonts
+    operators = []
+    for entity in labels:
+        text = entity.dxf.text
+        height = float(entity.dxf.height)
+        rotation = math.radians(float(entity.dxf.get("rotation", 0)))
+        cosine, sine = math.cos(rotation), math.sin(rotation)
+        x = (float(entity.dxf.insert.x) - ox) * PT_PER_MM
+        y = (float(entity.dxf.insert.y) - oy) * PT_PER_MM
+        width = float(entity.dxf.get("width", 1))
+        font = make_font(cad.styles.get(entity.dxf.style).dxf.font or "arial.ttf", cap_height=height,
+                         width_factor=width)
+        runs: list[tuple[int, str, str]] = []
+        for char in text:
+            index, code = assigned[char]
+            if runs and runs[-1][0] == index:
+                old = runs[-1]
+                runs[-1] = index, old[1] + f"{code:02x}", old[2] + char
+            else:
+                runs.append((index, f"{code:02x}", char))
+        advance = 0.0
+        for index, encoded, plain in runs:
+            operators.append(f"BT /NLText{index} {height / .716 * PT_PER_MM:.5f} Tf 3 Tr {width * 100:.5f} Tz "
+                             f"{cosine:.8f} {sine:.8f} {-sine:.8f} {cosine:.8f} "
+                             f"{x + cosine * advance:.5f} {y + sine * advance:.5f} Tm <{encoded}> Tj ET")
+            advance += font.text_width(plain) * PT_PER_MM
+    stream = DecodedStreamObject()
+    stream.set_data("\n".join(operators).encode("ascii"))
+    page[NameObject("/Contents")] = ArrayObject([page.raw_get("/Contents"), result._add_object(stream)])
+    output = BytesIO()
+    result.write(output)
+    return output.getvalue()
 
 
 def scale_lineweights(doc) -> int:

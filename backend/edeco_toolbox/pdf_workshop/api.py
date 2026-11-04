@@ -22,6 +22,8 @@ from .client import PdfFile, StirlingClient
 from .config import Configuration
 from .crop import register_crop
 from .operations import register_operations
+from .processing import register_processing
+from .marks import register_marks
 from .workbench import register_workbench
 from .runtime import PdfRuntime, runtime_root
 
@@ -84,6 +86,8 @@ def register(app):
     register_crop(app, authorize)
     register_workbench(app, authorize, config)
     register_operations(app, authorize, config)
+    register_processing(app, authorize, config)
+    register_marks(app, authorize, config)
 
     @app.get(API + "/state")
     def state(request: Request):

@@ -13,6 +13,8 @@ export interface MemoryEntry {
   table?: { headers: string[]; rows: string[][]; note?: string };
   source: { page?: number; section?: string; label?: string };
   confidence: "verified" | "needs-review";
+  /** Non-technical print furniture stays in the source inventory, outside reference topics. */
+  presentation?: "source-note";
   sourceTranscription?: string;
   correction?: string;
   referenceValues?: { quantity: string; sourceValue: string }[];

@@ -1,3 +1,15 @@
+## Lesbare Legenden und durchgängige PDF-Abläufe · 4. November 2026
+
+- Elektro-Memory im Demo-Modus ergänzt. Markanter Rückweg zu allen Themen, direkter Themenwechsel und eine digitale Gliederung; Drucklineal und Impressum stehen bei der Quellenbeschreibung.
+- NOVA-Legenden mit lesbarer Kompaktvorlage, grösseren flachen und runden Symbolen und vollständigem Einlesen zweispaltiger Vorlagen. Rubrikfarben lassen sich aus den Planfarben übernehmen; ursprüngliche Symbolfarben bleiben erhalten.
+- PDF-Seiten per Drag mit Einfügevorschau verschieben oder unten in ein neues Dokument ablegen. Direkter Download beim Erstellen sowie „Alle PDFs zusammenfügen“ in der sichtbaren Reihenfolge.
+- Passende Titel und Hauptaktionen für Drehen, Löschen und Extrahieren. Einzeldatei-Werkzeuge bieten bei mehreren offenen PDFs eine Auswahl statt einer Fehlermeldung.
+- OCR und Komprimieren mit grosser Vorschau, eigener Dokumentsuche, unabhängig aufklappbaren Einstellungen und sofortigem Download. Grössenvergleich in MB/Prozent; Wort- und Seitenzahlen beschreiben die fertige Textschicht.
+- Sichtbare Signaturvorlagen mit Logo, Bild oder Zeichnung sowie Name, Datum, Grund und Ort. Zertifikatssignatur bleibt ein eigener Schritt; eine qualifizierte Signatur nach ZertES wird damit nicht behauptet.
+- Sicheres Schwärzen von Bereichen und Textzeilen erzeugt ausdrücklich ein neues Bild-PDF. Die bisherigen Text-, Objekt-, Anhangs- und Metadaten werden nicht übernommen; Textsuche und Vektoren entfallen in dieser Ausgabe. Anschliessende OCR übernimmt das geschwärzte Ergebnis.
+- Fertige Ergebnisse bleiben bei einem fehlgeschlagenen Folgeschritt erhalten. Formularwerte sind in Vorschauen sichtbar und bleiben beim Zusammenstellen und Teilen erhalten. Die kompakte Formatänderung lehnt Formulare und Anmerkungen mit Erklärung ab, bevor deren Positionen verloren gehen.
+- Deutlichere Schliessen-Knöpfe, kräftigere Auswahlmarkierungen und klare Trennung von Werkzeug- und Dokumentsuche. Hinweise auf zusätzliche Serverfunktionen erklären die tatsächlich benötigte Zusatzsoftware; die installierte PDF-Werkstatt läuft lokal.
+
 ## Präsentation, A4-Legenden und verlässliche Updates · 3. November 2026
 
 - Neues Elektro-Memory mit allen 16 Seiten der Vorlage, 70 sauber gesetzten Quelleneinträgen, 25 Formeleinträgen und ergänzenden Grundlagen. Suche, aufklappbare Erklärungen und neue SVGs ersetzen die pixeligen Scanseiten.

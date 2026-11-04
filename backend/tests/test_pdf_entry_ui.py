@@ -95,7 +95,7 @@ def test_catalog_drop_waits_for_tool_then_opens_large_native_crop(pdf_entry, tmp
     assert page.url == start
 
 
-def test_catalog_rejects_other_files_and_requires_one_pdf_for_native_crop(pdf_entry):
+def test_catalog_rejects_other_files_and_chooses_one_pdf_without_losing_the_other(pdf_entry):
     page = pdf_entry
     drop_files(page, [("Datei.txt", "text/plain", b"Not a PDF")])
     playwright.expect(page.get_by_role("alert")).to_contain_text("Bitte PDF-Dateien ablegen")
@@ -106,8 +106,10 @@ def test_catalog_rejects_other_files_and_requires_one_pdf_for_native_crop(pdf_en
     crop_tool = page.locator('[data-pdf-tool="crop"]')
     playwright.expect(crop_tool).to_have_attribute("aria-disabled", "false")
     crop_tool.click()
-    playwright.expect(page.get_by_role("alert")).to_contain_text("bitte eine PDF-Datei")
-    playwright.expect(page.get_by_role("heading", name="Was möchtest du mit deinem PDF tun?", exact=True)).to_be_visible()
-    page.get_by_role("button", name="Zweiter Plan.pdf aus der Auswahl entfernen", exact=True).click()
-    crop_tool.click()
+    choice = page.get_by_role("dialog", name="Welches PDF möchtest du bearbeiten?", exact=True)
+    playwright.expect(choice).to_be_visible()
+    choice.get_by_role("button", name="Erster Plan.pdf", exact=False).click()
     playwright.expect(page.get_by_role("img", name="PDF-Seite 1 von Erster Plan.pdf", exact=True)).to_be_visible()
+    page.get_by_role("button", name="Werkzeugauswahl", exact=True).click()
+    playwright.expect(page.locator(".pdf-pending-files li")).to_have_count(1)
+    playwright.expect(page.locator(".pdf-pending-files li")).to_contain_text("Zweiter Plan.pdf")

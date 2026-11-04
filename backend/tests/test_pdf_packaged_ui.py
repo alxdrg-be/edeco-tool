@@ -60,7 +60,7 @@ def exercise_native_default_merge(page):
     from playwright.sync_api import expect
     import pypdfium2 as pdfium
     native = page.locator('.pdf-native-workspace:not([hidden])')
-    expect(native.get_by_role('heading', name='Seiten zusammenstellen', exact=True)).to_be_visible()
+    expect(native.get_by_role('heading', name='PDFs zusammenfügen', exact=True)).to_be_visible()
     expect(page.locator('.pdf-embedded-workspace')).to_be_hidden()
     native.get_by_label('PDF-Dateien hinzufügen', exact=True).set_input_files([
         {'name': 'Plan-A.pdf', 'mimeType': 'application/pdf', 'buffer': sample_pdf([['FIRST PLAN']])},
@@ -71,15 +71,13 @@ def exercise_native_default_merge(page):
         expect(image).to_be_visible()
         expect(image).to_have_js_property('complete', True)
         assert image.evaluate('node => node.naturalWidth > 200')
-    with page.expect_response(lambda response: response.request.method == 'POST' and response.url.endswith('/api/tools/pdf-werkstatt/compose'), timeout=60000) as processing:
+    with page.expect_download() as downloaded, page.expect_response(lambda response: response.request.method == 'POST' and response.url.endswith('/api/tools/pdf-werkstatt/compose'), timeout=60000) as processing:
         native.get_by_role('button', name='↓ PDF erstellen', exact=True).click()
     assert processing.value.status == 200
     assert processing.value.headers.get('content-type', '').split(';', 1)[0] == 'application/pdf'
-    expect(native.get_by_role('link', name='PDF herunterladen', exact=True)).to_be_visible()
+    expect(native.get_by_role('link', name='PDF erneut herunterladen', exact=True)).to_be_visible()
     Path('output').mkdir(exist_ok=True)
     target = Path('output') / 'pdf-packaged-native-merge.pdf'
-    with page.expect_download() as downloaded:
-        native.get_by_role('link', name='PDF herunterladen', exact=True).click()
     downloaded.value.save_as(target)
     with pdfium.PdfDocument(target) as result:
         assert len(result) == 2

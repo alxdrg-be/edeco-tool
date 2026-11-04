@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { a4CompactLegendDocument, clampLegendZoom, compactLegendDocument, compactLegendStyle, fitLegendZoom, legendItemColors, legendLayerColors, legendVisibleItemColors, legendVisibleLayerColors } from "./legendViewport.ts";
+import { a4CompactLegendDocument, alignLegendSectionColors, clampLegendZoom, compactLegendDocument, compactLegendStyle, fitLegendZoom, legendItemColors, legendLayerColors, legendVisibleItemColors, legendVisibleLayerColors } from "./legendViewport.ts";
 import { combineItems, detachPart, makeItem, sectionStyle, splitItem, type LegendDoc } from "./legend.ts";
 
 test("legend fitting follows actual content height, including short and long sheets", () => {
@@ -87,6 +87,8 @@ test("A4 is an explicit four-column preset and reference density can be restored
   assert.equal(a4.style.width, 200);
   assert.equal(a4.style.margin, 3.5);
   assert.equal(a4.style.text_size, 2.6);
+  assert.equal(a4.style.symbol_fit, "corridor");
+  assert.equal(a4.style.general_source_look, true);
   assert.equal(a4.style.pdf_lines, "proportional");
   assert.equal(a4.title.text, "Unverändert");
   assert.equal(a4.title.size_mm, 4.5);
@@ -101,4 +103,17 @@ test("A4 is an explicit four-column preset and reference density can be restored
   assert.equal(reference.style.margin, 5);
   assert.equal(reference.style.pdf_lines, "proportional");
   assert.equal(reference.blocks[0].style.padding, 1.2);
+});
+
+test("explicit section-colour alignment repairs a red light-switch heading without repainting glyphs", () => {
+  const blue = makeItem({ id: "blue", text: "Schalter", symbol_key: "switch", family_key: "f", color: "#0099ff", layer_colors: ["#0099ff"] });
+  const red = { ...blue, id: "red", color: "#ff0000", layer_colors: ["#ff0000"] };
+  const doc = { style: {}, blocks: [{ id: "switches", style: sectionStyle("#ff0000"), items: [blue, { ...blue, id: "b2", symbol_color: "#000000" }, red] },
+    { id: "mixed", style: sectionStyle("#993300"), items: [blue, red] }] } as LegendDoc;
+  const source = structuredClone(doc);
+  const aligned = alignLegendSectionColors(doc);
+  assert.equal(aligned.blocks[0].style.header, "#0099ff");
+  assert.deepEqual(aligned.blocks[0].items, source.blocks[0].items);
+  assert.equal(aligned.blocks[1].style.header, "#993300");
+  assert.deepEqual(doc, source);
 });

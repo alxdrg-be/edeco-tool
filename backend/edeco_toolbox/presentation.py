@@ -22,7 +22,9 @@ from pydantic import BaseModel, ConfigDict, Field
 from .paths import local_home
 
 DEFAULT_ADMINS = ["aduerger", "nstrauss"]
-DEMO_TOOLS = ["nova-legenden", "berechnungen", "dateien-umbenennen", "pdf-werkzeuge"]
+LEGACY_DEMO_TOOLS = ["nova-legenden", "berechnungen", "dateien-umbenennen", "pdf-werkzeuge"]
+DEMO_TOOLS = [*LEGACY_DEMO_TOOLS, "elektro-memory"]
+SCHEMA_VERSION = 2
 PREFIX = "/api/toolbox/presentation"
 
 
@@ -57,7 +59,7 @@ class PresentationBody(BaseModel):
     model_config = ConfigDict(extra="forbid")
     revision: str = Field(min_length=1, max_length=64)
     demo_enabled: bool
-    demo_tools: list[str] = Field(min_length=1, max_length=4)
+    demo_tools: list[str] = Field(min_length=1, max_length=len(DEMO_TOOLS))
     admins: list[str] = Field(max_length=64)
 
 
@@ -70,12 +72,26 @@ class PresentationStore:
     def read(self):
         if not self.path.exists():
             return {"revision": "0", "demo_enabled": False,
-                    "demo_tools": list(DEMO_TOOLS), "admins": list(DEFAULT_ADMINS)}
+                    "demo_tools": list(DEMO_TOOLS), "admins": list(DEFAULT_ADMINS),
+                    "schema_version": SCHEMA_VERSION}
         try:
             if self.path.stat().st_size > 20000:
                 raise ValueError()
             raw = json.loads(self.path.read_text(encoding="utf-8"))
-            return self.validate(PresentationBody.model_validate(raw))
+            if not isinstance(raw, dict):
+                raise ValueError()
+            version = raw.pop("schema_version", 1)
+            if type(version) is not int or version not in (1, SCHEMA_VERSION):
+                raise ValueError()
+            value = self.validate(PresentationBody.model_validate(raw))
+            if version == 1 and set(value["demo_tools"]) == set(LEGACY_DEMO_TOOLS):
+                # Extend the previous default, not a deliberately reduced selection.
+                # GET stays read-only; an explicit save records v2 even if Memory
+                # is then deselected, so it is not re-enabled on the next start.
+                value["demo_tools"] = list(DEMO_TOOLS)
+                value["revision"] = str(uuid.uuid5(uuid.NAMESPACE_URL,
+                    f"edeco.presentation.v2:{value['revision']}"))
+            return {**value, "schema_version": SCHEMA_VERSION}
         except (ValueError, OSError, TypeError):
             raise HTTPException(500, "Die Toolhub-Einstellungen konnten nicht gelesen werden. Die vorhandene Datei wurde nicht verändert.") from None
 
@@ -108,6 +124,7 @@ class PresentationStore:
             if self.windows and value["admins"] and not is_admin(self.identity, value["admins"]):
                 raise HTTPException(400, "Bitte die eigene Windows-Anmeldung als Administrator beibehalten, damit du die Einstellungen weiter öffnen kannst.")
             value["revision"] = str(uuid.uuid4())
+            value["schema_version"] = SCHEMA_VERSION
             self.path.parent.mkdir(parents=True, exist_ok=True)
             temporary = self.path.with_name(f".presentation-{uuid.uuid4()}.tmp")
             try:

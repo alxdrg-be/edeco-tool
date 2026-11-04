@@ -57,7 +57,7 @@ import { SaveSession } from "../saveSession";
 import { useNavigation } from "../Navigation";
 import Menu from "./Menu";
 import { ArrowLeft, Hand, Maximize2, Minimize2, Minus, Plus } from "lucide-react";
-import { a4CompactLegendDocument, compactLegendDocument, legendItemColors, legendLayerColors, legendVisibleItemColors, legendVisibleLayerColors, type LayerColorSource } from "../legendViewport";
+import { a4CompactLegendDocument, alignLegendSectionColors, compactLegendDocument, legendItemColors, legendLayerColors, legendVisibleItemColors, legendVisibleLayerColors, type LayerColorSource } from "../legendViewport";
 import { useLegendViewport } from "../useLegendViewport";
 import "./LegendEditor.css";
 
@@ -872,7 +872,12 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
         Vorlage wählen
       </button>
     </p>
-  ) : null;
+  ) : general?.scope_warning ? <details className="legend-help"><summary>ⓘ Mehrspaltige Firmenvorlage</summary><div>{general.scope_warning}</div></details>
+    : general?.kind && general.source !== "edeco:allgemein-2026" && (general.rows || []).filter(row => row.picture === "swatch").length > 0
+      ? <details className="legend-help"><summary>ⓘ Allgemeinvorlage · {(general.rows || []).filter(row => row.picture === "swatch").length} Farbcodes</summary>
+        <p>Diese Legende nutzt die eingestellte Firmenquelle. Die neue edeco-Vorlage mit 21 allgemeinen Zeilen und 12 Farbcodes lässt sich in den Einstellungen vor der Übernahme ansehen und wieder zurücksetzen.</p>
+        <button className="btn small" onClick={() => window.dispatchEvent(new CustomEvent("nl:open-settings"))}>Allgemeinvorlage ansehen</button>
+      </details> : null;
 
   if (!doc) {
     return (
@@ -902,6 +907,12 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
   const H = shown?.height ?? 100;
   const setStyle = (patch: Partial<LegendDoc["style"]>) => change({ ...doc, style: { ...style, ...patch } });
   const applyCompact = () => change(compactLegendDocument(doc));
+  const alignSectionColors = () => {
+    const next = alignLegendSectionColors(doc);
+    const amount = next.blocks.filter((block, index) => block !== doc.blocks[index]).length;
+    change(next);
+    notify(`${amount} Rubrikfarben angeglichen. Die Originalfarben der Symbole bleiben erhalten. Rückgängig mit Strg+Z.`);
+  };
   const applyA4 = () => change(a4CompactLegendDocument(doc));
 
   return (
@@ -913,14 +924,15 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
       <div className="legend-editor-heading">
         <div className="legend-editor-heading-main">
           {onProjects && <button type="button" className="btn primary legend-projects-back" aria-label="Zurück zu Projekten" onClick={onProjects}><ArrowLeft size={15} /> Projekte</button>}
-          <div><strong>{info.legend?.name || "Legende"}</strong><span className="hint legend-sheet-size">{W} × {H} mm</span></div>
+          <div><strong>{info.legend?.name || "Legende"}</strong><span className="hint legend-sheet-size">PDF {Math.round((W + 10) * 10) / 10} × {Math.round((H + 10) * 10) / 10} mm</span>
+            {H + 10 > 297.1 && <span className="legend-paper-warning" title="Die Ausgabe ist höher als A4. Das Layout folgt dem Inhalt und schneidet keine Zeilen ab.">Höher als A4</span>}</div>
           <InfoTip text="Die Blatthöhe folgt dem Inhalt. Änderungen werden automatisch gespeichert. Der Ansichtzoom verändert weder die Zeichnungsmasse noch den Export." />
         </div>
         <button type="button" className="btn legend-expand-button" aria-pressed={windowed} onClick={() => setWindowed(value => !value)} title={windowed ? "Zur eingebetteten Ansicht zurückkehren" : "Grosse Arbeitsfläche für die Legende innerhalb des Toolhubs öffnen"}>
           {windowed ? <Minimize2 size={16} /> : <Maximize2 size={16} />}{windowed ? "Kompakt" : "Editor gross öffnen"}
         </button>
       </div>
-      {(!style.compact_flow || style.row > 9) && <div className="legend-layout-notice">
+      {(!style.compact_flow || style.row > 9 || style.symbol_fit !== "corridor") && <div className="legend-layout-notice">
         <span>Gespeichertes Layout <InfoTip text="Diese Legende verwendet ihre bisherigen Abstände und Grössen. Die kompakte Vorlage setzt drei Apparatespalten, ein dichtes Raster, 2,8 mm Schrift und kleinere Abstände. Inhalte, Zuordnungen und Originalfarben bleiben erhalten. Die Änderung lässt sich mit Rückgängig zurücknehmen." /></span>
         <div className="row" style={{ gap: 6, flexWrap: "wrap" }}>
           <button className="btn small" onClick={applyCompact}>Kompakte Vorlage anwenden</button>
@@ -1027,7 +1039,7 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
                   onCommit={(v) => setStyle({ symbol_scale: Math.max(0.2, Math.min(5, v)) })} />
               </span>
             </label>
-            {(style.symbol_size ?? "tile") === "tile" && (
+            {(style.symbol_size ?? "tile") === "tile" && style.symbol_fit !== "corridor" && (
               <label className="toggle" title="Jedes Symbol bekommt dieselbe Fläche, mit einem kleinen freien Rand">
                 <input type="checkbox" checked={style.normalize_size !== false} onChange={(e) => setStyle({ normalize_size: e.target.checked })} />
                 Gleiche Fläche
@@ -1085,6 +1097,9 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
           </button>
           <button className={`btn small ${style.compact_flow && style.columns === 4 ? "is-on" : ""}`} aria-pressed={Boolean(style.compact_flow && style.columns === 4)} onClick={applyA4} title="Vier Spalten, kompakte Abstände. Die Seitenhöhe folgt dem Inhalt.">
             A4 kompakt
+          </button>
+          <button className="btn small" onClick={alignSectionColors} title="Rubrikmarkierung und Trennlinie auf die häufigste Originalfarbe ihrer Symbole setzen. Quellfarben, Farbvarianten und eigene Symbolfarben bleiben unverändert.">
+            Rubrikfarben aus Symbolen
           </button>
           <button className={`btn small ${detached ? "is-on" : ""}`} aria-pressed={detached} onClick={() => setDetached((v) => !v)}>
             {detached ? "Einstellungen andocken" : "Einstellungen schwebend"}
@@ -1413,6 +1428,8 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
             <GeneralRowProps
               row={general?.rows?.find((r) => r.id === sel.id) ?? null}
               admin={info.company.is_admin}
+              sourceLook={Boolean(doc.style.general_source_look)}
+              onCompanyLook={() => setStyle({ general_source_look: false })}
               onSave={async (patch) => {
                 const row = general?.rows?.find((r) => r.id === sel.id);
                 if (!row?.key) return;
@@ -1582,6 +1599,12 @@ function Prim({
       // cut at the tile, so the symbol itself stays as large as the other sections.
       const r = general?.row_svgs?.[p.row];
       if (!r) return null;
+      if (p.draw_w && p.draw_h) {
+        return <g transform={`translate(${p.x + p.w / 2} ${p.y + p.h / 2}) rotate(${-Number(p.rot || 0)})`} pointerEvents="none">
+          <svg x={-p.draw_w / 2} y={-p.draw_h / 2} width={p.draw_w} height={p.draw_h} viewBox={r.vb}
+            preserveAspectRatio="xMidYMid meet" overflow="visible" dangerouslySetInnerHTML={{ __html: r.svg }} />
+        </g>;
+      }
       const fullW = Number(p.full_w) || p.w;
       const fullH = Number(p.full_h) || p.h;
       const crop = fullW > p.w + 0.05 || fullH > p.h + 0.05;
@@ -2282,6 +2305,11 @@ function BlockProps({
           </label>
         ))}
       </div>
+      <details className="legend-help"><summary>ⓘ Rubrik und Originalfarben</summary><div>Die Rubrikfarbe markiert Überschrift und Trennlinie. Die Symbole behalten ihre eigenen Planfarben; ein roter Rubrikmarker bedeutet deshalb nicht, dass ein blauer Schalter umgefärbt wurde. Die folgende Aktion gleicht nur diese Rubrik an die häufigste Originalfarbe ihrer sichtbaren Symbole an. Bei gleich häufigen Farben bleibt die Rubrik unverändert.</div></details>
+      <button className="btn small" onClick={() => {
+        const selected = alignLegendSectionColors({ ...doc, blocks: [block] }).blocks[0];
+        change({ ...doc, blocks: doc.blocks.map(item => item.id === block.id ? selected : item) });
+      }}>Rubrikfarbe aus Symbolen</button>
       {!doc.style.compact_flow && <div className="color-grid">
         <label className="color-field">
           <input type="checkbox" checked={block.style.background_on} onChange={(e) => setStyle({ background_on: e.target.checked })} aria-label="Hintergrundfarbe an" />
@@ -2419,11 +2447,15 @@ function GeneralProps({
 function GeneralRowProps({
   row,
   admin,
+  sourceLook,
+  onCompanyLook,
   onSave,
   notify,
 }: {
   row: { id: string; key?: string; text: string; heading: boolean; text_scale?: number; symbol_factor?: number; rotation?: number; text_place?: "top" | "middle" | "bottom"; line?: boolean; picture?: "line" | "swatch" | "symbol" } | null;
   admin: boolean;
+  sourceLook: boolean;
+  onCompanyLook: () => void;
   onSave: (patch: { text?: string; text_scale?: number; symbol_factor?: number; rotation?: number; text_place?: "top" | "middle" | "bottom" }) => Promise<void>;
   notify: (text: string, error?: boolean) => void;
 }) {
@@ -2460,16 +2492,19 @@ function GeneralRowProps({
         <input className="input" aria-label="Text der Allgemeinteil-Zeile" value={text} disabled={!admin || busy} onChange={(e) => setText(e.target.value)}
           onBlur={() => { if (admin && text.trim() && text !== row.text) save({ text }); }} />
       </label>
+      {sourceLook && <div className="legend-source-look"><p className="hint">Diese Legende verwendet die Vorlagenwerte: Faktor 1 und keine zusätzliche Drehung. Texte und Zuordnungen bleiben erhalten.</p>
+        <button className="btn small" onClick={onCompanyLook}>Gespeicherte Darstellung verwenden</button></div>}
+      <fieldset disabled={sourceLook} style={{ border: 0, margin: 0, padding: 0 }}>
       <div className="form two">
         <label className="field">
           <span>Textgrösse (Faktor)</span>
-          <NumberInput label="Textgrösse Faktor Allgemeinteil" value={row.text_scale ?? 1} step={0.1} disabled={!admin}
+          <NumberInput label="Textgrösse Faktor Allgemeinteil" value={sourceLook ? 1 : row.text_scale ?? 1} step={0.1} disabled={!admin}
             onCommit={(v) => save({ text_scale: Math.max(0.5, Math.min(3, v)) })} />
         </label>
         {!row.heading && !row.line && row.picture !== "swatch" && (
           <label className="field">
             <span>Symbolgrösse (Faktor)</span>
-            <NumberInput label="Symbolgrösse Faktor Allgemeinteil" value={row.symbol_factor ?? 1} step={0.1} disabled={!admin}
+            <NumberInput label="Symbolgrösse Faktor Allgemeinteil" value={sourceLook ? 1 : row.symbol_factor ?? 1} step={0.1} disabled={!admin}
               onCommit={(v) => save({ symbol_factor: Math.max(0.5, Math.min(2, v)) })} />
           </label>
         )}
@@ -2487,7 +2522,7 @@ function GeneralRowProps({
       )}
       {!row.heading && !row.line && row.picture !== "swatch" && (
         <div className="field">
-          <span>Drehung {row.rotation || 0}°</span>
+          <span>Drehung {sourceLook ? 0 : row.rotation || 0}°</span>
           <div className="row" style={{ gap: 4, flexWrap: "wrap" }}>
             <button className="btn small" disabled={!admin || busy} onClick={() => save({ rotation: ((row.rotation || 0) + 45) % 360 })} title="Um 45 Grad drehen. Der Text bleibt waagrecht.">
               ↻ 45°
@@ -2503,6 +2538,7 @@ function GeneralRowProps({
           </div>
         </div>
       )}
+      </fieldset>
     </>
   );
 }
@@ -2542,10 +2578,14 @@ function DocProps({
 }) {
   const s = doc.style;
   const company = info.company;
-  const tileMm = String(Math.round(s.text_size * 3.6 * s.symbol_scale * 10) / 10).replace(".", ",");
+  const fitted = s.symbol_fit === "corridor";
+  const effectiveRow = s.compact_flow && s.grid !== "custom" ? 5 : s.row;
+  const tileHeight = Math.min(s.text_size * 3.6 * s.symbol_scale, s.grid === "standard" && !s.compact_flow ? Infinity : Math.max(2.4, effectiveRow - .4));
+  const tileMm = String(Math.round(tileHeight * .9 * 10) / 10).replace(".", ",");
   const sizeTip = (s.symbol_size ?? "tile") === "real"
     ? "Jedes Symbol im gemeinsamen Massstab, Einfügepunkt auf der Achse. Ein grosses Symbol belegt mehr Zeilen."
-    : `Kachel ${tileMm} mm, aus der Schriftgrösse. Jedes Symbol nutzt die Kachel mit einem kleinen freien Rand.`;
+    : fitted ? `Bis ${tileMm} mm Höhe und rund 13 mm Breite. Lange Leuchten und Leitungen nutzen den breiten Symbolkorridor; Proportionen und gespeicherte Drehrichtung bleiben erhalten. Grössenfaktoren vergrössern nur bis zur Feldgrenze.`
+    : `Quadratische Kachel mit bis ${tileMm} mm sichtbarer Symbolhöhe. Lange schmale Zeichnungen werden durch die Quadratbreite begrenzt.`;
   return (
     <>
       <h4>Legende <InfoTip text="Eintrag oder Kopfleiste anklicken. Ziehen oder ↑ ↓ verschiebt." /></h4>
@@ -2555,7 +2595,7 @@ function DocProps({
       </label>
       <div className="form two">
         <label className="field">
-          <span>Layout <InfoTip text="Dichte wie Entwurf: drei Apparatespalten und 2,8 mm Schrift. A4 kompakt: vier Spalten, 2,6 mm Schrift und kleinere Ränder. Die Seitenhöhe folgt dem Inhalt; umfangreiche Legenden können höher als A4 bleiben. Der Allgemeinteil steht in zwei Spalten mit den Farbcodes darunter. Inhalte, Quellfarben und Zuordnungen bleiben erhalten. Rückgängig stellt die vorherigen Werte wieder her." /></span>
+          <span>Layout <InfoTip text="Dichte wie Entwurf: drei Apparatespalten mit 2,8 mm Schrift. A4 kompakt: vier Spalten mit 2,6 mm Schrift und kleineren Rändern. Beide verwenden breite Symbolfelder statt Quadratbegrenzung. Der Allgemeinteil nutzt die Geometrie der Vorlage ohne zusätzliche gespeicherte Faktoren oder Drehungen; diese bleiben für die frühere Darstellung erhalten. Inhalte, Quellfarben und Zuordnungen bleiben erhalten. Rückgängig stellt alle vorherigen Werte wieder her. Die Höhe folgt dem Inhalt." /></span>
           <select className="select" aria-label="Legendenlayout" value={s.compact_flow ? s.columns === 4 ? "a4" : "compact" : "classic"} onChange={event => event.target.value === "compact" ? onCompact() : event.target.value === "a4" ? onA4() : setStyle({ compact_flow: false })}>
             <option value="compact">Dichte wie Entwurf</option>
             <option value="a4">A4 kompakt</option>
@@ -2576,12 +2616,13 @@ function DocProps({
         </label>
         <label className="field">
           <span>Symbolgrösse <InfoTip text={sizeTip} /></span>
-          <select className="select" aria-label="Symbolgrösse" value={s.symbol_size ?? "tile"} onChange={(e) => setStyle({ symbol_size: e.target.value as "real" | "tile" })}>
-            <option value="tile">Gleiche Kacheln</option>
-            <option value="real">Echte Grösse</option>
+          <select className="select" aria-label="Symbolgrösse" value={s.symbol_size === "real" ? "real" : fitted ? "fit" : "tile"} onChange={(e) => setStyle({ symbol_size: e.target.value === "real" ? "real" : "tile", symbol_fit: e.target.value === "fit" ? "corridor" : "square" })}>
+            <option value="fit">Breites Symbolfeld</option>
+            <option value="tile">Quadratische Kacheln</option>
+            <option value="real">Originalmassstab</option>
           </select>
         </label>
-        {(s.symbol_size ?? "tile") === "tile" && (
+        {(s.symbol_size ?? "tile") === "tile" && !fitted && (
           <label className="toggle field" style={{ alignSelf: "end" }}>
             <input type="checkbox" checked={s.normalize_size !== false}
               onChange={(e) => setStyle({ normalize_size: e.target.checked })} />
@@ -2613,6 +2654,7 @@ function DocProps({
           <NumberInput label="Innenrand" value={s.margin ?? 5} step={0.5} min={2} max={10} onCommit={value => setStyle({ margin: Math.max(2, Math.min(10, value)) })} />
         </label>
       </div>
+      {hasGeneral && <label className="toggle"><input type="checkbox" checked={Boolean(s.general_source_look)} onChange={event => setStyle({ general_source_look: event.target.checked })} />Allgemeinteil mit Vorlagenwerten <InfoTip text="Nur diese Legende: ursprüngliche Symbolausrichtung, Faktor 1 und gemeinsame Schriftgrösse. Gespeicherte zusätzliche Drehungen und Vergrösserungen bleiben in der Firmenkonfiguration erhalten und werden nach Ausschalten wieder verwendet. Die Quelldatei wird nicht verändert." /></label>}
       <div className="row">
         <label className="toggle" style={{ color: "var(--fg)" }}>
           <input type="checkbox" checked={Boolean(s.hatch_off)} onChange={(e) => setStyle({ hatch_off: e.target.checked })} />

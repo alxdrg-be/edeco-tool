@@ -1,6 +1,23 @@
 import type { MemoryEntry, MemoryTopic } from "./types";
 
 export type MemoryFilter = "all" | "formulas" | "reference" | "basics";
+
+/** Keep print furniture in source documentation, not in the digital reference. */
+export function referenceMemoryTopics(topics: MemoryTopic[]): MemoryTopic[] {
+  return topics.flatMap(sourceTopic => {
+    const topic = { ...sourceTopic, entries: sourceTopic.entries.filter(entry => entry.presentation !== "source-note") };
+    // A shared source page is not a reason to combine unrelated digital topics.
+    if (topic.id === "em-emergency") return [
+      { ...topic, title: "Nothilfe bei Stromunfällen", summary: "Eigenschutz, Alarmierung und Erste-Hilfe-Merkpunkte.", entries: topic.entries.filter(entry => entry.id !== "em-p02-asbestos") },
+      { ...topic, id: "em-asbestos", title: "Asbest in älteren Gebäuden", summary: "Gefährdung bei Arbeiten an älteren Baustoffen erkennen.", entries: topic.entries.filter(entry => entry.id === "em-p02-asbestos") },
+    ];
+    if (topic.id === "em-spd-conduits") return [
+      { ...topic, title: "Überspannungsschutz", summary: "Auswahl von Überspannungsschutzgeräten als Quellenreferenz.", entries: topic.entries.filter(entry => entry.id !== "em-p11-conduit-fill") },
+      { ...topic, id: "em-conduits", title: "Installationsrohre und Rohrbelegung", summary: "Leiterbelegung und Rohrdimensionen nachschlagen.", entries: topic.entries.filter(entry => entry.id === "em-p11-conduit-fill") },
+    ];
+    return [topic];
+  }).filter(topic => topic.entries.length > 0);
+}
 const normalized = (value: string) => value.toLocaleLowerCase("de-CH").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/µ/g, "u").replace(/φ/g, "phi");
 const entryText = (entry: MemoryEntry) => [entry.title, entry.formula, entry.explanation, entry.correction,
   ...(entry.paragraphs ?? []), ...(entry.conditions ?? []), ...(entry.variables ?? []).flatMap(variable => [variable.symbol, variable.label, variable.unit]),

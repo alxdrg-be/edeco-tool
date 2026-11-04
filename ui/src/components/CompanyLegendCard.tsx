@@ -88,12 +88,12 @@ export default function CompanyLegendCard({
             </button>
           </div>
         </label>
-        <p className="hint">
+        <details className="help-inline"><summary>Eigene Vorlagendatei verwenden</summary><p className="hint">
           Empfehlung: die einspaltige Legende einmal als DXF direkt aus Nova speichern und hier eintragen. Eine DXF braucht keinen
           ODA File Converter, eine DWG schon (auf jedem Arbeitsplatz). Das Programm ordnet sie selbst in 2 oder 3 Spalten. Änderst du
-          die Datei auf dem Server, liest das Programm sie beim nächsten Öffnen der Legende neu. Liegt die Zeichnung im
+          die lokale Datei oder gemeinsame Netzwerkdatei, liest das Programm sie beim nächsten Öffnen der Legende neu. Liegt die Zeichnung im
           Ordner oder heisst sie wie der Ordner mit Endung .dxf oder .dwg, reicht der Ordnerpfad.
-        </p>
+        </p></details>
         {info.general.kind ? (
           <p className="hint">
             Gelesen: {info.general.kind === "dxf" ? "DXF/DWG" : "Vorlagen-Projekt"}, {info.general.w} × {info.general.h} mm.
@@ -113,7 +113,9 @@ export default function CompanyLegendCard({
           </p>
         )}
 
-        <GeneralPartEditor notify={notify} reloadKey={generalRev} />
+        <GeneralPartEditor notify={notify} reloadKey={generalRev} onSourceChanged={() => {
+          api.companyLegend().then(apply).catch(e => notify((e as Error).message, true));
+        }} />
       </div>
 
       <section className="card admin-box" aria-label="Admin">

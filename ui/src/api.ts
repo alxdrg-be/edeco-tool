@@ -297,6 +297,8 @@ export interface GeneralInfo {
   w: number;
   h: number;
   file?: string;
+  source_columns?: number;
+  scope_warning?: string;
   /** a DXF / DWG split into rows (graphic + text): they flow into the legend columns */
   rows?: { id: string; key?: string; text: string; heading: boolean; names: string[]; text_scale?: number; symbol_factor?: number; rotation?: number; text_place?: "top" | "middle" | "bottom"; line?: boolean; picture?: "line" | "swatch" | "symbol"; swatch?: string }[];
   /** drawing of every row graphic (preview), by row id */
@@ -328,6 +330,17 @@ export interface CompanyGeneral extends GeneralInfo {
   rows: GeneralRow[];
   oda?: boolean;
   company: CompanyLegend;
+  builtin: GeneralTemplateInfo;
+}
+
+export interface GeneralTemplateInfo {
+  source: string;
+  active: boolean;
+  available: boolean;
+  error: string;
+  general_rows: number;
+  color_codes: number;
+  can_restore: boolean;
 }
 
 export interface CompanyLegend {
@@ -672,6 +685,8 @@ export const api = {
     request<CompanyLegend>("POST", `/api/projects/${encodeURIComponent(id)}/legend/remember`, { doc }),
   companyLegend: () => request<CompanyLegend & { general: GeneralInfo }>("GET", "/api/company/legend"),
   companyGeneral: () => request<CompanyGeneral>("GET", "/api/company/general"),
+  applyGeneralTemplate: (source: string) => request<CompanyGeneral>("POST", "/api/company/general/builtin/apply", { expected_source: source }),
+  restoreGeneralTemplate: (source: string) => request<CompanyGeneral>("POST", "/api/company/general/builtin/restore", { expected_source: source }),
   saveGeneralRow: (row: { key: string; text?: string; hidden?: boolean; links?: string[]; text_scale?: number; symbol_factor?: number; rotation?: number; text_place?: "top" | "middle" | "bottom" }) =>
     request<CompanyGeneral>("PUT", "/api/company/general/row", row),
   companySymbols: () => request<{ items: CompanySymbolItem[]; symbols: Record<string, CompanySymbolLook> }>("GET", "/api/company/symbols"),

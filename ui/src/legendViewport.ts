@@ -37,10 +37,32 @@ export function legendVisibleItemColors(item: LayerColorSource & { parts?: Layer
   return [...new Set([item, ...(item.parts ?? [])].flatMap(legendVisibleLayerColors))];
 }
 
+/** Explicit presentation correction; original glyph colours and overrides stay.
+ * A mixed section with an equal colour count has no unambiguous header colour.
+ */
+export function alignLegendSectionColors(doc: LegendDoc): LegendDoc {
+  return { ...doc, blocks: doc.blocks.map(block => {
+    const counts = new Map<string, number>();
+    for (const item of block.items) {
+      if (item.hidden || item.kind !== "symbol") continue;
+      for (const part of [item, ...(item.parts ?? [])]) {
+        for (const color of legendLayerColors(part)) counts.set(color, (counts.get(color) ?? 0) + 1);
+      }
+    }
+    const highest = Math.max(0, ...counts.values());
+    const colors = [...counts].filter(([, count]) => count === highest).map(([color]) => color);
+    if (colors.length !== 1 || colors[0] === block.style.header.toLowerCase()) return block;
+    const header = colors[0];
+    const rgb = [1, 3, 5].map(index => Number.parseInt(header.slice(index, index + 2), 16));
+    const dark = rgb[0] * .299 + rgb[1] * .587 + rgb[2] * .114 > 160;
+    return { ...block, style: { ...block.style, header, header_text: dark ? "#000000" : "#ffffff" } };
+  }) };
+}
+
 /** An explicit, undoable preset. Merely opening an old legend never applies it. */
 export function compactLegendStyle(style: LegendStyle): LegendStyle {
   return { ...style, compact_flow: true, columns: 3, grid: "dicht", row: 6, text_offset: 8,
-    text_size: 2.8, symbol_scale: 1, symbol_size: "tile", normalize_size: true,
+    text_size: 2.8, symbol_scale: 1, symbol_size: "tile", symbol_fit: "corridor", general_source_look: true, normalize_size: true,
     entry_gap: 0, section_gap: 0, text_lines: 0, pdf_lines: "proportional" };
 }
 

@@ -84,6 +84,7 @@ def inspect_pdf(data: bytes) -> dict:
     pages = []
     try:
         with PDF_LOCK, pdfium.PdfDocument(data) as document:
+            document.init_forms()
             if len(document) != len(reader.pages):
                 raise ValueError("Die PDF-Seitenstruktur ist widersprüchlich.")
             for index in range(len(document)):
@@ -126,10 +127,15 @@ def compose_pdf(files: list[PdfFile], selection: list[PageSelection]) -> bytes:
     if any(item.file >= len(readers) or item.page > len(readers[item.file].pages) for item in selection):
         raise ValueError("Die Seitenauswahl enthält eine nicht vorhandene Datei oder Seite.")
     writer = PdfWriter()
+    if len(readers) > 1:
+        for index, reader in enumerate(readers, 1):
+            if reader.get_fields():
+                reader.add_form_topname(f"source_{index}")
     for item in selection:
-        # add_page clones the page dictionary; repeating one original page can
-        # therefore be rotated independently without changing another copy.
-        page = writer.add_page(readers[item.file].pages[item.page - 1])
+        # append retains the selected pages' form-field catalogue as well as
+        # their visible widgets. Separate calls keep repeated pages independent.
+        writer.append(readers[item.file], pages=[item.page - 1], import_outline=False)
+        page = writer.pages[-1]
         if item.rotation:
             page.rotate(item.rotation)
     return writer_bytes(writer)

@@ -17,6 +17,8 @@ from pathlib import Path
 NOT_SUPPORTED = ("Die Servervorlage für den Allgemeinteil muss eine DXF- oder DWG-Datei oder ein "
                  "Vorlagen-Projekt mit Legende sein. N4D lässt sich nicht sicher lesen.")
 UNITS_TO_MM = {1: 25.4, 4: 1.0, 5: 10.0, 6: 1000.0}
+BUILTIN_SOURCE = "edeco:allgemein-2026"
+BUILTIN_FILE = Path(__file__).with_name("resources") / "edeco_allgemein_2026.dxf"
 
 
 @dataclass
@@ -45,10 +47,15 @@ class GeneralPart:
     symbol_names: list[str] = field(default_factory=list)   # normalised names of the symbols (blocks)
     # colours of the drawing replaced by the plan colours of the project (old hex -> new hex)
     recolor: dict[str, str] = field(default_factory=dict)
+    columns: int = 1                 # source caption columns, including a separate colour-key column
 
     def info(self) -> dict:
         out = {"source": self.source, "kind": self.kind, "error": self.error,
                "w": round(self.w, 2), "h": round(self.h, 2), "file": self.dxf_path}
+        if self.columns > 1:
+            out["source_columns"] = self.columns
+            out["scope_warning"] = ("Die Vorlage enthält mehrere Textspalten. Alle erkannten Zeilen gehören zum Allgemeinteil. "
+                                    "Für eine Gesamtlegende zuerst nur die allgemeinen Zeilen und Farbcodes als Firmenvorlage auswählen.")
         if self.rows:
             out["rows"] = [{k: v for k, v in r.items() if k not in ("svg", "vb", "handles", "all", "th")}
                            for r in self.rows]
@@ -128,6 +135,8 @@ def resolve_source(path: str) -> tuple[Path | None, str]:
     raw = (path or "").strip().strip('"')
     if not raw:
         return None, ""
+    if raw == BUILTIN_SOURCE:
+        return (BUILTIN_FILE, "") if BUILTIN_FILE.is_file() else (None, "Die mitgelieferte edeco-Allgemeinvorlage fehlt.")
     p = Path(raw)
     if p.is_dir():
         project = p / "projekt.nlproj"
@@ -283,6 +292,7 @@ def _from_dxf(source: str, path: Path, inner_width: float) -> GeneralPart:
         rows, area, text_x = [], 0.0, 0.0
     if len(rows) >= 3:
         part.rows, part.symbol_area, part.text_x = rows, area, text_x
+        part.columns = int(getattr(doc, "_nl_caption_columns", 1))
         part.symbol_names = sorted({n for r in rows for n in r.get("names", [])})
     return part
 
@@ -361,7 +371,7 @@ def _paint(entity) -> str | None:
     return f"#{r:02x}{g:02x}{b:02x}"
 
 
-def _is_bar(entity, box, to_mm: float, minimum_width: float = 12.0) -> bool:
+def _is_bar(entity, box, to_mm: float, minimum_width: float = 12.0, depth: int = 0) -> bool:
     """A colour field across the symbol column, not a symbol."""
     w, h = _span_mm(box, to_mm)
     if entity.dxftype() in _FILL and w >= minimum_width and 0.3 <= h <= 8 and w >= h * 3.2:
@@ -369,6 +379,13 @@ def _is_bar(entity, box, to_mm: float, minimum_width: float = 12.0) -> bool:
     if entity.dxftype() == "LWPOLYLINE" and entity.dxf.hasattr("const_width"):
         thick = max(float(entity.dxf.const_width) * to_mm, h)
         return 0.6 <= thick <= 8 and w >= max(minimum_width, thick * 3.2)
+    if entity.dxftype() == "INSERT" and depth < 8 and w >= minimum_width and 0.3 <= h <= 8 and w >= h * 3.2:
+        # CAD colour-key samples often wrap a solid rectangle in several
+        # INSERTs. Inspect their real geometry, not the wrapper's entity type.
+        from ezdxf import bbox
+        children = list(entity.virtual_entities())
+        boxes = [(child, bbox.extents([child], fast=True)) for child in children if child.dxftype() not in _NOTE]
+        return any(b.has_data and _is_bar(child, b, to_mm, minimum_width, depth + 1) for child, b in boxes)
     return False
 
 
@@ -547,20 +564,41 @@ def split_rows(doc, to_mm: float, bands: list[float] | None = None) -> tuple[lis
     rows: list[dict] = []
     # a few millimetres of jitter still count as the same text column
     tol = max(3.0 / max(to_mm, 1e-6), 1.5)
-    in_column = [t for t in big if abs(t[0].dxf.insert.x - text_x) < tol]
+    clusters: list[list] = []
+    for entry in sorted(big, key=lambda t: t[0].dxf.insert.x):
+        if not clusters or entry[0].dxf.insert.x - clusters[-1][0][0].dxf.insert.x > tol:
+            clusters.append([])
+        clusters[-1].append(entry)
+    columns = [sum(t[0].dxf.insert.x for t in group) / len(group) for group in clusters
+               if len(group) >= max(4, len(big) * 0.05)]
+    multiple = len(columns) > 1
+    doc._nl_caption_columns = len(columns) if multiple else 1
+    column_for = lambda x: min(columns, key=lambda c: abs(c - x)) if multiple else text_x  # noqa: E731
+    in_column = [t for t in big if abs(t[0].dxf.insert.x - column_for(t[0].dxf.insert.x)) < tol]
     for e, raw, height in in_column:
         rows.append({"text": raw, "heading": False, "y": e.dxf.insert.y + height * 0.36,
-                     "text_h": round(height * to_mm, 3), "ents": [], "names": [], "th": e.dxf.handle})
+                     "text_h": round(height * to_mm, 3), "ents": [], "names": [], "th": e.dxf.handle,
+                     "caption_x": column_for(e.dxf.insert.x)})
     taken = {id(t[0]) for t in in_column}
     for e, raw, height in big:
         if id(e) in taken:
             continue
         y = e.dxf.insert.y + height * 0.36
-        if all(abs(r["y"] - y) > height for r in rows) and len(raw) > 2:
+        named_palette = norm_text(raw) in {"farbcodes", "farbcode", "farblegende", "farbschlüssel"}
+        own_column = column_for(e.dxf.insert.x)
+        if (named_palette or all(abs(r["y"] - y) > height for r in rows
+                                if not multiple or r["caption_x"] == own_column)) and len(raw) > 2:
             rows.append({"text": raw, "heading": True, "y": y, "text_h": round(height * to_mm, 3),
-                         "ents": [], "names": [], "th": e.dxf.handle})
+                         "ents": [], "names": [], "th": e.dxf.handle, "caption_x": own_column})
             taken.add(id(e))
-    rows.sort(key=lambda r: -r["y"])
+    palettes = [(e.dxf.insert.x, e.dxf.insert.y + height * .36)
+                for e, raw, height in big if norm_text(raw) in {"farbcodes", "farbcode", "farblegende", "farbschlüssel"}]
+    if multiple:
+        for row in rows:
+            row["color_key"] = any(row["caption_x"] >= x - tol and row["y"] <= y + .1 for x, y in palettes)
+        rows.sort(key=lambda r: (bool(r.get("color_key")), r["caption_x"], -r["y"]))
+    else:
+        rows.sort(key=lambda r: -r["y"])
     if len(rows) < 3:
         return [], 0.0, 0.0
     pitch = sorted(abs(a["y"] - b["y"]) for a, b in zip(rows, rows[1:]))[len(rows) // 2] or 1.0
@@ -571,9 +609,18 @@ def split_rows(doc, to_mm: float, bands: list[float] | None = None) -> tuple[lis
         if not box.has_data:
             continue
         cx, cy = (box.extmin.x + box.extmax.x) / 2, (box.extmin.y + box.extmax.y) / 2
-        if cx > text_x - 0.3:
+        if not multiple and cx > text_x - 0.3:
             continue                     # right of the text column: not part of a symbol
-        if bands and len(bands) >= 2:
+        if multiple:
+            candidates = [r for r in rows if not r["heading"] and cx < r["caption_x"] - .3
+                          and abs(r["y"] - cy) <= pitch * .8]
+            if not candidates:
+                continue
+            # A page frame spanning both caption regions is not one row glyph.
+            if box.size.x > (max(columns) - min(columns)) * .8 and box.size.y > pitch * 4:
+                continue
+            row = min(candidates, key=lambda r: (r["caption_x"] - cx, round(abs(r["y"] - cy), 4)))
+        elif bands and len(bands) >= 2:
             band = bisect.bisect(bands, cy)
             same = [r for r in rows if bisect.bisect(bands, r["y"]) == band]
             if not same:
@@ -597,6 +644,8 @@ def split_rows(doc, to_mm: float, bands: list[float] | None = None) -> tuple[lis
             r["heading"] = True
         if r.get("heading"):
             in_color_key = "farbcode" in norm_text(r["text"]) or norm_text(r["text"]) in {"farblegende", "farbschlüssel"}
+        if multiple and not r.get("heading"):
+            in_color_key = bool(r.get("color_key"))
         item = {"id": f"g{i}", "text": r["text"], "heading": r["heading"], "text_h": r["text_h"],
                 "names": sorted(set(r["names"])),
                 # for the template export: the text entity, the height of the row and every
@@ -617,7 +666,21 @@ def split_rows(doc, to_mm: float, bands: list[float] | None = None) -> tuple[lis
                 item["swatch"] = colors[0] if colors else pic["swatch"]
                 item["vb"], item["svg"] = _swatch_svg(item["swatch"])
             elif pic and pic.get("keep"):
-                kept = pic["keep"]
+                kept = list(pic["keep"])
+                # Small labels inside a glyph (L3, distributor fields, duct
+                # dimensions) and separators between a pair carry meaning.
+                # Keep them with the graphic; outer leaders remain excluded.
+                left = min(b.extmin.x for _e, b in kept)
+                bottom = min(b.extmin.y for _e, b in kept)
+                right = max(b.extmax.x for _e, b in kept)
+                top = max(b.extmax.y for _e, b in kept)
+                inset = .2 / max(to_mm, 1e-6)
+                for entity, box in r["ents"]:
+                    if entity.dxftype() not in _NOTE:
+                        continue
+                    cx, cy = (box.extmin.x + box.extmax.x) / 2, (box.extmin.y + box.extmax.y) / 2
+                    if left - inset <= cx <= right + inset and bottom - inset <= cy <= top + inset:
+                        kept.append((entity, box))
                 x0 = min(b.extmin.x for _e, b in kept)
                 y0 = min(b.extmin.y for _e, b in kept)
                 x1 = max(b.extmax.x for _e, b in kept)
@@ -684,6 +747,8 @@ SYSTEM_RULES: list[tuple[str, str]] = [
     (r"schwachstrom", "schwachstrom"),
     (r"brand", "bma"),
     (r"sicherheitsbeleucht|notbeleucht", "fluchtweg"),
+    (r"\bhlks\b", "hlks"),
+    (r"\bzuko\b|zutrittskontroll", "sicherheit"),
     (r"\bbus\b|knx", "knx"),
     (r"telefon|multimedia|ukv|audio|video", "kommunikation"),
 ]

@@ -103,6 +103,12 @@ def physical_unit(page) -> float:
 
 def resize_pdf(data: bytes, options: Options) -> bytes:
     reader = open_pdf(data)
+    if reader.trailer["/Root"].get("/AcroForm") or any(
+            annotation.get_object().get("/Subtype") == "/Widget"
+            for page in reader.pages for annotation in page.get("/Annots", [])):
+        raise ValueError("Diese PDF enthält interaktive Formularfelder. Sichere zuerst mit „Abflachen“ eine eigene Kopie oder verwende die erweiterten Funktionen. Das Original bleibt unverändert.")
+    if any(page.get("/Annots") for page in reader.pages):
+        raise ValueError("Diese PDF enthält Anmerkungen oder Verknüpfungen. Die kompakte Formatänderung kann deren Positionen nicht zuverlässig erhalten. Erstelle bei Bedarf zuerst mit „Abflachen“ eine eigene Druckkopie.")
     writer = PdfWriter()
     working = PdfWriter()
     for original in reader.pages:
@@ -136,6 +142,7 @@ def raster_images(data: bytes, options: Options) -> tuple[bytes, str]:
     images = []
     try:
         with PDF_LOCK, pdfium.PdfDocument(data) as document:
+            document.init_forms()
             plan = []
             total_pixels = 0
             for number in numbers:
@@ -181,8 +188,7 @@ def split_pdf(data: bytes, options: Options) -> bytes:
     with zipfile.ZipFile(output, "w", zipfile.ZIP_DEFLATED) as archive:
         for index, end in enumerate(cuts + [count], 1):
             writer = PdfWriter()
-            for page in reader.pages[start:end]:
-                writer.add_page(page)
+            writer.append(reader, pages=list(range(start, end)), import_outline=False)
             archive.writestr(f"Teil-{index}.pdf", writer_bytes(writer))
             start = end
     return output.getvalue()

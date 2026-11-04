@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { BASIC_TOPICS } from "./basics.ts";
 import { SOURCE_CATALOG } from "./sourceCatalog.ts";
-import { filterMemoryEntries, filterMemoryTopics, memoryPagesLabel } from "./memorySearch.ts";
+import { filterMemoryEntries, filterMemoryTopics, memoryPagesLabel, referenceMemoryTopics } from "./memorySearch.ts";
 import { isFormulaId } from "../berechnungen/formulaCatalog.ts";
 
 test("the uploaded 16-page source has an explicit complete page inventory", () => {
@@ -57,4 +57,22 @@ test("known source errors remain explicit and corrected in the product data", ()
   assert.match(meter.correction!, /kW/);
   const fuse = entries.find(entry => entry.id === "em-p07-diazed-colors")!;
   assert.ok(fuse.table?.rows.some(row => row.some(cell => cell.includes("65 A [prüfen: üblich 63 A]"))));
+});
+
+test("print furniture stays in provenance while all technical entries remain searchable", () => {
+  const sourceEntries = SOURCE_CATALOG.topics.flatMap(topic => topic.entries);
+  const sourceNotes = sourceEntries.filter(entry => entry.presentation === "source-note");
+  const digital = referenceMemoryTopics(SOURCE_CATALOG.topics);
+  assert.equal(sourceEntries.length, 70);
+  assert.equal(digital.length, 15);
+  assert.deepEqual(sourceNotes.map(entry => entry.id), ["em-p01-ruler", "em-p16-imprint"]);
+  assert.equal(digital.flatMap(topic => topic.entries).length, 68);
+  assert.equal(digital[0].entries.length, 4);
+  assert.ok(digital.every(topic => topic.entries.length > 0));
+  assert.deepEqual(digital.flatMap(topic => topic.entries).map(entry => entry.id), sourceEntries.filter(entry => entry.presentation !== "source-note").map(entry => entry.id));
+  assert.equal(filterMemoryTopics(digital, "Aufgedrucktes Lineal", "all").length, 0);
+  assert.ok(filterMemoryTopics(digital, "Widerstand", "all").some(topic => topic.id === "em-ohm-cover"));
+  assert.deepEqual(filterMemoryTopics(digital, "Asbest", "all").map(topic => topic.id), ["em-asbestos"]);
+  assert.deepEqual(filterMemoryTopics(digital, "Rohrbelegung", "all").map(topic => topic.id), ["em-conduits"]);
+  assert.equal(digital.find(topic => topic.id === "em-spd-conduits")!.entries[0].id, "em-p11-spd-flow");
 });

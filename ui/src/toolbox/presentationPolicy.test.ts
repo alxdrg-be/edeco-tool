@@ -1,8 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { allowedToolId, toolAllowed, type PresentationPolicy } from "./presentationPolicy.ts";
+import { allowedToolId, DEFAULT_DEMO_TOOLS, toolAllowed, type PresentationPolicy } from "./presentationPolicy.ts";
 
-const normal: PresentationPolicy = { revision: "0", demo_enabled: false, demo_tools: ["nova-legenden", "berechnungen", "dateien-umbenennen", "pdf-werkzeuge"], admins: ["aduerger", "nstrauss"], identity: "someone", is_admin: false, can_manage: false, windows_roles: true };
+const normal: PresentationPolicy = { revision: "0", demo_enabled: false, demo_tools: [...DEFAULT_DEMO_TOOLS], admins: ["aduerger", "nstrauss"], identity: "someone", is_admin: false, can_manage: false, windows_roles: true };
 const tools = [
   { id: "nova-legenden", title: "NOVA", description: "", category: "Elektro", color: "petrol", symbol: "NL", status: "available" as const },
   { id: "berechnungen", title: "Rechner", description: "", category: "Berechnungen", color: "blue", symbol: "=", status: "available" as const },
@@ -27,10 +27,11 @@ test("demo scope also applies to administrators and calculator deep links", () =
   assert.equal(allowedToolId("ls-schalter", tools, { ...demo, demo_tools: ["nova-legenden"] }), false);
   assert.equal(toolAllowed(tools[0], { ...demo, demo_tools: ["nova-legenden"] }), true);
 });
-test("standalone memory stays out of the four-tool demo while its formula route follows calculations", () => {
+test("memory is part of the five-tool demo and an explicit reduced selection is respected", () => {
   const demo = { ...normal, demo_enabled: true };
   assert.equal(allowedToolId("elektro-memory", tools, normal), true);
-  assert.equal(allowedToolId("elektro-memory", tools, demo), false);
+  assert.equal(allowedToolId("elektro-memory", tools, demo), true);
+  assert.equal(allowedToolId("elektro-memory", tools, { ...demo, demo_tools: ["nova-legenden"] }), false);
   assert.equal(allowedToolId("formelrechner", tools, demo), true);
   assert.equal(allowedToolId("formelrechner", tools, { ...demo, demo_tools: ["nova-legenden"] }), false);
 });

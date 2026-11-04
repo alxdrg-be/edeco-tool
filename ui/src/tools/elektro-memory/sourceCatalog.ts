@@ -219,12 +219,13 @@ export const SOURCE_CATALOG: MemoryCatalog = {
           "id": "em-p01-ruler",
           "title": "Aufgedrucktes Lineal",
           "kind": "reference",
+          "presentation": "source-note",
           "source": {
             "page": 1,
             "section": "Titelseite"
           },
           "confidence": "verified",
-          "explanation": "Dekoratives Lineal von 0 bis 12; bei einem skalierten Scan ist kein verlässliches physisches Längenmass gegeben.",
+          "explanation": "Lineal von 0 bis 12 in der gedruckten Vorlage. Eine Bildschirmdarstellung oder ein skalierter Ausdruck liefert kein verlässliches physisches Längenmass.",
           "conditions": [],
           "audit": {
             "sourceReadability": "clear",
@@ -3020,6 +3021,7 @@ export const SOURCE_CATALOG: MemoryCatalog = {
           "id": "em-p16-imprint",
           "title": "Quellstand und Impressum",
           "kind": "reference",
+          "presentation": "source-note",
           "source": {
             "page": 16,
             "section": "Impressum"

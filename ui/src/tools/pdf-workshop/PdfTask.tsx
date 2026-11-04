@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight, Download, Minus, Plus, Scissors, Upload } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, Minus, Plus, Scissors, Upload, X } from "lucide-react";
 import { NATIVE_TASKS, isImageSource, nativePageNumbers, nativeSplitCuts, toggleNativeCut, type NativeTaskId } from "./nativeTools";
 import NativePdfPreview from "./NativePdfPreview";
 import "./pdf-native-workspace.css";
@@ -54,24 +54,30 @@ export default function PdfTask({ tool, sessionKey, incomingFiles, onDirty, onWo
     if (next.length > (imageTool ? 20 : 1) || next.some(file => file.size > 100 * 1024 * 1024) || next.reduce((sum, file) => sum + file.size, 0) > 250 * 1024 * 1024) {
       setError(imageTool ? "Bitte bis zu 20 Bilder, je höchstens 100 MB und zusammen 250 MB wählen." : "Bitte eine PDF-Datei mit höchstens 100 MB wählen."); return;
     }
-    setBusy("open"); setError(""); clearResult(); setPreview(null); setPageIndex(0); showImage();
+    setBusy("open"); setError("");
     try {
+      let nextPreview: Preview | null = null;
       if (imageTool) {
         if (next.some(file => !isImageSource(file))) throw new Error("Bitte PNG- oder JPEG-Bilder wählen.");
-        showImage(next[0]);
       } else {
         const body = new FormData(); body.append("file", next[0]);
         const response = await fetch(API + "/inspect", { method: "POST", headers: { "X-Edeco-Pdf": sessionKey }, body });
         const value = await response.json();
         if (!response.ok) throw new Error(typeof value.detail === "string" ? value.detail : "Das PDF konnte nicht geöffnet werden.");
-        setPreview(value as Preview);
+        nextPreview = value as Preview;
       }
+      clearResult(); setPreview(nextPreview); setPageIndex(0); showImage(imageTool ? next[0] : undefined);
       setFiles(next); setPages("all"); setCutsText(""); setEach(true); onDirty();
-    } catch (e) { setFiles([]); setError((e as Error).message); }
+    } catch (e) { setError((e as Error).message); }
     finally { setBusy(""); if (picker.current) picker.current.value = ""; }
   }
 
   function change() { clearResult(); }
+  function closeDocument() {
+    if (busy) return;
+    setFiles([]); setPreview(null); setPageIndex(0); setPages("all"); setCutsText(""); setEach(true);
+    setZoom(1); setError(""); clearResult(); showImage(); incoming.current = null;
+  }
   function moveImage(index: number, direction: number) {
     const next = [...files]; [next[index], next[index + direction]] = [next[index + direction], next[index]];
     setFiles(next); change();
@@ -79,7 +85,7 @@ export default function PdfTask({ tool, sessionKey, incomingFiles, onDirty, onWo
   }
   async function run() {
     if (busy || !files.length) return;
-    setBusy("export"); setError(""); clearResult();
+    setBusy("export"); setError("");
     try {
       const options = tool === "split" ? { split_mode: each ? "each" : "custom", split_after: cutsText }
         : tool === "resize" ? { page_size: format, scale: Number(scale), orientation }
@@ -90,7 +96,7 @@ export default function PdfTask({ tool, sessionKey, incomingFiles, onDirty, onWo
       const blob = await response.blob();
       const ext = blob.type.includes("zip") ? "zip" : blob.type.includes("png") ? "png" : blob.type.includes("text") ? "txt" : "pdf";
       const stem = files[0].name.replace(/\.[^.]*$/, "").replace(/[<>:"/\\|?*\x00-\x1f]/g, "_").slice(0, 100);
-      const url = URL.createObjectURL(blob); urls.current.result = url;
+      const url = URL.createObjectURL(blob);
       const ready: Result = { url, name: `${stem}-${tool}.${ext}`, size: blob.size, ...(ext === "txt" ? { text: await blob.text() } : {}) };
       if (ext === "pdf") {
         try {
@@ -99,7 +105,10 @@ export default function PdfTask({ tool, sessionKey, incomingFiles, onDirty, onWo
           if (previewed.ok) ready.preview = await previewed.json() as Preview;
         } catch { /* A preview failure never removes the successfully exported result. */ }
       }
-      setResult(ready);
+      if (urls.current.result) URL.revokeObjectURL(urls.current.result);
+      urls.current.result = url; setResult(ready);
+      const link = document.createElement("a"); link.href = ready.url; link.download = ready.name;
+      document.body.append(link); link.click(); link.remove();
     } catch (e) { setError((e as Error).message); }
     finally { setBusy(""); }
   }
@@ -109,7 +118,7 @@ export default function PdfTask({ tool, sessionKey, incomingFiles, onDirty, onWo
     <div className="pdf-native-task-heading"><h1>{title}</h1><p>{description}</p></div>
     <div className="pdf-native-task-layout"><section className="pdf-task-source" aria-label="Datei und Vorschau">
       <input ref={picker} type="file" hidden multiple={imageTool} accept={imageTool ? "image/png,image/jpeg,.png,.jpg,.jpeg" : "application/pdf,.pdf"} aria-label={imageTool ? "Bilder hinzufügen" : "PDF hinzufügen"} onChange={event => void choose([...event.target.files || []])} />
-      <div className="pdf-panel-heading"><strong>{files.length ? files.map(file => file.name).join(", ") : imageTool ? "Deine Bilder" : "Dein PDF"}</strong><button className="btn" disabled={Boolean(busy)} onClick={() => picker.current?.click()}><Upload size={15} />{files.length ? "Datei wechseln" : "Datei öffnen"}</button></div>
+      <div className="pdf-panel-heading"><strong>{files.length ? files.map(file => file.name).join(", ") : imageTool ? "Deine Bilder" : "Dein PDF"}</strong><button className="btn" disabled={Boolean(busy)} onClick={() => picker.current?.click()}><Upload size={15} />{files.length ? "Datei wechseln" : "Datei öffnen"}</button>{files.length > 0 && <button className="btn pdf-clear-button" aria-label="Dokument schliessen" disabled={Boolean(busy)} onClick={closeDocument}><X size={19} /></button>}</div>
       {!files.length && !busy && <div className="pdf-empty-drop"><h2>{imageTool ? "Bilder hier ablegen" : "PDF hier ablegen"}</h2><button className="btn primary" onClick={() => picker.current?.click()}>Dateien auswählen</button></div>}
       {first && tool !== "split" && <><div className="pdf-preview-controls"><button className="btn" aria-label="Vorschau verkleinern" onClick={() => setZoom(value => Math.max(.5, value / 1.2))}><Minus size={15} /></button><span>{Math.round(zoom * 100)}%</span><button className="btn" aria-label="Vorschau vergrössern" onClick={() => setZoom(value => Math.min(4, value * 1.2))}><Plus size={15} /></button><button className="btn" onClick={() => setZoom(1)}>Ganze Seite</button></div>
         <NativePdfPreview file={files[0]} page={first.number} thumbnail={first.thumbnail} sessionKey={sessionKey} zoom={zoom} width={first.width} height={first.height} onZoom={setZoom} /></>}
@@ -125,10 +134,10 @@ export default function PdfTask({ tool, sessionKey, incomingFiles, onDirty, onWo
       {tool === "pdf-to-images" && <label>Bildauflösung<select aria-label="Bildauflösung" value={dpi} onChange={event => { setDpi(Number(event.target.value)); change(); }}><option value={72}>72 DPI · Bildschirm</option><option value={144}>144 DPI · Standard</option><option value={300}>300 DPI · Druck</option></select></label>}
       {tool === "resize" && <><label>Papierformat<select aria-label="Papierformat" value={format} onChange={event => { setFormat(event.target.value); change(); }}>{["KEEP", "A0", "A1", "A2", "A3", "A4", "A5", "A6", "LETTER", "LEGAL"].map(value => <option key={value} value={value}>{value === "KEEP" ? "Bisheriges Format behalten" : value}</option>)}</select></label><label>Ausrichtung<select aria-label="Ausrichtung" value={orientation} disabled={format === "KEEP"} onChange={event => { setOrientation(event.target.value); change(); }}><option value="PORTRAIT">Hochformat</option><option value="LANDSCAPE">Querformat</option></select></label><label>Inhalt skalieren (%)<input aria-label="Inhalt skalieren (%)" type="number" min="1" max="1000" value={scale} onChange={event => { setScale(event.target.value); change(); }} /></label><details><summary>ⓘ 100 % bedeutet Originalgrösse</summary><p>Das Papierformat ändert sich unabhängig vom Inhalt. 100 % behält dessen physische Grösse bei; kleinere Seiten können Inhalt abschneiden.</p></details></>}
       {tool === "pdf-to-text" && <details><summary>ⓘ Text aus Scans</summary><p>Diese Ausgabe liest vorhandene Textschichten. Für Scans zuerst im Werkzeugkatalog „Texterkennung (OCR)“ wählen.</p></details>}
-    </fieldset><button className="btn primary pdf-task-run" disabled={!files.length || Boolean(busy) || !valid} onClick={() => void run()}>{busy === "export" ? "Wird verarbeitet …" : "Ergebnis erstellen"}</button>
+    </fieldset><button className="btn primary pdf-task-run" disabled={!files.length || Boolean(busy) || !valid} onClick={() => void run()}>{busy === "export" ? "Wird verarbeitet …" : tool === "split" ? "Teilen & herunterladen" : "Erstellen & herunterladen"}</button>
       {busy && <p role="status">{busy === "open" ? "Datei wird geöffnet …" : "Ergebnis wird erstellt …"}</p>}{error && <p className="pdf-desk-alert" role="alert">{error}</p>}
-      {result && <section className="pdf-task-result" role="status"><h2>Ergebnis bereit</h2><p>{result.name} · {(result.size / 1024).toFixed(0)} KB{result.preview ? ` · ${result.preview.pages.length} Seiten` : ""}</p><a className="btn primary" href={result.url} download={result.name}><Download size={16} /> Ergebnis herunterladen</a>{result.preview && <img className="pdf-native-result-preview" src={result.preview.pages[0].thumbnail} alt="Ergebnisvorschau" />}{result.text !== undefined && <pre>{result.text.slice(0, 20000)}</pre>}</section>}
-      <p className="pdf-hint">Das Ergebnis separat herunterladen. Originaldateien bleiben unverändert.</p>
+      {result && <section className="pdf-task-result" role="status"><h2>Ergebnis bereit · Download gestartet</h2><p>{result.name} · {(result.size / 1024).toFixed(0)} KB{result.preview ? ` · ${result.preview.pages.length} Seiten` : ""}</p><a className="btn primary" href={result.url} download={result.name}><Download size={16} /> Erneut herunterladen</a>{result.preview && <img className="pdf-native-result-preview" src={result.preview.pages[0].thumbnail} alt="Ergebnisvorschau" />}{result.text !== undefined && <pre>{result.text.slice(0, 20000)}</pre>}</section>}
+      <p className="pdf-hint">Der Download startet nach der Verarbeitung. Originaldateien bleiben unverändert.</p>
     </aside></div>
   </main>;
 }

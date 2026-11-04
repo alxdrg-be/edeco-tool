@@ -1170,8 +1170,8 @@ def test_template_hands_over_all_its_legends(env):  # noqa: F811
 
 
 def test_export_pdf_draws_the_legend_on_one_page(env, monkeypatch, tmp_path):  # noqa: F811
-    import re
-    import zlib
+    from io import BytesIO
+    from pypdf import PdfReader
 
     client, tmp = env
     monkeypatch.setattr(config, "current_user", lambda: "chef")
@@ -1187,9 +1187,9 @@ def test_export_pdf_draws_the_legend_on_one_page(env, monkeypatch, tmp_path):  #
         assert res.headers["content-type"] == "application/pdf"
         data = res.content
         assert data.startswith(b"%PDF-1.4") and data.rstrip().endswith(b"%%EOF")
-        assert data.count(b"/Type /Page ") == 1
-        stream = re.search(rb"stream\n(.*)\nendstream", data, re.S).group(1)
-        ops = zlib.decompress(stream).decode()
+        pdf = PdfReader(BytesIO(data))
+        assert len(pdf.pages) == 1
+        ops = pdf.pages[0].get_contents().get_data().decode("latin-1")
         # texts as outlines, frames and symbol lines: the page is not empty
         assert ops.count("f*") >= 10 and " S" in ops or "\nS" in ops
         # the section colour of the header bar is on the page

@@ -27,6 +27,7 @@ text or symbol, so nothing overlaps the next entry or column. Symbols turn in st
 from __future__ import annotations
 
 import math
+from functools import lru_cache
 
 from .linetypes import dash_array
 from .model import DEFAULT_TEXT_SIZE, DEFAULT_TITLE_MM, entry_text, original_colors, selected_original_colors, section_style
@@ -36,8 +37,20 @@ _NARROW = set("il.,;:|!'`Iíìj()[]/\\ ")
 _WIDE = set("MWmw@%")
 
 
-def text_width(text: str, size: float, bold: bool = False) -> float:
+@lru_cache(maxsize=16)
+def _text_metrics(font: str, bold: bool):
+    from ezdxf.fonts.fonts import make_font
+    # The DXF/PDF text uses the same Arial cap-height conversion. Each worker
+    # reuses the font metrics instead of estimating every lower-case letter.
+    files = {"Arial": "arial.ttf", "Arial Bold": "arialbd.ttf", "Calibri": "calibri.ttf", "Verdana": "verdana.ttf"}
+    name = "Arial Bold" if bold and font == "Arial" else font
+    return make_font(files.get(name, "arial.ttf"), cap_height=0.716)
+
+
+def text_width(text: str, size: float, bold: bool = False, accurate: bool = False, font: str = "Arial") -> float:
     """Approximate Arial width in mm."""
+    if accurate:
+        return _text_metrics(font, bold).text_width(text) * size
     w = 0.0
     for ch in text:
         if ch in _NARROW:
@@ -51,7 +64,8 @@ def text_width(text: str, size: float, bold: bool = False) -> float:
     return w * size * (1.07 if bold else 1.0)
 
 
-def wrap(text: str, size: float, width: float, bold: bool = False) -> list[str]:
+def wrap(text: str, size: float, width: float, bold: bool = False, accurate: bool = False,
+         font: str = "Arial") -> list[str]:
     """Split a text into lines that fit ``width``. Long words are cut."""
     if width <= size:
         width = size
@@ -64,16 +78,20 @@ def wrap(text: str, size: float, width: float, bold: bool = False) -> list[str]:
         cur = ""
         for word in words:
             cand = f"{cur} {word}" if cur else word
-            if text_width(cand, size, bold) <= width:
+            if text_width(cand, size, bold, accurate, font) <= width:
                 cur = cand
                 continue
             if cur:
                 lines.append(cur)
             cur = word
-            while text_width(cur, size, bold) > width and len(cur) > 1:
+            while text_width(cur, size, bold, accurate, font) > width and len(cur) > 1:
                 cut = len(cur)
-                while cut > 1 and text_width(cur[:cut], size, bold) > width:
+                while cut > 1 and text_width(cur[:cut], size, bold, accurate, font) > width:
                     cut -= 1
+                if accurate:
+                    boundary = max(cur.rfind(separator, 0, cut + 1) for separator in ("-", "/", "–"))
+                    if boundary > 0:
+                        cut = boundary + 1
                 lines.append(cur[:cut])
                 cur = cur[cut:]
         lines.append(cur)
@@ -138,6 +156,10 @@ def tile_frame(style: dict, colw: float) -> tuple[float, float, float, float]:
     row = float(style["row"])
     tile = natural if standard else min(natural, max(2.4, row - 0.4))
     zone = max(tile, min(max(12.0 if style.get("_flow") else SYMBOL_ZONE, tile * 2 + TILE_GAP), colw * 0.42))
+    if style.get("symbol_fit") == "corridor":
+        # Shared physical corridor aligns the general key with the first
+        # apparatus column, regardless of their different column counts.
+        zone = min(14.0, colw * 0.42)
     axis = 0.4 + zone / 2
     floor = 0.4 + zone + 1.2
     ceiling = max(floor, colw - max(14.0, float(style.get("text_size") or DEFAULT_TEXT_SIZE) * 5))
@@ -217,7 +239,7 @@ def _symbol_box_real(item: dict, size, style: dict, max_w: float) -> dict:
     return box(0.0, 0.0, 0.0, 0.0)
 
 
-def _symbol_box(item: dict, size, style: dict, tile: float) -> dict:
+def _symbol_box(item: dict, size, style: dict, tile: float, corridor: float | None = None) -> dict:
     """Fit one drawing into the shared tile. The longer side fills the tile, the other
     side keeps its proportion, and the drawing is centred in the tile."""
     kind = item["kind"]
@@ -234,12 +256,15 @@ def _symbol_box(item: dict, size, style: dict, tile: float) -> dict:
             left, right, up, down = _turn(hw, hw, hh, hh, rot, bool(item.get("mirror")))
             span, tall = left + right, up + down
             longest = max(span, tall, 1e-6)
-            scale = tile * TILE_FILL / longest
-            if style.get("normalize_size", True):
+            scale = (min(corridor / max(span, 1e-6), tile * TILE_FILL / max(tall, 1e-6))
+                     if corridor else tile * TILE_FILL / longest)
+            if not corridor and style.get("normalize_size", True):
                 # the same area for every drawing, never more than 75 % of the tile
                 target = (tile * TILE_FILL) ** 2 * AREA_SHARE
                 scale = min(scale, (target / max(span * tall, 1e-9)) ** 0.5)
-            scale *= factor
+            # A fitted corridor has a fixed printable height and cannot spill
+            # into the adjacent description. Real-size mode remains available.
+            scale *= min(factor, 1.0) if corridor else factor
             return box(span * scale / 2, span * scale / 2, tall * scale / 2, tall * scale / 2,
                        round(scale, 4), (x0 + x1) / 2, (y0 + y1) / 2)
         half = tile * TILE_FILL / 2 * factor
@@ -311,13 +336,56 @@ def _combined_tiles(item: dict, sizes: dict, single, room: tuple[float, float, f
             "ay": out_parts[0]["box"]["ay"], "parts": out_parts, "frames": frames}
 
 
+def _combined_corridor(item: dict, sizes: dict, single, room: tuple[float, float, float], tile: float) -> dict:
+    """Fit actual glyph widths in a shared corridor; long luminaires own a row.
+
+    A colour pair of circles still fits side by side. A 30:1 luminaire may use
+    the entire width, rather than being reduced to a four-millimetre square.
+    Source colours, logical parts and the saved turns are unchanged.
+    """
+    _axis, lo, hi = room
+    span = max(hi - lo, 1.0)
+    rows: list[list] = [[]]
+    used = 0.0
+    for part, logical, variant in _members(item):
+        key = item["id"] if logical == 0 else f"{item['id']}#{logical}"
+        box = single(part, sizes.get(key), tile)
+        width = min(span, max(tile * 0.55, box["left"] + box["right"]))
+        addition = width + (TILE_GAP if rows[-1] else 0)
+        if rows[-1] and used + addition > span + 1e-6:
+            rows.append([])
+            used = 0.0
+        rows[-1].append((part, logical, variant, box, width))
+        used += width + (TILE_GAP if len(rows[-1]) > 1 else 0)
+    out_parts, frames = [], []
+    widest = 0.0
+    for row_index, members in enumerate(rows):
+        width = sum(member[4] for member in members) + TILE_GAP * (len(members) - 1)
+        widest = max(widest, width)
+        x = -width / 2
+        for part, logical, variant, box, field_width in members:
+            dx, dy = x + field_width / 2, row_index * (tile + TILE_GAP)
+            out_parts.append({"dx": round(dx, 4), "dy": round(dy, 4), "box": box,
+                              "part": part, "logical": logical, "variant": variant})
+            frames.append({"dx": round(dx, 4), "dy": round(dy, 4), "side": round(field_width, 4),
+                           "h": round(tile, 4)})
+            x += field_width + TILE_GAP
+    first = out_parts[0]["box"]
+    return {"left": widest / 2, "right": widest / 2, "up": tile / 2,
+            "down": tile / 2 + (len(rows) - 1) * (tile + TILE_GAP),
+            "scale": first["scale"], "ax": first["ax"], "ay": first["ay"],
+            "parts": out_parts, "frames": frames}
+
+
 def _combined(item: dict, sizes: dict, single, room: tuple[float, float, float] | None = None,
-              tile: float | None = None) -> dict:
+              tile: float | None = None, corridor: bool = False) -> dict:
     """Box of an entry. A combined entry (``parts``) puts its symbols side by side, each
     with its own size rule, the group centred on the symbol axis. ``room`` = (axis,
     left edge, right edge) of the symbol column: a group wider than that shrinks and
     moves so it never runs into the text. In tile mode each symbol gets its own square."""
     members = _members(item) if item["kind"] == "symbol" else []
+    if tile and room and corridor and len(members) > 1:
+        return _combined_corridor(item, sizes, single, room, tile)
     if tile and room and len(members) > 1:
         return _combined_tiles(item, sizes, single, room, tile)
     first_part = members[0][0] if members else item
@@ -367,13 +435,14 @@ def _combined(item: dict, sizes: dict, single, room: tuple[float, float, float] 
             "scale": scaled[0][1]["scale"], "ax": first["ax"], "ay": first["ay"], "parts": out_parts}
 
 
-def _general_header(prims: list, x: float, y: float, inner: float, ts: float, section: dict) -> float:
+def _general_header(prims: list, x: float, y: float, inner: float, ts: float, section: dict,
+                    accurate: bool = False, font: str = "Arial") -> float:
     """Plain general-part heading and a fine rule, as in the company legend."""
     title = str(section.get("title") or "Allgemein").strip() or "Allgemein"
     hts = ts * float(section.get("title_scale") or 1.0)
     head_h = max(hts * LINE_FACTOR + 0.8, hts + 1.2)
     accent = section.get("header") or "#007f91"
-    line = wrap(title, hts, inner - 3.6, True)[:1]
+    line = wrap(title, hts, inner - 3.6, True, accurate, font)[:1]
     prims.append({"t": "rect", "x": round(x + 0.8, 3), "y": round(y + 0.25, 3),
                   "w": 0.8, "h": max(1.8, hts * 0.8), "fill": accent,
                   "stroke": None, "role": "general-marker", "block": "general"})
@@ -393,8 +462,11 @@ def _general_rows(general: dict, prims: list, x0: float, top: float, inner: floa
     text size, the same gap. A heading is only text and sits on the bottom line of
     its grid cell. Returns the bottom edge."""
     ts = float(style["text_size"])
+    fitted = style.get("symbol_fit") == "corridor"
+    display_rows = [({**r, "text_scale": 1.0, "symbol_factor": 1.0, "rotation": 0}
+                     if style.get("general_source_look") else r) for r in general["rows"]]
     if header:
-        top = _general_header(prims, x0, top, inner, ts, section or {})
+        top = _general_header(prims, x0, top, inner, ts, section or {}, fitted, style.get("font") or "Arial")
     top += padding
     colw = (inner - 2 * padding) / cols
     _base_tile, _base_slot, axis, text_x = tile_frame(style, colw)
@@ -407,7 +479,7 @@ def _general_rows(general: dict, prims: list, x0: float, top: float, inner: floa
     side = tile * TILE_FILL
     # one scale for all symbols of the general part, as in the drawing: a typical symbol
     # fills the tile, a double symbol (ceiling / wall) keeps its width beside it
-    dims = sorted(float(r.get("gh") or 0) for r in general["rows"]
+    dims = sorted(float(r.get("gh") or 0) for r in display_rows
                   if r.get("picture") == "symbol" and not r.get("heading"))
     dims = [d for d in dims if d > 0]
     common = side / dims[len(dims) // 2] if dims else 1.0
@@ -415,18 +487,18 @@ def _general_rows(general: dict, prims: list, x0: float, top: float, inner: floa
     # A wide pair may limit its own scale, but must never shrink every other row.
     room_w = 2 * (axis - 0.4)
     rows = []
-    for r in general["rows"]:
+    for r in display_rows:
         heading = bool(r.get("heading"))
         size = ts * max(0.5, min(3.0, float(r.get("text_scale") or 1.0)))
         width = colw - 1.6 if heading else colw - text_x - 0.8
-        lines = wrap(r["text"], size, width, heading)
+        lines = wrap(r["text"], size, width, heading, fitted, style.get("font") or "Arial")
         if cap and not heading:
             lines = lines[:cap] or [""]
             h = slot
         else:
             h = max(slot, len(lines) * size * LINE_FACTOR + TEXT_CLEARANCE)
         factor = max(0.3, min(4.0, float(r.get("symbol_factor") or 1.0)))
-        if not heading and factor > 1 and r.get("picture") not in ("swatch", None):
+        if not fitted and not heading and factor > 1 and r.get("picture") not in ("swatch", None):
             h = max(h, slot * factor)
         rows.append((r, lines, size, h))
     total = sum(h for *_a, h in rows) + gap * max(0, len(rows) - cols)
@@ -491,7 +563,19 @@ def _general_rows(general: dict, prims: list, x0: float, top: float, inner: floa
                                   "stroke": None, "role": "swatch"})
                 elif r.get("gw") is not None and (gw > 0 or gh > 0):
                     line_row = r.get("picture") == "line" or (r.get("picture") != "symbol" and gh <= 0.35)
-                    if line_row:
+                    if fitted:
+                        # Fit the complete row drawing, including double symbols
+                        # and conductor/end-marker groups. Rotated extents matter
+                        # for layout as well as for the DXF insertion point.
+                        l, rt, up, down = _turn(gw / 2, gw / 2, gh / 2, gh / 2, rot)
+                        width, height = max(l + rt, 0.05), max(up + down, 0.05)
+                        fit = min(room_w * TILE_FILL / width, side / height) * min(factor, 1.0)
+                        w, hgt = width * fit, height * fit
+                        prims.append({"t": "grow", "row": r["id"], "x": round(cx + axis - w / 2, 3),
+                                      "y": round(mid - hgt / 2, 3), "w": round(w, 3), "h": round(hgt, 3),
+                                      "draw_w": round(gw * fit, 3), "draw_h": round(max(gh, 0.05) * fit, 3),
+                                      "k": round(fit, 5), "rot": rot})
+                    elif line_row:
                         # one sample of the stroke, as long as the symbol tile, so the line type
                         # reads next to the symbols of the other sections
                         length = room_w * TILE_FILL
@@ -570,18 +654,28 @@ def _general_parts(general: dict) -> tuple[dict, dict | None]:
 def _color_rows(general: dict, prims: list, x: float, top: float, inner: float,
                 style: dict, padding: float) -> float:
     """Compact colour key: up to five columns, filled downwards in pairs."""
-    rows = general.get("rows") or []
+    rows = [({**r, "text_scale": 1.0, "symbol_factor": 1.0} if style.get("general_source_look") else r)
+            for r in general.get("rows") or []]
     if not rows:
         return top
     size = max(1.6, min(2.3, float(style["text_size"]) * 0.78))
     width = inner - 2 * padding
-    columns = min(5, len(rows), max(1, int(width / 36.0)))
+    six = style.get("symbol_fit") == "corridor" and len(rows) >= 12
+    columns = min(6 if six else 5, len(rows), max(1, int(width / (30.0 if six else 36.0))))
     colw = width / columns
     per_col = math.ceil(len(rows) / columns)
     sample, offset, gap = 7.0, 9.0, 0.6
+    if style.get("symbol_fit") == "corridor":
+        # Palette labels remain whole: fit the longest word gently instead of
+        # leaving a one-letter suffix on its own line in a six-column key.
+        widest = max([1.0] + [text_width(word, 1, accurate=True, font=style.get("font") or "Arial") *
+                               float(row.get("text_scale") or 1)
+                               for row in rows for word in str(row.get("text") or "").replace("/", "/ ").split()])
+        size = min(size, max(1.8, (colw - offset - .8) / widest))
     chunks = [rows[index * per_col:(index + 1) * per_col] for index in range(columns)]
     lines = {row["id"]: wrap(str(row.get("text") or "").replace("/", "/ "),
-                             size * float(row.get("text_scale") or 1), colw - offset - 0.8)
+                             size * float(row.get("text_scale") or 1), colw - offset - 0.8,
+                             accurate=style.get("symbol_fit") == "corridor", font=style.get("font") or "Arial")
              for row in rows}
     heights = []
     for index in range(per_col):
@@ -623,7 +717,7 @@ def _flow_blocks(blocks: list[dict], style: dict, sizes: dict, prims: list,
     title is presentation only; cells retain their original visible-item index
     for drag/drop, selection and editing.
     """
-    gutter = 2.5
+    gutter = 1.8 if style.get("symbol_fit") == "corridor" else 2.5
     column_width = (inner - gutter * (columns - 1)) / columns
     flow_style = {**style, "_flow": True}
     if style.get("grid") != "custom":
@@ -732,7 +826,8 @@ def layout(doc: dict, sizes: dict | None = None, general: dict | None = None,
         pad = 1.5 if framed else 0.0          # room between the title and its border
         top = y
         y += pad
-        for line in wrap(text, tts, inner - 2 * pad, True):
+        for line in wrap(text, tts, inner - 2 * pad, True, style.get("symbol_fit") == "corridor",
+                         title.get("font") or style.get("font") or "Arial"):
             prims.append({"t": "text", "x": margin + pad, "y": y + tts, "size": tts, "text": line, "bold": True,
                           "color": title.get("color") or "#000000",
                           "font": title.get("font") or style.get("font") or "Arial"})
@@ -753,7 +848,8 @@ def layout(doc: dict, sizes: dict | None = None, general: dict | None = None,
         y = _general_rows(general_body, prims, margin, y, inner, 2, style, section, padding=pad)
     elif general_body and include_general and general_body.get("h") and not footer:
         # no readable text column: the drawing stays whole, under the category bar
-        y = _general_header(prims, margin, y, inner, ts, section)
+        y = _general_header(prims, margin, y, inner, ts, section, style.get("symbol_fit") == "corridor",
+                            style.get("font") or "Arial")
         fit = min(1.0, inner / general["w"]) if general.get("w") else 1.0
         gw, gh = general["w"] * fit, general["h"] * fit
         prims.append({"t": "rect", "x": margin, "y": y, "w": gw, "h": gh, "fill": None, "stroke": None,
@@ -770,7 +866,8 @@ def layout(doc: dict, sizes: dict | None = None, general: dict | None = None,
             # begins on the same row instead of one column starting at title level.
             heading = footer_rows[0]
             size = ts * max(0.5, min(3.0, float(heading.get("text_scale") or 1.0)))
-            lines = wrap(heading["text"], size, inner - 2 * pad - 1.6, True)
+            lines = wrap(heading["text"], size, inner - 2 * pad - 1.6, True, style.get("symbol_fit") == "corridor",
+                         style.get("font") or "Arial")
             height = max(row * 0.65, len(lines) * size * LINE_FACTOR + 0.6)
             position = heading.get("text_place") or "bottom"
             if position == "top":
@@ -860,7 +957,8 @@ def _block(block, style, sizes, prims, x0, y, inner, cols, ts, row, continued: b
             # a combined symbol fills its own cell; the shared area rule would
             # leave it looking small inside the narrower tile
             used = style if even else {**style, "normalize_size": False}
-            box = _symbol_box(part, size, used, side)
+            box = _symbol_box(part, size, used, side,
+                              max(1.0, text_x - 1.6) * TILE_FILL if style.get("symbol_fit") == "corridor" else None)
             if part["kind"] == "line":
                 half = (text_x - 1.6) * TILE_FILL / 2 * float(part.get("symbol_factor") or 1.0)
                 box = {**box, "left": half, "right": half}
@@ -873,7 +971,8 @@ def _block(block, style, sizes, prims, x0, y, inner, cols, ts, row, continued: b
             return box
 
         # the pair fills the normal tile, it does not reach into the text column
-        boxes = {it["id"]: _combined(it, sizes, tile_box, (axis, 0.4, text_x - 1.2), tile)
+        boxes = {it["id"]: _combined(it, sizes, tile_box, (axis, 0.4, text_x - 1.2), tile,
+                                     corridor=style.get("symbol_fit") == "corridor")
                  for it in items}
     per_col = math.ceil(len(items) / cols) if items else 0
     col_heights = []
@@ -890,7 +989,8 @@ def _block(block, style, sizes, prims, x0, y, inner, cols, ts, row, continued: b
             item = chunk[i] if i < len(chunk) else None
             if item is not None and item["kind"] != "gap":
                 h = _entry(item, boxes[item["id"]], body, block, cx0, cy, colw, ts, row, axis, text_x, st,
-                           fixed, cap, (bool(style.get("hatch_off")), bool(style.get("fill_off"))))
+                           fixed, cap, (bool(style.get("hatch_off")), bool(style.get("fill_off"))),
+                           accurate=style.get("symbol_fit") == "corridor", font=style.get("font") or "Arial")
             else:
                 h = empty_h
             cells.append({"t": "cell", "block": block["id"], "index": index,
@@ -950,7 +1050,8 @@ def _block(block, style, sizes, prims, x0, y, inner, cols, ts, row, continued: b
         else:
             prims.append({"t": "rect", "x": x0, "y": top, "w": inner, "h": head_h, "fill": st["header"],
                           "stroke": None, "role": "header", "block": block["id"]})
-        title_lines = wrap(block["title"] or "", hts, inner - 2 * pad - (2 if flow else 1), True)[:1]
+        title_lines = wrap(block["title"] or "", hts, inner - 2 * pad - (2 if flow else 1), True,
+                           style.get("symbol_fit") == "corridor", style.get("font") or "Arial")[:1]
         prims.append({"t": "text", "x": x0 + pad + (1.6 if flow else 0.5),
                       "y": top + head_h / 2 + hts * 0.36, "size": hts,
                       "text": title_lines[0], "bold": True, "color": st["text"] if flow else st["header_text"]})
@@ -975,13 +1076,15 @@ def _line_cap(style: dict) -> int:
 
 
 def _entry(item, box, out, block, cx0, cy, colw, ts, row, axis, text_x, st,
-           fixed_h: float | None = None, lines_n: int = 0, fills_off: tuple[bool, bool] = (False, False)) -> float:
+           fixed_h: float | None = None, lines_n: int = 0, fills_off: tuple[bool, bool] = (False, False),
+           accurate: bool = False, font: str = "Arial") -> float:
     """Draw one entry at the top of its slot, return the slot height."""
     kind = item["kind"]
     its = ts * float(item.get("text_scale") or 1.0)
     lh = its * LINE_FACTOR
     tx = cx0 + text_x
-    lines = wrap(entry_text(item) if item.get("parts") else item["text"], its, cx0 + colw - tx - 0.8)
+    lines = wrap(entry_text(item) if item.get("parts") else item["text"], its, cx0 + colw - tx - 0.8,
+                 accurate=accurate, font=font)
     if lines_n:
         # a chosen line count: extra lines are dropped
         reserve = lines_n

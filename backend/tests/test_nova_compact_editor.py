@@ -223,6 +223,7 @@ def test_a4_preset_is_explicit_persisted_and_undoable(editor):
     page.get_by_role("button", name="Legende speichern", exact=True).click()
     a4 = client.get(f"/api/projects/{pid}/legend").json()["legend"]["doc"]
     assert a4["style"]["columns"] == 4 and a4["style"]["text_size"] == 2.6
+    assert a4["style"]["symbol_fit"] == "corridor" and a4["style"]["general_source_look"]
     assert a4["style"]["margin"] == 3.5 and a4["style"]["width"] == 200
     assert a4["title"]["size_mm"] == 4.5
     assert [block["items"] for block in a4["blocks"]] == [block["items"] for block in original["blocks"]]
@@ -299,3 +300,40 @@ def test_source_color_selection_survives_reload_and_export_without_losing_parts(
              if p["t"] == "symbol" and p["id"] == item["id"]]
     assert len(prims) == 3
     assert {p["color"] for p in prims} == {"#0099ff", "#ff0000", "#00aa00"}
+
+
+def test_readable_preset_and_section_colour_action_are_explicit_and_reversible(editor, tmp_path):
+    page, _, client, (pid, _) = editor
+    company = client.app.state.nova.company
+    company.set_legend_settings({"legend_general_path": str(general_template(tmp_path / "General.dxf")),
+                                 "legend_general_rows": {"leitung von nach oben": {"rotation": 45, "symbol_factor": 2}}})
+    original = client.get(f"/api/projects/{pid}/legend").json()["legend"]["doc"]
+    original["style"].update(symbol_fit="square", general_source_look=False)
+    block = original["blocks"][0]
+    block["style"]["header"] = "#ff0000"
+    for item in block["items"]:
+        item.update(color="#0099ff", layer_colors=["#0099ff"])
+    assert client.put(f"/api/projects/{pid}/legend", json={"doc": original}).status_code == 200
+    company_before = company.legend_settings()
+    reopen_first_editor(page)
+    page.get_by_role("button", name="Kompakte Vorlage anwenden", exact=True).click()
+    page.get_by_role("button", name="Legende speichern", exact=True).click()
+    compact = client.get(f"/api/projects/{pid}/legend").json()["legend"]["doc"]
+    assert compact["style"]["symbol_fit"] == "corridor" and compact["style"]["general_source_look"]
+    assert compact["blocks"][0]["style"]["header"] == "#ff0000"
+    assert company.legend_settings() == company_before
+    page.locator('.outline-title').filter(has_text=block["title"]).first.click()
+    page.get_by_role("button", name="Rubrikfarbe aus Symbolen", exact=True).click()
+    page.get_by_role("button", name="Legende speichern", exact=True).click()
+    aligned = client.get(f"/api/projects/{pid}/legend").json()["legend"]["doc"]
+    assert aligned["blocks"][0]["style"]["header"] == "#0099ff"
+    assert aligned["blocks"][0]["items"] == compact["blocks"][0]["items"]
+    page.get_by_role("button", name="Rückgängig", exact=True).click()
+    page.get_by_role("button", name="Legende speichern", exact=True).click()
+    restored = client.get(f"/api/projects/{pid}/legend").json()["legend"]["doc"]
+    assert restored["blocks"][0]["style"]["header"] == "#ff0000"
+    page.get_by_role("button", name="Editor gross öffnen", exact=True).click()
+    page.get_by_role("button", name="Ganzes Blatt", exact=True).click()
+    artifacts = tmp_path / "readable-proof"
+    artifacts.mkdir()
+    page.screenshot(path=str(artifacts / "editor-large.png"))

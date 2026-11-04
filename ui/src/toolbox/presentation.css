@@ -22,3 +22,7 @@
 .toolbox[data-toolhub-mode="demo"] .toolbox-tile { padding-top:25px; }
 @media(max-width:760px) { .toolhub-settings-button>span { display:none; } .toolhub-demo-badge { padding:4px 7px; font-size:10px; } }
 @media(max-width:390px) { .toolhub-demo-tools { grid-template-columns:1fr; } }
+
+/* Five presentation tools fit in one readable desktop row. Smaller windows
+   keep the existing adaptive layout. */
+@media(min-width:1200px){.toolbox[data-toolhub-mode="demo"][data-toolhub-count="5"] .toolbox-grid{grid-template-columns:repeat(5,minmax(0,1fr))}}

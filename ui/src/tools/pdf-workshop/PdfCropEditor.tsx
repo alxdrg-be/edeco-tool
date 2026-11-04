@@ -4,7 +4,7 @@ import { FULL_CROP, clampCrop, constrainCrop, cropMargins, cropPageRange, cropPo
   fitCropZoom, marginsCrop, moveCrop, resizeCrop, type CropHandle, type CropMargins, type CropPoint, type CropRect, type CropSize } from "./cropGeometry";
 import "./pdf-crop-editor.css";
 
-interface Props { sessionKey: string; onBack: () => void; initialFile?: File; onDirtyChange?: (dirty: boolean) => void }
+interface Props { sessionKey: string; onBack: () => void; initialFile?: File; onDirtyChange?: (dirty: boolean) => void; onFilesChange?: (files: File[]) => void; onWorking?: (busy: boolean) => void }
 interface CropPage extends CropSize { page: number; rotation: number; user_unit?: number | null }
 interface CropDocument { id: string; name: string; page_count: number; pages: CropPage[] }
 type MarginDraft = Record<keyof CropMargins, string>;
@@ -33,7 +33,7 @@ function downloadName(response: Response, original: string): string {
   return /filename="([^"]+)"/i.exec(disposition)?.[1] || original.replace(/\.pdf$/i, "") + "_zugeschnitten.pdf";
 }
 
-export default function PdfCropEditor({ sessionKey, onBack, initialFile, onDirtyChange }: Props) {
+export default function PdfCropEditor({ sessionKey, onBack, initialFile, onDirtyChange, onFilesChange, onWorking }: Props) {
   const [document, setDocument] = useState<CropDocument | null>(null), [pageNumber, setPageNumber] = useState(1);
   const [rects, setRects] = useState<Record<number, CropRect>>({}), [dirty, setDirty] = useState(false);
   const [preview, setPreview] = useState<{ id: string; page: number; url: string } | null>(null);
@@ -47,6 +47,8 @@ export default function PdfCropEditor({ sessionKey, onBack, initialFile, onDirty
   const docRef = useRef(document), pageRef = useRef<CropPage | null>(null), rectRef = useRef<CropRect>({ ...FULL_CROP }), zoomRef = useRef(zoom);
   const uploadRequest = useRef<AbortController | null>(null), saveRequest = useRef<AbortController | null>(null), zoomFrame = useRef<number | null>(null);
   const dirtyCallback = useRef(onDirtyChange), gesture = useRef<Gesture | null>(null);
+  const filesCallback = useRef(onFilesChange), workingCallback = useRef(onWorking);
+  filesCallback.current = onFilesChange; workingCallback.current = onWorking;
   const touches = useRef(new Map<number, CropPoint>()), pinch = useRef<{ distance: number; zoom: number } | null>(null);
   const descriptionId = `crop-description-${useId().replaceAll(":", "")}`;
   const page = document?.pages.find(item => item.page === pageNumber) ?? null, rect = rects[pageNumber] ?? FULL_CROP;
@@ -74,16 +76,19 @@ export default function PdfCropEditor({ sessionKey, onBack, initialFile, onDirty
       docRef.current = next; setDocument(next); setPageNumber(1); setRects({}); setAspect("free"); setScope("current"); setRange("");
       setMarginDraft(null); setFit("page"); setDirty(true); gesture.current = null; touches.current.clear(); pinch.current = null;
       if (previous) clearDocument(previous.id);
+      filesCallback.current?.([file]);
     } catch (caught) { if (!controller.signal.aborted) setError(caught instanceof Error ? caught.message : "Das PDF konnte nicht geöffnet werden."); }
     finally { if (uploadRequest.current === controller) { setBusy(""); uploadRequest.current = null; } }
   }, [headers, clearDocument]);
 
   useEffect(() => { if (!initialFile) return; const controller = new AbortController(); void loadFile(initialFile, controller.signal); return () => controller.abort(); }, [initialFile, loadFile]);
   useEffect(() => { dirtyCallback.current?.(dirty); }, [dirty]);
+  useEffect(() => { workingCallback.current?.(Boolean(busy)); }, [busy]);
   useEffect(() => () => {
     uploadRequest.current?.abort(); saveRequest.current?.abort();
     if (zoomFrame.current !== null) cancelAnimationFrame(zoomFrame.current);
     if (docRef.current) clearDocument(docRef.current.id); dirtyCallback.current?.(false);
+    workingCallback.current?.(false); filesCallback.current?.([]);
   }, [clearDocument]);
   useEffect(() => {
     if (!document || !page) return;

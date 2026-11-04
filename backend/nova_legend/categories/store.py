@@ -69,6 +69,7 @@ LEGEND_DEFAULTS = {
     # the order of all rows (row keys); both kept beside the server drawing
     "legend_general_extra": [],
     "legend_general_order": [],
+    "legend_general_previous": {},  # reversible, explicitly selected bundled general source
     # company symbols: how a symbol family looks in every legend
     # ({family_key: {symbol_factor, rotation, mirror, parts: [{family_key, symbol_factor,
     # rotation, mirror}], by, at}}); text and section live in descriptions / assignments
@@ -235,6 +236,31 @@ class CompanyStore:
                     con.execute("INSERT OR REPLACE INTO options VALUES (?,?)", (key, json.dumps(value)))
             self._log(con, "legend_settings", json.dumps(values, ensure_ascii=False))
         return self.legend_settings()
+
+    def switch_general_template(self, source: str, expected_source: str, *, restore: bool = False) -> None:
+        """Change just the general source atomically, retaining the prior editable setup."""
+        fields = ("legend_general_path", "legend_general_rows", "legend_general_extra", "legend_general_order")
+        with self._tx() as con:
+            stored = {r["key"]: json.loads(r["value"]) for r in con.execute(
+                "SELECT * FROM options WHERE key LIKE 'legend_general_%'")}
+            current = stored.get("legend_general_path", "")
+            if current != expected_source:
+                raise ValueError("Die Allgemeinvorlage wurde inzwischen geändert. Bitte neu laden.")
+            if restore:
+                previous = stored.get("legend_general_previous") or {}
+                if current != source or not previous:
+                    raise ValueError("Es gibt keine vorherige Allgemeinvorlage zum Wiederherstellen.")
+                values = {key: previous.get(key, LEGEND_DEFAULTS[key]) for key in fields}
+                values["legend_general_previous"] = {}
+            elif current == source:
+                return
+            else:
+                values = {"legend_general_previous": {key: stored.get(key, LEGEND_DEFAULTS[key]) for key in fields},
+                          "legend_general_path": source, "legend_general_rows": {},
+                          "legend_general_extra": [], "legend_general_order": []}
+            for key, value in values.items():
+                con.execute("INSERT OR REPLACE INTO options VALUES (?,?)", (key, json.dumps(value)))
+            self._log(con, "general_template_restore" if restore else "general_template_apply", source)
 
     # -- categories ------------------------------------------------------------
 

@@ -154,7 +154,7 @@ def default_style(text_size: float = DEFAULT_TEXT_SIZE, symbol_scale: float = DE
             "columns": columns, "compact_flow": True, "width": SHEET_WIDTH, "margin": MARGIN, "plan_scale": 50,
             "section_gap": 0.0, "entry_gap": 0.0, "text_lines": 0,
             "hatch_off": False, "fill_off": False,
-            "symbol_size": "tile",
+            "symbol_size": "tile", "symbol_fit": "corridor", "general_source_look": True,
             "pdf_lines": "original",
             "normalize_size": True,
             "frame_on": False, "frame": "#000000"}
@@ -208,6 +208,10 @@ def normalize_style(value) -> dict:
     # An inner drawing margin is independent of the PDF's fixed outer 5 mm.
     # Older legends have no field and keep their original five millimetres.
     style["margin"] = _num(v.get("margin"), MARGIN, 2, 10)
+    # Saved square-cell legends stay unchanged until the user selects the new
+    # template preset. Wide luminaires may then use the full symbol corridor.
+    style["symbol_fit"] = "corridor" if v.get("symbol_fit") == "corridor" else "square"
+    style["general_source_look"] = v.get("general_source_look") is True
     # Stored legends without the new preset keep their earlier section layout.
     style["compact_flow"] = v.get("compact_flow") is True
     style["grid"] = grid

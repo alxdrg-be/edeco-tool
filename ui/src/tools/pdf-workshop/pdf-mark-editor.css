@@ -1,0 +1,33 @@
+.pdf-mark-editor { display:flex;flex:1;flex-direction:column;min-height:0;min-width:0;width:100%;box-sizing:border-box;background:var(--bg);color:var(--fg);position:relative; }
+.pdf-mark-file-input { position:absolute;width:1px;height:1px;opacity:0;overflow:hidden; }
+.pdf-mark-empty { flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;margin:20px;border:1px dashed var(--line);border-radius:14px; }
+.pdf-mark-empty>svg { color:var(--tool-accent,#bd5972); }.pdf-mark-empty h2 { margin:0;font-size:23px; }.pdf-mark-note { font-size:12px;color:var(--muted);line-height:1.6; }
+.pdf-mark-toolbar { display:flex;align-items:center;gap:8px;padding:10px 16px;border-bottom:1px solid var(--line);background:var(--panel); }
+.pdf-mark-toolbar>strong { overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:45%;margin-right:auto; }.pdf-mark-toolbar>span { color:var(--muted);font-size:12px; }
+.pdf-mark-close { min-width:40px!important;min-height:40px!important;display:inline-flex;align-items:center;justify-content:center;color:var(--fg)!important;border:1px solid var(--line)!important;background:var(--panel)!important; }.pdf-mark-close:hover { background:#b74b6420!important;border-color:#c26279!important; }
+.pdf-mark-layout { display:grid;grid-template-columns:minmax(0,1fr) 310px;flex:1;min-height:0;overflow:hidden; }
+.pdf-mark-viewport { display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow:auto;background:var(--panel-sunken);min-height:0;outline:none; }
+.pdf-mark-viewport:focus-visible { box-shadow:inset 0 0 0 2px var(--accent,#c26279); }
+.pdf-mark-paper { position:relative;flex:none;box-shadow:0 4px 22px #0003;background:#fff;touch-action:none; }
+.pdf-mark-original { display:block;width:100%;height:100%;user-select:none;pointer-events:none; }
+.pdf-mark-appearance { position:absolute;cursor:move;outline:2px solid #c26279;outline-offset:3px;touch-action:none; }
+.pdf-mark-appearance img { display:block;width:100%;height:100%;pointer-events:none; }
+.pdf-mark-appearance::after { content:'↔';position:absolute;right:-10px;bottom:-10px;background:#c26279;border:2px solid white;color:white;font-size:12px;border-radius:100%;width:18px;height:18px;text-align:center; }
+.pdf-mark-redaction { position:absolute;background:#000;box-shadow:0 0 0 1px #c26279;pointer-events:none; }.pdf-mark-redaction.is-draft { background:#a8214566;outline:2px solid #e34974; }
+.pdf-mark-text-line { position:absolute;background:#e3487338;border:1px solid #d53569;cursor:pointer;padding:0;border-radius:1px; }.pdf-mark-text-line:hover,.pdf-mark-text-line[aria-pressed=true] { background:#ec3e7580;border-color:#bd174b; }
+.pdf-mark-settings { display:flex;flex-direction:column;border-left:1px solid var(--line);background:var(--panel);min-height:0;overflow:hidden; }
+.pdf-mark-fields { display:flex;flex-direction:column;gap:13px;flex:1;min-height:0;overflow:auto;padding:18px; }.pdf-mark-fields>* { flex-shrink:0; }
+.pdf-mark-actions { flex:none;padding:12px 18px;display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--line);background:var(--panel); }.pdf-mark-actions>.btn { width:100%;box-sizing:border-box; }
+.pdf-mark-settings h3 { margin:0;font-size:16px; }.pdf-mark-settings label:not(.btn) { display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--muted); }
+.pdf-mark-settings input:not([type=checkbox],[type=range]) { width:100%;box-sizing:border-box;min-height:38px;border:1px solid var(--line);border-radius:8px;background:var(--input-bg,var(--panel-sunken));padding:8px 10px;color:var(--fg);font:inherit; }
+.pdf-mark-type { display:flex;flex-direction:column;gap:12px; }.pdf-mark-type>span { display:flex;gap:7px;align-items:center;font-weight:600; }
+.pdf-mark-settings .pdf-mark-note { margin:0; }.pdf-mark-image-upload { position:relative;overflow:hidden;display:flex;gap:6px;align-items:center;justify-content:center; }.pdf-mark-image-upload input { position:absolute;inset:0;opacity:0;cursor:pointer; }
+.pdf-mark-template-actions,.pdf-mark-modes { display:flex;gap:8px;flex-wrap:wrap; }.pdf-mark-modes>.btn { flex:1; }.pdf-mark-modes .btn[aria-pressed=true] { border-color:#c26279;background:#c2627925; }
+.pdf-mark-settings details { font-size:12px;line-height:1.65;border-top:1px solid var(--line);padding-top:12px; }.pdf-mark-settings summary { cursor:pointer;display:flex;gap:6px;align-items:center; }.pdf-mark-settings details p { color:var(--muted); }
+.pdf-mark-drawing canvas { width:100%;height:100px;background:white;border:1px solid var(--line);border-radius:8px;touch-action:none; }.pdf-mark-drawing { display:flex;flex-direction:column;gap:6px; }
+.pdf-mark-settings .pdf-mark-check { display:flex!important;flex-direction:row!important;gap:8px;align-items:flex-start;line-height:1.6; }.pdf-mark-check input { margin-top:4px;accent-color:#c26279; }.pdf-mark-warning { padding:9px;background:#b87a0018;border:1px solid #b87a0066;border-radius:8px; }
+.pdf-mark-selection-list { display:flex;flex-direction:column;gap:6px;max-height:210px;overflow:auto; }.pdf-mark-selection-list>div { display:flex;gap:6px;align-items:center;border:1px solid var(--line);border-radius:8px;padding:4px; }.pdf-mark-selection-jump { flex:1;min-width:0;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;text-align:left;border:0;background:none;color:var(--fg);font:inherit;font-size:12px;cursor:pointer; }
+.pdf-mark-export { min-height:44px;justify-content:center; }.pdf-mark-footer { display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0;padding:8px 18px;border-top:1px solid var(--line);color:var(--muted);font-size:12px; }
+.pdf-mark-warning p { margin:6px 0 0;line-height:1.6;font-size:12px; }.pdf-mark-settings select { min-height:38px;background:var(--input-bg,var(--panel-sunken));color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:7px; }
+.pdf-mark-error,.pdf-mark-status { padding:10px 18px;margin:0;line-height:1.6; }.pdf-mark-error { color:#e84d69;background:#e84d6910; }.pdf-mark-status { color:var(--muted); }
+@media(max-width:900px) { .pdf-mark-layout { grid-template-columns:minmax(0,1fr);overflow:auto; }.pdf-mark-settings { height:auto;min-height:0;border-left:0;border-top:1px solid var(--line);overflow:visible; }.pdf-mark-fields { min-height:0;overflow:visible; }.pdf-mark-viewport { height:65vh;min-height:420px; }.pdf-mark-toolbar { flex-wrap:wrap; }.pdf-mark-toolbar>strong { max-width:100%;flex-basis:65%; }.pdf-mark-footer { flex-wrap:wrap; }.pdf-mark-empty { margin:12px; }.pdf-mark-empty h2 { font-size:19px;text-align:center; } }

@@ -14,7 +14,7 @@ def open_memory(page):
 def test_memory_exposes_all_source_pages_and_clear_source_corrections(editor, tmp_path):
     page = editor[0]
     open_memory(page)
-    assert page.locator(".memory-topic-card").count() == 16  # 13 source topics + 3 independent basics
+    assert page.locator(".memory-topic-card").count() == 18  # 15 digital subject groups + 3 independent basics
     page.locator(".memory-source-info > summary").click()
     playwright.expect(page.locator(".memory-source-info")).to_contain_text("16/16 Seiten erfasst")
     playwright.expect(page.locator(".memory-source-info")).to_contain_text("25 Formeleinträge")
@@ -74,3 +74,35 @@ def test_memory_basics_use_vectors_and_stay_inside_a_small_dark_window(editor, t
     page.screenshot(path=str(tmp_path / "memory-mobile-dark-vector.png"), full_page=True)
     page.set_viewport_size({"width": 1440, "height": 1050})
     page.screenshot(path=str(tmp_path / "memory-dark-vector.png"), full_page=True)
+
+
+def test_reference_navigation_keeps_print_furniture_in_source_notes_and_restores_search_focus(editor, tmp_path):
+    page = editor[0]
+    open_memory(page)
+    search = page.get_by_role("searchbox", name="Elektro-Memory durchsuchen", exact=True)
+    search.fill("Ohm")
+    topic = page.get_by_role("button").filter(has=page.get_by_role("heading", name="Ohmsches Gesetz und Formelscheibe", exact=True))
+    topic.click()
+    playwright.expect(page.locator(".memory-entry")).to_have_count(4)
+    playwright.expect(page.locator("#memory-entry-em-p01-ruler")).to_have_count(0)
+    back = page.get_by_role("button", name="Alle Themen", exact=True)
+    playwright.expect(back).to_be_visible()
+    page.get_by_role("combobox", name="Thema wechseln", exact=True).select_option("em-protective-devices")
+    playwright.expect(page.get_by_role("heading", name="RCD, Sicherungen und LS", exact=True)).to_be_visible()
+    back.click()
+    playwright.expect(search).to_have_value("Ohm")
+    playwright.expect(topic).to_be_focused()
+    topic.press("Enter")
+    page.locator(".memory-source-info > summary").click()
+    page.locator(".memory-source-print > summary").click()
+    playwright.expect(page.locator(".memory-source-print")).to_contain_text("Aufgedrucktes Lineal")
+    playwright.expect(page.locator(".memory-source-print")).to_contain_text("Quellstand und Impressum")
+    page.locator(".memory-source-info > summary").click()
+    page.set_viewport_size({"width": 1440, "height": 1050})
+    page.screenshot(path=str(tmp_path / "memory-topic-navigation-light.png"), full_page=True)
+    page.get_by_role("button", name="Dunkler Modus", exact=True).click()
+    page.screenshot(path=str(tmp_path / "memory-topic-navigation-dark.png"), full_page=True)
+    page.set_viewport_size({"width": 390, "height": 844})
+    assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+    playwright.expect(page.get_by_role("combobox", name="Thema wechseln", exact=True)).to_be_visible()
+    page.screenshot(path=str(tmp_path / "memory-topic-navigation-mobile.png"), full_page=True)

@@ -45,7 +45,7 @@ test("real endpoint capability reports restrict operations and identify partial 
 
 test("native page and output tools work while Java starts; Core-only tools wait", () => {
   assert.equal(pdfToolAvailability(tool("crop"), true, false).enabled, true);
-  for (const id of ["multiTool", "merge", "split", "rotate", "removePages", "extractPages", "reorganizePages", "scalePages", "convert"]) {
+  for (const id of ["multiTool", "merge", "split", "rotate", "removePages", "extractPages", "reorganizePages", "scalePages", "convert", "sign", "redact"]) {
     assert.equal(pdfToolAvailability(tool(id), true, false).enabled, true);
     assert.equal(pdfToolAvailability(tool(id), true, false).checking, false);
   }

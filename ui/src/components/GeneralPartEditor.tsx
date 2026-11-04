@@ -2,10 +2,11 @@ import { useEffect, useState } from "react";
 import { api } from "../api";
 import type { CompanyGeneral, FamilyItem, GeneralRow, SymbolRender } from "../api";
 import Desc from "./Desc";
+import "./GeneralPartEditor.css";
 
 /** Settings: the rows of the general part. The drawing on the server stays the source;
  *  text changes, hidden rows and linked symbols are kept beside it for the whole company. */
-export default function GeneralPartEditor({ notify, reloadKey = 0 }: { notify: (text: string, error?: boolean) => void; reloadKey?: number }) {
+export default function GeneralPartEditor({ notify, reloadKey = 0, onSourceChanged }: { notify: (text: string, error?: boolean) => void; reloadKey?: number; onSourceChanged?: () => void }) {
   const [data, setData] = useState<CompanyGeneral | null>(null);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [linking, setLinking] = useState<string | null>(null);
@@ -18,6 +19,7 @@ export default function GeneralPartEditor({ notify, reloadKey = 0 }: { notify: (
   const [addPick, setAddPick] = useState<FamilyItem | null>(null);
   const [addText, setAddText] = useState("");
   const [icons, setIcons] = useState<Record<string, SymbolRender>>({});
+  const [preview, setPreview] = useState(false);
 
   useEffect(() => {
     api.companyGeneral().then(setData).catch((e) => notify((e as Error).message, true));
@@ -110,6 +112,21 @@ export default function GeneralPartEditor({ notify, reloadKey = 0 }: { notify: (
     }
   }
 
+  async function switchTemplate(restore = false) {
+    setBusy(true);
+    try {
+      setData(await (restore ? api.restoreGeneralTemplate : api.applyGeneralTemplate)(data!.company.general_path));
+      setDrafts({});
+      setPreview(false);
+      onSourceChanged?.();
+      notify(restore ? "Vorherige Allgemeinvorlage mit ihren Einstellungen wiederhergestellt" : "edeco-Allgemeinvorlage übernommen. Die vorige Quelle lässt sich wiederherstellen.");
+    } catch (e) {
+      notify((e as Error).message, true);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   function move(index: number, delta: number) {
     const keys = data!.rows.map((r) => r.key);
     const j = index + delta;
@@ -162,11 +179,26 @@ export default function GeneralPartEditor({ notify, reloadKey = 0 }: { notify: (
   const stamp = data.file_time ? new Date(data.file_time * 1000).toLocaleString("de-CH") : "";
   return (
     <div className="general-editor">
+      {data.builtin && <section className="general-template-choice" aria-label="edeco-Allgemeinvorlage">
+        <div className="row" style={{ gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+          <span className="hint" style={{ flex: 1 }}>{data.builtin.active ? "edeco-Allgemeinvorlage aktiv" : "Neue Allgemeinvorlage"} · {data.builtin.general_rows} Zeilen · {data.builtin.color_codes} Farbcodes</span>
+          {!data.builtin.active && <button className="btn" disabled={!data.builtin.available || busy} aria-expanded={preview}
+            onClick={() => setPreview(value => !value)}>edeco-Allgemeinvorlage verwenden</button>}
+          {data.builtin.can_restore && <button className="btn" disabled={busy || locked} onClick={() => switchTemplate(true)}>Vorherige Vorlage wiederherstellen</button>}
+        </div>
+        {preview && <div className="general-template-preview">
+          <img src="/api/company/general/builtin/preview" alt="Vorschau der edeco-Allgemeinvorlage mit Leitungen, allgemeinen Symbolen und zwölf Farbcodes" />
+          <p className="hint">Für alle NOVA-Projekte: ersetzt die gewählte Allgemeinquelle und ihre Zeilenanpassungen. Die bisherige Quelle samt Einstellungen wird zum Wiederherstellen behalten. Projekt-Apparate und Quelldateien bleiben erhalten.</p>
+          <button className="btn primary" disabled={busy || locked} onClick={() => switchTemplate()}>{busy ? "Wird übernommen …" : "Vorlage für NOVA übernehmen"}</button>
+          <button className="btn" style={{ marginLeft: 8 }} onClick={() => setPreview(false)}>Vorschau schliessen</button>
+        </div>}
+        {data.builtin.error && <p className="warn-text">{data.builtin.error}</p>}
+      </section>}
       <h4>Zeilen der Legende Allgemein</h4>
       <Desc short="Die Zeichnung oben bleibt die Quelle." more="Hier änderst du Texte, blendest Zeilen aus und verknüpfst Zeilen mit Symbolen: Verknüpfte Symbole erscheinen in den Projektabschnitten nicht noch einmal. Schriftgrösse, Symbolgrösse, Abstand und Spalten übernimmt der Allgemeinteil vom Legendeneditor, damit er wie der Rest der Legende aussieht. Mit ↑ ↓ änderst du die Reihenfolge, mit «+ Zeile aus Bibliothek» nimmst du ein Nova-Symbol auf. «Als Vorlage» exportiert die Zeichnung mit allen Änderungen und dem Hilfsraster: in Nova bearbeiten, auf dem Server ablegen, «Neu laden»." />
       <div className="row" style={{ gap: 8, alignItems: "center" }}>
         <span className="hint" style={{ flex: 1, wordBreak: "break-all" }}>
-          {data.source || "Keine Servervorlage eingestellt."}{stamp ? ` · Datei vom ${stamp}` : ""}
+          {(data.builtin?.active ? "Mitgelieferte edeco-Allgemeinvorlage" : data.source) || "Keine Vorlage eingestellt."}{stamp ? ` · Datei vom ${stamp}` : ""}
           {data.error ? ` · ${data.error}` : ""}
         </span>
         <button className="btn small" disabled={busy || !data.source} onClick={reload} title="Die Datei auf dem Server jetzt neu lesen">

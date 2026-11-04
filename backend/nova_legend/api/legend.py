@@ -7,6 +7,7 @@ import io
 import re
 import shutil
 import tempfile
+from contextlib import closing
 from urllib.parse import quote
 from pathlib import Path
 
@@ -69,6 +70,10 @@ class CompanySymbolIn(BaseModel):
 
 class GeneralOrderIn(BaseModel):
     keys: list[str]
+
+
+class GeneralTemplateIn(BaseModel):
+    expected_source: str
 
 
 class LegendIn(BaseModel):
@@ -403,9 +408,9 @@ def register(app: FastAPI, st, project, evaluator, category_colors) -> None:
         settings = st.company.legend_settings()
         part = load_general(raw=True)
         overrides = settings.get("legend_general_rows") or {}
-        path = Path(settings["legend_general_path"] or "")
+        path, _ = general_part.resolve_source(settings["legend_general_path"] or "")
         try:
-            stamp = path.stat().st_mtime if path.is_file() else None
+            stamp = path.stat().st_mtime if path and path.is_file() else None
         except OSError:
             stamp = None
         rows = []
@@ -422,7 +427,62 @@ def register(app: FastAPI, st, project, evaluator, category_colors) -> None:
                          "family_key": r.get("family_key") or "",
                          "by": o.get("by", ""), "at": o.get("at", "")})
         return {**part.info(), "file_time": stamp, "rows": rows, "company": company_legend(),
+                "builtin": builtin_general_info(),
                 "oda": bool(config.resolve_oda_converter(st.settings.oda_path))}
+
+    def builtin_general_info() -> dict:
+        settings = st.company.legend_settings()
+        part = general_part.load(general_part.BUILTIN_SOURCE, 190, None)
+        codes = [r for r in part.rows if r.get("picture") == "swatch"]
+        active = settings["legend_general_path"] == general_part.BUILTIN_SOURCE
+        return {"source": general_part.BUILTIN_SOURCE, "active": active,
+                "available": bool(part.rows and not part.error), "error": part.error,
+                "general_rows": sum(not r.get("heading") and r.get("picture") != "swatch" for r in part.rows),
+                "color_codes": len(codes),
+                "can_restore": bool(active and settings.get("legend_general_previous"))}
+
+    @app.get("/api/company/general/builtin")
+    def builtin_general() -> dict:
+        """Read-only metadata; never changes the company's selected source."""
+        return builtin_general_info()
+
+    @app.get("/api/company/general/builtin/preview")
+    def builtin_general_preview():
+        """Preview the actual bundled geometry before the explicit company-wide change."""
+        import pypdfium2 as pdfium
+        from edeco_toolbox.documents.extract import PDF_LOCK
+
+        gen = general_part.load(general_part.BUILTIN_SOURCE, 190, None)
+        if gen.error or not gen.rows:
+            raise HTTPException(404, gen.error or "Allgemeinvorlage fehlt")
+        doc = normalize({"style": {**project_style_default(), "columns": 2},
+                         "title": {"text": ""}, "blocks": []})
+        lay = place(doc, {}, gen.info())
+        dxf = build_dxf(lay, gen, lambda prim: None, doc["style"]["font"])
+        data = build_pdf(dxf, lay["width"], lay["height"], "edeco Allgemeinvorlage")
+        with PDF_LOCK, pdfium.PdfDocument(data) as pdf, closing(pdf[0]) as page, closing(page.render(scale=2)) as bitmap:
+            out = io.BytesIO()
+            bitmap.to_pil().save(out, format="PNG")
+        return Response(out.getvalue(), media_type="image/png", headers={"Cache-Control": "no-cache"})
+
+    def switch_builtin_general(body: GeneralTemplateIn, *, restore: bool = False) -> dict:
+        require_admin()
+        if not restore and not builtin_general_info()["available"]:
+            raise HTTPException(404, "Die mitgelieferte Allgemeinvorlage fehlt.")
+        try:
+            st.company.switch_general_template(general_part.BUILTIN_SOURCE, body.expected_source, restore=restore)
+        except ValueError as exc:
+            raise HTTPException(409, str(exc)) from None
+        general_part._cache.clear()
+        return company_general()
+
+    @app.post("/api/company/general/builtin/apply")
+    def apply_builtin_general(body: GeneralTemplateIn) -> dict:
+        return switch_builtin_general(body)
+
+    @app.post("/api/company/general/builtin/restore")
+    def restore_builtin_general(body: GeneralTemplateIn) -> dict:
+        return switch_builtin_general(body, restore=True)
 
     @app.put("/api/company/general/row")
     def put_general_row(body: GeneralRowIn) -> dict:
@@ -521,8 +581,6 @@ def register(app: FastAPI, st, project, evaluator, category_colors) -> None:
         cols = 3 if cols >= 3 else 2
         doc = normalize({"style": {**project_style_default(), "columns": cols}, "title": {"text": ""}, "blocks": []})
         lay = place(doc, {}, gen.info())
-        g = next(p for p in lay["prims"] if p.get("role") == "general")
-        lay["height"] = round(g["y"] + g["h"] + doc["style"]["margin"], 2)
         lay["prims"] = [p for p in lay["prims"] if p.get("t") != "hit"]
         dxf = build_dxf(lay, gen, lambda prim: geometry(prim["key"])[0], doc["style"]["font"])
         stem = safe_folder_name(f"edeco ag-Allgemeinteil-{cols}-spaltig")
@@ -539,7 +597,8 @@ def register(app: FastAPI, st, project, evaluator, category_colors) -> None:
     def project_style_default() -> dict:
         c = company_legend()
         return normalize_style({"text_size": c["text_size"], "symbol_scale": c["symbol_scale"],
-                                "compact_flow": True, "columns": 3})
+                                "compact_flow": True, "columns": 3, "symbol_fit": "corridor",
+                                "general_source_look": True})
 
     @app.post("/api/company/general/reload")
     def reload_general() -> dict:
@@ -586,6 +645,8 @@ def register(app: FastAPI, st, project, evaluator, category_colors) -> None:
         return normalize_style({"grid": s.get("grid", DEFAULT_GRID), "text_size": s.get("text_size", c["text_size"]),
                                 "symbol_scale": s.get("symbol_scale", c["symbol_scale"]),
                                 "columns": s.get("columns", 3), "compact_flow": s.get("compact_flow", True),
+                                "symbol_fit": s.get("symbol_fit", "square" if s else "corridor"),
+                                "general_source_look": s.get("general_source_look", not bool(s)),
                                 "margin": s.get("margin", MARGIN),
                                 "hatch_off": s.get("hatch_off", c["hatch_off"]),
                                 "fill_off": s.get("fill_off", c["fill_off"])})

@@ -8,18 +8,19 @@ import { FormulaCalculator } from "../berechnungen/Berechnungen";
 import { isFormulaId, type FormulaId } from "../berechnungen/formulaCatalog";
 import { BASIC_TOPICS } from "./basics";
 import { SOURCE_CATALOG } from "./sourceCatalog";
-import { filterMemoryEntries, filterMemoryTopics, memoryPagesLabel, type MemoryFilter } from "./memorySearch";
+import { filterMemoryEntries, filterMemoryTopics, memoryPagesLabel, referenceMemoryTopics, type MemoryFilter } from "./memorySearch";
 import type { MemoryEntry, MemoryTopic } from "./types";
 import MemoryDiagram from "./MemoryDiagram";
 import "./elektro-memory.css";
 
 export interface ElektroMemoryProps extends ToolProps { initialTab?: "reference" | "calculator"; initialFormulaId?: string }
-const TOPICS = [...SOURCE_CATALOG.topics, ...BASIC_TOPICS];
+const TOPICS = referenceMemoryTopics([...SOURCE_CATALOG.topics, ...BASIC_TOPICS]);
+const SOURCE_NOTES = SOURCE_CATALOG.topics.flatMap(topic => topic.entries).filter(entry => entry.presentation === "source-note");
 const FILTERS: [MemoryFilter, string][] = [["all", "Alle"], ["formulas", "Formeln"], ["reference", "Schutz & Normen"], ["basics", "Grundlagen"]];
 
 function TopicIcon({ topic, size = 22 }: { topic: MemoryTopic; size?: number }) {
   const sourceIcons = { "em-emergency": HeartPulse, "em-safety-rules": HardHat, "em-testing": ScanLine, "em-short-circuit-rules": Zap,
-    "em-protective-devices": ShieldCheck, "em-earthing": Earth, "em-spd-conduits": Cable, "em-bathroom": Bath,
+    "em-protective-devices": ShieldCheck, "em-earthing": Earth, "em-spd-conduits": Zap, "em-conduits": Cable, "em-asbestos": HardHat, "em-bathroom": Bath,
     "em-measurement-billing": Ruler, "em-ip-symbols": ShieldCheck, "em-swiss-connectors": Plug };
   const Icon = sourceIcons[topic.id as keyof typeof sourceIcons] ?? (topic.group === "basics" ? Layers : topic.entries.some(entry => entry.kind === "formula") ? Activity : BookOpen);
   return <Icon size={size} strokeWidth={1.65} aria-hidden="true" />;
@@ -66,6 +67,9 @@ export default function ElektroMemory({ onHome, onOpenTool, initialTab = "refere
   const [entryQuery, setEntryQuery] = useState("");
   const [filter, setFilter] = useState<MemoryFilter>("all");
   const heading = useRef<HTMLHeadingElement>(null);
+  const topicButtons = useRef(new Map<string, HTMLButtonElement>());
+  const overviewScroll = useRef(0);
+  const overviewTopic = useRef<string | null>(null);
   const location = useToolhubLocation();
   const theme = useToolhubTheme();
   const selected = TOPICS.find(topic => topic.id === topicId);
@@ -77,28 +81,44 @@ export default function ElektroMemory({ onHome, onOpenTool, initialTab = "refere
   useEffect(() => { if (initialFormulaId && isFormulaId(initialFormulaId)) setFormula(initialFormulaId); }, [initialFormulaId]);
   useEffect(() => { if (topicId) heading.current?.focus(); }, [topicId]);
   function calculate(id: FormulaId) { setFormula(id); setTab("calculator"); window.scrollTo({ top: 0, behavior: "smooth" }); }
+  function openTopic(id: string) {
+    if (!topicId) { overviewScroll.current = window.scrollY; overviewTopic.current = id; }
+    setEntryQuery(topicId ? "" : query.trim());
+    setTopicId(id);
+  }
+  function returnToTopics() {
+    const previous = overviewTopic.current ?? topicId;
+    setTopicId(null);
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: overviewScroll.current, behavior: "instant" });
+      if (previous) topicButtons.current.get(previous)?.focus({ preventScroll: true });
+    });
+  }
 
   return <div className="electro-memory">
     <ToolhubHeader title="Elektro-Memory" onHome={onHome} onOpenTool={onOpenTool}
       parent={location === "formelrechner" ? { label: "Berechnungen", onClick: () => onOpenTool?.("berechnungen") } : undefined}>
       <button type="button" className="btn toolhub-theme" aria-label={theme.dark ? "Heller Modus" : "Dunkler Modus"} onClick={theme.toggle}>{theme.dark ? <Sun size={16} /> : <Moon size={16} />}<span>{theme.dark ? "Hell" : "Dunkel"}</span></button>
     </ToolhubHeader>
-    <main className="memory-main">
+    <main className={`memory-main${selected && tab === "reference" ? " is-reading" : ""}`}>
       <header className="memory-hero"><div><span className="memory-eyebrow">Wissen griffbereit</span><h1>Elektro-Memory</h1><p>Nachschlagen. Verstehen. Direkt berechnen.</p></div><span className="memory-hero-symbol" aria-hidden="true"><Zap size={52} strokeWidth={1.3} /><span>U · I · R</span></span></header>
       <div className="memory-nav-row"><div className="memory-tabs" role="tablist" aria-label="Elektro-Memory Bereiche">
         <button type="button" id="memory-reference-tab" role="tab" aria-selected={tab === "reference"} aria-controls="memory-reference-panel" onClick={() => setTab("reference")}><BookOpen size={17} />Nachschlagen</button>
         <button type="button" id="memory-calculator-tab" role="tab" aria-selected={tab === "calculator"} aria-controls="memory-calculator-panel" onClick={() => setTab("calculator")}><Calculator size={17} />Formelrechner</button>
-      </div><details className="memory-source-info"><summary><Info size={15} />Quelle & Umfang</summary><div><strong>Deine E-Memory-Vorlage</strong><p>{SOURCE_CATALOG.source?.file || "E-Memory_DE_PNG.pdf"} · {coverage}/{SOURCE_CATALOG.completeness.totalPages} Seiten erfasst · {formulaCount} Formeleinträge.</p><p>Texte und Formeln sind neu gesetzt. Normbezogene Angaben bleiben als Quellenreferenz gekennzeichnet. Die zusätzlichen Grundlagen sind separat ausgewiesen.</p>{SOURCE_CATALOG.source?.edition && <p>{SOURCE_CATALOG.source.edition}</p>}{SOURCE_CATALOG.completeness.notes?.map(note => <p key={note}>{note}</p>)}{SOURCE_CATALOG.findings && <details className="memory-source-findings"><summary>Fachliche Präzisierungen ({SOURCE_CATALOG.findings.length})</summary><ul>{SOURCE_CATALOG.findings.map(finding => <li key={finding.id}><strong>Seite {finding.page}:</strong> {finding.message}</li>)}</ul></details>}</div></details></div>
+      </div><details className="memory-source-info"><summary><Info size={15} />Quelle & Umfang</summary><div><strong>Deine E-Memory-Vorlage</strong><p>{SOURCE_CATALOG.source?.file || "E-Memory_DE_PNG.pdf"} · {coverage}/{SOURCE_CATALOG.completeness.totalPages} Seiten erfasst · {formulaCount} Formeleinträge.</p><p>Texte und Formeln sind neu gesetzt. Normbezogene Angaben bleiben als Quellenreferenz gekennzeichnet. Die zusätzlichen Grundlagen sind separat ausgewiesen.</p>{SOURCE_CATALOG.source?.edition && <p>{SOURCE_CATALOG.source.edition}</p>}{SOURCE_CATALOG.completeness.notes?.map(note => <p key={note}>{note}</p>)}{SOURCE_NOTES.length > 0 && <details className="memory-source-print"><summary>Druckvorlage & Impressum ({SOURCE_NOTES.length})</summary><p>Diese Angaben gehören zum gedruckten Original und erscheinen deshalb hier statt als digitale Facheinträge.</p>{SOURCE_NOTES.map(entry => <div key={entry.id}><strong>{entry.title} · Seite {entry.source.page}</strong><p>{entry.explanation}</p></div>)}</details>}{SOURCE_CATALOG.findings && <details className="memory-source-findings"><summary>Fachliche Präzisierungen ({SOURCE_CATALOG.findings.length})</summary><ul>{SOURCE_CATALOG.findings.map(finding => <li key={finding.id}><strong>Seite {finding.page}:</strong> {finding.message}</li>)}</ul></details>}</div></details></div>
       <section id="memory-reference-panel" role="tabpanel" aria-labelledby="memory-reference-tab" hidden={tab !== "reference"}>
         {selected ? <article className="memory-article">
-          <button type="button" className="memory-back" onClick={() => setTopicId(null)}><ArrowLeft size={16} />Alle Themen</button>
+          <nav className="memory-article-navigation" aria-label="Memory-Themennavigation">
+            <button type="button" className="memory-back" onClick={returnToTopics}><ArrowLeft size={18} aria-hidden="true" />Alle Themen</button>
+            <label className="memory-topic-switch"><span>Thema wechseln</span><select aria-label="Thema wechseln" value={selected.id} onChange={event => openTopic(event.target.value)}>{TOPICS.map(topic => <option key={topic.id} value={topic.id}>{topic.title}</option>)}</select></label>
+          </nav>
           <header className="memory-article-heading"><span className="memory-topic-icon"><TopicIcon topic={selected} size={27} /></span><div><span className="memory-topic-source">{memoryPagesLabel(selected.pages)}</span><h2 tabIndex={-1} ref={heading}>{selected.title}</h2>{selected.summary && <p>{selected.summary}</p>}</div></header>
-          {entryQuery && <div className="memory-entry-search"><span>{entries.length} Einträge für «{entryQuery}»</span><button type="button" onClick={() => setEntryQuery("")}>Alle {selected.entries.length} Einträge anzeigen</button></div>}
-          <div className="memory-article-layout"><div className="memory-entry-list">{entries.map(entry => <MemoryEntryCard entry={entry} key={entry.id} onCalculate={calculate} />)}</div><aside className="memory-article-aside"><BookOpen size={23} strokeWidth={1.5} /><h3>Schritt für Schritt</h3><p>Eintrag öffnen, Voraussetzungen lesen und bei einer Formel eigene Werte einsetzen.</p><span>{selected.entries.length} Einträge</span>{selected.pages.length > 0 && <span>Vorlage: Seite {selected.pages.join(", ")}</span>}<button type="button" onClick={() => setTab("calculator")}><Calculator size={16} />Zum Formelrechner</button></aside></div>
+          {entryQuery && entries.length < selected.entries.length && <div className="memory-entry-search"><span>{entries.length} Einträge für «{entryQuery}»</span><button type="button" onClick={() => setEntryQuery("")}>Alle {selected.entries.length} Einträge anzeigen</button></div>}
+          <div className="memory-article-layout"><div className="memory-entry-list">{entries.map(entry => <MemoryEntryCard entry={entry} key={entry.id} onCalculate={calculate} />)}</div></div>
         </article> : <>
           <div className="memory-search-row"><label className="memory-search"><Search size={19} aria-hidden="true" /><input type="search" aria-label="Elektro-Memory durchsuchen" placeholder="Thema, Formel oder Einheit suchen …" value={query} onChange={event => setQuery(event.target.value)} /><span aria-label={`${topics.length} Themen`}>{topics.length}</span></label><div className="memory-filter" role="group" aria-label="Themen filtern">{FILTERS.map(([id, label]) => <button type="button" key={id} aria-pressed={filter === id} onClick={() => setFilter(id)}>{label}</button>)}</div></div>
           {!query && filter === "all" && <div className="memory-quick"><span><Calculator size={18} />Schnell berechnen</span>{(["ohm", "leistung-3p", "leiterwiderstand", "energie"] as FormulaId[]).map((id, index) => <button type="button" key={id} onClick={() => calculate(id)}>{["Ohmsches Gesetz", "Drehstromleistung", "Leiterwiderstand", "Energie"][index]}<ArrowUpRight size={14} /></button>)}</div>}
-          <div className="memory-topic-grid">{topics.map(topic => <button type="button" className={`memory-topic-card ${topic.group === "basics" ? "is-basic" : ""}`} key={topic.id} onClick={() => { setTopicId(topic.id); setEntryQuery(query.trim()); }}><div><span className="memory-topic-icon"><TopicIcon topic={topic} /></span><ArrowUpRight size={17} aria-hidden="true" /></div><h2>{topic.title}</h2><p>{topic.summary}</p><footer><span>{topic.entries.length} Einträge</span><span>{memoryPagesLabel(topic.pages)}</span></footer></button>)}</div>
+          <div className="memory-topic-grid">{topics.map(topic => <button type="button" className={`memory-topic-card ${topic.group === "basics" ? "is-basic" : ""}`} key={topic.id} ref={node => { if (node) topicButtons.current.set(topic.id, node); else topicButtons.current.delete(topic.id); }} onClick={() => openTopic(topic.id)}><div><span className="memory-topic-icon"><TopicIcon topic={topic} /></span><ArrowUpRight size={17} aria-hidden="true" /></div><h2>{topic.title}</h2><p>{topic.summary}</p><footer><span>{topic.entries.length} Einträge</span><span>{memoryPagesLabel(topic.pages)}</span></footer></button>)}</div>
           {topics.length === 0 && <div className="memory-empty" role="status"><Search size={30} strokeWidth={1.3} /><h2>Kein passendes Thema</h2><p>Versuche einen anderen Begriff oder entferne den Filter.</p><button type="button" onClick={() => { setQuery(""); setFilter("all"); }}>Suche zurücksetzen</button></div>}
           <footer className="memory-overview-footer"><span>{coverage} PDF-Seiten als strukturierte Nachschlagethemen</span><span>Formelrechner und Wissens-Hub bleiben direkt erreichbar.</span></footer>
         </>}

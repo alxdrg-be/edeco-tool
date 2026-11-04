@@ -236,16 +236,18 @@ class CropStore:
                 self._cache.move_to_end(cache_key)
                 return self._cache[cache_key]
             try:
-                with PDF_LOCK, pdfium.PdfDocument(document.path) as doc, closing(doc[page_number - 1]) as page:
-                    page_width, page_height, _, _ = page_geometry(page)
-                    scale = min(width / page_width, MAX_RENDER_EDGE / max(page_width, page_height),
-                                math.sqrt(MAX_RENDER_PIXELS / (page_width * page_height)))
-                    with closing(page.render(scale=scale, rev_byteorder=True)) as bitmap:
-                        image = bitmap.to_pil().convert("RGB")
-                        output = io.BytesIO()
-                        image.save(output, format="PNG")
-                        data = output.getvalue()
-                        image.close()
+                with PDF_LOCK, pdfium.PdfDocument(document.path) as doc:
+                    doc.init_forms()
+                    with closing(doc[page_number - 1]) as page:
+                        page_width, page_height, _, _ = page_geometry(page)
+                        scale = min(width / page_width, MAX_RENDER_EDGE / max(page_width, page_height),
+                                    math.sqrt(MAX_RENDER_PIXELS / (page_width * page_height)))
+                        with closing(page.render(scale=scale, rev_byteorder=True)) as bitmap:
+                            image = bitmap.to_pil().convert("RGB")
+                            output = io.BytesIO()
+                            image.save(output, format="PNG")
+                            data = output.getvalue()
+                            image.close()
             except pdfium.PdfiumError:
                 raise ValueError("Die PDF-Seite konnte nicht dargestellt werden.") from None
             if len(data) <= MAX_CACHE_BYTES:

@@ -72,7 +72,7 @@ def test_general_and_apparatus_texts_align_and_palette_finishes_the_content(tmp_
     glyph = next(p for p in placed["prims"] if p["t"] == "grow" and p["row"] == general_row["id"])
     assert glyph["w"] > 4 and glyph["h"] > 1.5
     lines = [p for p in placed["prims"] if p["t"] == "grow" and p["row"] in ("g0", "g1")]
-    assert all(p["w"] >= 14 for p in lines)
+    assert all(p["w"] >= 12 for p in lines)  # full readable corridor, not a four-mm square
     assert placed["height"] < 150
 
 

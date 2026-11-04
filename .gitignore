@@ -8,6 +8,8 @@ data/
 *.nsb
 *.dwg
 *.dxf
+# Reviewed, generic product template; customer plans remain ignored.
+!backend/nova_legend/legend/resources/edeco_allgemein_2026.dxf
 
 # Python
 __pycache__/

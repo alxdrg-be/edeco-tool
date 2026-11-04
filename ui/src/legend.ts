@@ -95,6 +95,8 @@ export interface LegendStyle {
   /** equal tiles: every drawing gets the same area with a small clear edge */
   normalize_size?: boolean;
   symbol_size?: "real" | "tile"; // real size on the insertion point (default) or equal tiles
+  symbol_fit?: "square" | "corridor"; // fitted rectangle also keeps long line-like apparatus readable
+  general_source_look?: boolean; // ignore saved presentation factors/turns in this legend, retaining source geometry
   frame_on: boolean; // border round the whole legend
   frame: string;
 }

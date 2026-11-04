@@ -71,9 +71,29 @@
       button.setAttribute("title", "PDF-Einstellungen");
     });
   };
+  const clarifyControls = () => {
+    const toolSearch = document.querySelector('#super-search-input');
+    if (toolSearch instanceof HTMLInputElement) {
+      toolSearch.placeholder = 'PDF-Werkzeuge suchen …';
+      toolSearch.setAttribute('aria-label', 'PDF-Werkzeuge suchen');
+      toolSearch.title = 'Werkzeuge und Funktionen suchen. Text im PDF findest du in der Dokumentansicht.';
+    }
+    document.querySelectorAll('button, [role="button"]').forEach(button => {
+      const label = (button.getAttribute('aria-label') || button.getAttribute('title') || button.textContent || '').trim();
+      if (/^(?:Auswählen und bearbeiten|Select and edit)$/i.test(label)) {
+        button.setAttribute('aria-label', 'Anmerkung auswählen und bearbeiten');
+        button.setAttribute('title', 'Vorhandene Anmerkungen, Textfelder und Stempel auswählen und bearbeiten. Den Seitentext änderst du über „PDF bearbeiten“.');
+      }
+      if (/(?:^|\s)(?:close|schliessen|schließen)(?:\s|$)/i.test(label)
+          || button.querySelector('svg[data-testid="CloseIcon"], svg.lucide-x')) {
+        button.classList.add('edeco-close-control');
+        if (!label) { button.setAttribute('aria-label', 'Schliessen'); button.setAttribute('title', 'Schliessen'); }
+      }
+    });
+  };
   const observe = () => {
     let pending = false;
-    const refresh = () => { pending = false; localSettings(); publish(); };
+    const refresh = () => { pending = false; localSettings(); clarifyControls(); publish(); };
     new MutationObserver(() => {
       if (!pending) { pending = true; queueMicrotask(refresh); }
     }).observe(document.body, { childList: true, subtree: true });
@@ -125,7 +145,7 @@
       const unavailable = new Set(labels);
       const refresh = () => {
         document.querySelectorAll('input[placeholder*="Stirling"]').forEach(input => {
-          input.placeholder = input.placeholder.includes('durchsuchen') ? 'PDF-Werkstatt durchsuchen' : 'Search PDF workshop';
+          input.placeholder = 'PDF-Werkzeuge suchen …';
         });
         document.querySelectorAll('img[alt="Stirling"]').forEach(img => { img.alt = 'edeco PDF-Werkstatt'; });
         document.querySelectorAll('.sui-brandmark[aria-label="Stirling"]').forEach(mark => { mark.setAttribute('aria-label', 'edeco PDF-Werkstatt'); });
