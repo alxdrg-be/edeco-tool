@@ -425,6 +425,9 @@ def test_rack_is_available_normally_but_does_not_expand_the_presentation(rack_ui
     page.get_by_role("button", name="Zum Toolhub", exact=True).click()
     playwright.expect(page.get_by_role("button", name="Rack-Dispo öffnen", exact=True)).to_be_visible()
     store = client.app.state.toolhub_presentation
+    # Exercise Windows roles with a test administrator, independently of the
+    # CI machine's real account. This store belongs to the isolated fixture.
+    store.identity, store.windows = "EDECO\\aduerger", True
     policy = store.snapshot()
     store.save(PresentationBody(
         revision=policy["revision"], demo_enabled=True,
