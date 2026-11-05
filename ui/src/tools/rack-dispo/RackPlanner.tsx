@@ -6,7 +6,8 @@ import { stageToolHandoff, type HandoffTarget } from '../../toolbox/toolHandoff'
 import { useProjectHub } from '../projektzentrale/projectHubState';
 import { useDialogFocus } from '../../useDialogFocus';
 import RackCanvas from './RackCanvas';
-import RackLibrary, { RackProfileDialog } from './RackLibrary';
+import RackLibrary, { FreePartDialog, isFreeProfile, RackProfileDialog } from './RackLibrary';
+import { responsibleParties } from './responsibility';
 import RackInspector from './RackInspector';
 import RackPorts from './RackPorts';
 import { addPlacement, analyzeRacks, copyRack, createEmptyDocument, createExampleDocument, duplicatePlacements, movePlacements, portRows, removePlacements, validateDocument } from './model';
@@ -118,17 +119,23 @@ export default function RackPlanner({ onHome, onOpenTool }: ToolProps) {
     if (!window.confirm(`${reason} Der aktuelle Entwurf wird ersetzt. Bei Bedarf zuerst als JSON speichern.`)) return false;
     setHistory(initialHistory(next)); chooseRack(next.racks[0]?.id ?? ''); setNotice(reason.startsWith('Beispiel') ? 'Beispiel geladen. Geräteangaben mit den Herstellerdaten ergänzen.' : 'Rack-Datei geladen.'); setPdf(null); clipboard.current = []; return true;
   }
-  function add(profileId: string, startUnit?: number, side?: MountSide) {
-    if (!rack) { setDialog('new-rack'); return; }
-    const definition = document.profiles.find(item => item.id === profileId);
-    if (!definition) return;
+  function add(profileId: string, startUnit?: number, side?: MountSide, base: RackDocument = document): boolean {
+    if (!rack) { setDialog('new-rack'); return false; }
+    const definition = base.profiles.find(item => item.id === profileId);
+    if (!definition) return false;
     const mount = side ?? (definition.units === 0 ? 'zero-right' : view);
-    if (startUnit !== undefined || definition.units === 0) { apply(addPlacement(document, { rackId: rack.id, profileId, startUnit: startUnit ?? 1, side: mount })); return; }
+    if (startUnit !== undefined || definition.units === 0) return apply(addPlacement(base, { rackId: rack.id, profileId, startUnit: startUnit ?? 1, side: mount }));
     for (let unit = rack.units - definition.units + 1; unit >= 1; unit--) {
-      const result = addPlacement(document, { rackId: rack.id, profileId, startUnit: unit, side: mount });
-      if (result.accepted) { apply(result); return; }
+      const result = addPlacement(base, { rackId: rack.id, profileId, startUnit: unit, side: mount });
+      if (result.accepted) return apply(result);
     }
     setError(`Für «${definition.name}» ist auf der ${view === 'front' ? 'Vorderseite' : 'Rückseite'} kein passender freier Platz vorhanden.`);
+    return false;
+  }
+  /** A free part gets its own profile; it is placed like any other device. */
+  function addFree(profile: DeviceProfile) {
+    const base = { ...document, profiles: [...document.profiles, profile] };
+    return add(profile.id, undefined, undefined, base);
   }
   function duplicate() { if (selectedIds.length) apply(duplicatePlacements(document, selectedIds)); }
   function remove() {
@@ -229,7 +236,7 @@ export default function RackPlanner({ onHome, onOpenTool }: ToolProps) {
     {(error || rejected.length > 0) && <div className="rd-message rd-message-error" role="alert"><CircleAlert size={18} /><div><strong>{error}</strong>{rejected.slice(0, 3).map(issue => <p key={issue.id}>{issue.explanation}<button onClick={() => issueTarget(issue)}>Betroffenes Gerät anzeigen</button></p>)}</div><button aria-label="Meldung schliessen" onClick={() => { setError(''); setRejected([]); }}><X size={18} /></button></div>}
     {notice && <div className="rd-message" role="status"><CheckCircle2 size={17} />{notice}<button aria-label="Hinweis schliessen" onClick={() => setNotice('')}><X size={17} /></button></div>}
     <div className="rd-workspace" inert={Boolean(busy) || undefined}>
-      <aside className="rd-library-pane"><RackLibrary profiles={document.profiles} onAdd={add} onSaveProfile={saveProfile} onDragProfile={setDragProfile} />
+      <aside className="rd-library-pane"><RackLibrary profiles={document.profiles} onAdd={id => { add(id); }} onAddFree={addFree} onDragProfile={setDragProfile} />
         <details className="rd-help"><summary><Info size={15} />Bedienung & Grundlagen</summary><p>Geräte ins Rack ziehen oder per Klick hinzufügen. HE zählen von unten. Pfeiltasten verschieben um 1 HE. Umschalt + Klick wählt mehrere Geräte. Strg/Cmd + C/V kopiert innerhalb des Racks.</p><p>19″ = 482,6 mm Montagebreite · 1 HE = 44,45 mm. Gehäusemasse und freie Montagetiefe sind eigene Angaben.</p><p>Neutrale Geräteprofile sind Platzhalter. Abmessungen, Gewicht und Leistung mit den Herstellerdaten ergänzen. Mechanische Modellprüfung, keine Installationsfreigabe.</p><button className="btn" onClick={() => replace(createExampleDocument(), 'Beispiel laden?')}>Beispiel laden</button></details>
       </aside>
       <main className="rd-main-pane">
@@ -241,7 +248,7 @@ export default function RackPlanner({ onHome, onOpenTool }: ToolProps) {
       </main>
       <aside className="rd-inspector-pane"><div className="rd-panel-tabs" role="tablist" aria-label="Rack-Details">{([['properties', 'Eigenschaften'], ['ports', 'Portliste'], ['checks', 'Prüfung'], ['bom', 'Liste']] as [Tab, string][]).map(([id, label]) => <button key={id} role="tab" aria-label={label} aria-selected={tab === id} onClick={() => setTab(id)}>{label}{id === 'checks' && errors.length > 0 && <b>{errors.length}</b>}</button>)}</div>
         <div className="rd-panel-body" key={`${tab}-${selection?.id ?? rack?.id}`}>
-          {tab === 'properties' && <><RackInspector rack={rack} placement={selection} profile={profile} profiles={document.profiles} placements={document.placements.filter(p => p.rackId === rack?.id)} onRackChange={next => commit({ ...document, racks: document.racks.map(item => item.id === next.id ? next : item) })} onPlacementChange={next => commit({ ...document, placements: document.placements.map(item => item.id === next.id ? next : item) })} onEditProfile={id => setEditProfile(document.profiles.find(p => p.id === id) ?? null)} onDuplicate={duplicate} onRemove={remove} />
+          {tab === 'properties' && <><RackInspector rack={rack} placement={selection} profile={profile} profiles={document.profiles} placements={document.placements.filter(p => p.rackId === rack?.id)} onRackChange={next => commit({ ...document, racks: document.racks.map(item => item.id === next.id ? next : item) })} onPlacementChange={next => commit({ ...document, placements: document.placements.map(item => item.id === next.id ? next : item) })} onEditProfile={id => setEditProfile(document.profiles.find(p => p.id === id) ?? null)} parties={responsibleParties(document)} onDuplicate={duplicate} onRemove={remove} />
             {!selection && rack && <><details className="rd-help"><summary>Projektbezug</summary>{active ? <><p>Aktiv: {active.number} · {active.name}</p><button className="btn" onClick={() => { commit({ ...document, projectId: active.id, projectNumber: active.number }); setNotice('Projektbezug für diesen Rack-Plan übernommen.'); }}>Projekt übernehmen</button></> : <p>{projectError || 'In der Projektzentrale ist kein aktives Projekt gewählt.'}</p>}<p>Ein Projektwechsel im Toolhub ändert diesen Plan erst nach «Projekt übernehmen».</p></details><button className="btn rd-delete-rack" disabled={document.racks.length <= 1} title={document.racks.length <= 1 ? 'Mindestens ein Rack bleibt im Plan.' : undefined} onClick={() => {
               if (!window.confirm(`«${rack.label}» samt Geräten und Portlisten entfernen? Rückgängig bleibt möglich.`)) return;
               const ids = document.placements.filter(item => item.rackId === rack.id).map(item => item.id);
@@ -260,7 +267,7 @@ export default function RackPlanner({ onHome, onOpenTool }: ToolProps) {
     </div>
     {dialog === 'new-rack' && <NewRackDialog error={error} close={() => setDialog(null)} add={next => { if (commit({ ...document, racks: [...document.racks, next] })) { chooseRack(next.id); setDialog(null); } }} />}
     {dialog === 'document' && <DocumentDialog error={error} document={document} close={() => setDialog(null)} save={next => { if (commit(next)) setDialog(null); }} />}
-    {editProfile && <RackProfileDialog profile={editProfile} onSave={saveProfile} onClose={() => setEditProfile(null)} />}
+    {editProfile && (isFreeProfile(editProfile) ? <FreePartDialog initial={editProfile} onSave={saveProfile} onClose={() => setEditProfile(null)} /> : <RackProfileDialog profile={editProfile} onSave={saveProfile} onClose={() => setEditProfile(null)} />)}
     {dialog === 'export' && <Overlay title="Rack exportieren" close={() => setDialog(null)} busy={Boolean(busy)}><div className="rd-export-options"><label><input type="checkbox" checked={exportAll} disabled={Boolean(busy)} onChange={event => setExportAll(event.target.checked)} />Alle Racks ({document.racks.length})</label><label className="rd-field">Ansichten<select aria-label="Export-Ansichten" value={exportViews} disabled={Boolean(busy)} onChange={event => setExportViews(event.target.value as typeof exportViews)}><option value="both">Vorder- und Rückseite</option><option value="front">Vorderseite</option><option value="rear">Rückseite</option></select></label></div>
       <div className="rd-export-actions">{(['pdf', 'svg', 'dxf'] as const).map(format => <button key={format} className="btn primary" disabled={Boolean(busy)} onClick={() => void runExport(format)}><Download size={17} />{format.toUpperCase()} exportieren</button>)}</div><p className="rd-muted">PDF und SVG entsprechen genau der Planvorschau unten · DXF als CAD-Zeichnung 1:1 in mm. Offene Angaben stehen im Anhang.</p>
       {rack && <figure className="rd-sheet-preview" aria-label="Planvorschau wie im Export"><RackSheet document={document} rackId={rack.id} view={exportViews === 'rear' ? 'rear' : 'front'} logo={SHEET_LOGO} filename={`${safeFilename(document.name)}.pdf`} /><figcaption>Planvorschau · {rack.label} · {exportViews === 'rear' ? 'Rückansicht' : 'Vorderansicht'} · identisch mit PDF und SVG</figcaption></figure>}

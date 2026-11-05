@@ -67,6 +67,8 @@ export function RackDeviceGlyph({ profile, width, height }: { profile: DevicePro
   if (profile.kind === "ups") return <g className="rd-device-glyph"><rect x="26" y={height * .22} width="65" height={height * .56} rx="5" /><path d={`M45 ${height / 2}h25m-12-12v24`} />{Array.from({ length: 10 }, (_, index) => <line key={index} x1={width - 160 + index * 11} x2={width - 160 + index * 11} y1={height * .25} y2={height * .75} />)}</g>;
   if (profile.kind === "shelf") return <g className="rd-device-glyph"><path d={`M24 ${height * .64}H${width - 24}l-12-10H36Z`} />{Array.from({ length: 15 }, (_, index) => <line key={index} x1={42 + index * 27} x2={52 + index * 27} y1={height * .64 - 5} y2={height * .64 - 5} />)}</g>;
   if (profile.kind === "reserve") return <g className="rd-device-glyph"><path d={`M12 12 ${width - 12} ${height - 12}M${width - 12} 12 12 ${height - 12}`} strokeDasharray="8 7" /></g>;
+  // Free/custom parts carry their own text on the face; a centre line would cross it.
+  if (profile.kind === "custom") return <g className="rd-device-glyph" />;
   return <g className="rd-device-glyph"><path d={`M25 ${height / 2}H${width - 25}`} opacity=".35" /></g>;
 }
 

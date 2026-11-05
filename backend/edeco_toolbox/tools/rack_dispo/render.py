@@ -454,7 +454,10 @@ def _appendix_lines(request: ExportRequest, rack_id: str, views: list[str], warn
         position = f"HE {placement.startUnit}–{placement.startUnit + profile.units - 1}" if profile.units else f"0 HE · {SIDE_LABELS[placement.side]}"
         side = "" if placement.side.startswith("zero-") else f" · {SIDE_LABELS[placement.side]}"
         lines.extend(_wrap(f"{position}{side} · {placement.label or profile.name} · {STATUS_LABELS[placement.status]}", 90))
-        lines.extend(_wrap(f"  Lieferung: {WORK_LABELS[placement.delivery]} · Montage: {WORK_LABELS[placement.montage]}", 90))
+        meta = placement.metadata or {}
+        supply = meta.get("supplyBy") if isinstance(meta.get("supplyBy"), str) else ""
+        install = meta.get("installBy") if isinstance(meta.get("installBy"), str) else ""
+        lines.extend(_wrap(f"  Lieferung durch: {supply.strip() or 'offen'} ({WORK_LABELS[placement.delivery]}) · Montage durch: {install.strip() or 'offen'} ({WORK_LABELS[placement.montage]})", 90))
         if placement.notes.strip():
             lines.extend(_wrap(f"  Notiz: {placement.notes}", 90))
         if profile.manufacturer or profile.article:

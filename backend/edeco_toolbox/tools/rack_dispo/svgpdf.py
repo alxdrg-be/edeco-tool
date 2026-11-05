@@ -63,6 +63,13 @@ def _colour(value: str | None, current: str) -> str | None:
     return None
 
 
+def _on_paper(value: str | None, opacity: float) -> str | None:
+    if value in (None, "none") or opacity >= 1:
+        return value
+    mixed = [round(int(value[i:i + 2], 16) * opacity + 255 * (1 - opacity)) for i in (1, 3, 5)]
+    return "#" + "".join(f"{channel:02x}" for channel in mixed)
+
+
 def _rgb(value: str) -> str:
     return " ".join(f"{int(value[i:i + 2], 16) / 255:.4f}" for i in (1, 3, 5))
 
@@ -218,7 +225,7 @@ def sheet_ops(svg: str) -> list[str]:
     count = 0
 
     def stroke_fill(attrs, transform):
-        fill, stroke = attrs["fill"], attrs["stroke"]
+        fill, stroke = _on_paper(attrs["fill"], attrs["opacity"]), _on_paper(attrs["stroke"], attrs["opacity"])
         width = attrs["stroke-width"] * math.sqrt(abs(transform[0] * transform[3] - transform[1] * transform[2]))
         dash = attrs["stroke-dasharray"]
         parts = []
@@ -285,6 +292,9 @@ def sheet_ops(svg: str) -> list[str]:
                 attrs[key] = raw[key].strip()
         if raw.get("display") == "none" or raw.get("visibility") == "hidden":
             return
+        if "opacity" in raw:
+            # No transparency groups: blend towards the white paper instead.
+            attrs["opacity"] = attrs["opacity"] * max(0.0, min(1.0, _num(raw["opacity"], 1.0)))
         local = _multiply(transform, _transform(element.get("transform"))) if tag != "svg" or element is not root else transform
         if tag in ("svg", "g"):
             if tag == "svg" and element is not root:
@@ -318,7 +328,7 @@ def sheet_ops(svg: str) -> list[str]:
                 emit_path(attrs, local, segments)
         elif tag == "text":
             text = "".join(element.itertext())
-            fill = attrs["fill"] if attrs["fill"] not in (None, "none") else None
+            fill = _on_paper(attrs["fill"], attrs["opacity"]) if attrs["fill"] not in (None, "none") else None
             if not text.strip() or fill is None:
                 return
             size = attrs["font-size"]
@@ -336,6 +346,6 @@ def sheet_ops(svg: str) -> list[str]:
             ops.append(f"q {_rgb(fill)} rg BT {font} {size * scale * PT_MM:.3f} Tf {rotation[0]:.4f} {rotation[1]:.4f} {-rotation[2]:.4f} {-rotation[3]:.4f} {px:.3f} {py:.3f} Tm <{_encode_text(text)}> Tj ET Q")
 
     base = {"fill": "#000000", "stroke": "none", "stroke-width": 1.0, "stroke-dasharray": [], "color": "#000000", "font-size": 16.0,
-            "text-anchor": "start", "font-weight": "normal", "fill-rule": "nonzero"}
+            "text-anchor": "start", "font-weight": "normal", "fill-rule": "nonzero", "opacity": 1.0}
     walk(root, base, page)
     return ops

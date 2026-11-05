@@ -72,3 +72,8 @@ def test_svg_export_stacks_the_same_sheets():
     assert data.count('viewBox="0 0 210 297"') == 2
     assert "Sämtliche Rangierpanel R&amp;M R171185" in data
     assert 'height="604mm"' in data
+
+
+def test_opacity_is_blended_towards_white_paper():
+    markup = SHEET.replace('<path d="M10 20h30v10H10Z"/>', '<path d="M10 20h30v10H10Z" opacity=".5" stroke="#000000"/>')
+    assert "0.5020 0.5020 0.5020 RG" in "\n".join(sheet_ops(markup))

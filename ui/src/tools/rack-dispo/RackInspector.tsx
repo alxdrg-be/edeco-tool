@@ -1,7 +1,10 @@
+import { useId, useState } from 'react';
 import { Copy, Info, Pencil, Server, Trash2 } from 'lucide-react';
 import type { DeviceProfile, MountSide, Placement, PlacementStatus, Rack, WorkState } from './types';
 import { RackColorField, RackNumberField, RackTextField } from './RackFields';
 import { panelDrawingFill, profileSubtitle } from './rackPanelModel';
+import { isFreeProfile } from './RackLibrary';
+import { responsibility, RESPONSIBLE_DEFAULTS } from './responsibility';
 import './rack-panels.css';
 
 export interface RackInspectorProps {
@@ -13,6 +16,8 @@ export interface RackInspectorProps {
   onRackChange: (rack: Rack) => void;
   onPlacementChange: (placement: Placement) => void;
   onEditProfile: (profileId: string) => void;
+  /** Names already used for delivery/installation in this document. */
+  parties?: string[];
   onDuplicate: () => void;
   onRemove: () => void;
 }
@@ -40,10 +45,17 @@ function RackProperties({ rack, onChange }: { rack: Rack; onChange: (rack: Rack)
   </div>;
 }
 
-function PlacementProperties({ rack, placement, profile, profiles, placements, onChange, onEditProfile }: {
-  rack: Rack; placement: Placement; profile: DeviceProfile; profiles: DeviceProfile[]; placements: Placement[];
+function PartyField({ label, field, value, parties, onCommit }: { label: string; field: string; value: string; parties: string[]; onCommit: (value: string) => void }) {
+  const id = useId(), [draft, setDraft] = useState<string | null>(null);
+  return <label className="rd-field" data-rack-field={field}>{label}<input list={`${id}-parties`} value={draft ?? value} maxLength={120} placeholder="Offen" onChange={event => setDraft(event.target.value)} onBlur={() => { if (draft !== null && draft.trim() !== value) onCommit(draft.trim()); setDraft(null); }} onKeyDown={event => { if (event.key === 'Enter') event.currentTarget.blur(); }} /><datalist id={`${id}-parties`}>{parties.map(name => <option key={name} value={name} />)}</datalist></label>;
+}
+
+function PlacementProperties({ rack, placement, profile, profiles, placements, parties, onChange, onEditProfile }: {
+  rack: Rack; placement: Placement; profile: DeviceProfile; profiles: DeviceProfile[]; placements: Placement[]; parties: string[];
   onChange: (placement: Placement) => void; onEditProfile: (profileId: string) => void;
 }) {
+  const free = isFreeProfile(profile), duty = responsibility(placement);
+  const setDuty = (key: 'supplyBy' | 'installBy', value: string) => onChange({ ...placement, metadata: { ...placement.metadata, [key]: value } });
   const field = (name: 'startUnit' | 'zeroStartMm' | 'zeroHeightMm' | 'zeroInwardOffsetMm', label: string, unit: string, required = false) => <RackNumberField field={name} label={label} unit={unit} value={placement[name]} min={name === 'startUnit' ? 1 : 0} max={name === 'startUnit' ? 60 : 10000} integer={name === 'startUnit'} nullable={!required} onCommit={value => onChange({ ...placement, [name]: value })} />;
   const zero = placement.side.startsWith('zero-');
   const sides: MountSide[] = profile.units === 0 ? ['zero-left', 'zero-right', 'zero-rear'] : ['front', 'rear'];
@@ -52,7 +64,7 @@ function PlacementProperties({ rack, placement, profile, profiles, placements, o
   const supports = shelves.some(shelf => shelf.id === placement.supportedById);
   return <div className="rd-inspector-form" key={placement.id}>
     <RackTextField label="Gerätebezeichnung" field="label" value={placement.label} maxLength={160} onCommit={label => onChange({ ...placement, label })} />
-    <div className="rd-profile-reference"><span><strong>{profile.name}</strong><small>{profileSubtitle(profile)}</small></span><button type="button" className="rd-icon-button" title="Geräteprofil bearbeiten" aria-label="Geräteprofil bearbeiten" onClick={() => onEditProfile(profile.id)}><Pencil size={16} /></button></div>
+    <div className="rd-profile-reference"><span><strong>{profile.name}</strong><small>{free ? `Freies Bauteil · ${profileSubtitle(profile)}` : profileSubtitle(profile)}</small></span>{free && <button type="button" className="rd-icon-button" title="Text, HE und Ports ändern" aria-label="Freies Bauteil ändern" onClick={() => onEditProfile(profile.id)}><Pencil size={16} /></button>}</div>
     <div className="rd-form-grid">
       <label className="rd-field" data-rack-field="side">Montageseite<select value={placement.side} onChange={event => onChange({ ...placement, side: event.target.value as MountSide })}>{sides.map(side => <option key={side} value={side}>{sideLabels[side]}</option>)}</select></label>
       {!zero ? field('startUnit', 'Unterste HE', 'HE', true) : <div className="rd-field"><span>Belegung</span><strong className="rd-static-value">0 HE · Zubehör</strong></div>}
@@ -61,13 +73,19 @@ function PlacementProperties({ rack, placement, profile, profiles, placements, o
     <label className="rd-field" data-rack-field="status">Planungsstand<select value={placement.status} onChange={event => onChange({ ...placement, status: event.target.value as PlacementStatus })}><option value="planned">Geplant</option><option value="existing">Bestehend</option><option value="removed">Entfallen</option></select></label>
     {placement.status === 'removed' && <p className="rd-muted">Entfallen: bleibt dokumentiert und zählt nicht zur aktuellen Belegung oder Stückliste.</p>}
     <div className="rd-form-grid">
-      <label className="rd-field" data-rack-field="delivery">Lieferung<select value={placement.delivery} onChange={event => onChange({ ...placement, delivery: event.target.value as WorkState })}>{Object.entries(workLabels).map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
-      <label className="rd-field" data-rack-field="montage">Montage<select value={placement.montage} onChange={event => onChange({ ...placement, montage: event.target.value as WorkState })}>{Object.entries(workLabels).map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
+      <PartyField label="Lieferung durch" field="supplyBy" value={duty.supplyBy} parties={parties} onCommit={value => setDuty('supplyBy', value)} />
+      <PartyField label="Montage durch" field="installBy" value={duty.installBy} parties={parties} onCommit={value => setDuty('installBy', value)} />
+    </div>
+    {duty.plan && <p className="rd-muted" data-rack-duty-preview>Im Plan: «{duty.plan}»{duty.owner ? ' · gelb hinterlegt, weil Lieferung durch Bauherr' : ''}</p>}
+    <div className="rd-form-grid">
+      <label className="rd-field" data-rack-field="delivery">Lieferstand<select value={placement.delivery} onChange={event => onChange({ ...placement, delivery: event.target.value as WorkState })}>{Object.entries(workLabels).map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
+      <label className="rd-field" data-rack-field="montage">Montagestand<select value={placement.montage} onChange={event => onChange({ ...placement, montage: event.target.value as WorkState })}>{Object.entries(workLabels).map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
     </div>
     <label className="rd-field" data-rack-field="supportedById">Auf Fachboden<select value={placement.supportedById ?? ''} onChange={event => onChange({ ...placement, supportedById: event.target.value || null })}><option value="">Keine Zuordnung</option>{placement.supportedById && !supports && <option value={placement.supportedById}>Gespeicherte Zuordnung prüfen</option>}{shelves.map(shelf => <option value={shelf.id} key={shelf.id}>{shelf.label} · {sideLabels[shelf.side]}{shelf.side === 'front' || shelf.side === 'rear' ? ` · HE ${shelf.startUnit}` : ''}</option>)}</select></label>
+    {!free && <button type="button" className="rd-link-button" data-rack-device-data onClick={() => onEditProfile(profile.id)}>Gerätedaten ergänzen (Tiefe, Gewicht, Leistung, Hersteller)</button>}
     <dl className="rd-specs"><div><dt>Tiefe</dt><dd>{valueLabel(profile.depthMm, 'mm')}</dd></div><div><dt>Eigengewicht</dt><dd>{valueLabel(profile.weightKg, 'kg')}</dd></div><div><dt>Aufnahmeleistung</dt><dd>{valueLabel(profile.powerW, 'W')}</dd></div><div><dt>Hersteller</dt><dd>{profile.manufacturer || 'Offen'}</dd></div>{profile.article && <div><dt>Artikel</dt><dd>{profile.article}</dd></div>}</dl>
     {profile.kind === 'earth' && <details className="rd-help" open><summary>Anschluss des Potenzialausgleichs</summary><p>Das Bauteil dokumentiert die Anschlussstelle. Anschlussführung, Querschnitt und Durchgängigkeit müssen separat geplant und nachgewiesen werden.</p></details>}
-    <RackTextField label="Notizen / Zuständigkeit" field="notes" value={placement.notes} multiline onCommit={notes => onChange({ ...placement, notes })} />
+    <RackTextField label="Notizen" field="notes" value={placement.notes} multiline onCommit={notes => onChange({ ...placement, notes })} />
     <details className="rd-help"><summary>Quelle &amp; Datenstand</summary><p>{profile.source || 'Kein Datenblatt hinterlegt.'}</p><p>{profile.verified ? 'Herstellerdaten wurden manuell als geprüft gekennzeichnet.' : 'Generische oder manuelle Angaben. Herstellerdaten noch nicht belegt.'}</p></details>
   </div>;
 }
@@ -79,7 +97,7 @@ export default function RackInspector(props: RackInspectorProps) {
     {!rack ? <div className="rd-empty"><Server size={28} /><p>Rack oder Bauteil auswählen.</p></div> : <>
       <div className="rd-selection-location"><strong>{rack.label}</strong><span>{placement ? `${sideLabels[placement.side]}${placement.side === 'front' || placement.side === 'rear' ? ` · HE ${placement.startUnit}${profile && profile.units > 1 ? `–${placement.startUnit + profile.units - 1}` : ''}` : ''}` : `${rack.units} HE · ${rack.room || 'Raum offen'}`}</span></div>
       <div className="rd-inspector-scroll">
-        {placement && profile ? <PlacementProperties key={placement.id} rack={rack} placement={placement} profile={profile} profiles={props.profiles} placements={props.placements} onChange={props.onPlacementChange} onEditProfile={props.onEditProfile} /> : placement ? <p className="rd-form-error" role="alert">Das zugehörige Geräteprofil fehlt.</p> : <RackProperties key={rack.id} rack={rack} onChange={props.onRackChange} />}
+        {placement && profile ? <PlacementProperties key={placement.id} rack={rack} placement={placement} profile={profile} profiles={props.profiles} placements={props.placements} parties={props.parties ?? RESPONSIBLE_DEFAULTS} onChange={props.onPlacementChange} onEditProfile={props.onEditProfile} /> : placement ? <p className="rd-form-error" role="alert">Das zugehörige Geräteprofil fehlt.</p> : <RackProperties key={rack.id} rack={rack} onChange={props.onRackChange} />}
       </div>
       {placement && <footer className="rd-inspector-actions"><button type="button" className="rd-button" onClick={props.onDuplicate}><Copy size={15} />Kopieren</button><button type="button" className="rd-button rd-danger" onClick={props.onRemove}><Trash2 size={15} />Entfernen</button></footer>}
     </>}

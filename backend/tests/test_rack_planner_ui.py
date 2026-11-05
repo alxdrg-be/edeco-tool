@@ -549,3 +549,34 @@ def test_rack_text_layout_at_working_sizes(rack_ui):
             center_rack_device(page, placement_id)
             page.get_by_role("tab", name="Portliste", exact=True).click()
             audit_rack_text(page, f"rack-beispiel-100pct-{width}")
+
+
+def test_free_part_and_responsibility_reach_the_pdf_sheet(rack_ui, tmp_path):
+    from pypdf import PdfReader
+
+    page, _ = rack_ui
+    import_rack(page, rack_document())
+    library = page.locator(".rd-library")
+    # Library parts are neutral templates: no edit or duplicate buttons in the dispo.
+    playwright.expect(library.get_by_role("button", name=re.compile("Profil bearbeiten|Vorlage duplizieren"))).to_have_count(0)
+    library.get_by_role("button", name=re.compile("^Freies Bauteil")).click()
+    dialog = page.get_by_role("dialog", name="Freies Bauteil", exact=True)
+    dialog.locator('[data-rack-field="free-text"] input').fill("Server BHBHV05")
+    dialog.locator('[data-rack-field="free-units"] input').fill("2")
+    dialog.get_by_role("button", name="Einsetzen", exact=True).click()
+    playwright.expect(dialog).not_to_be_visible()
+    for field in ("supplyBy", "installBy"):
+        box = page.locator(f'[data-rack-field="{field}"] input')
+        box.fill("ICT Bauherr")
+        box.press("Enter")
+    playwright.expect(page.locator("[data-rack-duty-preview]")).to_contain_text("L+M ICT Bauherr")
+    page.get_by_role("button", name="Exportieren", exact=True).click()
+    playwright.expect(page.locator(".rd-sheet-preview svg")).to_contain_text("Server BHBHV05 (L+M ICT Bauherr)")
+    page.get_by_label("Export-Ansichten", exact=True).select_option("front")
+    with page.expect_download() as output:
+        page.get_by_role("button", name="PDF exportieren", exact=True).click()
+    path = tmp_path / output.value.suggested_filename
+    output.value.save_as(path)
+    texts = [pdf_page.extract_text() for pdf_page in PdfReader(path).pages]
+    assert "Server BHBHV05 (L+M ICT Bauherr)" in texts[0]
+    assert "Lieferung durch: ICT Bauherr" in texts[-1]

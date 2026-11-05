@@ -5,6 +5,7 @@ import { rackDrawingFill, rackDrawingInk } from "./rackDrawingPalette";
 import { SHEET, sheetScale, stackLabels, textWidth, wrapText } from "./sheetLayout";
 import { HE_MM } from "./types";
 import type { Placement, RackDocument } from "./types";
+import { responsibility } from "./responsibility";
 
 /** Own A4 plan sheet. The preview shows exactly this markup; PDF and SVG are converted from it. */
 export interface RackSheetProps { document: RackDocument; rackId: string; view: "front" | "rear"; logo?: string; filename?: string }
@@ -36,10 +37,13 @@ export default function RackSheet({ document, rackId, view, logo, filename }: Ra
   const items = document.placements.filter(item => item.rackId === rack.id && item.status !== "removed" && onFace(item, view) && profiles.has(item.profileId))
     .filter(item => !ZERO_SIDES.includes(item.side) || item.zeroStartMm !== null && item.zeroHeightMm !== null);
   const labelX = rackX + drawWidth + 16, labelWidth = SHEET.width - SHEET.margin - 3 - labelX, labelSize = 2.3, lineHeight = labelSize * 1.25;
-  const labels = stackLabels(items.map(item => {
-    const profile = profiles.get(item.profileId)!, rect = placementRect(rack, item, profile);
+  const duties = new Map(items.map(item => [item.id, responsibility(item)]));
+  // Free parts carry their text on the face (as in the template); they only get a side label for L+M.
+  const labelled = items.filter(item => profiles.get(item.profileId)!.metadata?.free !== true || duties.get(item.id)!.plan);
+  const labels = stackLabels(labelled.map(item => {
+    const profile = profiles.get(item.profileId)!, rect = placementRect(rack, item, profile), duty = duties.get(item.id)!;
     const status = item.status === "existing" ? " (Bestand)" : "";
-    return { id: item.id, anchorY: rackY + (rect.y + rect.height / 2) / scale, lines: wrapText(`${item.label || profile.name}${status}`, labelSize, labelWidth) };
+    return { id: item.id, anchorY: rackY + (rect.y + rect.height / 2) / scale, lines: wrapText(`${item.label || profile.name}${status}${duty.plan ? ` (${duty.plan})` : ""}`, labelSize, labelWidth) };
   }), lineHeight, rackY, SHEET.drawingBottom);
   const anchors = new Map(items.map(item => { const rect = placementRect(rack, item, profiles.get(item.profileId)!); return [item.id, { x: rackX + (rect.x + rect.width) / scale, y: rackY + (rect.y + rect.height / 2) / scale }]; }));
   const title = `${rack.label} · ${view === "front" ? "Vorderansicht" : "Rückansicht"}`;
@@ -79,6 +83,7 @@ export default function RackSheet({ document, rackId, view, logo, filename }: Ra
     </g>
     {labels.map(label => { const anchor = anchors.get(label.id)!, textY = label.y + labelSize * .8; return <g key={label.id}>
       <path d={`M${anchor.x + .6} ${anchor.y}H${anchor.x + 5}L${labelX - 3} ${label.y + labelSize * .45}H${labelX - 1}`} fill="none" stroke={MUTED} strokeWidth=".15" />
+      {duties.get(label.id)!.owner && <rect x={labelX - .6} y={label.y - .1} width={Math.max(...label.lines.map(line => textWidth(line, labelSize))) + 1.2} height={label.lines.length * lineHeight + .3} fill="#fff3a6" stroke="none" />}
       <Lines x={labelX} y={textY} lines={label.lines} size={labelSize} />
     </g>; })}
     <text x={rackX} y={rackY + drawHeight + 5} fontSize="2.2" fill={MUTED}>Gehäuse {mm(rack.widthMm)} × {mm(rack.heightMm)} × {mm(rack.depthMm)} mm · Massstab 1:{scale} bei A4</text>

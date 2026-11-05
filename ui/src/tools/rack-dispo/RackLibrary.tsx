@@ -1,5 +1,5 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
-import { Cable, Check, Copy, Earth, GripVertical, Layers, Pencil, Plus, Search, Server, SlidersHorizontal, X, Zap } from 'lucide-react';
+import { Cable, Check, Earth, GripVertical, Layers, Plus, Search, Server, SlidersHorizontal, Type, X, Zap } from 'lucide-react';
 import type { DeviceProfile, ProfileKind, PortMedium } from './types';
 import { createPanelProfile, panelDrawingFill, parsePlanningNumber, profileGroup, profileKindLabels, profileSubtitle } from './rackPanelModel';
 import { RackColorField } from './RackFields';
@@ -8,26 +8,38 @@ import './rack-panels.css';
 export interface RackLibraryProps {
   profiles: DeviceProfile[];
   onAdd: (profileId: string) => void;
-  onSaveProfile: (profile: DeviceProfile) => boolean | void;
+  /** Free part: own text, HE and ports; creates a profile for this one device. */
+  onAddFree: (profile: DeviceProfile) => boolean | void;
   onDragProfile?: (profileId: string | null) => void;
 }
 
 function ProfileIcon({ kind }: { kind: ProfileKind }) {
-  const Icon = kind === 'patch' || kind === 'fiber' ? Cable : kind === 'switch' ? Server : kind === 'pdu' || kind === 'ups' ? Zap : kind === 'earth' ? Earth : Layers;
-  return <Icon size={19} aria-hidden="true" />;
+  const Icon = kind === 'patch' || kind === 'fiber' ? Cable : kind === 'switch' ? Server : kind === 'pdu' || kind === 'ups' ? Zap : kind === 'earth' ? Earth : kind === 'custom' ? Type : Layers;
+  return <Icon size={16} aria-hidden="true" />;
 }
 
-export default function RackLibrary({ profiles, onAdd, onSaveProfile, onDragProfile }: RackLibraryProps) {
+/** Free parts belong to one device. They are created and changed there, not in the library. */
+export function isFreeProfile(profile: DeviceProfile): boolean { return profile.metadata?.free === true; }
+
+export function createFreeProfile(text: string, units: number, portCount: number, drawingFill: string): DeviceProfile {
+  return {
+    id: `free-${crypto.randomUUID()}`, name: text.trim(), kind: 'custom', units, depthMm: null, inwardCableMm: null, outwardCableMm: null,
+    weightKg: null, powerW: null, loadLimitKg: null, portCount, medium: portCount > 0 ? 'RJ45' : 'none', manufacturer: '', article: '',
+    source: 'Freies Bauteil · Text und Höhe aus der Planung', verified: false, metadata: { free: true, drawingFill },
+  };
+}
+
+export default function RackLibrary({ profiles, onAdd, onAddFree, onDragProfile }: RackLibraryProps) {
   const [search, setSearch] = useState('');
-  const [editing, setEditing] = useState<DeviceProfile | null | undefined>(undefined);
+  const [free, setFree] = useState(false);
   const filtered = useMemo(() => {
     const term = search.toLocaleLowerCase('de-CH').trim();
-    return profiles.filter(profile => `${profile.name} ${profileKindLabels[profile.kind]} ${profile.manufacturer} ${profile.article} ${profile.portCount || ''} ${profile.medium} ${profile.units} HE`.toLocaleLowerCase('de-CH').includes(term));
+    return profiles.filter(profile => !isFreeProfile(profile) && `${profile.name} ${profileKindLabels[profile.kind]} ${profile.manufacturer} ${profile.article} ${profile.portCount || ''} ${profile.medium} ${profile.units} HE`.toLocaleLowerCase('de-CH').includes(term));
   }, [profiles, search]);
   return <section className="rd-library rd-panel" aria-label="Gerätebibliothek">
-    <div className="rd-panel-heading"><h2>Bauteile</h2><button type="button" className="rd-icon-button" onClick={() => setEditing(null)} title="Eigene Vorlage erstellen" aria-label="Eigene Vorlage erstellen"><Plus size={18} /></button></div>
+    <div className="rd-panel-heading"><h2>Bauteile</h2></div>
     <label className="rd-search"><Search size={16} aria-hidden="true" /><input type="search" aria-label="Bauteil suchen" placeholder="Bauteil suchen …" value={search} onChange={event => setSearch(event.target.value)} /></label>
-    <p className="rd-library-hint">Hineinziehen oder mit + einsetzen.</p>
+    <button type="button" className="rd-free-part" onClick={() => setFree(true)}><Type size={16} aria-hidden="true" /><span><strong>Freies Bauteil</strong><small>Eigener Text, HE und Ports</small></span><Plus size={16} aria-hidden="true" /></button>
     <div className="rd-library-groups">
       {(['Panels', 'Aktiv', 'Strom', 'Zubehör'] as const).map(group => {
         const items = filtered.filter(profile => profileGroup(profile) === group);
@@ -35,7 +47,7 @@ export default function RackLibrary({ profiles, onAdd, onSaveProfile, onDragProf
         return <details className="rd-library-group" key={group} open>
           <summary>{group}<span>{items.length}</span></summary>
           <div>{items.map(profile => <div className="rd-library-item" data-rack-profile={profile.id} key={profile.id}>
-            <div className="rd-library-device" draggable tabIndex={0} aria-label={`${profile.name}, ${profileSubtitle(profile)}. Mit Eingabetaste einsetzen.`}
+            <div className="rd-library-device" draggable tabIndex={0} title={`${profile.name} · ${profileSubtitle(profile)} · ziehen oder mit + einsetzen`} aria-label={`${profile.name}, ${profileSubtitle(profile)}. Mit Eingabetaste einsetzen.`}
               onKeyDown={event => { if (event.key === 'Enter') { event.preventDefault(); onAdd(profile.id); } }}
               onDragStart={event => {
                 const payload = JSON.stringify({ profileId: profile.id });
@@ -44,23 +56,54 @@ export default function RackLibrary({ profiles, onAdd, onSaveProfile, onDragProf
                 event.dataTransfer.effectAllowed = 'copy'; onDragProfile?.(profile.id);
               }} onDragEnd={() => onDragProfile?.(null)}>
               <span className="rd-device-icon"><ProfileIcon kind={profile.kind} /></span>
-              <span className="rd-device-title"><strong>{profile.name}</strong><small>{profileSubtitle(profile)}</small></span>
+              <span className="rd-device-title"><strong>{profile.name}</strong></span>
               <GripVertical size={13} className="rd-drag-grip" aria-hidden="true" />
             </div>
-            <div className="rd-library-actions">
-              <span className={`rd-profile-proof ${profile.verified ? 'is-verified' : ''}`} title={profile.verified ? profile.source : 'Generische oder manuelle Vorlage; Herstellerdaten prüfen.'}>{profile.verified ? <><Check size={11} />Belegt</> : 'Vorlage'}</span>
-              <button type="button" className="rd-icon-button" onClick={() => setEditing(profile)} aria-label={`${profile.name}: Profil bearbeiten`} title="Profil bearbeiten"><Pencil size={13} /></button>
-              <button type="button" className="rd-icon-button" onClick={() => setEditing({ ...profile, id: `profile-${crypto.randomUUID()}`, name: `${profile.name} · Kopie`, verified: false })} aria-label={`${profile.name}: Vorlage duplizieren`} title="Vorlage duplizieren"><Copy size={13} /></button>
-              <button type="button" className="rd-icon-button rd-add-profile" onClick={() => onAdd(profile.id)} aria-label={`${profile.name} einsetzen`} title="Bauteil einsetzen"><Plus size={17} /></button>
-            </div>
+            <button type="button" className="rd-icon-button rd-add-profile" onClick={() => onAdd(profile.id)} aria-label={`${profile.name} einsetzen`} title="Bauteil einsetzen"><Plus size={15} /></button>
           </div>)}</div>
         </details>;
       })}
-      {!filtered.length && <div className="rd-empty"><Search size={24} /><p>Keine passende Vorlage.</p><button type="button" className="rd-button" onClick={() => setEditing(null)}>Eigene Vorlage erstellen</button></div>}
+      {!filtered.length && <div className="rd-empty"><Search size={24} /><p>Kein passendes Bauteil. Mit «Freies Bauteil» eigenen Text setzen.</p></div>}
     </div>
-    <details className="rd-help"><summary>Vorlagen &amp; Herstellerdaten</summary><p>HE und Anschlusszahl sind unabhängige Angaben. Tiefe, Kabelraum, Gewicht und Leistung bleiben ohne Beleg unbekannt. Hersteller und Artikel kannst du manuell ergänzen.</p><p>Bei LWL bezieht sich die Anschlusszahl auf das angegebene Anschlusskonzept; Faser- und Kupferports sind getrennt zu betrachten.</p></details>
-    {editing !== undefined && <RackProfileDialog key={editing?.id ?? 'new'} profile={editing} onClose={() => setEditing(undefined)} onSave={profile => { const saved = onSaveProfile(profile); if (saved !== false) setEditing(undefined); return saved; }} />}
+    <details className="rd-help"><summary>Bauteile &amp; Herstellerdaten</summary><p>Die Bauteile sind neutrale Zeichnungsvorlagen. Sie werden in der Dispo nicht verändert. Für eigene Beschriftungen und Sonderhöhen das freie Bauteil verwenden.</p><p>Tiefe, Gewicht und Leistung eines Geräts ergänzt du beim gewählten Gerät unter «Gerätedaten ergänzen», wenn eine Prüfung sie braucht.</p></details>
+    {free && <FreePartDialog onClose={() => setFree(false)} onSave={profile => { const saved = onAddFree(profile); if (saved !== false) setFree(false); }} />}
   </section>;
+}
+
+export function FreePartDialog({ initial, onSave, onClose }: { initial?: DeviceProfile; onSave: (profile: DeviceProfile) => void; onClose: () => void }) {
+  const titleId = useId(), dialog = useRef<HTMLDialogElement>(null);
+  const [text, setText] = useState(initial?.name ?? ''), [units, setUnits] = useState(String(initial?.units ?? 1)), [ports, setPorts] = useState(String(initial?.portCount ?? 0));
+  const [fill, setFill] = useState(panelDrawingFill(initial?.metadata?.drawingFill, '#ffffff')), [error, setError] = useState('');
+  useEffect(() => {
+    const element = dialog.current, previous = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    element?.showModal();
+    return () => { element?.close(); previous?.focus(); };
+  }, []);
+  function submit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const height = parsePlanningNumber(units, { min: 0, max: 60, integer: true, nullable: false }), count = parsePlanningNumber(ports, { min: 0, max: 288, integer: true, nullable: false });
+    if (!text.trim()) { setError('Bitte einen Text eingeben.'); return; }
+    if (!height.valid || height.value === null) { setError(`Höhe: ${height.valid ? 'Bitte einen Wert eingeben.' : height.message}`); return; }
+    if (!count.valid || count.value === null) { setError(`Ports: ${count.valid ? 'Bitte einen Wert eingeben.' : count.message}`); return; }
+    const next = createFreeProfile(text, height.value, count.value, fill);
+    onSave(initial ? { ...initial, name: next.name, units: next.units, portCount: next.portCount, medium: next.medium, metadata: { ...initial.metadata, free: true, drawingFill: fill } } : next);
+  }
+  return <dialog ref={dialog} className="rd-profile-dialog rd-free-dialog" aria-labelledby={titleId} onCancel={event => { event.preventDefault(); onClose(); }}>
+    <form onSubmit={submit}>
+      <header><div><span className="rd-eyebrow">Nur für dieses Gerät</span><h2 id={titleId}>{initial ? 'Freies Bauteil ändern' : 'Freies Bauteil'}</h2></div><button type="button" className="rd-icon-button rd-close-button" aria-label="Freies Bauteil schliessen" onClick={onClose}><X size={21} /></button></header>
+      <div className="rd-dialog-body">
+        <div className="rd-form-grid">
+          <label className="rd-field rd-wide" data-rack-field="free-text">Text im Plan<input value={text} maxLength={160} autoFocus onChange={event => { setText(event.target.value); setError(''); }} placeholder="z. B. Server BHBHV05 oder Swisscom TV Reserve" /></label>
+          <label className="rd-field" data-rack-field="free-units">Höhe (HE)<input inputMode="numeric" value={units} onChange={event => { setUnits(event.target.value); setError(''); }} /></label>
+          <label className="rd-field" data-rack-field="free-ports">Ports<input inputMode="numeric" value={ports} onChange={event => { setPorts(event.target.value); setError(''); }} /></label>
+          <RackColorField label="Farbe im Plan" value={fill} onChange={setFill} />
+        </div>
+        <p className="rd-muted">0 HE setzt das Bauteil als Zubehör seitlich. Text, Höhe und Ports gelten nur für dieses Gerät.</p>
+        {error && <p role="alert" className="rd-form-error">{error}</p>}
+      </div>
+      <footer><button type="button" className="rd-button" onClick={onClose}>Abbrechen</button><button type="submit" className="rd-button rd-primary"><Check size={16} />{initial ? 'Übernehmen' : 'Einsetzen'}</button></footer>
+    </form>
+  </dialog>;
 }
 
 type ProfileMeasurement = 'units' | 'portCount' | 'depthMm' | 'inwardCableMm' | 'outwardCableMm' | 'weightKg' | 'powerW' | 'loadLimitKg';
@@ -130,7 +173,7 @@ export function RackProfileDialog({ profile, onSave, onClose }: {
           <label className="rd-field rd-wide">Quelle / Herstellerstand<textarea name="source" defaultValue={initial.source} placeholder="Datenblatt, URL und Ausgabedatum …" rows={2} maxLength={2000} /></label>
         </div>
         <label className="rd-checkbox"><input type="checkbox" checked={verified} onChange={event => setVerified(event.target.checked)} />Herstellerdaten anhand dieser Quelle manuell geprüft</label>
-        <p className="rd-muted">Änderungen am Profil gelten für alle Geräte dieses Profils im Entwurf. Für eine abweichende Ausführung zuerst die Vorlage duplizieren.</p>
+        <p className="rd-muted">Die Gerätedaten gelten für alle Geräte dieses Bauteils im Entwurf. Für eine abweichende Beschriftung das freie Bauteil verwenden.</p>
         {error && <p role="alert" className="rd-form-error">{error}</p>}
       </div>
       <footer><button type="button" className="rd-button" onClick={onClose}>Abbrechen</button><button type="submit" className="rd-button rd-primary"><Check size={16} />Profil übernehmen</button></footer>
