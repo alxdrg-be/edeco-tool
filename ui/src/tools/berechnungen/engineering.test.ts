@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { calculateCable, type CableInput } from "./engineering.ts";
+import { calculateCable, REACTANCE, RESISTANCE_20, type CableInput } from "./engineering.ts";
+import { R20_OHM_PER_KM, X_GUIDANCE_OHM_PER_KM } from "./conductors.ts";
 const base: CableInput = { phases: "1", material: "cu", length: "25", current: "16", area: "2.5", cosPhi: "1", voltage: "230", limit: "4" };
 test("Swiss reference: R20 corrected to 55 degrees, full reactive formula", () => {
   const r = calculateCable(base);
@@ -22,4 +23,13 @@ test("budget-only recommendation includes reactance and Al table limits", () => 
 });
 test("bad inputs, unsupported sections and physically invalid model results stay blocked", () => {
   for (const patch of [{ length: "" }, { current: "-1" }, { current: "Infinity" }, { area: "3" }, { area: "0" }, { cosPhi: "0" }, { cosPhi: "1.1" }, { voltage: "0" }, { limit: "0" }, { length: "100000", current: "10000" }]) assert.throws(() => calculateCable({ ...base, ...patch }));
+});
+test("resistance and reactance tables come from the conductor table and hide 300 mm²", () => {
+  for (const [area, value] of Object.entries(R20_OHM_PER_KM.cu)) {
+    if (area === "300") assert.equal(RESISTANCE_20.cu[area], undefined);
+    else assert.equal(RESISTANCE_20.cu[area], value);
+  }
+  for (const [area, value] of Object.entries(R20_OHM_PER_KM.al)) assert.equal(RESISTANCE_20.al[area], value);
+  for (const [area, value] of Object.entries(X_GUIDANCE_OHM_PER_KM)) assert.equal(REACTANCE[area], value);
+  assert.equal(Object.keys(RESISTANCE_20.cu).length, Object.keys(REACTANCE).length);
 });

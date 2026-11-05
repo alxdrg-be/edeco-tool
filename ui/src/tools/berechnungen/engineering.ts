@@ -1,13 +1,18 @@
 /** Swiss voltage-drop model based on the published elektro-rechner.ch reference. */
 /** "iec": conductor at 55 °C (NIN Fig. 6.1.3, elektro-rechner.ch). "nin-program": 20 °C like the Electrosuisse NIN program. */
+import { R20_OHM_PER_KM, X_GUIDANCE_OHM_PER_KM } from "./conductors.ts";
 export type CalculationBasis = "iec" | "nin-program";
 export const CALCULATION_BASIS_OPTIONS: [CalculationBasis, string][] = [["iec", "Vorsichtig · 55 °C"], ["nin-program", "Wie NIN-Programm · 20 °C"]];
 export interface CableInput { phases: "1" | "3"; material: "cu" | "al"; length: string; current: string; area: string; cosPhi: string; voltage: string; limit: string; basis?: CalculationBasis }
+function stringKey(table: Record<number, number>, omit: number[] = []): Record<string, number> {
+  return Object.fromEntries(Object.entries(table).filter(([key]) => !omit.includes(Number(key))));
+}
+/** String-key view of the conductor tables. 300 mm² stays out: it has no guidance reactance. */
 export const RESISTANCE_20: Record<"cu" | "al", Record<string, number>> = {
-  cu: { "1.5":12.1,"2.5":7.41,"4":4.61,"6":3.08,"10":1.83,"16":1.15,"25":.727,"35":.524,"50":.387,"70":.268,"95":.193,"120":.153,"150":.124,"185":.0991,"240":.0754 },
-  al: { "10":3.08,"16":1.91,"25":1.20,"35":.868,"50":.641,"70":.443,"95":.320,"120":.253,"150":.206,"185":.164,"240":.125 },
+  cu: stringKey(R20_OHM_PER_KM.cu, [300]),
+  al: stringKey(R20_OHM_PER_KM.al),
 };
-export const REACTANCE: Record<string, number> = { "1.5":.115,"2.5":.110,"4":.107,"6":.104,"10":.100,"16":.096,"25":.092,"35":.089,"50":.086,"70":.083,"95":.080,"120":.079,"150":.078,"185":.077,"240":.075 };
+export const REACTANCE: Record<string, number> = stringKey(X_GUIDANCE_OHM_PER_KM);
 export const CABLE_SOURCE = "https://www.elektro-rechner.ch/Rechner/spannungsfall.html";
 export const NIN_SOURCE = "https://www.electrosuisse.ch/de/nin-2025/";
 export function numeric(value: string, label: string, min: number, max: number, inclusive = false): number {
