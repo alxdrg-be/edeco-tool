@@ -27,6 +27,24 @@ from ..projects.service import ProjectEvaluator
 from ..projects.store import ProjectManager, export_filename, merge_found
 
 FORMATS = {".dxf": "dxf", ".dwg": "dwg", ".n4d": "n4d", ".n4m": "n4m"}
+PLAN_UPLOAD_LIMIT = 250 * 1024 * 1024
+
+
+def copy_limited(source, dest: Path, limit: int = PLAN_UPLOAD_LIMIT) -> None:
+    """Copy an upload and stop once it exceeds the plan size limit."""
+    total = 0
+    with dest.open("wb") as handle:
+        while True:
+            chunk = source.read(1024 * 1024)
+            if not chunk:
+                return
+            total += len(chunk)
+            if total > limit:
+                break
+            handle.write(chunk)
+    dest.unlink(missing_ok=True)
+    megabytes = max(1, limit // (1024 * 1024))
+    raise HTTPException(413, f"Die Plandatei ist grösser als {megabytes} MB. Eine kleinere Datei verwenden oder den Plan aufteilen.")
 
 
 class ProjectIn(BaseModel):
@@ -264,8 +282,11 @@ def register(app: FastAPI, st) -> None:
             raise HTTPException(400, "Nur DXF-, DWG-, N4D- oder N4M-Dateien können importiert werden.")
         tmp = Path(tempfile.mkdtemp(prefix="nl_import_"))
         src = tmp / f"plan{suffix}"
-        with open(src, "wb") as fh:
-            shutil.copyfileobj(file.file, fh)
+        try:
+            copy_limited(file.file, src)
+        except HTTPException:
+            shutil.rmtree(tmp, ignore_errors=True)
+            raise
         return tmp, src, suffix
 
     def store(p, plan_id: int | None, name: str, filename: str, src: Path, suffix: str, result) -> None:
