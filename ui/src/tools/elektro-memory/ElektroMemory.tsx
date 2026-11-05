@@ -13,6 +13,7 @@ import type { MemoryEntry, MemoryTopic } from "./types";
 import MemoryDiagram from "./MemoryDiagram";
 import { BathReference, IpDecoder, MemoryReferenceShortcuts, SwissSocketGuide } from "./MemoryReferenceTools";
 import { readMemoryFavorites } from "./memoryReference";
+import { isNumberedTitle, memoryListItems } from "./memoryText";
 import "./elektro-memory.css";
 
 export interface ElektroMemoryProps extends ToolProps { initialTab?: "reference" | "calculator"; initialFormulaId?: string }
@@ -44,18 +45,19 @@ function SourceLabel({ entry }: { entry: MemoryEntry }) {
 
 function MemoryEntryCard({ entry, onCalculate }: { entry: MemoryEntry; onCalculate: (id: FormulaId) => void }) {
   const calculator = entry.calculatorFormulaId && isFormulaId(entry.calculatorFormulaId) ? entry.calculatorFormulaId : null;
+  const list = entry.explanation ? memoryListItems(entry.explanation) : null;
   return <details className="memory-entry" id={`memory-entry-${entry.id}`}>
-    <summary><span><span className="memory-entry-kind">{entry.kind === "formula" ? "Formel" : entry.kind === "diagram" ? entry.diagram ? "Schaubild" : "Grafische Quellenreferenz" : "Nachschlagen"}</span><strong>{entry.title}</strong></span><ChevronDown size={18} aria-hidden="true" /></summary>
+    <summary><span>{entry.kind !== "reference" && <span className="memory-entry-kind">{entry.kind === "formula" ? "Formel" : entry.diagram ? "Schaubild" : "Grafische Quellenreferenz"}</span>}<strong>{entry.title}</strong></span><ChevronDown size={18} aria-hidden="true" /></summary>
     <div className="memory-entry-body">
       {entry.formula && <div className="memory-equation" aria-label={`Formel: ${entry.formula}`}>{entry.formula.split(/;\s*/).map((part, index) => <span key={index}><MathText value={part} /></span>)}</div>}
-      {entry.explanation && <p>{entry.explanation}</p>}
+      {entry.explanation && (list ? isNumberedTitle(entry.title) ? <ol className="memory-steps">{list.map(item => <li key={item}>{item}</li>)}</ol> : <ul className="memory-points">{list.map(item => <li key={item}>{item}</li>)}</ul> : <p>{entry.explanation}</p>)}
       {entry.paragraphs?.map(paragraph => <p key={paragraph}>{paragraph}</p>)}
       {entry.diagram && <MemoryDiagram kind={entry.diagram} />}
       {entry.variables && entry.variables.length > 0 && <div className="memory-table-wrap"><table className="memory-variable-table"><caption>Grössen und Einheiten</caption><thead><tr><th>Zeichen</th><th>Grösse</th><th>Einheit</th></tr></thead><tbody>{entry.variables.map(variable => <tr key={`${variable.symbol}-${variable.label}`}><th scope="row"><MathText value={variable.symbol} /></th><td>{variable.label}</td><td>{variable.unit}</td></tr>)}</tbody></table></div>}
       {entry.table && <div className="memory-table-wrap"><table><thead><tr>{entry.table.headers.map(header => <th key={header}>{header}</th>)}</tr></thead><tbody>{entry.table.rows.map((row, index) => <tr key={index}>{row.map((value, cell) => cell === 0 ? <th key={cell} scope="row">{value}</th> : <td key={cell}>{value}</td>)}</tr>)}</tbody></table>{entry.table.note && <p className="memory-small">{entry.table.note}</p>}</div>}
       {entry.referenceValues && <div className="memory-table-wrap"><table><caption>Abgelesene Quellenwerte · aktuelle Normprüfung erforderlich</caption><thead><tr><th>Angabe</th><th>Wert in der Vorlage</th></tr></thead><tbody>{entry.referenceValues.map(value => <tr key={value.quantity}><th scope="row">{value.quantity}</th><td>{value.sourceValue}</td></tr>)}</tbody></table></div>}
       {entry.correction && <details className="memory-correction"><summary><Info size={14} />Präzisierung zur Vorlage</summary><div>{entry.sourceTranscription && <p>Gedruckt: <MathText value={entry.sourceTranscription} /></p>}<p>{entry.correction}</p></div></details>}
-      {entry.conditions && entry.conditions.length > 0 && <div className="memory-conditions"><h4>Gilt unter diesen Voraussetzungen</h4><ul>{entry.conditions.map(condition => <li key={condition}>{condition}</li>)}</ul></div>}
+      {entry.conditions && entry.conditions.length > 0 && <details className="memory-conditions"><summary><Info size={13} aria-hidden="true" />Voraussetzungen ({entry.conditions.length})</summary><ul>{entry.conditions.map(condition => <li key={condition}>{condition}</li>)}</ul></details>}
       {entry.confidence === "needs-review" && <p className="memory-reference-note"><Info size={15} aria-hidden="true" />Normbezogene Quellenreferenz. Ausgabe, Grenzwerte und Geltungsbereich vor der Anwendung mit der aktuellen Fachquelle prüfen.</p>}
       <footer><SourceLabel entry={entry} />{calculator && <button type="button" className="memory-calculate" onClick={() => onCalculate(calculator)}><Calculator size={16} aria-hidden="true" />Mit Werten berechnen<ArrowUpRight size={14} aria-hidden="true" /></button>}</footer>
     </div>
@@ -75,6 +77,8 @@ export default function ElektroMemory({ onHome, onOpenTool, initialTab = "refere
     catch { return []; }
   });
   const heading = useRef<HTMLHeadingElement>(null);
+  const entryList = useRef<HTMLDivElement>(null);
+  function setAllOpen(open: boolean) { entryList.current?.querySelectorAll<HTMLDetailsElement>(":scope > details.memory-entry").forEach(item => { item.open = open; }); }
   const topicButtons = useRef(new Map<string, HTMLButtonElement>());
   const overviewScroll = useRef(0);
   const overviewTopic = useRef<string | null>(null);
@@ -126,10 +130,17 @@ export default function ElektroMemory({ onHome, onOpenTool, initialTab = "refere
           <header className="memory-article-heading"><span className="memory-topic-icon"><TopicIcon topic={selected} size={27} /></span><div><span className="memory-topic-source">{memoryPagesLabel(selected.pages)}</span><h2 tabIndex={-1} ref={heading}>{selected.title}</h2>{selected.summary && <p>{selected.summary}</p>}</div></header>
           {entryQuery && entries.length < selected.entries.length && <div className="memory-entry-search"><span>{entries.length} Einträge für «{entryQuery}»</span><button type="button" onClick={() => setEntryQuery("")}>Alle {selected.entries.length} Einträge anzeigen</button></div>}
           <div className="memory-article-layout">
-            {selected.id === "em-swiss-connectors" && <SwissSocketGuide />}
-            {selected.id === "em-ip-symbols" && <IpDecoder />}
-            {selected.id === "em-bathroom" && <BathReference />}
-            <div className="memory-entry-list">{entries.map(entry => <MemoryEntryCard entry={entry} key={entry.id} onCalculate={calculate} />)}</div>
+            <nav className="memory-article-toc" aria-label="Inhalt dieses Themas">
+              <strong>Inhalt</strong>
+              <ol>{entries.map(entry => <li key={entry.id}><a href={`#memory-entry-${entry.id}`} onClick={event => { event.preventDefault(); const target = document.getElementById(`memory-entry-${entry.id}`) as HTMLDetailsElement | null; if (target) { target.open = true; target.scrollIntoView({ behavior: "smooth", block: "start" }); target.querySelector("summary")?.focus({ preventScroll: true }); } }}>{entry.title}</a></li>)}</ol>
+              <div className="memory-toc-actions"><button type="button" onClick={() => setAllOpen(true)}>Alle öffnen</button><button type="button" onClick={() => setAllOpen(false)}>Alle schliessen</button></div>
+            </nav>
+            <div className="memory-article-content">
+              {selected.id === "em-swiss-connectors" && <SwissSocketGuide />}
+              {selected.id === "em-ip-symbols" && <IpDecoder />}
+              {selected.id === "em-bathroom" && <BathReference />}
+              <div className="memory-entry-list" ref={entryList}>{entries.map(entry => <MemoryEntryCard entry={entry} key={entry.id} onCalculate={calculate} />)}</div>
+            </div>
           </div>
         </article> : <>
           <div className="memory-search-row"><label className="memory-search"><Search size={19} aria-hidden="true" /><input type="search" aria-label="Elektro-Memory durchsuchen" placeholder="Thema, Formel oder Einheit suchen …" value={query} onChange={event => setQuery(event.target.value)} /><span aria-label={`${topics.length} Themen`}>{topics.length}</span></label><div className="memory-reference-actions"><button type="button" className="memory-favorite" aria-pressed={favoritesOnly} onClick={() => setFavoritesOnly(value => !value)}><Star size={16} aria-hidden="true" />Favoriten{favorites.length > 0 ? ` (${favorites.length})` : ""}</button><button type="button" className="memory-emergency" onClick={() => openTopic("em-emergency")}><HeartPulse size={17} aria-hidden="true" />Notfall · 144</button></div></div>

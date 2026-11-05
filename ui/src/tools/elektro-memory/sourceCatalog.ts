@@ -272,7 +272,7 @@ export const SOURCE_CATALOG: MemoryCatalog = {
             "section": "Niederspannungsanlagen"
           },
           "confidence": "needs-review",
-          "explanation": "Im Scan: betroffene Person nicht direkt berühren, Versorgung möglichst sicher trennen, Unfallstelle sichern und Zustand beurteilen. Rettung unter Spannung wird nur mit geeigneter Isolierung erwähnt.",
+          "explanation": "In der Vorlage: betroffene Person nicht direkt berühren, Versorgung möglichst sicher trennen, Unfallstelle sichern und Zustand beurteilen. Rettung unter Spannung wird nur mit geeigneter Isolierung erwähnt.",
           "conditions": [
             "Keine Freigabe für Laienarbeiten oder für Arbeiten unter Spannung; Einsatzkräfte und Eigenschutz haben Vorrang."
           ],
@@ -398,7 +398,7 @@ export const SOURCE_CATALOG: MemoryCatalog = {
           "sourceTranscription": "Die Vorlage zeigt die Stufen G/1/2/3 mit Stromschwellen 1/7/15/20 kA, Sicherungswerten 16/80/200/315 A und Bekleidungshinweisen.",
           "correction": "Die vereinfachte Stromtabelle wird nicht als eigenständige Auswahlregel übernommen. Ihre Aussagen sind nur mit dem vollständigen Quellenkontext, der Tätigkeit, der Risikobeurteilung und den Herstellerangaben zu beurteilen.",
           "conditions": [
-            "Als Quellreferenz mit Hersteller- und Risikobeurteilung behandeln, nicht als eigenständigen automatischen PSA-Rechner. Der Scan verweist ausdrücklich auf Herstellerangaben."
+            "Als Quellreferenz mit Hersteller- und Risikobeurteilung behandeln, nicht als eigenständigen automatischen PSA-Rechner. Die Vorlage verweist ausdrücklich auf Herstellerangaben."
           ],
           "audit": {
             "sourceReadability": "clear",
@@ -465,7 +465,7 @@ export const SOURCE_CATALOG: MemoryCatalog = {
           "confidence": "needs-review",
           "explanation": "Unterscheidet spannungsfreien Zustand, Arbeiten ausserhalb Annäherungs-/Gefahrenzone und Arbeiten unter Spannung AuS 1/AuS 2; enthält Verweise auf StV, NIV und EN 50110-1.",
           "conditions": [
-            "Ein schematischer Entscheidungsbaum ersetzt weder Befähigung noch Arbeitsauftrag und Risikobeurteilung. Normausgaben im Scan nicht vollständig bezeichnet."
+            "Ein schematischer Entscheidungsbaum ersetzt weder Befähigung noch Arbeitsauftrag und Risikobeurteilung. Normausgaben in der Vorlage nicht vollständig bezeichnet."
           ],
           "audit": {
             "sourceReadability": "clear",
@@ -527,10 +527,10 @@ export const SOURCE_CATALOG: MemoryCatalog = {
             "section": "NIN 6.1.3.2"
           },
           "confidence": "needs-review",
-          "explanation": "Der Scan nennt ein geeignetes Prüfgerät, 4–24 V und 0.2–10 A sowie R < 1 Ω als längen-/installationsabhängige Faustregel.",
+          "explanation": "Die Vorlage nennt ein geeignetes Prüfgerät, 4–24 V und 0.2–10 A sowie R < 1 Ω als längen-/installationsabhängige Faustregel.",
           "conditions": [
             "R < 1 Ω ist keine allgemeingültige Grenze für jede Leitung. Erwartungswert aus Material, Länge, Querschnitt und Messbedingungen bestimmen.",
-            "Im Scan ist die Spannungsangabe AC/DC bezeichnet; tatsächliche Prüfart und Messgeräteeignung prüfen."
+            "In der Vorlage ist die Spannungsangabe AC/DC bezeichnet; tatsächliche Prüfart und Messgeräteeignung prüfen."
           ],
           "audit": {
             "sourceReadability": "clear",
@@ -559,7 +559,7 @@ export const SOURCE_CATALOG: MemoryCatalog = {
           "table": {
             "headers": [
               "Anlage",
-              "Prüfgleichspannung laut Scan",
+              "Prüfgleichspannung laut Vorlage",
               "Riso ab 1995",
               "Riso ab 2010"
             ],
@@ -717,7 +717,7 @@ export const SOURCE_CATALOG: MemoryCatalog = {
                 "1520"
               ]
             ],
-            "note": "Aus dem Scan transkribiert, nicht normativ nachgerechnet."
+            "note": "Aus der Vorlage übernommen, nicht normativ nachgerechnet."
           }
         },
         {
@@ -821,7 +821,7 @@ export const SOURCE_CATALOG: MemoryCatalog = {
                 "1909"
               ]
             ],
-            "note": "Aus dem Scan transkribiert; kein unabhängiger NIN-/Hersteller-Nachweis."
+            "note": "Aus der Vorlage übernommen; kein unabhängiger NIN-/Hersteller-Nachweis."
           }
         }
       ],
@@ -847,7 +847,7 @@ export const SOURCE_CATALOG: MemoryCatalog = {
           "confidence": "needs-review",
           "explanation": "Typ A erfasst sinusförmige Wechsel- und pulsierende Gleichfehlerströme; F erweitert dies für bestimmte Mischfrequenzfehlerströme. B/B+ erfassen zusätzlich glatte Gleichfehlerströme und weitere Frequenzanteile gemäss konkreter Geräteklasse.",
           "conditions": [
-            "Der Scantext zu Typ A nennt fälschlich auch reine Gleichströme. Dies nicht übernehmen: glatte Gleichfehlerströme sind kein allgemeiner Typ-A-Nachweis. Konkrete Frequenz-/DC-Grenzen und Geräteausführung prüfen."
+            "Der Vorlagentext zu Typ A nennt fälschlich auch reine Gleichströme. Dies nicht übernehmen: glatte Gleichfehlerströme sind kein allgemeiner Typ-A-Nachweis. Konkrete Frequenz-/DC-Grenzen und Geräteausführung prüfen."
           ],
           "audit": {
             "sourceReadability": "clear",
@@ -868,7 +868,7 @@ export const SOURCE_CATALOG: MemoryCatalog = {
           "confidence": "needs-review",
           "explanation": "Mehrspaltige Übersicht zu ≤30 mA Personenzusatzschutz, ≤300 mA Brandschutz, Stossstromfestigkeit, Kurzzeitverzögerung und Frequenzbereich. Die Fortsetzung auf Seite 8 enthält Anwendungen und DC-Immunität.",
           "conditions": [
-            "Die Typzuordnung über beide Scan-Hälften ist grafisch komplex. Einzelne Gerätefähigkeiten nicht allein aus dem Matrixausschnitt als verbindlich ableiten."
+            "Die Typzuordnung über beide Hälften der Vorlage ist grafisch komplex. Einzelne Gerätefähigkeiten nicht allein aus dem Matrixausschnitt als verbindlich ableiten."
           ],
           "audit": {
             "sourceReadability": "clear",
@@ -887,7 +887,7 @@ export const SOURCE_CATALOG: MemoryCatalog = {
           "confidence": "needs-review",
           "explanation": "Kennfarben sind eine Identifikationshilfe, kein Ersatz für das Ablesen des tatsächlichen Nennstroms.",
           "conditions": [
-            "Scan nennt 65 A = kupfer. Das weicht vom üblichen 63-A-Nennwert ab und wird als Quellenfehler/Prüfpunkt markiert; nicht als neuer 65-A-Standard anbieten."
+            "Die Vorlage nennt 65 A = kupfer. Das weicht vom üblichen 63-A-Nennwert ab und wird als Quellenfehler/Prüfpunkt markiert; nicht als neuer 65-A-Standard anbieten."
           ],
           "audit": {
             "sourceReadability": "clear",
@@ -896,7 +896,7 @@ export const SOURCE_CATALOG: MemoryCatalog = {
           },
           "table": {
             "headers": [
-              "Nennstrom laut Scan",
+              "Nennstrom laut Vorlage",
               "Farbe"
             ],
             "rows": [
@@ -948,7 +948,7 @@ export const SOURCE_CATALOG: MemoryCatalog = {
             "section": "Max. Absicherung Steckdosen / Schalter"
           },
           "confidence": "needs-review",
-          "explanation": "Scan nennt unter anderem 10-A-Steckdose bis 13-A-Vorsicherung, 32-A-Steckdose bis 32 A und RCD 30 mA für frei verfügbare Steckdosen bis 32 A.",
+          "explanation": "Die Vorlage nennt unter anderem 10-A-Steckdose bis 13-A-Vorsicherung, 32-A-Steckdose bis 32 A und RCD 30 mA für frei verfügbare Steckdosen bis 32 A.",
           "conditions": [
             "Schweizer Anwendungsfall, Normausgabe, Steckdosentyp und Ausnahmen separat prüfen. Nicht auf andere Länder oder beliebige Geräte übertragen."
           ],
@@ -976,7 +976,7 @@ export const SOURCE_CATALOG: MemoryCatalog = {
             "mathematicalReview": "not-applicable",
             "normativeValidation": "not-performed"
           },
-          "formula": "B: 3–5 · In; C: 5–10 · In; D: 10–20 · In. Thermischer Prüfbereich im Scan: 1.13–1.45 · In.",
+          "formula": "B: 3–5 · In; C: 5–10 · In; D: 10–20 · In. Thermischer Prüfbereich in der Vorlage: 1.13–1.45 · In.",
           "table": {
             "headers": [
               "Charakteristik",
@@ -1136,7 +1136,7 @@ export const SOURCE_CATALOG: MemoryCatalog = {
             "section": "Hinweiskasten"
           },
           "confidence": "needs-review",
-          "explanation": "Scan nennt zusätzliche Verbindungen zum Ersatzerder bei isolierten Gebäuden und die Einbindung der Blitzschutzanlage.",
+          "explanation": "Die Vorlage nennt zusätzliche Verbindungen zum Ersatzerder bei isolierten Gebäuden und die Einbindung der Blitzschutzanlage.",
           "conditions": [
             "Blitzschutzkonzept und tatsächliche Erdungsanordnung sind eigene Planungsschritte; Schema ist kein vollständiger Nachweis."
           ],
@@ -1475,7 +1475,7 @@ export const SOURCE_CATALOG: MemoryCatalog = {
           "table": {
             "headers": [
               "Bereich",
-              "Wasserschutz laut Scan"
+              "Wasserschutz laut Vorlage"
             ],
             "rows": [
               [
@@ -1563,7 +1563,7 @@ export const SOURCE_CATALOG: MemoryCatalog = {
             "section": "Grundsatzregeln"
           },
           "confidence": "needs-review",
-          "explanation": "Im Scan: fertige Installation messen und auf 10 cm runden, Formstücke zählen, Anschlussreserven bei Kleinapparaten/Balkenleuchten beachten, Anschlüsse auch bei bauseits gelieferten Apparaten erfassen.",
+          "explanation": "In der Vorlage: fertige Installation messen und auf 10 cm runden, Formstücke zählen, Anschlussreserven bei Kleinapparaten/Balkenleuchten beachten, Anschlüsse auch bei bauseits gelieferten Apparaten erfassen.",
           "conditions": [
             "Vertrags-/NPK-/Ausmassgrundlage prüfen; Reserven nicht als universelle Normzuschläge ausgeben."
           ],
@@ -1771,7 +1771,7 @@ export const SOURCE_CATALOG: MemoryCatalog = {
             "section": "IP zweite Kennziffer"
           },
           "confidence": "needs-review",
-          "explanation": "Zweite Kennziffer im Scan reicht von 0 bis 8.",
+          "explanation": "Zweite Kennziffer in der Vorlage reicht von 0 bis 8.",
           "conditions": [
             "IPX7/IPX8 beinhalten nicht automatisch jede Strahlwasserprüfung. IPX8-Bedingungen sind herstellerbezogen; eine feste Eintauchtiefe nicht erfinden."
           ],
@@ -1812,7 +1812,7 @@ export const SOURCE_CATALOG: MemoryCatalog = {
               ],
               [
                 "6",
-                "starkes Strahlwasser [Scan: Schwallwasser]"
+                "starkes Strahlwasser [Vorlage: Schwallwasser]"
               ],
               [
                 "7",
