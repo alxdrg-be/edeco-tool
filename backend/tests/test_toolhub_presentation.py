@@ -9,7 +9,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.testclient import TestClient
 
 from edeco_toolbox.local_security import register as register_security
-from edeco_toolbox.presentation import DEMO_TOOLS, LEGACY_DEMO_TOOLS, PREFIX, PresentationBody, PresentationStore, is_admin
+from edeco_toolbox.presentation import DEMO_TOOLS, LEGACY_DEMO_TOOLS, V2_DEMO_TOOLS, PREFIX, PresentationBody, PresentationStore, is_admin
 
 
 def body(snapshot, **changes):
@@ -52,7 +52,7 @@ def test_legacy_default_adds_memory_without_get_writes_and_explicit_opt_out_surv
     assert stale.value.status_code == 409
     store.save(body(migrated, demo_tools=list(LEGACY_DEMO_TOOLS)))
     stored = json.loads(store.path.read_text())
-    assert stored["schema_version"] == 2
+    assert stored["schema_version"] == 3
     assert PresentationStore(tmp_path, ("EDECO\\nstrauss", True)).snapshot()["demo_tools"] == LEGACY_DEMO_TOOLS
 
 
@@ -149,3 +149,14 @@ def test_api_requires_loopback_session_and_checks_server_identity(tmp_path, monk
         response = client.put(PREFIX, json=payload)
         assert response.status_code == 200 and response.json()["demo_enabled"]
         assert response.headers["Cache-Control"] == "no-store"
+
+
+def test_v2_default_adds_rack_dispo_but_keeps_a_reduced_selection(tmp_path):
+    store = PresentationStore(tmp_path, ("EDECO\\aduerger", True))
+    v2 = {"revision": "v2-default", "demo_enabled": True, "demo_tools": list(V2_DEMO_TOOLS),
+          "admins": ["aduerger"], "schema_version": 2}
+    store.path.write_text(json.dumps(v2), encoding="utf-8")
+    assert store.snapshot()["demo_tools"] == DEMO_TOOLS
+    reduced = {**v2, "demo_tools": ["nova-legenden", "elektro-memory"]}
+    store.path.write_text(json.dumps(reduced), encoding="utf-8")
+    assert store.snapshot()["demo_tools"] == ["nova-legenden", "elektro-memory"]

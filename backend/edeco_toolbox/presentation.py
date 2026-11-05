@@ -23,8 +23,11 @@ from .paths import local_home
 
 DEFAULT_ADMINS = ["aduerger", "nstrauss"]
 LEGACY_DEMO_TOOLS = ["nova-legenden", "berechnungen", "dateien-umbenennen", "pdf-werkzeuge"]
-DEMO_TOOLS = [*LEGACY_DEMO_TOOLS, "elektro-memory"]
-SCHEMA_VERSION = 2
+V2_DEMO_TOOLS = [*LEGACY_DEMO_TOOLS, "elektro-memory"]
+DEMO_TOOLS = [*V2_DEMO_TOOLS, "rack-dispo"]
+SCHEMA_VERSION = 3
+# Each schema step extends the previous *default* selection only.
+_DEFAULT_SETS = {1: set(LEGACY_DEMO_TOOLS), 2: set(V2_DEMO_TOOLS)}
 PREFIX = "/api/toolbox/presentation"
 
 
@@ -81,16 +84,16 @@ class PresentationStore:
             if not isinstance(raw, dict):
                 raise ValueError()
             version = raw.pop("schema_version", 1)
-            if type(version) is not int or version not in (1, SCHEMA_VERSION):
+            if type(version) is not int or version not in (1, 2, SCHEMA_VERSION):
                 raise ValueError()
             value = self.validate(PresentationBody.model_validate(raw))
-            if version == 1 and set(value["demo_tools"]) == set(LEGACY_DEMO_TOOLS):
+            if version < SCHEMA_VERSION and set(value["demo_tools"]) == _DEFAULT_SETS[version]:
                 # Extend the previous default, not a deliberately reduced selection.
-                # GET stays read-only; an explicit save records v2 even if Memory
-                # is then deselected, so it is not re-enabled on the next start.
+                # GET stays read-only; an explicit save records the current schema
+                # even if a new tool is then deselected, so it is not re-enabled.
                 value["demo_tools"] = list(DEMO_TOOLS)
                 value["revision"] = str(uuid.uuid5(uuid.NAMESPACE_URL,
-                    f"edeco.presentation.v2:{value['revision']}"))
+                    f"edeco.presentation.v{SCHEMA_VERSION}:{value['revision']}"))
             return {**value, "schema_version": SCHEMA_VERSION}
         except (ValueError, OSError, TypeError):
             raise HTTPException(500, "Die Toolhub-Einstellungen konnten nicht gelesen werden. Die vorhandene Datei wurde nicht verändert.") from None

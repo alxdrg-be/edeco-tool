@@ -26,3 +26,4 @@
 /* Five presentation tools fit in one readable desktop row. Smaller windows
    keep the existing adaptive layout. */
 @media(min-width:1200px){.toolbox[data-toolhub-mode="demo"][data-toolhub-count="5"] .toolbox-grid{grid-template-columns:repeat(5,minmax(0,1fr))}}
+@media(min-width:900px){.toolbox[data-toolhub-mode="demo"][data-toolhub-count="6"] .toolbox-grid{grid-template-columns:repeat(3,minmax(0,300px))}}

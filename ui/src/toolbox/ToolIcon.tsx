@@ -1,11 +1,12 @@
 import CalculatorIcon, { CALCULATOR_ICONS } from "../tools/berechnungen/CalculatorIcon";
-import { BookOpen, Server, Sigma } from "lucide-react";
+import { BookOpen, Sigma } from "lucide-react";
 export default function ToolIcon({ id }: { id: string }) {
-  if (id === "rack-dispo") return <Server size={48} strokeWidth={1.6} aria-hidden="true" />;
   if (id === "elektro-memory") return <BookOpen size={48} strokeWidth={1.6} aria-hidden="true" />;
   if (id === "formelrechner") return <Sigma size={48} strokeWidth={1.6} aria-hidden="true" />;
   if (CALCULATOR_ICONS[id]) return <CalculatorIcon id={id} size={48} />;
   const paths: Record<string, React.ReactNode> = {
+    // 19-inch cabinet: three units, the middle one with RJ45 keystone ports, feet below.
+    "rack-dispo": <><rect x="11" y="4" width="26" height="38" rx="2" /><path d="M15 42v3M33 42v3" /><rect x="15" y="9" width="18" height="5" rx="1" /><rect x="15" y="18" width="18" height="8" rx="1" /><path strokeWidth="1.4" d="M17.6 20.4h3.6v2.7h-.9v1h-1.8v-1h-.9ZM22.2 20.4h3.6v2.7h-.9v1h-1.8v-1h-.9ZM26.8 20.4h3.6v2.7h-.9v1h-1.8v-1h-.9Z" /><rect x="15" y="30" width="18" height="5" rx="1" /><path d="M18 32.5h5" /></>,
     berechnungen: <><rect x="10" y="4" width="28" height="40" rx="4"/><path d="M16 11h16v8H16ZM16 27h4m-2-2v4m9-2h5m-16 9h4m7-2 5 5m0-5-5 5"/></>,
     blitzschutz: <><path d="M28 3 10 27h13l-3 18 19-27H26Z"/></>,
     planlieferung: <><path d="M8 7h22v27H8ZM15 15h9M15 22h9M17 41h23V16M28 34h17m-6-6 6 6-6 6"/></>,

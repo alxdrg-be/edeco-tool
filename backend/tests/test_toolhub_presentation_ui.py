@@ -22,26 +22,26 @@ def set_demo(page, *, only_nova=False):
     dialog = page.get_by_role("dialog", name="Toolhub-Einstellungen", exact=True)
     dialog.get_by_role("checkbox", name="Demo-Modus", exact=False).check()
     if only_nova:
-        for title in ("Berechnungen", "Dateien umbenennen", "PDF-Werkstatt", "Elektro-Memory"):
+        for title in ("Berechnungen", "Dateien umbenennen", "PDF-Werkstatt", "Elektro-Memory", "Rack-Dispo"):
             dialog.get_by_role("checkbox", name=title, exact=True).uncheck()
     dialog.get_by_role("button", name="Speichern", exact=True).click()
     playwright.expect(dialog.get_by_role("status")).to_have_text("Gespeichert.")
     dialog.get_by_role("button", name="Schliessen", exact=True).click()
 
 
-def test_demo_five_tools_persist_and_hidden_restore_cannot_bypass_scope(editor, tmp_path):
+def test_demo_six_tools_persist_and_hidden_restore_cannot_bypass_scope(editor, tmp_path):
     page, store = admin_hub(editor)
     page.set_viewport_size({"width": 1600, "height": 1000})
     set_demo(page)
     playwright.expect(page.locator(".toolbox")).to_have_attribute("data-toolhub-mode", "demo")
-    playwright.expect(page.locator(".toolbox-card")).to_have_count(5)
-    assert page.locator(".toolbox-tile h2").all_text_contents() == ["NOVA-Legenden", "Dateien umbenennen", "PDF-Werkstatt", "Berechnungen", "Elektro-Memory"]
-    assert page.locator(".toolbox-grid").evaluate("el => getComputedStyle(el).gridTemplateColumns.split(' ').length") == 5
+    playwright.expect(page.locator(".toolbox-card")).to_have_count(6)
+    assert sorted(page.locator(".toolbox-tile h2").all_text_contents()) == sorted(["NOVA-Legenden", "Dateien umbenennen", "PDF-Werkstatt", "Berechnungen", "Elektro-Memory", "Rack-Dispo"])
+    assert page.locator(".toolbox-grid").evaluate("el => getComputedStyle(el).gridTemplateColumns.split(' ').length") == 3
     playwright.expect(page.get_by_role("combobox", name="Aktives Projekt", exact=True)).to_have_count(0)
     playwright.expect(page.locator(".toolbox-badge")).to_have_count(0)
     page.get_by_role("button", name="Werkzeuge", exact=True).click()
     menu = page.get_by_role("dialog", name="Werkzeug wechseln", exact=True)
-    playwright.expect(menu.locator(".toolhub-nav-option")).to_have_count(5)
+    playwright.expect(menu.locator(".toolhub-nav-option")).to_have_count(6)
     playwright.expect(menu.get_by_role("button", name="BIM2STEIGER", exact=True)).to_have_count(0)
     page.keyboard.press("Escape")
     page.evaluate("""() => {
@@ -49,13 +49,13 @@ def test_demo_five_tools_persist_and_hidden_restore_cannot_bypass_scope(editor, 
       history.replaceState(null, '', location.pathname + location.search);
     }""")
     page.reload()
-    playwright.expect(page.locator(".toolbox-card")).to_have_count(5)
+    playwright.expect(page.locator(".toolbox-card")).to_have_count(6)
     playwright.expect(page.locator('iframe[title="BIM2STEIGER"]')).to_have_count(0)
     assert store.snapshot()["demo_enabled"]
     page.evaluate("location.hash = 'rechner/ls-schalter'")
     playwright.expect(page.get_by_role("heading", name="LS-Schalter · Schutzprüfung", exact=True)).to_be_visible()
     page.get_by_role("button", name="Zum Toolhub", exact=True).click()
-    screenshot = Path(tmp_path) / "demo-fuenf-werkzeuge.png"
+    screenshot = Path(tmp_path) / "demo-sechs-werkzeuge.png"
     page.screenshot(path=str(screenshot), full_page=True)
     page.get_by_role("button", name="Demo beenden", exact=True).click()
     playwright.expect(page.locator(".toolbox-card")).to_have_count(9)

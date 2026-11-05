@@ -435,7 +435,7 @@ def test_rack_is_available_normally_but_does_not_expand_the_presentation(rack_ui
     ))
     page.reload()
     playwright.expect(page.get_by_role("button", name="NOVA-Legenden öffnen", exact=True)).to_be_visible()
-    playwright.expect(page.get_by_role("button", name="Rack-Dispo öffnen", exact=True)).to_have_count(0)
+    playwright.expect(page.get_by_role("button", name="Rack-Dispo öffnen", exact=True)).to_be_visible()
     playwright.expect(page.get_by_role("button", name="PDF-Werkstatt öffnen", exact=True)).to_be_visible()
     playwright.expect(page.get_by_role("button", name="Elektro-Memory öffnen", exact=True)).to_be_visible()
 
