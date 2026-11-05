@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import { Layers, AlertCircle } from "lucide-react";
-import InfoTip from "./InfoTip";
+import LegendSection from "./LegendSection";
 import { DEFAULT_LEGEND_SCOPE, toggleLegendFloor } from "../legendScope";
 import type { LegendScope, LegendScopeInfo } from "../legendScope";
 import "./LegendScopePanel.css";
@@ -25,9 +25,10 @@ export default function LegendScopePanel({ value, info, onChange, onShowItem, di
     onChange(next);
   };
 
-  return <section className="legend-scope-panel" aria-label="Geschossauswahl der Legende">
-    <div className="legend-scope-heading"><strong><Layers size={15} aria-hidden="true" />Geschosse</strong>
-      <InfoTip text="Gilt nur für diese Legende. Ohne einzelne Auswahl werden alle heutigen und späteren Geschosse gezählt. Mit «Nur vorkommende Symbole» zeigen Vorschau und Export nur Apparate der gewählten Geschosse. Handtexte, Leitungsmuster und ausdrücklich beibehaltene Zeilen bleiben erhalten. Gespeicherte Inhalte werden nicht gelöscht." /></div>
+  const chosenNames = (info?.plans ?? []).filter(plan => scope.plan_ids.includes(plan.id)).map(plan => plan.name);
+  const status = `${all ? "Alle" : chosenNames.length > 2 ? `${chosenNames.slice(0, 2).join(", ")} +${chosenNames.length - 2}` : chosenNames.join(", ") || "Auswahl"}${counts ? ` · ${counts.components} Bauteile` : ""}`;
+  return <LegendSection id="floors" icon={Layers} title="Geschosse" status={status} label="Geschossauswahl der Legende" defaultOpen className="legend-scope-panel"
+    help="Gilt nur für diese Legende. Ohne einzelne Auswahl werden alle heutigen und späteren Geschosse gezählt. Mit «Nur vorkommende Symbole» zeigen Vorschau und Export nur Apparate der gewählten Geschosse. Handtexte, Leitungsmuster und ausdrücklich beibehaltene Zeilen bleiben erhalten. Gespeicherte Inhalte werden nicht gelöscht.">
     <div className="legend-floor-choices" role="group" aria-label="Geschosse für diese Legende">
       <button type="button" className="btn small" aria-pressed={all} disabled={disabled} onClick={() => onChange({ ...scope, plan_ids: [] })}>Alle</button>
       {info?.plans.map(plan => <button type="button" className="btn small" key={plan.id} disabled={disabled}
@@ -64,5 +65,5 @@ export default function LegendScopePanel({ value, info, onChange, onShowItem, di
       <label className="legend-scope-toggle"><input type="checkbox" checked={scope.filename_suffix} disabled={disabled || all}
         onChange={event => onChange({ ...scope, filename_suffix: event.target.checked })} />Geschosse im Exportnamen</label>
     </div></details>
-  </section>;
+  </LegendSection>;
 }

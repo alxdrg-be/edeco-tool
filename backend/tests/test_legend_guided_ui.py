@@ -142,7 +142,7 @@ def test_palette_review_preserves_source_colours_and_large_editor_has_separate_p
     doc = normalize(doc)
     assert client.put(f"/api/projects/{pid}/legend", json={"doc": doc}).status_code == 200
     open_project(page)
-    page.get_by_role("button", name="Farbprüfung", exact=False).click()
+    page.locator('[data-legend-section="colours"] > summary').click()
     conflict = page.locator(".legend-palette-issues button").filter(has_text="Prüffarbe Schwachstrom / Prüffarbe ZUKO")
     playwright.expect(conflict).to_contain_text("Ähnliche Farben")
     conflict.click()

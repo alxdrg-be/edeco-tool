@@ -54,7 +54,7 @@
 .legend-editor .legend-palette-issues button{display:flex;flex-direction:column;gap:3px;width:100%;text-align:left;color:var(--fg);font:inherit;font-size:11px;border:1px solid var(--line);border-left:2px solid var(--warning,#b57a19);border-radius:6px;background:var(--panel-2);padding:7px;cursor:pointer}
 .legend-editor .legend-standard-actions{display:flex;gap:5px;flex-wrap:wrap}
 .legend-editor .legend-standard-actions .btn{white-space:normal;font-size:11px}
-.legend-editor .legend-selection-details>summary{cursor:pointer;font-size:12px;font-weight:650;padding-block:9px;border-top:1px solid var(--line)}
+.legend-editor .legend-selection-details>summary{cursor:pointer}
 .legend-editor .legend-source-context{display:flex;flex-direction:column;gap:6px;padding:9px;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:7px;background:var(--panel-2);font-size:11px;line-height:1.5;margin-bottom:8px}.legend-editor .legend-source-context p{margin:0}.legend-editor .legend-source-context .btn{white-space:normal;text-align:left}
 @media(min-width:1251px){.legend-editor .legend-body{min-height:560px}.legend-editor.windowed .legend-canvas-shell{height:auto}}
 @media(max-width:1250px){.legend-editor .legend-canvas-shell{height:68dvh;min-height:400px}.legend-editor.windowed .legend-body{overflow:auto}.legend-editor.windowed .legend-canvas-shell{height:64dvh;min-height:360px}}

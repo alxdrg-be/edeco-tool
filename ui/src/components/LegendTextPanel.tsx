@@ -1,5 +1,6 @@
 import { useId, useRef, useState } from "react";
-import { ChevronDown, Info, Maximize2, Plus, Trash2, X } from "lucide-react";
+import { Info, Maximize2, Plus, Trash2, Type, X } from "lucide-react";
+import LegendSection from "./LegendSection";
 import { DEFAULT_LEGEND_TEXT_RULES, legendAbbreviationProblem, legendAbbreviationsCsv, parseLegendAbbreviationsCsv } from "../legendTextRules";
 import type { LegendAbbreviation, LegendTextRules } from "../legendTextRules";
 import "./LegendTextPanel.css";
@@ -29,8 +30,10 @@ export default function LegendTextPanel({ value = DEFAULT_LEGEND_TEXT_RULES, onC
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
-  return <><details className="legend-text-panel">
-    <summary>Text und Abkürzungen <span>Diese Legende <ChevronDown size={13} /></span></summary>
+  const modeLabel = value.mode === "warn" ? "Warnen" : value.mode === "abbreviate" ? "Kürzen" : "Umbruch";
+  const active = value.rules.filter(rule => rule.active && !legendAbbreviationProblem(rule)).length;
+  return <><LegendSection id="text" icon={Type} title="Texte und Kürzel" status={`${modeLabel} · ${active} ${active === 1 ? "Regel" : "Regeln"}`} className="legend-text-panel"
+    help="Gilt für diese Legende. Die Regeln ändern nur die Ausgabe; die ursprünglichen Beschreibungen bleiben erhalten.">
     <div className="legend-text-panel-body">
       <div className="legend-text-modes" role="group" aria-label="Textlänge behandeln">
         {([["wrap", "Umbruch"], ["warn", "Warnen + Vorschlag"], ["abbreviate", "Automatisch kürzen"]] as const).map(([mode, label]) => <button type="button" key={mode} disabled={disabled} aria-pressed={value.mode === mode} onClick={() => onChange({ ...value, mode })}>{label}</button>)}
@@ -39,7 +42,7 @@ export default function LegendTextPanel({ value = DEFAULT_LEGEND_TEXT_RULES, onC
       <div className="legend-text-preview"><strong>{value.rules.length} {value.rules.length === 1 ? "Regel" : "Regeln"} · {value.rules.filter(rule => rule.active && !legendAbbreviationProblem(rule)).length} aktiv</strong>{value.rules.slice(0, 3).map(rule => <span key={rule.id}>{rule.long || "Langform fehlt"} → {rule.short || "Kurzform fehlt"}</span>)}{!value.rules.length && <span>Zum Beispiel: Gruppe → Gr.</span>}</div>
       <button type="button" className="btn legend-text-open-table" ref={trigger} disabled={disabled} onClick={() => { if (!dialog.current?.open) dialog.current?.showModal(); }}><Maximize2 size={15} />Tabelle gross bearbeiten</button>
     </div>
-  </details>
+  </LegendSection>
     <dialog className="legend-text-dialog" ref={dialog} aria-labelledby={titleId} onClose={() => trigger.current?.focus()} onKeyDown={event => event.stopPropagation()} onClick={event => { if (event.target !== event.currentTarget) return; const rect = event.currentTarget.getBoundingClientRect(); if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) dialog.current?.close(); }}>
       <header className="legend-text-dialog-header"><div><h2 id={titleId}>Abkürzungstabelle bearbeiten</h2><p>Diese Legende · Änderungen erscheinen direkt in der Vorschau und bleiben rückgängig machbar.</p></div><button type="button" className="btn legend-text-dialog-close" aria-label="Abkürzungstabelle schliessen" onClick={() => dialog.current?.close()}><X size={20} /></button></header>
       <div className="legend-text-dialog-body">

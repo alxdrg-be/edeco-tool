@@ -1,3 +1,5 @@
+import { Building2 } from "lucide-react";
+import LegendSection from "./LegendSection";
 import { useEffect, useState } from "react";
 import { api, type LegendDefaultsInfo, type LegendPresentationDefaults } from "../api";
 import type { LegendDoc } from "../legend";
@@ -19,8 +21,7 @@ export default function LegendDefaultsPanel({ projectId, doc, onApply }: { proje
     catch (error) { setMessage((error as Error).message); }
     finally { setBusy(false); }
   }
-  return <details className="legend-settings-card legend-defaults-panel">
-    <summary>Standards & Geltungsbereich</summary>
+  return <LegendSection id="defaults" icon={Building2} title="Standards" status={scope === "legend" ? "Diese Legende" : scope === "project" ? "Projekt" : "Firma"} className="legend-defaults-panel">
     <div className="legend-settings-content">
       <label className="field"><span>Gilt für</span><select className="select" aria-label="Geltungsbereich der Legendenstandards" disabled={busy} value={scope} onChange={event => { setScope(event.target.value as typeof scope); setMessage(""); }}><option value="legend">Diese Legende</option><option value="project">Projektstandard</option><option value="company">Firmenstandard</option></select></label>
       {scope === "legend" ? <p className="hint">Änderungen werden in dieser Legende gespeichert und lassen sich rückgängig machen.</p> : <>
@@ -31,5 +32,5 @@ export default function LegendDefaultsPanel({ projectId, doc, onApply }: { proje
       </>}
       {message && <p className="hint" role="status">{message}</p>}
     </div>
-  </details>;
+  </LegendSection>;
 }

@@ -56,7 +56,8 @@ import { Icon, TrashIcon } from "./Icons";
 import { SaveSession } from "../saveSession";
 import { useNavigation } from "../Navigation";
 import Menu from "./Menu";
-import { ArrowLeft, Hand, Maximize2, Minimize2, Minus, Plus } from "lucide-react";
+import { ArrowLeft, ChevronDown, Hand, Maximize2, Minimize2, Minus, Plus, SlidersHorizontal } from "lucide-react";
+import "./LegendSection.css";
 import { a4CompactLegendDocument, alignLegendSectionColors, compactLegendDocument, legendItemColors, legendLayerColors, legendVisibleItemColors, legendVisibleLayerColors, type LayerColorSource } from "../legendViewport";
 import { useLegendViewport } from "../useLegendViewport";
 import LegendScopePanel from "./LegendScopePanel";
@@ -1464,11 +1465,11 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
           <LegendScopePanel key={legendId ?? "first"} value={doc.scope} info={shown?.scope_info ?? info.scope_info} disabled={busy} onChange={scope => change({ ...doc, scope })} onShowItem={(block, item) => setSel({ type: "item", block, item })} />
           <LegendPresentationPanel style={style} onChange={setStyle} />
           <LegendTextPanel value={doc.text_rules} categories={categories} disabled={busy} onChange={text_rules => change({ ...doc, text_rules })} />
-          <details className="legend-settings-card"><summary>Varianten zusammen anzeigen</summary><LegendVariantPanel value={doc.variant_rules} info={shown?.variant_info ?? info.variant_info} onChange={variant_rules => change({ ...doc, variant_rules })} /></details>
+          <LegendVariantPanel value={doc.variant_rules} info={shown?.variant_info ?? info.variant_info} onChange={variant_rules => change({ ...doc, variant_rules })} />
           <LegendPalettePanel entries={doc.blocks.map(block => ({ id: block.id, title: block.title, color: block.style.header }))} threshold={doc.color_review?.threshold ?? 10} onThreshold={threshold => change({ ...doc, color_review: { threshold } })} onSelect={id => setSel({ type: "block", block: id })} grayscale={grayscale} onGrayscale={setGrayscale} />
           <LegendDefaultsPanel projectId={projectId} doc={doc} onApply={defaults => change({ ...doc, ...defaults })} />
           {onOpenTool && <button type="button" className="btn small" disabled={busy || exporting || layoutBusy} onClick={() => void exportFile("pdf", exportBlock, exportGeneral && Boolean(general?.kind), true)}>An PDF-Werkstatt übergeben</button>}
-          <details className="legend-selection-details" open><summary>{sel && sel.type !== "legend" ? "Ausgewähltes Element" : "Weitere Einstellungen"}</summary>
+          <details className="legend-section legend-selection-details" open><summary><SlidersHorizontal size={15} aria-hidden="true" className="legend-section-icon" /><span className="legend-section-heading"><span className="legend-section-title">{sel && sel.type !== "legend" ? "Ausgewähltes Element" : "Weitere Einstellungen"}</span></span><ChevronDown size={15} aria-hidden="true" className="legend-section-chevron" /></summary>
           {selectedGroup && selectedGroup.source_ids.length > 1 && <div className="legend-source-context"><strong>Gemeinsame Ausgabe · Originaleintrag wählen</strong>{selectedGroup.source_ids.map(id => {
             const source = selBlock?.items.find(item => item.id === id);
             return source ? <button type="button" className="btn small" key={id} aria-pressed={id === selItem?.id} onClick={() => setSel({ type: "item", block: selectedGroup.block, item: id })}>{source.text}</button> : null;

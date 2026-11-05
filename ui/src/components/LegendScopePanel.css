@@ -1,4 +1,4 @@
-.legend-scope-panel { border:1px solid var(--line); border-radius:9px; padding:11px; background:var(--panel); min-width:0; }
+.legend-scope-panel { min-width:0; }
 .legend-scope-heading { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px; }
 .legend-scope-heading strong { display:flex; align-items:center; gap:6px; font-size:12px; }
 .legend-floor-choices { display:flex; flex-wrap:wrap; gap:5px; }

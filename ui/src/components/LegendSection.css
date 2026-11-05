@@ -1,0 +1,19 @@
+.legend-section{border:1px solid var(--line);border-radius:9px;background:var(--panel);min-width:0}
+.legend-section>summary{display:flex;align-items:flex-start;gap:8px;padding:9px 10px;cursor:pointer;list-style:none;font-size:12px;line-height:1.35;user-select:none}
+.legend-section>summary::-webkit-details-marker{display:none}
+.legend-section>summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:8px}
+.legend-section-icon{flex-shrink:0;color:var(--accent);margin-top:1px}
+.legend-section-heading{display:flex;flex-direction:column;gap:1px;flex:1;min-width:0}
+.legend-section-title{font-weight:650;white-space:nowrap}
+.legend-section-status{color:var(--muted);font-size:11px;font-weight:450;overflow-wrap:anywhere}
+.legend-section-chevron{flex-shrink:0;color:var(--muted);transition:transform .15s;margin-top:1px}
+.legend-section[open]>summary .legend-section-chevron{transform:rotate(180deg)}
+.legend-section[open]>summary{border-bottom:1px solid var(--line)}
+.legend-section-body{position:relative;display:grid;gap:8px;padding:10px;min-width:0}
+.legend-section-help{position:absolute;top:8px;right:8px;z-index:1}
+.legend-section-body:has(>.legend-section-help)>:nth-child(2){margin-right:22px}
+.legend-section-body>section,.legend-section-body>.legend-text-panel-body{padding:0;border:0;margin:0}
+.legend-section-label{font-size:10px;font-weight:600;letter-spacing:.3px;color:var(--muted);text-transform:uppercase;margin-bottom:-3px}
+.legend-section.legend-selection-details{padding-bottom:10px}
+.legend-section.legend-selection-details>:not(summary){margin-left:10px;margin-right:10px}
+.legend-section.legend-selection-details>summary{margin-bottom:8px}
