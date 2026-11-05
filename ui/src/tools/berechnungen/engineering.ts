@@ -1,5 +1,8 @@
 /** Swiss voltage-drop model based on the published elektro-rechner.ch reference. */
-export interface CableInput { phases: "1" | "3"; material: "cu" | "al"; length: string; current: string; area: string; cosPhi: string; voltage: string; limit: string }
+/** "iec": conductor at 55 °C (NIN Fig. 6.1.3, elektro-rechner.ch). "nin-program": 20 °C like the Electrosuisse NIN program. */
+export type CalculationBasis = "iec" | "nin-program";
+export const CALCULATION_BASIS_OPTIONS: [CalculationBasis, string][] = [["iec", "Vorsichtig · 55 °C"], ["nin-program", "Wie NIN-Programm · 20 °C"]];
+export interface CableInput { phases: "1" | "3"; material: "cu" | "al"; length: string; current: string; area: string; cosPhi: string; voltage: string; limit: string; basis?: CalculationBasis }
 export const RESISTANCE_20: Record<"cu" | "al", Record<string, number>> = {
   cu: { "1.5":12.1,"2.5":7.41,"4":4.61,"6":3.08,"10":1.83,"16":1.15,"25":.727,"35":.524,"50":.387,"70":.268,"95":.193,"120":.153,"150":.124,"185":.0991,"240":.0754 },
   al: { "10":3.08,"16":1.91,"25":1.20,"35":.868,"50":.641,"70":.443,"95":.320,"120":.253,"150":.206,"185":.164,"240":.125 },
@@ -19,7 +22,8 @@ export function calculateCable(input: CableInput) {
   const cosPhi = numeric(input.cosPhi, "cos φ", 0, 1), voltage = numeric(input.voltage, "Spannung", 0, 1000), limit = numeric(input.limit, "Budget", 0, 20);
   const table = RESISTANCE_20[input.material];
   if (!Object.hasOwn(table, String(area))) throw new Error(input.material === "al" ? "Aluminium: tabellierte Querschnitte ab 10 mm² wählen." : "Einen tabellierten Standardquerschnitt wählen.");
-  const factor = input.phases === "1" ? 2 : Math.sqrt(3), temperature = 55, alpha = input.material === "cu" ? .00393 : .00403;
+  if (input.basis !== undefined && input.basis !== "iec" && input.basis !== "nin-program") throw new Error("Rechenbasis: «Vorsichtig» oder «Wie NIN-Programm» wählen.");
+  const factor = input.phases === "1" ? 2 : Math.sqrt(3), temperature = input.basis === "nin-program" ? 20 : 55, alpha = input.material === "cu" ? .00393 : .00403;
   const sinPhi = Math.sqrt(Math.max(0, 1 - cosPhi * cosPhi));
   const atArea = (a: number) => {
     const r55 = table[String(a)] * (1 + alpha * (temperature - 20));

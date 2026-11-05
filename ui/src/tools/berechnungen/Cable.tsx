@@ -5,7 +5,7 @@ import { AlertTriangle, Cable as CableIcon, CheckCircle2 } from "lucide-react";
 import type { ToolProps } from "../../toolbox/modules";
 import { useProjectHub } from "../projektzentrale/projectHubState";
 import { downloadBlob } from "../planlieferung/DeliveryHistory";
-import { calculateCable, CABLE_SOURCE, NIN_SOURCE, RESISTANCE_20, type CableInput } from "./engineering";
+import { CALCULATION_BASIS_OPTIONS, calculateCable, CABLE_SOURCE, NIN_SOURCE, RESISTANCE_20, type CableInput } from "./engineering";
 import { ChoiceCards, Explanation, InfoButton, LabShell, Parameter, Segments, type Help } from "./LabUI";
 import CableCanvas from "./CableCanvas";
 import { consumeRestore } from "./ablage/api";
@@ -63,7 +63,7 @@ export default function Cable(props: ToolProps) {
       </dl>
       <LegacyGuidance diagnostics={diagnostics} controls={'section[aria-label="Kabeleingaben"]'} /><div className="lab-status-stack">{result && <div className={`lab-short-status ${result.withinBudget ? "lab-status-ok" : "lab-status-error"}`}>{result.withinBudget ? <CheckCircle2 size={16} /> : <AlertTriangle size={16} />}{result.withinBudget ? "Spannungsfall innerhalb des gewählten Budgets." : "Spannungsfall überschreitet das gewählte Budget."}</div>}
         <div className="lab-short-status lab-status-neutral"><AlertTriangle size={16} />Strombelastbarkeit und Schutzmassnahmen bleiben ungeprüft.</div></div>
-      <div className="lab-visual-footer lab-tags"><span className="lab-tag">CH · 55 °C</span><span className="lab-tag">X′ Richtwert</span><span className="lab-tag">ein Abschnitt</span><span className="lab-tag">gestrichelt: Budget {input.limit} %</span></div>
+      <div className="lab-visual-footer lab-tags"><span className="lab-tag">{input.basis === "nin-program" ? "Wie NIN-Programm · 20 °C" : "CH · 55 °C"}</span><span className="lab-tag">X′ Richtwert</span><span className="lab-tag">ein Abschnitt</span><span className="lab-tag">gestrichelt: Budget {input.limit} %</span></div>
     </section><section className="lab-controls" aria-label="Kabeleingaben"><div className="lab-control-heading"><h2>Parameter</h2><InfoButton title="Schweizer Kabelmodell" onClick={() => info("NIN-orientiertes Modell")} /></div>
       <div className="edeco:flex edeco:items-center edeco:justify-between"><span className="lab-label">Netzart</span><InfoButton title="Netzart" onClick={() => info("Netzart", <p>Einphasig: Hin- und Rückleiter mit Faktor 2. Drehstrom: symmetrische Last, Faktor √3; Bemessungsspannung zwischen den Aussenleitern.</p>)} /></div>
       <Segments fieldKey="phases" disabled={!ready} label="Netzart" value={input.phases} options={[{ value: "1", label: "1~ · 230 V" }, { value: "3", label: "3~ · 400 V" }]} onChange={value => setInput(old => ({ ...old, phases: value, voltage: value === "1" ? "230" : "400" }))} />
@@ -76,6 +76,7 @@ export default function Cable(props: ToolProps) {
       <Parameter fieldKey="cosPhi" label="Leistungsfaktor cos φ" value={input.cosPhi} min={.1} max={1} step={.01} disabled={!ready} onChange={value => edit("cosPhi", value)} info={() => info("Leistungsfaktor", <p>Induktive Last: sin φ = √(1 − cos² φ). R′·cos φ und X′·sin φ werden beide berücksichtigt.</p>)} />
       <label className="lab-label" htmlFor="cable-voltage">Bemessungsspannung Uₙ (V)</label><ChoiceCards id="cable-voltage" fieldKey="voltage" label="Bemessungsspannung Uₙ (V)" value={input.voltage} disabled={!ready} onChange={value => edit("voltage", value)} options={optionsWithProjectValue([{ value: "230", label: "230 V" }, { value: "400", label: "400 V" }], input.voltage)} />
       <Parameter fieldKey="limit" label="Spannungsfall-Budget (%)" unit="%" value={input.limit} min={.5} max={10} step={.1} disabled={!ready} onChange={value => edit("limit", value)} info={() => info("Verfügbares Budget", <p>Schweizer Voreinstellung 4 %. Bereits verbrauchte Spannungsfallanteile vorgeschalteter Leitungen müssen im Projekt berücksichtigt werden.</p>)} />
+      <Segments label="Rechenbasis Leitertemperatur" value={input.basis ?? "iec"} disabled={!ready} options={CALCULATION_BASIS_OPTIONS.map(([value, label]) => ({ value, label }))} onChange={value => edit("basis", value as CableInput["basis"])} />
       <Segments label="Spannungsfall-Vorgabe" value={input.limit} disabled={!ready} options={[{ value: "4", label: "4 % · NIN 5.2.5.1" }, { value: "3", label: "3 % · Projektwert" }]} onChange={value => edit("limit", value)} />
       {error && <p className="lab-error" role="alert">{error}</p>}{(errorStorage || projectError) && <p className="lab-error" role="alert">{errorStorage || projectError}</p>}
     </section></div>

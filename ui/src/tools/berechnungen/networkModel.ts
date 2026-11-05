@@ -21,6 +21,8 @@ export const NETWORK_NODE_FIELDS: Record<NetworkNodeKind, Field[]> = {
     visible(n("ik", "Maximaler Ik am Einspeisepunkt", "10", "kA", "Bereits maximaler Quellenstrom. Der Faktor cmax wird bei der Rückrechnung von Z berücksichtigt und nicht nochmals auf den eingegebenen Strom aufgeschlagen."), "sourceMode", ["ik"]),
     s("loopKnown", "L–PE-Quellenimpedanz dokumentiert", "no", [["no", "Nicht bekannt · Ikmin bleibt offen"], ["yes", "Als Projektwert vorgegeben"]]),
     visible(n("loopImpedance", "L–PE-Quellenimpedanz", "0.03", "Ω", "Vorgegebener Quellenanteil der Fehlerschleife; kein Ersatz für gemessene Netz- und Nullsystemdaten."), "loopKnown", ["yes"]),
+    s("calcBasis", "Rechenbasis", "iec", [["iec", "Vorsichtig · IEC 60909"], ["nin-program", "Wie NIN-Programm (Electrosuisse)"]], "Vorsichtig: Spannungsfall bei der Leitertemperatur jeder Leitung (Standard 55 °C), Ik,min mit cmin 0.95 × 230 V. Wie NIN-Programm: Spannungsfall bei 20 °C, Ik,min mit der Betriebsspannung Ub / √3 ohne cmin. Die vorsichtige Basis ergibt höhere Spannungsfälle und tiefere Ik,min."),
+    visible(n("operatingVoltage", "Betriebsspannung Ub", "420", "V", "Aussenleiterspannung im Betrieb, wie im NIN-Programm unter Ub erfasst. Nur für die Rechenbasis «Wie NIN-Programm»."), "calcBasis", ["nin-program"]),
     s("limit", "Spannungsfall bis zur Last", "4", [["4", "4 % · NIN 5.2.5.1"], ["3", "3 % · Projektwert"]], "Das Budget gilt für den gesamten Strompfad, nicht getrennt je Leitung."),
   ],
   transformer: [n("kva", "Nennleistung", "100", "kVA"), s("uk", "Kurzschlussspannung uₖ", "4", [["4", "4 %"], ["6", "6 %"]], "Typenschildwert. Der Trafo wird im NS-Ersatznetz als reine Reaktanz modelliert.")],
@@ -179,6 +181,7 @@ function calculateNetworkModel(document: NetworkDocument): NetworkResult {
     field: error instanceof NetworkInputError ? error.field : "",
     data: error instanceof NetworkInputError ? { required: error.required } : undefined,
   }]);
+  let ninProgram = false, ikMinVoltage = .95 * 230;
   let system: string, nominalVoltage: number, cMax: number, voltageTolerance: string, maxCurrent: number, budget: number, sourceZ: Complex, sourceLoop: number | null;
   const demands = new Map<string, Demand>(), wires = new Map<string, Wire>();
   const rated = new Map<string, number>(), device = new Map<string, string>(), transformer = new Map<string, { x: number; kva: number; rated: number }>();
@@ -191,6 +194,9 @@ function calculateNetworkModel(document: NetworkDocument): NetworkResult {
     catch (error) { throw new NetworkInputError("voltageTolerance", error instanceof Error ? error.message : "Ungültige Spannungstoleranz.", "Eine vorhandene Spannungstoleranz wählen."); }
     cMax = voltageFactors.cMax; voltageTolerance = voltageFactors.label;
     if (voltageFactors.legacy) issues.push({ tone: "warning", nodeId: source.id, text: LEGACY_VOLTAGE_WARNING, code: "legacy_voltage", field: "voltageTolerance" });
+    // Saved networks without a basis keep the conservative IEC calculation.
+    if (source.values.calcBasis !== undefined) ninProgram = choice(source.values, "calcBasis", ["iec", "nin-program"], "Rechenbasis") === "nin-program";
+    if (ninProgram) ikMinVoltage = read(source.values, "operatingVoltage", "Betriebsspannung Ub", 1000) / Math.sqrt(3);
     maxCurrent = read(source.values, "maxCurrent", "Anschlussstrom", 10000);
     budget = read(source.values, "limit", "Gesamtes Spannungsfallbudget", 20);
     const mode = choice(source.values, "sourceMode", ["impedance", "ik", "ideal"], "Quellenmodell");
@@ -225,10 +231,10 @@ function calculateNetworkModel(document: NetworkDocument): NetworkResult {
       const table = RESISTANCE_20[material], alpha = material === "cu" ? .00393 : .00403;
       for (const [key, section] of [["area", area], ["peArea", peArea], ["neutralArea", neutralArea]] as const) if (!Object.hasOwn(table, String(section)) || !Object.hasOwn(REACTANCE, String(section))) throw new NetworkInputError(key, `${material === "al" ? "Aluminium ab 10 mm²" : "Kupfer"}: belegten Querschnitt mit R′ und X′ wählen.`, `Einen belegten ${material === "al" ? "Aluminiumquerschnitt ab 10 mm²" : "Kupferquerschnitt"} aus der Liste wählen.`);
       const path = (section: number, temp: number) => c(computedPositive(table[String(section)] * (1 + alpha * (temp - 20)) * length / (1000 * parallel), "Leiterwiderstand"), computedPositive(REACTANCE[String(section)] * length / (1000 * parallel), "Leiterreaktanz"));
-      const zCold = system === "1" ? add(path(area, 20), path(neutralArea, 20)) : path(area, 20), zWarm = path(area, 80), zDrop = path(area, temperature), zNeutral = path(neutralArea, temperature), zLoop = add(zWarm, path(peArea, 80));
+      const zCold = system === "1" ? add(path(area, 20), path(neutralArea, 20)) : path(area, 20), zWarm = path(area, 80), zDrop = path(area, ninProgram ? 20 : temperature), zNeutral = path(neutralArea, ninProgram ? 20 : temperature), zLoop = add(zWarm, path(peArea, 80));
       const iz = choice(v, "izMode", ["manual", "open"], "Iz-Grundlage") === "manual" ? read(v, "iz", "Dokumentiertes Iz je Kreis", 100000) * parallel : null;
       const neutralIz = iz === null ? null : neutralArea === area ? iz : read(v, "neutralIz", "Dokumentiertes Iz je Neutralleiterkreis", 100000) * parallel;
-      wires.set(edge.id, { edge, zCold, zWarm, zDrop, zNeutral, zLoop, area, neutralArea, parallel, length, iz, neutralIz, temperature });
+      wires.set(edge.id, { edge, zCold, zWarm, zDrop, zNeutral, zLoop, area, neutralArea, parallel, length, iz, neutralIz, temperature: ninProgram ? 20 : temperature });
     }
     for (const node of order) {
       activeInputContext = { nodeId: node.id };
@@ -320,7 +326,7 @@ function calculateNetworkModel(document: NetworkDocument): NetworkResult {
       const cold = add(local.cold, wire.zCold), loopWires = add(local.loopWires, wire.zLoop), zCold = magnitude(cold);
       const ikMax = shortCircuitKA(nominalVoltage!, system === "3" ? Math.sqrt(3) : 1, zCold, cMax!);
       const loopZ = sourceLoop! === null ? null : computedFinite(sourceLoop! + local.transformerX + magnitude(loopWires), "L–PE-Schleifenimpedanz");
-      const ikMin = loopZ !== null && loopZ > 0 ? computedFinite(.95 * 230 / loopZ / 1000, "Ik,min-Modell") : null;
+      const ikMin = loopZ !== null && loopZ > 0 ? computedFinite(ikMinVoltage / loopZ / 1000, "Ik,min-Modell") : null;
       let tone: NetworkTone = "ok"; const checks: string[] = [];
       const check = (severity: NetworkTone, text: string, code: string, field = "", data: Record<string, string | number> = {}, relatedNodeId = local.protector?.id) => {
         tone = worst(tone, severity); checks.push(text); record(severity, text, edge.to, edge.id, { code, field, data, relatedNodeId });
@@ -351,7 +357,7 @@ function calculateNetworkModel(document: NetworkDocument): NetworkResult {
         if (ikMin * 1000 < upper - tol) check("error", `Oberer Magnetauslöser ${fmt(upper)} A wird vom Ik,min-Modell ${fmt(ikMin * 1000)} A nicht erreicht.`, "magnetic", "curve", { actual: ikMin * 1000, required: upper, loop: loopZ!, maxLoop: .95 * 230 / upper, source: source.id });
         else checks.push(`Ik,min-Modell ${fmt(ikMin * 1000)} A ≥ oberer Magnetauslöser ${fmt(upper)} A; verbindliche Abschaltzeit separat prüfen.`);
       }
-      const formula = `I_L1/L2/L3 = ${currents.map(value => fmt(value)).join(" / ")} A; I_N = ${fmt(magnitude(neutral))} A. Z_Leiter,${fmt(wire.temperature, 0)}°C = ${fmt(wire.zDrop.re, 6)} + j${fmt(wire.zDrop.im, 6)} Ω. ΔU_L–N = Projektion(Z_L · I_L + Z_N · ΣI_L) = ${fmt(volts)} V = ${fmt(percent)} %. Pfad bis hier: ${fmt(totalPercent)} % (Budget ${fmt(budget!)} %). ${ikMax === null ? "Ik,max nicht bestimmt." : `Ik,max,Modell = ${cMax!.toFixed(2)} · U / (f · |Z_Quelle + ΣZ_Leitung + ΣZ_Trafo|) = ${fmt(ikMax)} kA.`} ${ikMin === null ? "Ik,min mangels L–PE-Quelldaten nicht bestimmt." : `Ik,min,Modell = 0.95 × 230 / (${fmt(sourceLoop!, 6)} + ${fmt(local.transformerX, 6)} + ${fmt(magnitude(loopWires), 6)}) / 1000 = ${fmt(ikMin)} kA.`}`;
+      const formula = `I_L1/L2/L3 = ${currents.map(value => fmt(value)).join(" / ")} A; I_N = ${fmt(magnitude(neutral))} A. Z_Leiter,${fmt(wire.temperature, 0)}°C = ${fmt(wire.zDrop.re, 6)} + j${fmt(wire.zDrop.im, 6)} Ω. ΔU_L–N = Projektion(Z_L · I_L + Z_N · ΣI_L) = ${fmt(volts)} V = ${fmt(percent)} %. Pfad bis hier: ${fmt(totalPercent)} % (Budget ${fmt(budget!)} %). ${ikMax === null ? "Ik,max nicht bestimmt." : `Ik,max,Modell = ${cMax!.toFixed(2)} · U / (f · |Z_Quelle + ΣZ_Leitung + ΣZ_Trafo|) = ${fmt(ikMax)} kA.`} ${ikMin === null ? "Ik,min mangels L–PE-Quelldaten nicht bestimmt." : `Ik,min,Modell = ${ninProgram ? `Ub/√3 = ${fmt(ikMinVoltage)} V` : "0.95 × 230"} / (${fmt(sourceLoop!, 6)} + ${fmt(local.transformerX, 6)} + ${fmt(magnitude(loopWires), 6)}) / 1000 = ${fmt(ikMin)} kA.`}`;
       edges.push({ id: edge.id, currents, current: amperes, neutralCurrent: magnitude(neutral) <= amperes * 1e-12 ? 0 : magnitude(neutral), powerKW: downstream.powerKW, dropVolts: volts, dropPercent: percent, cumulativeDropPercent: totalPercent, iz: wire.iz, ikMaxKA: ikMax, ikMinKA: ikMin, tone, checks, formula });
       walk(nodeById.get(edge.to)!, { ...local, cold, loopWires, drop: cumulative });
     }
@@ -374,7 +380,7 @@ function calculateNetworkModel(document: NetworkDocument): NetworkResult {
       "3~ bei 400 V, 1~ bei 230 V; induktive sinusförmige Lasten mit Stromansatz an der Bemessungsspannung. Leistungsangaben sind Verbraucherlasten; Leitungsverluste werden nicht auf die Betriebsströme zurückgeführt. Keine iterative Lastflussrechnung oder Oberschwingungen.",
       "Spannungsfall als Längsprojektion der komplexen Leiter- und Neutralleiterspannung; sämtliche vorgeschalteten Abschnitte werden mitgeführt. Die Spannung am Einspeisepunkt ist vorgegeben; die vorgelagerte Quellenimpedanz wird nur für Kurzschlusswerte verwendet.",
       "SN-EN-60228-bezogene veröffentlichte R′₂₀-Werte; Cu α = 0.00393/K, Al α = 0.00403/K. X′ ist ein Richtwert. Aussenleiter, N und PE haben innerhalb einer Leitung dasselbe Material. Parallele Leiter werden als identisch und gleichmässig belastet betrachtet.",
-      `Ik,max mit kaltem Leiter und cmax = ${cMax!.toFixed(2)} für ${voltageTolerance!}. Ein eingegebener maximaler Quellenstrom wird mit demselben Faktor in die Quellenimpedanz zurückgerechnet, ohne zweiten Aufschlag. Ik,min-Modell mit 80 °C, cmin = 0.95 und vorgegebener L–PE-Quelle. Trafo als reine NS-bezogene Reaktanz; keine Nullsystem-/Schaltgruppenstudie, keine garantierte Schranke oder vollständige IEC-60909-Studie.`,
+      `Ik,max mit kaltem Leiter und cmax = ${cMax!.toFixed(2)} für ${voltageTolerance!}. Ein eingegebener maximaler Quellenstrom wird mit demselben Faktor in die Quellenimpedanz zurückgerechnet, ohne zweiten Aufschlag. Ik,min-Modell mit 80 °C, ${ninProgram ? `Rechenbasis «Wie NIN-Programm»: Ub/√3 = ${fmt(ikMinVoltage)} V ohne cmin, Spannungsfall bei 20 °C` : "cmin = 0.95 × 230 V (vorsichtige Basis)"} und vorgegebener L–PE-Quelle. Trafo als reine NS-bezogene Reaktanz; keine Nullsystem-/Schaltgruppenstudie, keine garantierte Schranke oder vollständige IEC-60909-Studie.`,
       "Iz, Prüfstromfaktoren und Gerätewerte sind dokumentierte Projekteingaben. Herstellerkennlinien, verbindliche Abschaltzeiten, Selektivität, RCD-Erdungsbedingungen und vollständige NIN-Anwendbarkeit bleiben separat zu prüfen.",
     ],
   };
