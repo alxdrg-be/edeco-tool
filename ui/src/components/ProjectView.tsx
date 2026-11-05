@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api, Category, DATASET_LABEL, FamilyItem, ProjectDetail, ProjectSummary, Review, Suggestion, UnknownElement } from "../api";
 import { planFiles } from "../floors";
+import { quantityCsv, quantityFileName, quantityMatches, type QuantitySource } from "../quantityList";
 import { formatDateTime, layerStateText, plansOpen, rememberPlansOpen } from "../uiState";
 import ChangesTab, { changeHint } from "./ChangesTab";
 import LegendEditor from "./LegendEditor";
@@ -36,6 +37,7 @@ export default function ProjectView({ projectId, projects, categories, notify, o
   const loadGeneration = useRef(0);
   const [data, setData] = useState<ProjectDetail | null>(null);
   const [tab, setTab] = useState<Tab>("list");
+  const [quantityQuery, setQuantityQuery] = useState("");
   // the selected legend belongs to one project; another project starts with its first legend
   const [legendSel, setLegendSel] = useState<{ project: string; id: number } | null>(null);
   const legendId = legendSel?.project === projectId ? legendSel.id : null;
@@ -94,6 +96,7 @@ export default function ProjectView({ projectId, projects, categories, notify, o
   useEffect(() => {
     setImportStatus(null);
     setEditorPlansOpen(false);
+    setQuantityQuery("");
     load();
     return () => { loadGeneration.current += 1; };
   }, [load]);
@@ -137,6 +140,32 @@ export default function ProjectView({ projectId, projects, categories, notify, o
   }
 
   const catById = useMemo(() => Object.fromEntries(categories.map((c) => [c.id, c])), [categories]);
+  const quantityRows = useMemo((): QuantitySource[] => {
+    if (!data || data.id !== projectId) return [];
+    const recognized = data.rows.map((row) => ({
+      key: row.family_key,
+      category: catById[row.categories[0]]?.title ?? "Ohne Kategorie",
+      title: row.title,
+      names: row.names,
+      code: row.item,
+      dataset: row.datasets.map(DATASET_LABEL).join(", "),
+      assignment: "erkannt" as const,
+      counts: row.counts,
+      total: row.total,
+    }));
+    const unknown = data.unknown.map((row) => ({
+      key: row.source_key,
+      category: "Unbekannt",
+      title: row.name || "(ohne Namen)",
+      names: row.graphic_name && row.graphic_name !== row.name ? [row.graphic_name] : [],
+      code: row.item,
+      dataset: row.dataset ? DATASET_LABEL(row.dataset) : "",
+      assignment: "unbekannt" as const,
+      counts: row.counts,
+      total: row.total,
+    }));
+    return [...recognized, ...unknown];
+  }, [data, projectId, catById]);
   const colorById = useMemo(
     () => Object.fromEntries((data?.category_colors ?? []).map((c) => [c.id, c])),
     [data],
@@ -173,10 +202,30 @@ export default function ProjectView({ projectId, projects, categories, notify, o
   const shownCats = allCategories ? data.category_colors : usedCats;
   const headDirty = number !== (data.meta.project_number || "") || title !== data.meta.name;
   const exportName = data.export_name;
+  const projectName = data.meta.name;
+  const quantityNeedle = quantityQuery.trim();
+  const visibleQuantities = quantityRows.filter((row) => quantityMatches(row, quantityQuery));
+  const visibleRecognized = new Set(
+    visibleQuantities.filter((row) => row.assignment === "erkannt").map((row) => row.key),
+  );
+  const visibleUnknown = visibleQuantities.filter((row) => row.assignment === "unbekannt");
+
+  function downloadQuantities(rows: QuantitySource[]) {
+    const csv = quantityCsv(plans.map((plan) => ({ id: plan.id, name: plan.name })), rows);
+    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = quantityFileName(projectName);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  }
 
   // Group the overall list by the first category of each row
   const groups: { cat: Category | null; rows: typeof data.rows }[] = [];
   for (const row of data.rows) {
+    if (quantityNeedle && !visibleRecognized.has(row.family_key)) continue;
     const cat = catById[row.categories[0]] ?? null;
     const last = groups[groups.length - 1];
     if (last && last.cat?.id === cat?.id) last.rows.push(row);
@@ -646,6 +695,19 @@ export default function ProjectView({ projectId, projects, categories, notify, o
 
             {tab === "list" && (
               <>
+              <div className="quantity-bar">
+                <label className="search-field">
+                  <input className="search" value={quantityQuery} onChange={(event) => setQuantityQuery(event.target.value)}
+                    placeholder="Suchen, z. B. RJ45" aria-label="Apparate suchen" />
+                </label>
+                <button type="button" className="btn small" disabled={!visibleQuantities.length}
+                  title="CSV für Excel: Apparat, Code und Anzahl je Geschoss"
+                  onClick={() => downloadQuantities(visibleQuantities)}>Mengen als CSV</button>
+                <span className="hint">{quantityNeedle
+                  ? `${visibleQuantities.length} Treffer. Die CSV entspricht dieser Suche.`
+                  : `${data.rows.length} erkannte Apparate. Die CSV enthält auch ${data.unknown.length} noch nicht zugeordnete.`}</span>
+              </div>
+              {quantityNeedle && !groups.length && !visibleUnknown.length && <p className="hint">Kein Apparat passt auf die Suche.</p>}
               <div className="table-scroll sticky">
                 <table className="list-table summary">
                   <thead>
@@ -737,6 +799,21 @@ export default function ProjectView({ projectId, projects, categories, notify, o
                         </GroupRows>
                       );
                     })}
+                    {quantityNeedle && visibleUnknown.length > 0 && (
+                      <GroupRows title="Unbekannt" layer="" state="noch nicht zugeordnet" colSpan={4 + plans.length}>
+                        {data.unknown.filter((row) => visibleUnknown.some((item) => item.key === row.source_key)).map((row) => (
+                          <tr key={row.source_key}>
+                            <td className="stick stick-1" />
+                            <td className="stick stick-2"><b>{row.name || "(ohne Namen)"}</b></td>
+                            <td>{row.item}</td>
+                            {plans.map((plan) => (
+                              <td key={plan.id} className="num-col plan-col">{row.counts[plan.id] ?? ""}</td>
+                            ))}
+                            <td className="num-col"><b>{row.total}</b></td>
+                          </tr>
+                        ))}
+                      </GroupRows>
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -750,6 +827,9 @@ export default function ProjectView({ projectId, projects, categories, notify, o
                   <h2 title="Änderungen speichern sich selbst">Legendeneditor</h2>
                   <LegendTabs key={projectId} projectId={projectId} categories={data.category_colors} active={legendId}
                     onSelect={(id) => setLegendSel({ project: projectId, id })} notify={notify} />
+                  <button type="button" className="btn small" disabled={!quantityRows.length}
+                    title="CSV für Excel: Apparat, Code und Anzahl je Geschoss"
+                    onClick={() => downloadQuantities(quantityRows)}>Mengen als CSV</button>
                 </header>
                 {legendId !== null && (
                   <LegendEditor key={`${projectId}:${legendId}`} projectId={projectId} legendId={legendId || null}

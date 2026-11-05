@@ -170,6 +170,47 @@ def test_returning_to_toolbox_saves_the_open_legend_and_filters_tools(editor):
     playwright.expect(page.get_by_role("button", name="Projekte", exact=True)).to_be_visible()
 
 
+def test_edeco_mark_and_floor_quantities_export(editor, tmp_path):
+    page, _field, client, (pid, _other) = editor
+    assert import_dxf(client, pid, nova_like_dxf(tmp_path / "og.dxf"), name="1. OG").status_code == 200
+    page.get_by_role("button", name="Zum Toolhub", exact=True).click()
+    mark = page.locator(".toolhub-brand-mark")
+    playwright.expect(mark).to_be_visible()
+    svg = page.evaluate("""async () => {
+        const src = document.querySelector('.toolhub-brand-mark').getAttribute('src');
+        return await (await fetch(src)).text();
+    }""")
+    assert "M28.08,74.22" in svg
+    assert "#017c92" in svg
+    page.get_by_role("button", name="NOVA-Legenden öffnen", exact=True).click()
+    page.get_by_text("Browser A", exact=True).click()
+    page.get_by_role("button", name="Gesamtliste", exact=False).click()
+    playwright.expect(page.get_by_role("columnheader", name="EG", exact=True)).to_be_visible()
+    playwright.expect(page.get_by_role("columnheader", name="1. OG", exact=True)).to_be_visible()
+    search = page.get_by_role("textbox", name="Apparate suchen", exact=True)
+    search.fill("Schalter")
+    playwright.expect(page.get_by_role("cell", name=re.compile("Schalter, Schema 0"))).to_be_visible()
+    playwright.expect(page.get_by_text("Brandmelder", exact=False)).to_have_count(0)
+    with page.expect_download() as filtered:
+        page.get_by_role("button", name="Mengen als CSV", exact=True).click()
+    csv = Path(filtered.value.path()).read_text(encoding="utf-8-sig")
+    assert csv.splitlines()[0].endswith("EG;1. OG;Total")
+    switch = next(line for line in csv.splitlines() if "Schalter, Schema 0" in line)
+    assert switch.endswith("4;4;8")
+    assert "Brandmelder" not in csv
+    assert filtered.value.suggested_filename == "Browser A-Mengen.csv"
+    search.fill("Gateway")
+    playwright.expect(page.get_by_text("noch nicht zugeordnet", exact=False)).to_be_visible()
+    playwright.expect(page.get_by_text("Gateway", exact=True)).to_be_visible()
+    page.get_by_role("button", name="Legende", exact=True).click()
+    with page.expect_download() as complete:
+        page.get_by_role("button", name="Mengen als CSV", exact=True).click()
+    full = Path(complete.value.path()).read_text(encoding="utf-8-sig")
+    assert "Schalter, Schema 0" in full and "4;4;8" in full
+    assert "Brandmelder" in full
+    assert "Gateway" in full and "unbekannt" in full
+
+
 def test_failed_save_keeps_the_user_in_the_module_when_returning_to_toolbox(editor):
     page, field, client, (pid, _) = editor
     before = title(client, pid)
