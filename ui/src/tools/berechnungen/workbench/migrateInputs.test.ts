@@ -73,6 +73,30 @@ test('saved variable selectivity stages retain their original voltage factor unt
   assert.equal(migrated('premium-selektivitaet',{selectivityMode:'stages',voltageTolerance:'plus10'}).input.voltageTolerance,'plus10');
 });
 
+test("saved PV, bonding, transformer, charging, PoE and SIA inputs keep their previous mode", () => {
+  const pv = migrated("pva-rechner", { area: "40" }).input;
+  assert.equal(pv.sizing, "area");
+  assert.equal(pv.roof, "manual");
+  assert.equal(pv.tariffPreset, "manual");
+  assert.equal(pv.feedPreset, "manual");
+  assert.equal(pv.modulePreset, "manual");
+  assert.equal(pv.grantMode, "manual");
+  assert.equal(pv.headlineBasis, "net");
+  assert.equal(migrated("pva-rechner", { roof: "flat" }).input.roof, "flat");
+  assert.equal(migrated("potenzialausgleich", { pe: "16" }).input.paMode, "manual");
+  assert.equal(migrated("potenzialausgleich", { paMode: "published" }).input.paMode, "published");
+  const transformer = migrated("transformator", { kva: "250", uk: "4" });
+  assert.equal(transformer.input.ukMode, "preset");
+  assert.equal(transformer.input.voltageTolerance, "legacy");
+  assert.equal(defaults(transformer.definition).voltageTolerance, "plus10");
+  assert.equal(migrated("transformator", { ukMode: "manual", voltageTolerance: "plus10" }).input.ukMode, "manual");
+  assert.equal(migrated("kurzschlussstrom", { kva: "630" }).input.calcBasis, "iec");
+  assert.equal(migrated("premium-ladekosten", { years: "10" }).input.costLayout, "legacy");
+  assert.equal(migrated("premium-poe", { length: "40" }).input.poeRouteMode, "legacy");
+  assert.equal(migrated("premium-sia2056", { years: "1" }).input.siaMode, "legacy");
+  assert.equal(migrated("premium-sia2056", { siaMode: "automatic" }).input.siaMode, "automatic");
+});
+
 test("saved dynamic fire comparisons retain both states while new calculations start with one variant",()=>{
   const old=migrated("premium-brandlast",{fireloadMode:"dynamic",fireloadRows:"[]",fireloadRowsAfter:"[]"});
   assert.equal(old.input.comparisonEnabled,"yes");
