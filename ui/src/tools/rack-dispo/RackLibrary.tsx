@@ -1,5 +1,6 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
-import { Cable, Check, Earth, GripVertical, Layers, Plus, Search, Server, SlidersHorizontal, Type, X, Zap } from 'lucide-react';
+import { Check, GripVertical, Plus, Search, SlidersHorizontal, Type, X } from 'lucide-react';
+import RackPartIcon from './RackPartIcon';
 import type { DeviceProfile, ProfileKind, PortMedium } from './types';
 import { createPanelProfile, panelDrawingFill, parsePlanningNumber, profileGroup, profileKindLabels, profileSubtitle } from './rackPanelModel';
 import { RackColorField } from './RackFields';
@@ -13,9 +14,9 @@ export interface RackLibraryProps {
   onDragProfile?: (profileId: string | null) => void;
 }
 
-function ProfileIcon({ kind }: { kind: ProfileKind }) {
-  const Icon = kind === 'patch' || kind === 'fiber' ? Cable : kind === 'switch' ? Server : kind === 'pdu' || kind === 'ups' ? Zap : kind === 'earth' ? Earth : kind === 'custom' ? Type : Layers;
-  return <Icon size={16} aria-hidden="true" />;
+/** The height is shown as a badge; it is removed from the visible name only. */
+export function libraryName(name: string): string {
+  return name.replace(/\s*·\s*\d+\s*HE\b/, '').trim() || name;
 }
 
 /** Free parts belong to one device. They are created and changed there, not in the library. */
@@ -55,8 +56,8 @@ export default function RackLibrary({ profiles, onAdd, onAddFree, onDragProfile 
                 event.dataTransfer.setData('text/plain', payload);
                 event.dataTransfer.effectAllowed = 'copy'; onDragProfile?.(profile.id);
               }} onDragEnd={() => onDragProfile?.(null)}>
-              <span className="rd-device-icon"><ProfileIcon kind={profile.kind} /></span>
-              <span className="rd-device-title"><strong>{profile.name}</strong></span>
+              <span className="rd-device-icon"><RackPartIcon profile={profile} /></span>
+              <span className="rd-device-title"><strong>{libraryName(profile.name)}</strong><small>{profile.units} HE</small></span>
               <GripVertical size={13} className="rd-drag-grip" aria-hidden="true" />
             </div>
             <button type="button" className="rd-icon-button rd-add-profile" onClick={() => onAdd(profile.id)} aria-label={`${profile.name} einsetzen`} title="Bauteil einsetzen"><Plus size={15} /></button>
