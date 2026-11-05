@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createDefaultNetwork, createNetworkEdge, createNetworkNode, calculateNetwork, NETWORK_NODE_FIELDS, NETWORK_EDGE_FIELDS } from "./networkModel.ts";
+import { createDefaultNetwork, createNetworkEdge, createNetworkNode, calculateNetwork, networkDropIgnoresEdgeTemperature, NETWORK_NODE_FIELDS, NETWORK_EDGE_FIELDS } from "./networkModel.ts";
 import { createFloorDistributionExample } from "./networkExamples.ts";
 import type { NetworkDocument, NetworkNode } from "./networkTypes.ts";
 
@@ -510,4 +510,53 @@ test("the voltage-factor selector does not extend the supported 400/230 V networ
   three.nodes[0].values.voltage = "690";
   assert.equal(calculateNetwork(single).valid, false);
   assert.equal(calculateNetwork(three).valid, false);
+});
+
+test("nin-program voltage drop stays at 20 °C when the edge temperature says 90", () => {
+  assert.equal(networkDropIgnoresEdgeTemperature("nin-program"), true);
+  assert.equal(networkDropIgnoresEdgeTemperature("iec"), false);
+  const hot = oneLoad("1", { power: "3.68", cosPhi: "1" }, { length: "25", area: "2.5", temperature: "90" });
+  const cold = oneLoad("1", { power: "3.68", cosPhi: "1" }, { length: "25", area: "2.5", temperature: "20" });
+  for (const doc of [hot, cold]) Object.assign(doc.nodes[0].values, { calcBasis: "nin-program", operatingVoltage: "400" });
+  const hotResult = calculateNetwork(hot), coldResult = calculateNetwork(cold);
+  near(hotResult.maxDropPercent, coldResult.maxDropPercent);
+  assert.equal(hotResult.edges[0].formula.includes("20°C"), true);
+  assert.ok(hotResult.assumptions.some(item => item.includes("6.3 %")));
+  const cautious = oneLoad("1", { power: "3.68", cosPhi: "1" }, { length: "25", area: "2.5", temperature: "90" });
+  assert.ok(calculateNetwork(cautious).maxDropPercent > hotResult.maxDropPercent);
+});
+
+test("documented k and t compare k²S² with I²t and a missing pair stays open", () => {
+  const open = calculateNetwork(oneLoad());
+  assert.equal(open.issues.some(issue => String(issue.code).startsWith("cable_thermal")), false);
+  const doc = oneLoad();
+  Object.assign(doc.nodes[0].values, { sourceMode: "impedance", r: "0.01", x: "0.015" });
+  Object.assign(doc.edges[0].values, { thermalK: "115", thermalSeconds: "0.0000001" });
+  const passed = calculateNetwork(doc);
+  assert.equal(passed.valid, true);
+  assert.ok(passed.edges[0].checks.some(check => check.includes("k²·S²")));
+  assert.equal(passed.issues.some(issue => issue.code === "cable_thermal"), false);
+  doc.edges[0].values.thermalK = "0.001";
+  doc.edges[0].values.thermalSeconds = "5";
+  assert.ok(calculateNetwork(doc).issues.some(issue => issue.code === "cable_thermal"));
+  doc.edges[0].values.thermalSeconds = "";
+  assert.ok(calculateNetwork(doc).issues.some(issue => issue.code === "cable_thermal_incomplete"));
+});
+
+test("an unset RCD type keeps the previous warning and a charge point stays unapproved", () => {
+  const legacy = oneLoad();
+  const protection = added(legacy, "protection", "rcd");
+  Object.assign(protection.values, { device: "RCD", tripCurrent: "30", timeDelayed: "no" });
+  legacy.edges[0].to = "rcd";
+  legacy.edges.push(createNetworkEdge("tail", "rcd", "l"));
+  const plain = calculateNetwork(legacy);
+  const warning = plain.issues.find(issue => issue.code === "rcd_proof")!;
+  assert.equal(warning.text.includes("Typ"), false);
+  protection.values.rcdType = "A";
+  assert.match(calculateNetwork(legacy).issues.find(issue => issue.code === "rcd_proof")!.text, /Typ A/);
+  legacy.nodes.find(node => node.id === "l")!.values.device = "ev";
+  assert.ok(calculateNetwork(legacy).issues.some(issue => issue.code === "rcd_dc_open" && issue.text.includes("kein belegter")));
+  protection.values.rcdType = "B";
+  const covered = calculateNetwork(legacy).issues.find(issue => issue.code === "rcd_dc_open")!;
+  assert.match(covered.text, /nicht freigegeben|ohne Freigabe/);
 });

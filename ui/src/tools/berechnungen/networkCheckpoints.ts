@@ -13,6 +13,7 @@ const input = (issue: NetworkIssue, fields: string[]) => issue.code === "input" 
 /** Presentation of existing checks only. An absent rule never becomes a passed check. */
 export function buildNetworkCheckpoints(document: NetworkDocument, result: NetworkResult): NetworkCheckpoint[] {
   const nodes = Array.isArray(document?.nodes) ? document.nodes.filter(Boolean) : [];
+  const edges = Array.isArray(document?.edges) ? document.edges.filter(Boolean) : [];
   const protections = nodes.filter(node => node.kind === "protection");
   const source = nodes.find(node => node.kind === "source");
   const sockets = nodes.filter(node => node.kind === "load" && node.values?.device === "socket");
@@ -66,13 +67,15 @@ export function buildNetworkCheckpoints(document: NetworkDocument, result: Netwo
       "Endliche dokumentierte Quellenimpedanz und zum konkreten Gerät gehörendes Ausschaltvermögen. Weitere Geräte und Back-up-Fälle benötigen einen eigenen Herstellerbeleg.",
       issue => hasCode(issue, ["icn", "icn_open"]) || input(issue, ["icn", "r", "x", "ik", "sourceMode", "voltageTolerance"]),
       protections.length > 0 && protections.every(node => ["LS", "RCBO", "MCCB"].includes(node.values?.device))),
-    checkpoint("cable-short-circuit", "Kurzschlussfestigkeit der Leitungen", "Thermischer I²t-/k²S²-Nachweis ist nicht implementiert.",
-      "Die berechneten Kurzschlussströme allein bestätigen nicht die thermische Kurzschlussfestigkeit von Aussenleiter, N, PE oder PEN. Zeit beziehungsweise Durchlassenergie und der passende k-Faktor fehlen im Netzmodell.",
-      "Gerätekennlinie oder dokumentierte Durchlassenergie, Leiter-/Isolationsdaten und zulässige Anfangs-/Endtemperaturen für den thermischen Nachweis.", () => false),
+    checkpoint("cable-short-circuit", "Kurzschlussfestigkeit der Leitungen", "k²·S² ≥ I²·t nur mit belegtem k und belegter Zeit, sonst offen.",
+      "Ohne dokumentierten k-Faktor und ohne Einwirkzeit bleibt der Nachweis offen. Es wird kein Normwert eingesetzt. Der Vergleich gilt nur für den Aussenleiterstrom Ik,max geteilt durch die parallelen Leiter. N, PE und PEN bleiben offen.",
+      "k und t aus dem Projekt belegen. Anfangs- und Endtemperatur sowie N und PE separat prüfen.",
+      issue => hasCode(issue, ["cable_thermal", "cable_thermal_incomplete", "cable_thermal_open"]),
+      evaluable && edges.length > 0 && edges.every(edge => (edge.values?.thermalK ?? "").trim() !== "" && (edge.values?.thermalSeconds ?? "").trim() !== "")),
     checkpoint("rcd-sockets", "Zusätzlicher Schutz / FI für Steckdosen", `${sockets.length} Steckdosen-Verbraucher erfasst · automatische Pflichtprüfung offen.`,
-      "FI/RCBO und IΔn sind erfassbar. Das Modell entscheidet nicht automatisch, welche Steckdose Zusatzschutz benötigt und ob ein passender RCD im gesamten vorgelagerten Pfad vorhanden ist; Abschaltzeit und Erdungsbedingungen bleiben offen.",
-      "Anwendungsfall der Steckdosen, zutreffende NIN-Anforderung, passender RCD samt IΔn, Typ, Abschaltzeit und Erdungs-/Netzbedingungen belegen.",
-      issue => hasCode(issue, ["rcd_proof"]) || input(issue, ["tripCurrent", "timeDelayed"])),
+      "FI/RCBO, IΔn und ein optionaler Typ sind erfassbar. Das Modell gibt den Typ nicht frei und entscheidet nicht, welche Steckdose Zusatzschutz benötigt. Ein Ladepunkt ohne belegten Typ B oder Typ A/F mit 6 mA bleibt offen.",
+      "Anwendungsfall, zutreffende NIN-Anforderung, passender RCD samt IΔn, Typ, Abschaltzeit und Erdungsbedingungen belegen.",
+      issue => hasCode(issue, ["rcd_proof", "rcd_dc_open"]) || input(issue, ["tripCurrent", "timeDelayed", "rcdType"])),
   ];
 }
 

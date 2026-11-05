@@ -3,6 +3,10 @@ import { LEGACY_VOLTAGE_WARNING, shortCircuitVoltageFactors, VOLTAGE_TOLERANCE_H
 import type { Field } from "./workbench/types.ts";
 import type { NetworkDocument, NetworkEdge, NetworkEdgeResult, NetworkIssue, NetworkNode, NetworkNodeKind, NetworkNodeResult, NetworkResult, NetworkTone } from "./networkTypes.ts";
 
+/** «Wie NIN-Programm» rechnet den Spannungsfall bei 20 °C und ignoriert die Leitertemperatur. */
+export function networkDropIgnoresEdgeTemperature(calcBasis: string): boolean {
+  return calcBasis === "nin-program";
+}
 const n = (key: string, label: string, value: string, unit = "", help = ""): Field => ({ key, label, default: value, unit, help });
 const s = (key: string, label: string, value: string, choices: (string | [string, string])[], help = ""): Field => ({ key, label, default: value, kind: "select", help, options: choices.map(option => Array.isArray(option) ? { value: option[0], label: option[1] } : { value: option, label: option }) });
 const visible = (field: Field, key: string, values: string[]): Field => ({ ...field, visibleWhen: [{ key, values }] });
@@ -35,9 +39,10 @@ export const NETWORK_NODE_FIELDS: Record<NetworkNodeKind, Field[]> = {
     visible(n("i2factor", "Dokumentierter Prüfstromfaktor I₂/In", "1.45", "", "Zum konkreten Schutzorgan gehörenden Prüfstromfaktor vorgeben."), "device", ["LS", "RCBO", "MCCB", "NH", "MOTOR"]),
     visible(s("tripCurrent", "Bemessungsdifferenzstrom IΔn", "30", ["10", "30", "100", "300", "500", "1000"], "mA. Abschaltzeit, Netzsystem und Erdungswiderstand werden nicht automatisch nachgewiesen."), "device", ["RCD", "RCBO"]),
     visible(s("timeDelayed", "Zeitverzögerung", "no", [["no", "Unverzögert"], ["yes", "Selektiv / Typ S · dokumentiert"]]), "device", ["RCD", "RCBO"]),
+    visible(s("rcdType", "RCD-Typ", "offen", [["offen", "Nicht belegt"], ["AC", "Typ AC"], ["A", "Typ A"], ["F", "Typ F"], ["B", "Typ B"], ["A-6mA", "Typ A oder F mit 6 mA DC"]], "Keine Freigabe. Der Typ muss zur Anlage passen. Bei Ladepunkten bleibt der DC-Schutz ein offener Nachweis."), "device", ["RCD", "RCBO"]),
   ],
   load: [
-    s("device", "Verbrauchertyp", "general", [["general", "Allgemeiner Verbraucher"], ["motor", "Motor"], ["socket", "Steckdose"], ["light", "Leuchte"], ["heater", "Heizung"], ["fan", "Ventilator"], ["cooker", "Herd"]]),
+    s("device", "Verbrauchertyp", "general", [["general", "Allgemeiner Verbraucher"], ["motor", "Motor"], ["socket", "Steckdose"], ["light", "Leuchte"], ["heater", "Heizung"], ["fan", "Ventilator"], ["cooker", "Herd"], ["ev", "Ladepunkt"]]),
     n("power", "Elektrische Wirkleistung", "6.9", "kW", "Elektrische Aufnahmeleistung. Bei Motoren mechanische Leistung vorher mit dem Wirkungsgrad umrechnen."),
     n("cosPhi", "Induktiver Leistungsfaktor cos φ", "0.95"),
     s("phases", "Anschluss", "3", [["3", "3~ · symmetrisch"], ["1", "1~ · L–N"]]),
@@ -53,7 +58,9 @@ export const NETWORK_EDGE_FIELDS: Field[] = [
   s("peArea", "Schutzleiterquerschnitt", "same", [["same", "Wie Aussenleiter"], ...sections.map(value => [value, `${value} mm²`] as [string, string])], "Schutzleiter und Aussenleiter werden mit demselben Material modelliert; gemischte Cu-/Al-Pfade sind nicht abgebildet."),
   { ...n("neutralIz", "Korrigiertes Iz je Neutralleiterkreis", "20", "A", "Bei abweichendem N-Querschnitt eigene korrigierte Strombelastbarkeit belegen."), visibleWhen: [{ key: "neutralArea", values: sections }, { key: "izMode", values: ["manual"] }] },
   n("parallel", "Identische parallele Leiter je Phase", "1", "Stk."),
-  n("temperature", "Leitertemperatur für Spannungsfall", "55", "°C", "Vorgegebene Temperatur, kein thermischer Erwärmungsnachweis. Ikmin verwendet ausdrücklich 80 °C."),
+  n("temperature", "Leitertemperatur für Spannungsfall", "55", "°C", "Bei «Vorsichtig» gilt dieser Wert. Bei «Wie NIN-Programm» gilt fest 20 °C; der gespeicherte Wert bleibt erhalten. Ik,min bleibt 80 °C."),
+  n("thermalK", "Dokumentierter k-Faktor", "", "A√s/mm²", "Nur ein belegter Wert. Leer lassen, wenn kein Nachweis vorliegt. Es wird kein Normwert eingesetzt."),
+  n("thermalSeconds", "Dokumentierte Einwirkzeit", "", "s", "Zeit für k²·S² ≥ I²·t am Aussenleiter. Leer lassen, wenn kein Beleg vorliegt."),
   s("izMode", "Strombelastbarkeit Iz", "manual", [["manual", "Dokumentierten Wert vorgeben"], ["open", "Ungeprüft"]]),
   visible(n("iz", "Korrigiertes Iz je parallelem Kreis", "20", "A", "Wert inklusive zutreffender Temperatur-/Häufungsfaktoren; keine automatische Normtabellenwahl."), "izMode", ["manual"]),
 ];
@@ -123,7 +130,7 @@ interface Wire {
   edge: NetworkEdge; zCold: Complex; zWarm: Complex; zDrop: Complex; zNeutral: Complex; zLoop: Complex;
   length: number; area: number; neutralArea: number; parallel: number; iz: number | null; neutralIz: number | null; temperature: number;
 }
-interface Path { cold: Complex; loopWires: Complex; transformerX: number; drop: Triple; protector?: NetworkNode }
+interface Path { cold: Complex; loopWires: Complex; transformerX: number; drop: Triple; protector?: NetworkNode; rcdDc?: string }
 
 /** Original steady-state radial TN model. It never certifies an entire NIN installation. */
 function calculateNetworkModel(document: NetworkDocument): NetworkResult {
@@ -133,14 +140,14 @@ function calculateNetworkModel(document: NetworkDocument): NetworkResult {
     const key = JSON.stringify([code, nodeId || "", edgeId || "", field]);
     if (!structuralKeys.has(key)) { issues.push({ tone: "error", text, nodeId, edgeId, code, field }); structuralKeys.add(key); }
   };
-  if (!document || document.version !== 1 || typeof document.name !== "string" || !Array.isArray(document.nodes) || !Array.isArray(document.edges)) return invalid([{ tone: "error", code: "project_format", text: "Ungültiges Netzprojektformat." }]);
+  if (!document || document.version !== 1 || typeof document.name !== "string" || !Array.isArray(document.nodes) || !Array.isArray(document.edges)) return invalid([{ tone: "error", code: "project_format", text: "Ungültiges Netzprojektformat. Erwartet wird Version 1 mit Namen, Elementliste und Leitungsliste. Eine mit diesem Netzplaner gespeicherte JSON-Datei laden." }]);
   if (document.nodes.length > 500 || document.edges.length > 1000) return invalid([{ tone: "error", code: "project_limits", text: "Maximal 500 Elemente und 1000 Leitungen im Projektmodell." }]);
   const nodeById = new Map<string, NetworkNode>();
   for (const node of document.nodes) {
     if (!node || typeof node.id !== "string" || !node.id || nodeById.has(node.id)) { problem("Element-IDs müssen vorhanden und eindeutig sein.", undefined, undefined, "node_identity"); continue; }
     if (!Object.hasOwn(NETWORK_NODE_FIELDS, node.kind)) problem("Unbekannter Elementtyp.", node.id, undefined, "node_kind");
-    if (typeof node.label !== "string" || node.label.length > 300) problem("Elementbeschriftung ist ungültig.", node.id, undefined, "node_label");
-    if (!Number.isFinite(node.x) || !Number.isFinite(node.y)) problem("Elementposition ist ungültig.", node.id, undefined, "node_position");
+    if (typeof node.label !== "string" || node.label.length > 300) problem("Elementbeschriftung ist ungültig. Eine Bezeichnung mit höchstens 300 Zeichen eintragen.", node.id, undefined, "node_label");
+    if (!Number.isFinite(node.x) || !Number.isFinite(node.y)) problem("Elementposition ist ungültig. x und y müssen endliche Zahlen sein. Das Element neu auf der Fläche ablegen.", node.id, undefined, "node_position");
     if (!node.values || typeof node.values !== "object") problem("Elementeigenschaften fehlen.", node.id, undefined, "node_values");
     nodeById.set(node.id, node);
   }
@@ -176,7 +183,7 @@ function calculateNetworkModel(document: NetworkDocument): NetworkResult {
   const source = sources[0];
   let activeInputContext: { nodeId?: string; edgeId?: string } = { nodeId: source.id };
   const invalidAtCurrentObject = (error: unknown) => invalid([{
-    tone: "error", text: error instanceof Error ? error.message : "Ungültige Netzparameter.", ...activeInputContext,
+    tone: "error", text: error instanceof Error ? error.message : "Ungültige Netzparameter. Die markierte Eingabe als endliche Zahl im zulässigen Bereich eintragen.", ...activeInputContext,
     code: error instanceof NetworkInputError ? "input" : "arithmetic",
     field: error instanceof NetworkInputError ? error.field : "",
     data: error instanceof NetworkInputError ? { required: error.required } : undefined,
@@ -195,7 +202,7 @@ function calculateNetworkModel(document: NetworkDocument): NetworkResult {
     cMax = voltageFactors.cMax; voltageTolerance = voltageFactors.label;
     if (voltageFactors.legacy) issues.push({ tone: "warning", nodeId: source.id, text: LEGACY_VOLTAGE_WARNING, code: "legacy_voltage", field: "voltageTolerance" });
     // Saved networks without a basis keep the conservative IEC calculation.
-    if (source.values.calcBasis !== undefined) ninProgram = choice(source.values, "calcBasis", ["iec", "nin-program"], "Rechenbasis") === "nin-program";
+    if (source.values.calcBasis !== undefined) ninProgram = networkDropIgnoresEdgeTemperature(choice(source.values, "calcBasis", ["iec", "nin-program"], "Rechenbasis"));
     if (ninProgram) ikMinVoltage = read(source.values, "operatingVoltage", "Betriebsspannung Ub", 1000) / Math.sqrt(3);
     maxCurrent = read(source.values, "maxCurrent", "Anschlussstrom", 10000);
     budget = read(source.values, "limit", "Gesamtes Spannungsfallbudget", 20);
@@ -219,7 +226,11 @@ function calculateNetworkModel(document: NetworkDocument): NetworkResult {
         if (["LS", "RCBO"].includes(type)) choice(node.values, "curve", ["B", "C", "D", "K", "Z"], "Charakteristik");
         if (["LS", "RCBO", "MCCB"].includes(type)) read(node.values, "icn", "Ausschaltvermögen", 1000);
         if (["LS", "RCBO", "MCCB", "NH", "MOTOR"].includes(type)) read(node.values, "i2factor", "Prüfstromfaktor", 10);
-        if (["RCD", "RCBO"].includes(type)) { read(node.values, "tripCurrent", "Bemessungsdifferenzstrom", 10000); choice(node.values, "timeDelayed", ["yes", "no"], "RCD-Verzögerung"); }
+        if (["RCD", "RCBO"].includes(type)) {
+          read(node.values, "tripCurrent", "Bemessungsdifferenzstrom", 10000); choice(node.values, "timeDelayed", ["yes", "no"], "RCD-Verzögerung");
+          const rcdType = node.values.rcdType ?? "offen";
+          if (!["offen", "AC", "A", "F", "B", "A-6mA"].includes(rcdType)) throw new NetworkInputError("rcdType", "RCD-Typ: gültigen Listenwert wählen.", "Nicht belegt, AC, A, F, B oder A/F mit 6 mA DC wählen.");
+        }
       }
     }
     for (const edge of document.edges) {
@@ -241,7 +252,7 @@ function calculateNetworkModel(document: NetworkDocument): NetworkResult {
       let currents = zero(), powerKW = 0, singlePhase = false;
       const connectedPhases: [boolean, boolean, boolean] = [false, false, false];
       if (node.kind === "load") {
-        choice(node.values, "device", ["general", "motor", "socket", "light", "heater", "fan", "cooker"], "Verbrauchertyp");
+        choice(node.values, "device", ["general", "motor", "socket", "light", "heater", "fan", "cooker", "ev"], "Verbrauchertyp");
         const power = read(node.values, "power", "Verbraucher-Wirkleistung", 1e6), cos = read(node.values, "cosPhi", "Leistungsfaktor", 1), factor = read(node.values, "diversity", "Gleichzeitigkeitsanteil", 1, true);
         const connection = choice(node.values, "phases", ["1", "3"], "Verbraucheranschluss");
         if (system === "1" && connection === "3") throw new NetworkInputError("phases", "Ein 3~-Verbraucher kann nicht aus einem 1~-Netz gespeist werden.", "Einphasigen Verbraucheranschluss wählen oder die tatsächliche dreiphasige Einspeisung modellieren.");
@@ -300,7 +311,12 @@ function calculateNetworkModel(document: NetworkDocument): NetworkResult {
         else if (icn < prospective - tol) record("error", `Ausschaltvermögen am Gerät zu klein: ${fmt(icn)} kA < ${fmt(prospective)} kA.`, node.id, undefined, { code: "icn", field: "icn", data: { actual: icn, required: prospective } });
         else result.checks.push(`Icn ${fmt(icn)} kA ≥ Ik,max ${fmt(prospective)} kA am Einbauort.`);
       }
-      if (["RCD", "RCBO"].includes(type)) record("warning", `RCD ${node.values.tripCurrent} mA: Abschaltzeit, Erdungsbedingungen und Zeitselektivität bleiben ungeprüft.`, node.id, undefined, { code: "rcd_proof", field: "tripCurrent", data: { actual: node.values.tripCurrent } });
+      if (["RCD", "RCBO"].includes(type)) {
+        const rcdType = node.values.rcdType ?? "offen";
+        const typeNote = rcdType === "offen" ? "" : ` Typ ${rcdType} ist erfasst und nicht freigegeben.`;
+        record("warning", `RCD ${node.values.tripCurrent} mA: Abschaltzeit, Erdungsbedingungen und Zeitselektivität bleiben ungeprüft.${typeNote}`, node.id, undefined, { code: "rcd_proof", field: "tripCurrent", data: { actual: node.values.tripCurrent } });
+        if (rcdType === "B" || rcdType === "A-6mA") local.rcdDc = rcdType;
+      }
       if (["NH", "MCCB", "MOTOR"].includes(type)) record("warning", "Gerätekennlinie und Abschaltzeit sind ohne konkrete Herstellerdaten nicht nachgewiesen.", node.id, undefined, { code: "manufacturer_proof", field: "device" });
       if (["K", "Z"].includes(node.values.curve) && ["LS", "RCBO"].includes(type)) record("warning", "K-/Z-Band ist eine Herstellerannahme und am Gerät zu belegen.", node.id, undefined, { code: "curve_proof", field: "curve" });
       if (!["RCD", "SWITCH"].includes(type)) {
@@ -308,6 +324,7 @@ function calculateNetworkModel(document: NetworkDocument): NetworkResult {
         local.protector = node;
       }
     }
+    if (node.kind === "load" && node.values.device === "ev") record("warning", local.rcdDc ? `Ladepunkt: RCD-Typ ${local.rcdDc} ist im Pfad erfasst. Abschaltzeit und DC-Schutz bleiben ohne Freigabe.` : "Ladepunkt: kein belegter DC-Fehlerstromschutz (Typ B oder Typ A/F mit 6 mA) im Pfad. Keine Freigabe.", node.id, undefined, { code: "rcd_dc_open", field: "device" });
     for (const edge of outgoing.get(node.id) ?? []) {
       activeInputContext = { edgeId: edge.id };
       const wire = wires.get(edge.id)!, downstream = demands.get(edge.to)!, currents = downstream.currents.map(magnitude) as [number, number, number];
@@ -351,6 +368,17 @@ function calculateNetworkModel(document: NetworkDocument): NetworkResult {
           if (amperes > inA + tol) check("error", `Betriebsstrom ${fmt(amperes)} A > Schutznennstrom ${fmt(inA)} A.`, "ib_in", "rated", protectionData);
         }
       }
+      const thermalK = (edge.values.thermalK ?? "").trim(), thermalSeconds = (edge.values.thermalSeconds ?? "").trim();
+      if (thermalK || thermalSeconds) {
+        if (!thermalK || !thermalSeconds) check("warning", "Kurzschlussfestigkeit: k-Faktor und Einwirkzeit gemeinsam belegen oder beide leer lassen.", "cable_thermal_incomplete", thermalK ? "thermalSeconds" : "thermalK");
+        else if (ikMax === null) check("warning", "Kurzschlussfestigkeit offen: Ik,max am Abschnitt ist nicht bestimmt.", "cable_thermal_open", "thermalK");
+        else {
+          const kFactor = read(edge.values, "thermalK", "Dokumentierter k-Faktor", 1000), seconds = read(edge.values, "thermalSeconds", "Dokumentierte Einwirkzeit", 10000);
+          const current = ikMax * 1000 / wire.parallel, capacity = kFactor * kFactor * wire.area * wire.area, stress = current * current * seconds;
+          if (capacity + tol < stress) check("error", `k²·S² ${fmt(capacity)} < I²·t ${fmt(stress)} für den Aussenleiter. N und PE sind damit nicht nachgewiesen.`, "cable_thermal", "thermalK", { capacity, stress, current, area: wire.area, seconds });
+          else checks.push(`k²·S² ${fmt(capacity)} ≥ I²·t ${fmt(stress)} für den Aussenleiter. N und PE sind damit nicht nachgewiesen.`);
+        }
+      }
       if (ikMin === null) check("warning", "Ik,min-Modell offen: dokumentierte L–PE-Quellenimpedanz fehlt oder ist unbestimmt.", "loop_open", "loopKnown", {}, source.id);
       else if (local.protector && ["LS", "RCBO"].includes(device.get(local.protector.id)!)) {
         const high: Record<string, number> = { B: 5, C: 10, D: 20, K: 14, Z: 3 }, upper = high[local.protector.values.curve] * rated.get(local.protector.id)!;
@@ -382,6 +410,7 @@ function calculateNetworkModel(document: NetworkDocument): NetworkResult {
       "SN-EN-60228-bezogene veröffentlichte R′₂₀-Werte; Cu α = 0.00393/K, Al α = 0.00403/K. X′ ist ein Richtwert. Aussenleiter, N und PE haben innerhalb einer Leitung dasselbe Material. Parallele Leiter werden als identisch und gleichmässig belastet betrachtet.",
       `Ik,max mit kaltem Leiter und cmax = ${cMax!.toFixed(2)} für ${voltageTolerance!}. Ein eingegebener maximaler Quellenstrom wird mit demselben Faktor in die Quellenimpedanz zurückgerechnet, ohne zweiten Aufschlag. Ik,min-Modell mit 80 °C, ${ninProgram ? `Rechenbasis «Wie NIN-Programm»: Ub/√3 = ${fmt(ikMinVoltage)} V ohne cmin, Spannungsfall bei 20 °C` : "cmin = 0.95 × 230 V (vorsichtige Basis)"} und vorgegebener L–PE-Quelle. Trafo als reine NS-bezogene Reaktanz; keine Nullsystem-/Schaltgruppenstudie, keine garantierte Schranke oder vollständige IEC-60909-Studie.`,
       "Iz, Prüfstromfaktoren und Gerätewerte sind dokumentierte Projekteingaben. Herstellerkennlinien, verbindliche Abschaltzeiten, Selektivität, RCD-Erdungsbedingungen und vollständige NIN-Anwendbarkeit bleiben separat zu prüfen.",
+      ...(ninProgram ? ["Ik,min addiert die Beträge von Quelle und warmer Schleife. In acht gedruckten Vergleichsfällen liegt das bis 6.3 % unter dem gedruckten Wert. Die Addition bleibt unverändert."] : []),
     ],
   };
 }
