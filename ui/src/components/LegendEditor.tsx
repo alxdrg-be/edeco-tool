@@ -104,13 +104,12 @@ const TOOLBAR_ITEMS = [
   { id: "insert", label: "Einfügen" },
   { id: "grid", label: "Raster" },
   { id: "rows", label: "Zeile und Text (mm)" },
-  { id: "columns", label: "Spalten" },
   { id: "sizes", label: "Schrift, Symbole, gleiche Fläche" },
   { id: "general", label: "Allgemeinteil ein/aus" },
   { id: "gridlines", label: "Raster anzeigen" },
   { id: "export", label: "DXF herunterladen" },
 ] as const;
-const TOOLBAR_DEFAULT = ["history", "insert", "columns", "general", "gridlines", "export"];
+const TOOLBAR_DEFAULT = ["history", "insert", "general", "gridlines", "export"];
 
 function readBarPref(): Set<string> {
   try {
@@ -962,7 +961,6 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
         <span>Gespeichertes Layout <InfoTip text="Diese Legende verwendet ihre bisherigen Abstände und Grössen. Die kompakte Vorlage setzt drei Apparatespalten, ein dichtes Raster, 2,8 mm Schrift und kleinere Abstände. Inhalte, Zuordnungen und Originalfarben bleiben erhalten. Die Änderung lässt sich mit Rückgängig zurücknehmen." /></span>
         <div className="row" style={{ gap: 6, flexWrap: "wrap" }}>
           <button className="btn small" onClick={applyCompact}>Kompakte Vorlage anwenden</button>
-          <button className="btn small" onClick={applyA4} title="Vier Spalten, kompakte Abstände. Die Seitenhöhe folgt dem Inhalt.">A4 kompakt</button>
         </div>
       </div>}
       {generalBox}
@@ -991,7 +989,7 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
             }}>+ Abschnitt</button>
           </Menu>
         )}
-        {(bar.has("grid") || bar.has("rows") || bar.has("columns")) && (
+        {(bar.has("grid") || bar.has("rows")) && (
           <div className="tool-group" role="group" aria-label="Raster">
           {bar.has("grid") && (<label className="filter-label">
             Raster
@@ -1037,16 +1035,6 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
                   </span>
                 </label>
               </>
-            )}
-            {bar.has("columns") && (
-              <label className="filter-label">
-                Spalten
-                <select className="select" value={style.columns} onChange={(e) => setStyle({ columns: Number(e.target.value) })}>
-                  <option value={2}>2</option>
-                  <option value={3}>3</option>
-                  <option value={4}>4</option>
-                </select>
-              </label>
             )}
           </div>
         )}

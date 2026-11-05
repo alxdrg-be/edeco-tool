@@ -48,6 +48,13 @@ test("transformer currents preserve apparent power and short-circuit ratio in bo
   assert.equal(calculate("transformator", { load: "120" }).status.tone, "warning");
 });
 
+test("transformer and short-circuit calculator give the same Ik,max for the same transformer", () => {
+  const t = calculate("transformator", { kva: "250", u1: "20000", u2: "400", uk: "4", voltageTolerance: "plus10" });
+  close(metric(t, "Ik,max mit c_max"), 1.1 * metric(t, "Kurzschluss · starres Netz"));
+  const k = calculate("kurzschlussstrom", { sourceMode: "nameplate", kva: "250", uk: "4", trafos: "1", voltage: "400", voltageTolerance: "plus10", networkR: "0", networkX: "0", length: "0.001" });
+  assert.ok(Math.abs(metric(t, "Ik,max mit c_max") - metric(k, "3~-Kurzschluss · Modell")) < 0.01);
+});
+
 test("short-circuit model adds source impedance and warmer loop resistance without claiming norm extrema", () => {
   const base = calculate("kurzschlussstrom"), upstream = calculate("kurzschlussstrom", { networkR: "20", networkX: "10" });
   assert.ok(metric(upstream, "3~-Kurzschluss · Modell") < metric(base, "3~-Kurzschluss · Modell"));

@@ -101,7 +101,9 @@ def test_text_width_warning_selects_the_exact_item_and_table_is_editable(editor,
     open_project(page)
     page.get_by_role("button", name="Editor gross öffnen", exact=True).click()
     text_panel = page.locator(".legend-text-panel")
-    text_panel.locator(":scope > summary").click()
+    # Sections remember their open state per PC; open it without toggling it shut.
+    if not text_panel.evaluate("el => el.open"):
+        text_panel.locator(":scope > summary").click()
     text_panel.get_by_role("button", name="Warnen + Vorschlag", exact=True).click()
     warnings = page.get_by_label("Texthinweise", exact=True)
     selected_warning = warnings.get_by_role("button").filter(has_text=second.strip())
@@ -142,7 +144,9 @@ def test_palette_review_preserves_source_colours_and_large_editor_has_separate_p
     doc = normalize(doc)
     assert client.put(f"/api/projects/{pid}/legend", json={"doc": doc}).status_code == 200
     open_project(page)
-    page.locator('[data-legend-section="colours"] > summary').click()
+    colours = page.locator('[data-legend-section="colours"]')
+    if not colours.evaluate("el => el.open"):
+        colours.locator(":scope > summary").click()
     conflict = page.locator(".legend-palette-issues button").filter(has_text="Prüffarbe Schwachstrom / Prüffarbe ZUKO")
     playwright.expect(conflict).to_contain_text("Ähnliche Farben")
     conflict.click()

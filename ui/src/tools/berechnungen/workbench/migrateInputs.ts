@@ -15,7 +15,7 @@ export function migrateWorkbenchInputs(id: string, currentDefaults: Inputs, save
   if (id === "motoranlauf") { missing("inputMode", "power"); missing("efficiencyMode", "manual"); missing("checkIz", "off"); }
   if (id === "beleuchtung") { missing("layout", "full"); missing("luminaire", "manual"); missing("etaMode", "manual"); missing("luxMode", "manual"); }
   if (id === "verlustleistung") missing("durationMode", "annual");
-  if (id === "transformator") missing("ukMode", "preset");
+  if (id === "transformator") { missing("ukMode", "preset"); missing("voltageTolerance", "legacy"); }
   if (id === "kurzschlussstrom") { missing("sourceMode", "nameplate"); missing("voltageTolerance", "legacy"); }
   if (id === "premium-selektivitaet") { missing("selectivityMode", "legacy"); missing("voltageTolerance", "legacy"); }
   if (id === "premium-brandmelder") { missing("gridRule", "radius"); missing("detectorBasis", "manual"); }
