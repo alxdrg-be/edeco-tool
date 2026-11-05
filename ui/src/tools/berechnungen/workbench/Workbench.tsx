@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { Calculator, ListTree } from "lucide-react";
 import type { ToolProps } from "../../../toolbox/modules";
 import { useProjectHub } from "../../projektzentrale/projectHubState";
@@ -6,8 +6,7 @@ import { downloadBlob } from "../../planlieferung/DeliveryHistory";
 import { ChoiceCards, Explanation, InfoButton, LabShell, type Help } from "../LabUI";
 import { KnowledgeLink } from "../KnowledgeLink";
 import { consumeRestore, type ArchiveProject } from "../ablage/api";
-import { CALCULATORS } from "./definitions";
-import { defaults, validateResult, type Inputs } from "./types";
+import { defaults, validateResult, type CalculatorDefinition, type Inputs } from "./types";
 import ResultView from "./ResultView";
 import DiagnosticDetails, { revealDiagnosticElement, type DiagnosticTarget } from "../DiagnosticDetails";
 import { errorDiagnostics, fieldVisible, resultDiagnostics } from "./diagnostics";
@@ -17,13 +16,19 @@ import { fieldOptions, optionsWithProjectValue } from "../electricalOptions";
 import { calculationExplanation } from "./explanations";
 import { migrateWorkbenchInputs } from "./migrateInputs";
 import { editNinInstallationInput, ninMethodOptions } from './installationMethodChoices';
-import PlanningControls from "./PlanningControls";
-import SIATableControls from "./SIATableControls";
-import PoeRouteControls from "./PoeRouteControls";
-import FireLoadControls from "./FireLoadControls";
-import SelectivityControls from "./SelectivityControls";
 import { calculationNorm, workbenchReport } from "../calculationReport";
 import "./workbench.css";
+const PlanningControls = lazy(() => import("./PlanningControls"));
+const SIATableControls = lazy(() => import("./SIATableControls"));
+const PoeRouteControls = lazy(() => import("./PoeRouteControls"));
+const FireLoadControls = lazy(() => import("./FireLoadControls"));
+const SelectivityControls = lazy(() => import("./SelectivityControls"));
+const INSTALLATION_IDS = new Set(["nin-kabelrechner", "strombelastbarkeit", "ls-schalter", "potenzialausgleich", "pva-rechner", "brandlast", "poe"]);
+async function loadCalculator(id: string): Promise<CalculatorDefinition | null> {
+  if (INSTALLATION_IDS.has(id)) return (await import("./installation")).INSTALLATION.find(item => item.id === id) ?? null;
+  if (id.startsWith("premium-")) return (await import("./planning")).PLANNING.find(item => item.id === id) ?? null;
+  return (await import("./fundamentals")).FUNDAMENTALS.find(item => item.id === id) ?? null;
+}
 
 const BREAKER_CHARACTERISTICS: Record<string, { range: string; uses: string; standard: string }> = {
   B: { range: "3–5 × Iₙ", uses: "Ohmsche Lasten, Leitungen und Beleuchtung.", standard: "IEC 60898-1." },
@@ -52,12 +57,25 @@ function structureSummary(id: string, input: Inputs): string {
 }
 
 export default function Workbench({ calculatorId, ...props }: ToolProps & { calculatorId: string }) {
-  const definition = CALCULATORS.find(item => item.id === calculatorId);
-  if (!definition) return <div role="alert">Unbekannter Rechner.</div>;
+  const [definition, setDefinition] = useState<CalculatorDefinition | null>(null);
+  const [missing, setMissing] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    setMissing(false);
+    setDefinition(null);
+    void loadCalculator(calculatorId).then(found => {
+      if (!alive) return;
+      if (!found) setMissing(true);
+      else setDefinition(found);
+    });
+    return () => { alive = false; };
+  }, [calculatorId]);
+  if (missing) return <div role="alert">Unbekannter Rechner.</div>;
+  if (!definition) return <div role="status">Rechner wird geladen …</div>;
   return <CalculatorForm key={calculatorId} definition={definition} {...props} />;
 }
 
-function CalculatorForm({ definition, ...props }: ToolProps & { definition: (typeof CALCULATORS)[number] }) {
+function CalculatorForm({ definition, ...props }: ToolProps & { definition: CalculatorDefinition }) {
   const { hub, active } = useProjectHub();
   const [input, setInput] = useState<Inputs>(() => defaults(definition)), [notes, setNotes] = useState("");
   const [project, setProject] = useState<ArchiveProject | null>(null), [ready, setReady] = useState(false);
@@ -143,7 +161,7 @@ function CalculatorForm({ definition, ...props }: ToolProps & { definition: (typ
   const calculationReport = result ? workbenchReport(definition, input, result, notes, project) : null;
   const foundation = <><p>{definition.scope}</p>{result && <><code>{result.formula}</code><ul>{result.limitations.map(item => <li key={item}>{item}</li>)}</ul></>}<p>Tabellenwerte, Herstellergrenzen und projektabhängige Faktoren sind anhand der zum Projekt passenden Normausgabe, Datenblätter und Nachweise zu bestätigen. Beispielwerte sind keine fachliche Freigabe.</p></>;
   return <LabShell {...props} knowledgeId={definition.id} title={definition.title} subtitle={`${calculationNorm(definition.id, input)}${project ? ` · ${project.number} · ${project.name}` : ""}`} help={help} setHelp={setHelp} canExport={Boolean(ready && result)} pdfReport={calculationReport} archive={{ toolId: definition.id, project, notes, document }} exportData={() => downloadBlob(new Blob([JSON.stringify(document, null, 2)], { type: "application/json" }), `${definition.id.replace("premium-", "")}.json`)} report={<><h2>{definition.title}</h2><h3>Eingaben des Rechenstands</h3><table><thead><tr><th>Parameter</th><th>Wert</th></tr></thead><tbody>{calculationReport?.inputs.map((row, index) => <tr key={index}><td>{row.label}</td><td>{row.value}</td></tr>)}</tbody></table>{foundation}<p>Notizen: {notes}</p></>}>
-    {positionEditor && <details className="wb-position-editor" ref={positions}><summary><ListTree size={18} aria-hidden="true" /><span className="wb-structure-title">{positionEditor.title}<small>{structureSummary(definition.id, input)}</small></span><span>Bearbeiten</span></summary><div className="wb-position-content">{positionEditor.content}</div></details>}
+    {positionEditor && <details className="wb-position-editor" ref={positions}><summary><ListTree size={18} aria-hidden="true" /><span className="wb-structure-title">{positionEditor.title}<small>{structureSummary(definition.id, input)}</small></span><span>Bearbeiten</span></summary><div className="wb-position-content"><Suspense fallback={<p role="status">Eingabe wird geladen …</p>}>{positionEditor.content}</Suspense></div></details>}
     <div className="lab-bento wb-layout"><section className={`wb-results ${result && (result.diagram || result.charging || result.chargingNetwork || result.depotNetwork || result.siaBreakdown || result.poeRoute || result.series?.length || result.comparisons?.length || hasTechnicalGraphic(definition.id, result)) ? "wb-has-graphic" : ""}`} aria-label="Berechnungsergebnis"><div className="wb-result-heading"><span><Calculator size={17} /> Live-Auswertung</span><InfoButton title="Berechnungsgrundlagen" onClick={() => setHelp({ title: "Berechnungsgrundlagen", content: foundation })} /></div>
       <Explanation className="wb-reading-guide" title="Ergebnis verstehen"><p>{calculationExplanation(definition.id, input)}</p></Explanation>
       <div className={!result ? "lab-error wb-validation-guidance" : undefined} role={!result ? "alert" : undefined}>{diagnostics.map(diagnostic => <DiagnosticDetails key={diagnostic.id} diagnostic={diagnostic} onNavigate={navigateDiagnostic} initiallyOpen={!result} />)}</div>
