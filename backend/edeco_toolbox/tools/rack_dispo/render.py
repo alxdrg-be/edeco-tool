@@ -310,6 +310,19 @@ def scenes(request: ExportRequest) -> list[Scene]:
 
 
 def svg_bytes(request: ExportRequest) -> bytes:
+    if request.sheets:
+        from .svgpdf import sheet_ops
+
+        # Validate with the same parser as the PDF, then stack the sheets.
+        parts = []
+        for index, sheet in enumerate(request.sheets):
+            sheet_ops(sheet.svg)
+            inner = re.sub(r"^\s*<svg[^>]*>", "", sheet.svg, count=1)
+            inner = re.sub(r"</svg>\s*$", "", inner, count=1)
+            parts.append(f'<svg x="0" y="{index * 307:g}" width="210" height="297" viewBox="0 0 210 297">{inner}</svg>')
+        height = len(parts) * 307 - 10
+        return (f'<svg xmlns="http://www.w3.org/2000/svg" width="210mm" height="{height:g}mm" viewBox="0 0 210 {height:g}">'
+                + "".join(parts) + "</svg>").encode("utf-8")
     drawings = scenes(request)
     width = max(scene.width for scene in drawings)
     # Each warning has its own line and is never laid on top of equipment.
@@ -403,7 +416,8 @@ def _paper_page(writer, ops):
 
     page = writer.add_blank_page(width=210 * PT_MM, height=297 * PT_MM)
     font = DictionaryObject({NameObject("/Type"): NameObject("/Font"), NameObject("/Subtype"): NameObject("/Type1"), NameObject("/BaseFont"): NameObject("/Helvetica"), NameObject("/Encoding"): NameObject("/WinAnsiEncoding")})
-    page[NameObject("/Resources")] = DictionaryObject({NameObject("/Font"): DictionaryObject({NameObject("/F1"): writer._add_object(font)})})
+    bold = DictionaryObject({**font, NameObject("/BaseFont"): NameObject("/Helvetica-Bold")})
+    page[NameObject("/Resources")] = DictionaryObject({NameObject("/Font"): DictionaryObject({NameObject("/F1"): writer._add_object(font), NameObject("/F2"): writer._add_object(bold)})})
     stream = DecodedStreamObject()
     stream.set_data("\n".join(ops).encode("ascii"))
     page[NameObject("/Contents")] = writer._add_object(stream)
@@ -422,11 +436,70 @@ def _wrap(text, limit=60):
     return [*result, text] if text else result or [""]
 
 
+def _appendix_lines(request: ExportRequest, rack_id: str, views: list[str], warnings: list[str]) -> list[str]:
+    """Devices and open findings of one rack, once for all exported views."""
+    profiles = {profile.id: profile for profile in request.document.profiles}
+    rack = next(rack for rack in request.document.racks if rack.id == rack_id)
+    names = " und ".join("Vorderansicht" if view == "front" else "Rückansicht" for view in views)
+    lines = [*_wrap(f"{rack.label} · {names} · Geräte und Hinweise", 90), ""]
+    if rack.notes.strip():
+        lines.extend(_wrap(f"Rack-Notiz: {rack.notes}", 90))
+        lines.append("")
+    for placement in request.document.placements:
+        if placement.rackId != rack_id or placement.status == "removed":
+            continue
+        if not placement.side.startswith("zero-") and placement.side not in views:
+            continue
+        profile = profiles[placement.profileId]
+        position = f"HE {placement.startUnit}–{placement.startUnit + profile.units - 1}" if profile.units else f"0 HE · {SIDE_LABELS[placement.side]}"
+        side = "" if placement.side.startswith("zero-") else f" · {SIDE_LABELS[placement.side]}"
+        lines.extend(_wrap(f"{position}{side} · {placement.label or profile.name} · {STATUS_LABELS[placement.status]}", 90))
+        lines.extend(_wrap(f"  Lieferung: {WORK_LABELS[placement.delivery]} · Montage: {WORK_LABELS[placement.montage]}", 90))
+        if placement.notes.strip():
+            lines.extend(_wrap(f"  Notiz: {placement.notes}", 90))
+        if profile.manufacturer or profile.article:
+            lines.extend(_wrap(f"  Hersteller/Artikel: {profile.manufacturer} {profile.article}", 90))
+    lines.extend(["", "Offene Angaben und Hinweise (keine automatische Freigabe):"])
+    lines.extend(line for warning in warnings for line in _wrap("• " + warning, 90))
+    if not warnings:
+        lines.append("Keine Zeichenhinweise. Tiefen-, Last-, Schutz- und Normnachweise separat prüfen.")
+    return lines
+
+
+def _sheet_pages(writer, request: ExportRequest) -> None:
+    from .svgpdf import sheet_ops
+
+    findings: dict[str, list[str]] = {}
+    for scene in scenes(request):
+        findings.setdefault(scene.rack_id, [])
+        findings[scene.rack_id].extend(warning for warning in scene.warnings if warning not in findings[scene.rack_id])
+    ordered = [rack.id for rack in request.selected_racks()]
+    for rack_id in ordered:
+        sheets = [sheet for sheet in request.sheets if sheet.rackId == rack_id]
+        if not sheets:
+            continue
+        for sheet in sheets:
+            _paper_page(writer, sheet_ops(sheet.svg))
+        lines = _appendix_lines(request, rack_id, [sheet.view for sheet in sheets], findings.get(rack_id, []))
+        for first in range(0, len(lines), 54):
+            appendix = []
+            _pdf_text(appendix, 10, 283, "Rack-Dispo · Geräte und offene Angaben", 13)
+            for index, line in enumerate(lines[first:first + 54]):
+                _pdf_text(appendix, 10, 273 - index * 4.6, line, 9)
+            _pdf_text(appendix, 10, 12, "Vorplanung · Originaldaten bleiben unverändert · keine Ausführungsfreigabe", 8, WARN)
+            _paper_page(writer, appendix)
+
+
 def pdf_bytes(request: ExportRequest) -> bytes:
     from pypdf import PdfWriter
 
     writer = PdfWriter()
     writer.add_metadata({"/Title": request.document.name, "/Author": request.document.author, "/Subject": "Rack-Dispo · Vorplanung · keine Ausführungsfreigabe"})
+    if request.sheets:
+        _sheet_pages(writer, request)
+        output = BytesIO()
+        writer.write(output)
+        return output.getvalue()
     for scene in scenes(request):
         ops = ["1 J 1 j"]
         denominator = next((scale for scale in (5, 10, 20, 25, 50, 100, 200, 500, 1000) if scene.width / scale <= 190 and scene.height / scale <= 234), None)

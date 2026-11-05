@@ -12,11 +12,14 @@ import RackPorts from './RackPorts';
 import { addPlacement, analyzeRacks, copyRack, createEmptyDocument, createExampleDocument, duplicatePlacements, movePlacements, portRows, removePlacements, validateDocument } from './model';
 import { bomCSV, initialHistory, MAX_DOCUMENT_BYTES, parseRackFile, portsCSV, pushDocument, RACK_DRAFT_KEY, safeFilename, travelHistory } from './documentStore';
 import { downloadRackFile, exportRack } from './rackApi';
+import RackSheet, { rackSheetMarkup, sheetLogo } from './RackSheet';
+import logoRaw from '../../assets/edeco-logo.svg?raw';
 import type { DeviceProfile, MountSide, MutationResult, PortRow, Rack, RackDocument, RackIssue } from './types';
 import './rack-planner.css';
 
 type Tab = 'properties' | 'ports' | 'checks' | 'bom';
 type Dialog = 'new-rack' | 'document' | 'export' | null;
+const SHEET_LOGO = sheetLogo(logoRaw);
 const number = (value: number) => value.toLocaleString('de-CH', { maximumFractionDigits: 1 });
 function initialDraft() {
   try {
@@ -188,7 +191,11 @@ export default function RackPlanner({ onHome, onOpenTool }: ToolProps) {
     if (!rack || busy) return;
     const snapshot = document; setBusy(`${format.toUpperCase()} wird erstellt …`); setError(''); abort.current = new AbortController();
     try {
-      const file = await exportRack(snapshot, exportAll ? document.racks.map(item => item.id) : [rack.id], exportViews === 'both' ? ['front', 'rear'] : [exportViews], format, abort.current.signal);
+      const rackIds = exportAll ? snapshot.racks.map(item => item.id) : [rack.id], views: ('front' | 'rear')[] = exportViews === 'both' ? ['front', 'rear'] : [exportViews];
+      // PDF and SVG are made from the same sheet markup as the preview below.
+      const sheets = format === 'dxf' ? undefined : rackIds.flatMap(rackId => views.map(view => ({ rackId, view,
+        svg: rackSheetMarkup({ document: snapshot, rackId, view, logo: SHEET_LOGO, filename: `${safeFilename(snapshot.name)}.${format}` }) })));
+      const file = await exportRack(snapshot, rackIds, views, format, abort.current.signal, sheets);
       if (snapshot !== documentRef.current) { setError('Der Plan wurde während des Exports geändert. Bitte erneut exportieren.'); return; }
       downloadRackFile(file, file.name); if (format === 'pdf') setPdf({ file, document: snapshot, scope: exportScope });
       setNotice(`${format.toUpperCase()} heruntergeladen · ${exportAll ? 'alle Racks' : rack.label} · ${exportViews === 'both' ? 'Vorder- und Rückseite' : exportViews === 'front' ? 'Vorderseite' : 'Rückseite'}.`);
@@ -255,7 +262,8 @@ export default function RackPlanner({ onHome, onOpenTool }: ToolProps) {
     {dialog === 'document' && <DocumentDialog error={error} document={document} close={() => setDialog(null)} save={next => { if (commit(next)) setDialog(null); }} />}
     {editProfile && <RackProfileDialog profile={editProfile} onSave={saveProfile} onClose={() => setEditProfile(null)} />}
     {dialog === 'export' && <Overlay title="Rack exportieren" close={() => setDialog(null)} busy={Boolean(busy)}><div className="rd-export-options"><label><input type="checkbox" checked={exportAll} disabled={Boolean(busy)} onChange={event => setExportAll(event.target.checked)} />Alle Racks ({document.racks.length})</label><label className="rd-field">Ansichten<select aria-label="Export-Ansichten" value={exportViews} disabled={Boolean(busy)} onChange={event => setExportViews(event.target.value as typeof exportViews)}><option value="both">Vorder- und Rückseite</option><option value="front">Vorderseite</option><option value="rear">Rückseite</option></select></label></div>
-      <div className="rd-export-actions">{(['pdf', 'svg', 'dxf'] as const).map(format => <button key={format} className="btn primary" disabled={Boolean(busy)} onClick={() => void runExport(format)}><Download size={17} />{format.toUpperCase()} exportieren</button>)}</div><p className="rd-muted">PDF mit ausgewiesenem Massstab · SVG und DXF als Vektoren in mm. Offene Angaben und Konflikte bleiben im Export gekennzeichnet.</p>
+      <div className="rd-export-actions">{(['pdf', 'svg', 'dxf'] as const).map(format => <button key={format} className="btn primary" disabled={Boolean(busy)} onClick={() => void runExport(format)}><Download size={17} />{format.toUpperCase()} exportieren</button>)}</div><p className="rd-muted">PDF und SVG entsprechen genau der Planvorschau unten · DXF als CAD-Zeichnung 1:1 in mm. Offene Angaben stehen im Anhang.</p>
+      {rack && <figure className="rd-sheet-preview" aria-label="Planvorschau wie im Export"><RackSheet document={document} rackId={rack.id} view={exportViews === 'rear' ? 'rear' : 'front'} logo={SHEET_LOGO} filename={`${safeFilename(document.name)}.pdf`} /><figcaption>Planvorschau · {rack.label} · {exportViews === 'rear' ? 'Rückansicht' : 'Vorderansicht'} · identisch mit PDF und SVG</figcaption></figure>}
       {busy && <div className="rd-progress" role="status"><span />{busy}</div>}{error && <p className="rd-danger" role="alert">{error}</p>}{notice && <p role="status">{notice}</p>}
       {currentPdf && onOpenTool && <div className="rd-export-handoff"><strong>Fertiges PDF weiterbearbeiten</strong><button className="btn" disabled={Boolean(busy)} onClick={() => send('pdf-werkzeuge')}>An PDF-Werkstatt</button><button className="btn" disabled={Boolean(busy)} onClick={() => send('dateien-umbenennen')}>An Dateien umbenennen</button><small>Lokale Übergabe. Am Ziel ausdrücklich übernehmen.</small></div>}
     </Overlay>}

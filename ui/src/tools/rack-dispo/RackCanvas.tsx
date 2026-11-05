@@ -54,7 +54,7 @@ export function RackDeviceGlyph({ profile, width, height }: { profile: DevicePro
         const portWidth = cellWidth * .76, portHeight = Math.min(cellHeight * .56, portWidth * .8);
         return <g key={port.number} data-port-number={port.number} transform={`translate(${x} ${y})`}><title>{`${profile.medium} · Port ${port.number}`}</title>
           {profile.medium === "LWL" ? <><rect x={0} y={cellHeight * .32} width={portWidth * .43} height={portHeight} rx="1" /><rect x={portWidth * .54} y={cellHeight * .32} width={portWidth * .43} height={portHeight} rx="1" /></> : <path d={`M0 ${cellHeight * .32}h${portWidth}v${portHeight}h${-portWidth * .24}v${portHeight * .18}h${-portWidth * .52}v${-portHeight * .18}H0Z`} />}
-          <text className="rd-port-number" x={portWidth / 2} y={cellHeight * .22} textAnchor="middle" fontSize={Math.min(9, cellHeight * .25)}>{port.number}</text>
+          <text className="rd-port-number" fill="currentColor" stroke="none" x={portWidth / 2} y={cellHeight * .22} textAnchor="middle" fontSize={Math.min(9, cellHeight * .25)}>{port.number}</text>
         </g>;
       })}
       {profile.kind === "switch" && <><circle cx="20" cy={height / 2 - 5} r="2.5" /><circle cx="20" cy={height / 2 + 5} r="2.5" /><path d={`M${width - 28} ${height / 2 - 6}h12m-12 6h12m-12 6h12`} /></>}

@@ -371,12 +371,12 @@ def test_pdf_export_contains_both_views_of_the_current_rack(rack_ui, tmp_path):
     path = tmp_path / output.value.suggested_filename
     output.value.save_as(path)
     document = PdfReader(path)
-    assert len(document.pages) == 4  # Drawing and readable device/issue appendix per view.
+    assert len(document.pages) == 3  # The two program sheets and one shared device/issue appendix.
     texts = [pdf_page.extract_text() for pdf_page in document.pages]
     assert all("0.3 UKV" in text for text in texts)
-    assert "Vorderansicht" in texts[0]
-    assert "Rückansicht" in texts[2]
-    assert "Prüfpanel 24 Ports" in texts[1]
+    assert "Vorderansicht" in texts[0] and "Prüfpanel 24 Ports" in texts[0]
+    assert "Rückansicht" in texts[1]
+    assert "Vorderansicht und Rückansicht" in texts[2] and "Prüfpanel 24 Ports" in texts[2]
     assert all(abs(float(pdf_page.mediabox.width) - 595.28) < 1 for pdf_page in document.pages)
     handoff = page.get_by_role("button", name="An PDF-Werkstatt", exact=True)
     playwright.expect(handoff).to_be_visible()

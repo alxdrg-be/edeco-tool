@@ -154,3 +154,4 @@
   .rd-profile-dialog header, .rd-dialog-body, .rd-profile-dialog footer { padding: 14px 16px; }
   .rd-profile-dialog footer .rd-button { flex: 1; }
 }
+.rd-sheet-preview{margin:12px 0 0;display:flex;flex-direction:column;gap:6px;align-items:center}.rd-sheet-preview svg{width:100%;max-width:420px;height:auto;aspect-ratio:210/297;box-shadow:0 2px 10px rgb(0 0 0/.18);background:#fff}.rd-sheet-preview figcaption{font-size:12px;color:var(--muted)}

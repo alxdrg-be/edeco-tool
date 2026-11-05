@@ -1,9 +1,10 @@
 import { safeFilename } from './documentStore';
 import type { RackDocument } from './types';
 
-export async function exportRack(document: RackDocument, rackIds: string[], views: ('front' | 'rear')[], format: 'pdf' | 'svg' | 'dxf', signal?: AbortSignal): Promise<File> {
+export interface RackSheetPayload { rackId: string; view: 'front' | 'rear'; svg: string }
+export async function exportRack(document: RackDocument, rackIds: string[], views: ('front' | 'rear')[], format: 'pdf' | 'svg' | 'dxf', signal?: AbortSignal, sheets?: RackSheetPayload[]): Promise<File> {
   const response = await fetch('/api/tools/rack-dispo/export', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ document, rack_ids: rackIds, views, format }), signal });
+    body: JSON.stringify({ document, rack_ids: rackIds, views, format, ...(sheets ? { sheets } : {}) }), signal });
   if (!response.ok) {
     const data = await response.json().catch(() => ({}));
     const detail = Array.isArray(data.detail) ? data.detail.slice(0, 3).map((item: { msg?: string }) => item.msg).filter(Boolean).join(' ') : data.detail;

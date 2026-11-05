@@ -190,12 +190,22 @@ class RackDocument(Record):
         return self
 
 
+class Sheet(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+    rackId: Id
+    view: Literal["front", "rear"]
+    svg: Annotated[str, Field(min_length=20, max_length=4 * 1024 * 1024)]
+
+
 class ExportRequest(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True, allow_inf_nan=False)
     document: RackDocument
     rack_ids: Annotated[list[Id], Field(min_length=1, max_length=50)] | None = None
     views: Annotated[list[Literal["front", "rear"]], Field(min_length=1, max_length=2)] = ["front", "rear"]
     format: Literal["pdf", "svg", "dxf", "ports-csv", "bom-csv"]
+    # A4 sheets drawn by the program itself (one per rack and view). PDF and SVG
+    # are made from exactly this markup so preview and export cannot differ.
+    sheets: Annotated[list[Sheet], Field(max_length=100)] | None = None
 
     @model_validator(mode="after")
     def selection(self):
@@ -204,6 +214,10 @@ class ExportRequest(BaseModel):
         if self.rack_ids is not None:
             if len(set(self.rack_ids)) != len(self.rack_ids) or not set(self.rack_ids) <= {rack.id for rack in self.document.racks}:
                 raise ValueError("Ungültige Rackauswahl.")
+        if self.sheets is not None:
+            selected = {rack.id for rack in self.selected_racks()}
+            if any(sheet.rackId not in selected or sheet.view not in self.views for sheet in self.sheets):
+                raise ValueError("Planblatt passt nicht zur Rack- oder Ansichtsauswahl.")
         racks = {rack.id for rack in self.selected_racks()}
         profiles = {profile.id: profile for profile in self.document.profiles}
         capacity = sum(profiles[placement.profileId].portCount for placement in self.document.placements if placement.rackId in racks and placement.status != "removed" and (placement.side in self.views or placement.side.startswith("zero-")))
