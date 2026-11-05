@@ -47,8 +47,6 @@ export const TOOLS: readonly ToolInfo[] = [
   { id: "berechnungsablage", title: "Gemeinsame Berechnungsablage", category: "Berechnungen", symbol: "A", color: "petrol", parentId: "berechnungen",
     description: "Rechenstände und Berechnungsexporte projektbezogen im Serverordner mit Notizen gemeinsam ablegen.", status: "available", developmentStatus: "in-progress" },
   ...WORKBENCH_TOOLS,
-  { id: "leistungsbilanz", title: "Leistungsbilanz", category: "Berechnungen", symbol: "kW", color: "violet", parentId: "berechnungen",
-    description: "Geplant: Verbraucher erfassen, Leistungen mit Gleichzeitigkeitsfaktoren je Verteilung zusammenstellen.", status: "planned" },
   { id: "kabelberechnung", title: "Kabelberechnung", category: "Berechnungen", symbol: "mm²", color: "blue", parentId: "berechnungen",
     description: "Schweizer Spannungsfall-Vorprüfung mit Leiterwiderständen bei 55 °C, Live-Leitungsmodell und Querschnittsvergleich.", status: "available", developmentStatus: "in-progress" },
 ];

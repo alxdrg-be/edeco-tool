@@ -29,6 +29,9 @@ export const CALCULATOR_PURPOSE: Readonly<Record<string, CalculatorPurpose>> = {
   "premium-poe": { use: "Du prüfst eine PoE-Strecke mit mehreren Abschnitten, zum Beispiel über Patchfelder und Dosen.", needs: "Länge und Kabeltyp pro Abschnitt sowie PoE-Klasse." },
   "premium-brandlast": { use: "Du vergleichst die Kabel-Brandlast im Fluchtweg vor und nach einer Sanierung.", needs: "Kabelbestand heute, geplanter Bestand und Länge des Fluchtwegs." },
   "leistungsbilanz": { use: "Du stellst alle Verbraucher zusammen und ermittelst die gleichzeitige Leistung für den Anschluss.", needs: "Verbraucherliste mit Leistung und Gleichzeitigkeit." },
+  "zev-gestehung": { use: "Du rechnest die Gestehungskosten einer PV-Anlage in Rappen pro Kilowattstunde aus Investition, Zins und erwartetem Ertrag.", needs: "Investition, Laufzeit, Zinssatz, Betriebskosten, Anlagenleistung und spezifischen Ertrag." },
+  "rtv-daempfung": { use: "Du rechnest den Pegel am Ende einer Empfangsstrecke aus Kabeldämpfung und Gerätepegeln weiter.", needs: "Startpegel sowie Länge und Dämpfung je Kabel oder die Pegeländerung je Gerät." },
+  "bkp-schaetzung": { use: "Du addierst Kostenpositionen mit Menge und eigenem Einheitspreis zu einer Schätzsumme.", needs: "Positionen mit Menge und Preis sowie die gewünschte Schätzbandbreite." },
 };
 
 export function calculatorPurpose(id: string | undefined): CalculatorPurpose | undefined {

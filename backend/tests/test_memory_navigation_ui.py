@@ -28,7 +28,7 @@ def test_memory_tile_formula_shortcut_and_browser_back_share_the_real_module(edi
     playwright.expect(page.get_by_role("heading", name="Elektro-Memory", exact=True)).to_be_visible()
     page.get_by_role("button", name="Zum Toolhub", exact=True).click()
     page.get_by_role("button", name="Berechnungen öffnen", exact=True).click()
-    playwright.expect(page.locator(".calc-tile")).to_have_count(26)
+    playwright.expect(page.locator(".calc-tile")).to_have_count(29)
     page.get_by_role("button", name="Formelrechner öffnen", exact=True).click()
     playwright.expect(page).to_have_url(re.compile(r"#rechner/formelrechner$"))
     playwright.expect(page.get_by_role("tab", name="Formelrechner", exact=True)).to_have_attribute("aria-selected", "true")

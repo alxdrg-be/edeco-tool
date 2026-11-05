@@ -23,10 +23,13 @@ const SIATableControls = lazy(() => import("./SIATableControls"));
 const PoeRouteControls = lazy(() => import("./PoeRouteControls"));
 const FireLoadControls = lazy(() => import("./FireLoadControls"));
 const SelectivityControls = lazy(() => import("./SelectivityControls"));
+const SheetControls = lazy(() => import("./SheetControls"));
+const SHEET_IDS = new Set(["leistungsbilanz", "zev-gestehung", "rtv-daempfung", "bkp-schaetzung"]);
 const INSTALLATION_IDS = new Set(["nin-kabelrechner", "strombelastbarkeit", "ls-schalter", "potenzialausgleich", "pva-rechner", "brandlast", "poe"]);
 async function loadCalculator(id: string): Promise<CalculatorDefinition | null> {
   if (INSTALLATION_IDS.has(id)) return (await import("./installation")).INSTALLATION.find(item => item.id === id) ?? null;
   if (id.startsWith("premium-")) return (await import("./planning")).PLANNING.find(item => item.id === id) ?? null;
+  if (SHEET_IDS.has(id)) return (await import("./projectSheets")).SHEETS.find(item => item.id === id) ?? null;
   return (await import("./fundamentals")).FUNDAMENTALS.find(item => item.id === id) ?? null;
 }
 
@@ -52,6 +55,9 @@ function structureSummary(id: string, input: Inputs): string {
     if (id === "premium-poe") return `${rows("poeSegments").length} Teilstrecken`;
     if (id === "premium-sia2056") return `${rows("siaZones").length} Zonen`;
     if (id === "premium-brandlast" && input.comparisonEnabled !== "no") return `${rows("fireloadRows").length} Positionen A · ${rows("fireloadRowsAfter").length} Positionen B`;
+    if (id === "leistungsbilanz") return `${rows("loadBoards").length} Verteilungen`;
+    if (id === "rtv-daempfung") return `${rows("rtvSegments").length} Abschnitte`;
+    if (id === "bkp-schaetzung") return `${rows("costItems").length} Positionen`;
     return `${rows("fireloadRows").length} Kabelpositionen`;
   } catch { return "Positionsliste prüfen"; }
 }
@@ -98,7 +104,7 @@ function CalculatorForm({ definition, ...props }: ToolProps & { definition: Calc
   const { result, error } = useMemo(() => { if (restoreError) return { result: null, error: new Error(restoreError) }; try { return { result: validateResult(definition.calculate(input)), error: null }; } catch (e) { return { result: null, error: e }; } }, [input, definition, restoreError]);
   const diagnostics = useMemo(() => result ? resultDiagnostics(definition, input, result) : errorDiagnostics(definition, input, error), [definition, input, result, error]);
   const document = { schema: "edeco.workbench.v1", calculatorId: definition.id, project, input, result, notes, source: definition.source, scope: definition.scope };
-  const visibleFields = definition.fields.filter(field => !["grids", "depotUnits", "depotPoints", "costRows", "siaZones", "poeSegments", "fireloadRows", "fireloadRowsAfter", "selectivityStages", "chargingSourceConnection"].includes(field.key) && fieldVisible(field, input));
+  const visibleFields = definition.fields.filter(field => !["grids", "depotUnits", "depotPoints", "costRows", "siaZones", "poeSegments", "fireloadRows", "fireloadRowsAfter", "selectivityStages", "chargingSourceConnection", "loadBoards", "rtvSegments", "costItems"].includes(field.key) && fieldVisible(field, input));
   if (definition.id === "ls-schalter") visibleFields.sort((a, b) => (a.key === "rated" ? -1 : b.key === "rated" ? 1 : 0));
   const choices = Object.fromEntries(definition.fields.map(field => [field.key, field.options ?? fieldOptions(definition.id, field.key) ?? []]));
   if (definition.id === 'nin-kabelrechner') choices.method = ninMethodOptions(['single', 'multi'].includes(input.conductorKind) ? input.conductorKind : 'all');
@@ -110,9 +116,12 @@ function CalculatorForm({ definition, ...props }: ToolProps & { definition: Calc
     : definition.id === "premium-brandlast" && input.fireloadMode === "dynamic" ? { title: input.comparisonEnabled === "no" ? "Kabelpositionen Variante A bearbeiten" : "Kabelpositionen vorher / nachher bearbeiten", content: <><FireLoadControls input={input} onChange={editField} disabled={!ready} lengthKey="route" title={input.comparisonEnabled === "no" ? "Variante A" : "Vorher"} />{input.comparisonEnabled !== "no" && <FireLoadControls input={input} onChange={editField} disabled={!ready} rowsKey="fireloadRowsAfter" lengthKey="route" title="Nachher" />}</> }
     : definition.id === "premium-pkw" && input.layout === "modular" ? { title: "Ladegrids und Punktgruppen bearbeiten", content: <PlanningControls calculatorId={definition.id} input={input} onChange={editField} disabled={!ready} /> }
     : definition.id === "premium-lkw" && input.depotLayout === "modular" ? { title: "Power Units und Abgabepunkte bearbeiten", content: <PlanningControls calculatorId={definition.id} input={input} onChange={editField} disabled={!ready} /> }
-    : definition.id === "premium-ladekosten" && input.costLayout === "contracts" ? { title: "Ladepunkte und Kostenpositionen bearbeiten", content: <PlanningControls calculatorId={definition.id} input={input} onChange={editField} disabled={!ready} /> } : null;
+    : definition.id === "premium-ladekosten" && input.costLayout === "contracts" ? { title: "Ladepunkte und Kostenpositionen bearbeiten", content: <PlanningControls calculatorId={definition.id} input={input} onChange={editField} disabled={!ready} /> }
+    : definition.id === "leistungsbilanz" ? { title: "Verteilungen und Verbraucher bearbeiten", content: <SheetControls calculatorId={definition.id} input={input} onChange={editField} disabled={!ready} /> }
+    : definition.id === "rtv-daempfung" ? { title: "Pegelabschnitte bearbeiten", content: <SheetControls calculatorId={definition.id} input={input} onChange={editField} disabled={!ready} /> }
+    : definition.id === "bkp-schaetzung" ? { title: "Kostenpositionen bearbeiten", content: <SheetControls calculatorId={definition.id} input={input} onChange={editField} disabled={!ready} /> } : null;
   function navigateDiagnostic(target: DiagnosticTarget) {
-    const positionField = ["grids", "depotUnits", "depotPoints", "costRows", "siaZones", "poeSegments", "fireloadRows", "fireloadRowsAfter", "selectivityStages"].includes(target.field);
+    const positionField = ["grids", "depotUnits", "depotPoints", "costRows", "siaZones", "poeSegments", "fireloadRows", "fireloadRowsAfter", "selectivityStages", "loadBoards", "rtvSegments", "costItems"].includes(target.field);
     const scope = positionField ? positions.current : controlSection.current;
     if (!scope) return;
     if (scope instanceof HTMLDetailsElement) scope.open = true;

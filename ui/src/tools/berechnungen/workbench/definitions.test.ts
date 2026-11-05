@@ -5,10 +5,10 @@ import { WORKBENCH_CATALOG } from "./catalog.ts";
 import { defaults, validateResult } from "./types.ts";
 
 test("every registered native workbench has a working finite example and unique field keys", () => {
-  assert.equal(CALCULATORS.length, 22);
+  assert.equal(CALCULATORS.length, 26);
   assert.deepEqual(CALCULATORS.map(item => item.id).sort(), WORKBENCH_CATALOG.map(item => item[0]).sort());
   for (const definition of CALCULATORS) {
-    assert.match(definition.source, /^https:\/\/www\.elektro-rechner\.ch\//);
+    assert.match(definition.source, /^(https:\/\/www\.elektro-rechner\.ch\/|edeco-arbeitsblatt:)/);
     assert.equal(new Set(definition.fields.map(field => field.key)).size, definition.fields.length, definition.id);
     const result = validateResult(definition.calculate(defaults(definition)));
     assert.ok(result.metrics.length >= 2, definition.id);
