@@ -135,3 +135,23 @@ Nur nach Freigabe. Aufwand als Schätzung.
 - Ob «Vorsichtig» bei jedem gespeicherten Altfeld der bisherigen Zahl entspricht, ist nur für die getesteten Migrationen belegt.
 - Renderzeit, grosse Exporte und der Rack-Schrifttest im Browser sind nicht gemessen beziehungsweise nicht ausgeführt.
 - `python -m nova_legend` ohne Toolbox hängt `local_security` nicht ein. Der Toolhub-Start tut es. Ob jemand den nackten Nova-Start nutzt, ist hier nicht bekannt.
+
+## Umgesetzt
+
+Die gespeicherten Zahlen bleiben gleich. Jeder Schritt steht in einem eigenen Commit mit `[skip release]`.
+
+- Netzplaner: Bei «Wie NIN-Programm» zeigt das Temperaturfeld fest 20 °C und bleibt nur Anzeige. Der gespeicherte Wert gilt wieder bei «Vorsichtig».
+- Kurzschluss 230 V: Die Statuszeile nennt den uk-Bezug. Die Trafo-Vorgabe bleibt ein gültiger Altmodus, die Impedanzformel ist unverändert.
+- Ik,min: Die Annahmen nennen die Spanne von bis zu 6,3 % durch Betragsaddition.
+- Kurzschlussfestigkeit: Nur mit selbst belegtem k und selbst belegter Zeit. Ohne Beleg bleibt der Prüfpunkt offen. Keine Normtabelle.
+- RCD-Typ steht auf «Nicht belegt». Ein Ladepunkt ohne Typ B oder Typ A/F mit 6 mA bleibt offen und wird nicht freigegeben.
+- Die Rechnergruppen laden getrennt. Der Workbench-Chunk ging in diesem Lauf von 523,70 kB auf 362,53 kB.
+- Plan-Upload stoppt über 250 MB mit einer deutschen Meldung.
+- An Stirling geht nur `JSESSIONID`. Das lokale Sitzungscookie und fremde Cookies bleiben hier.
+- Migrationstests für PV, Potenzialausgleich, Trafo-uk, Ladekosten, PoE-Route und SIA 2056.
+- Kurzschluss lässt 0 m als Fehler an der Quelle zu und trifft dort die Ik,max des Trafo-Rechners. Die Verlustrechnung nimmt 366 Betriebstage.
+- R′ und X′ kommen aus der Leitetabelle. 300 mm² bleibt ohne Reaktanz aussen vor.
+- Vier Netzplaner-Meldungen nennen die Grenze und den nächsten Schritt.
+- Importdatei und Projektzeile sind per Tastatur erreichbar.
+
+Der bekannte Schriftumbruchtest `test_font_metrics_avoid_stranded_suffixes_and_break_at_existing_hyphens` bleibt rot und wurde nicht angefasst.
