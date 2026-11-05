@@ -1,6 +1,7 @@
 import { useId, type ReactNode } from "react";
 import type { CalculationResult, DiagramNode, Inputs, Metric, Tone } from "./types";
 import { useAnimatedGeometry } from "../useAnimatedGeometry";
+import EscapeRoute from "./escapeRouteFigure";
 import "./technical-graphics.css";
 
 type SymbolKind = "source" | "transformer" | "cable" | "fault" | "breaker" | "bond" | "pse" | "pd" | "converter" | "charger" | "motor" | "roof";
@@ -87,26 +88,6 @@ function Cascade({ nodes }: { nodes: DiagramNode[] }) {
   })}</svg>}</Figure>;
 }
 
-function Corridor({ result, input }: { result: CalculationResult; input?: Inputs }) {
-  const counted = (keys: string[]) => {
-    if (!input || keys.some(key => input[key] === undefined)) return null;
-    const values = keys.map(key => Number(input[key].replace(",", ".")));
-    return values.every(value => Number.isInteger(value) && value >= 0) ? values.reduce((sum, value) => sum + value, 0) : null;
-  };
-  const numericMetric = (label: string) => { const value = result.metrics.find(metric => metric.label === label)?.value; return typeof value === "number" ? value : null; };
-  const comparison = input && Object.hasOwn(input, "countBefore1") && (input.fireloadMode !== "dynamic" || input.comparisonEnabled !== "no");
-  const states = comparison ? [
-    { label: "Vorher", count: input?.fireloadMode === "dynamic" ? numericMetric("Kabel vorher") : counted(["countBefore1", "countBefore2"]), metric: result.metrics.find(metric => metric.label === "Vorher") ?? result.metrics[0] },
-    { label: "Nachher", count: input?.fireloadMode === "dynamic" ? numericMetric("Kabel nachher") : counted(["countAfter1", "countAfter2"]), metric: result.metrics.find(metric => metric.label === "Nachher") ?? result.metrics[1] },
-  ] : [{ label: "Erfasster Bestand", count: input?.fireloadMode === "dynamic" ? numericMetric("Kabel total") : counted(["n1", "n2", "n3"]), metric: result.metrics[0] }];
-  return <Figure title="Kabelbestand im Fluchtweg" description="Die Bilanz bezieht die gesamte eingetragene Kabelbrandlast auf die betrachtete Fluchtweglänge." caption="Symbolischer Bestandsvergleich. Linien stehen für Kabel, ohne örtliche Verteilung oder massstäbliche Länge zu behaupten. Lokale Häufungen, Abschottungen und Brandverhalten sind separat zu prüfen.">{id => <svg className="lab-svg technical-svg" viewBox={`0 0 810 ${states.length * 210 + 15}`} role="img" aria-labelledby={`${id}-title`}><title id={`${id}-title`}>Kabelbestand und berechnete spezifische Brandlast{comparison ? " vor und nach der Sanierung" : ""}</title>{states.map((state,index) => {
-    const y = index * 210, shown = Math.min(12, state.count ?? 0);
-    const comparisonItem = result.comparisons?.flatMap(chart => chart.items).find(item => item.label === state.label);
-    const tone = comparisonItem && comparisonItem.actual > comparisonItem.target + 1e-9 ? "error" : state.metric.tone ?? "neutral";
-    return <g key={state.label}><text x="405" y={y+32} textAnchor="middle" className="technical-node-label">{state.label}</text><text x="405" y={y+57} textAnchor="middle" className="technical-node-detail">{state.count === null ? "Kabelanzahl nicht im Rechenstand ausgewiesen" : `${state.count.toLocaleString("de-CH")} Kabel erfasst · ${shown} symbolisch dargestellt`}</text><path d={`M58 ${y+76}H750V${y+147}H58Z`} fill="var(--panel-2)" stroke="var(--line-strong)" strokeWidth="3" /><rect x="90" y={y+91} width="630" height="40" rx="4" fill="var(--panel)" stroke="var(--muted)" />{Array.from({ length: shown }, (_, cable) => <path key={cable} d={`M106 ${y+98+cable*26/Math.max(1,shown-1)}H704`} stroke={colour(tone)} strokeWidth="2" />)}<text x="405" y={y+187} textAnchor="middle" className="technical-node-value">{display(state.metric)}</text></g>;
-  })}</svg>}</Figure>;
-}
-
 function CableTray({ input, result }: { input?: Inputs; result: CalculationResult }) {
   const count = Number(input?.circuits ?? 1), shown = Math.min(12, Math.max(1, Number.isFinite(count) ? count : 1));
   const geometry = useAnimatedGeometry(Object.fromEntries(Array.from({ length: shown }, (_, index) => [`x-${index}`, 405 - (shown - 1) * 23 + index * 46])));
@@ -135,7 +116,7 @@ export function hasTechnicalGraphic(calculatorId: string | undefined, result: Ca
 
 export default function TechnicalGraphics({ calculatorId = "", result, input }: { calculatorId?: string; result: CalculationResult; input?: Inputs }) {
   if (calculatorId === "nin-kabelrechner") return <LoadedCores result={result} input={input} />;
-  if (calculatorId === "brandlast" || calculatorId === "premium-brandlast") return <Corridor result={result} input={input} />;
+  if (calculatorId === "brandlast" || calculatorId === "premium-brandlast") return <EscapeRoute calculatorId={calculatorId} input={input} result={result} />;
   if (calculatorId === "strombelastbarkeit") return <CableTray input={input} result={result} />;
   if (calculatorId === "motoranlauf") return <MotorStates result={result} />;
   if (calculatorId === "pva-rechner") return <PVBalance result={result} />;

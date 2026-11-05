@@ -122,6 +122,19 @@ Nur nach Freigabe. Die Zahlen bleiben gleich.
 - Renderzeiten grosser Legenden und grosser Netze sind nicht gemessen.
 - PoE, SIA 2056, PV-Tarife und Brandmelde-Raster bleiben so unsicher, wie der Code sie selbst bezeichnet.
 
+## Umgesetzt nach Freigabe
+
+Brandlast, nur das Bild. Die Summe `MJ/m × Anzahl × Länge`, der eingegebene Grenzwert und gespeicherte Stände bleiben gleich.
+
+- Der Fluchtweg ist ein Schnitt mit Verteiler, zwei Trassen und zehn Plätzen. Leer steht «Noch keine Kabel im Fluchtweg».
+- Länge und «Ist / Grenzwert MJ/m» stehen auf der Zeichnung. Die grosse Zahl bleibt in der Ergebnisspalte.
+- Grün nur horizontal, unter dem eingegebenen Grenzwert und mit eingetragenem Nachweis. Orange bei offenem Nachweis. Rot bei Überschreitung oder kritischem Brandverhalten. Vertikal bleibt ohne pauschale Freigabe.
+- Vorher und Nachher sind zwei Zustände desselben Schnitts. Beide Kabelzahlen bleiben sichtbar.
+- Neue Positionen lassen sich über die bestehenden Kabelfamilien anlegen. Menge, MJ/m, Länge und Nachweis bleiben Eingaben.
+- Ab 1100 px Breite: Eingabe, Schnitt, Ergebnis.
+
+Die Selektivität ist in diesem Schritt nicht angefasst.
+
 ## Angehalten
 
-Phase 1 ist der Bericht. Keine Umsetzung, bis die Punkte freigegeben sind. Bestehende Referenztests werden nicht gelockert. Gespeicherte Berechnungen rechnen weiter wie bisher.
+Weitere Punkte aus diesem Bericht warten auf Freigabe. Bestehende Referenztests werden nicht gelockert. Gespeicherte Berechnungen rechnen weiter wie bisher.
