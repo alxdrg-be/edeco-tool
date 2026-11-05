@@ -39,14 +39,14 @@ def test_memory_tile_formula_shortcut_and_browser_back_share_the_real_module(edi
 def test_memory_and_formula_routes_remain_available_in_demo_and_survive_reload(editor):
     page, _ = admin_hub(editor)
     set_demo(page)
-    playwright.expect(page.locator(".toolbox-card")).to_have_count(5)
+    playwright.expect(page.locator(".toolbox-card")).to_have_count(6)  # default demo set incl. Rack-Dispo
     page.get_by_role("button", name="Elektro-Memory öffnen", exact=True).click()
     playwright.expect(page.get_by_role("heading", name="Elektro-Memory", exact=True)).to_be_visible()
     playwright.expect(page).to_have_url(re.compile(r"#memory$"))
     page.reload()
     playwright.expect(page.get_by_role("heading", name="Elektro-Memory", exact=True)).to_be_visible()
     page.get_by_role("button", name="Zum Toolhub", exact=True).click()
-    playwright.expect(page.locator(".toolbox-card")).to_have_count(5)
+    playwright.expect(page.locator(".toolbox-card")).to_have_count(6)  # default demo set incl. Rack-Dispo
     page.evaluate("location.hash = 'rechner/formelrechner'")
     playwright.expect(page.get_by_role("tab", name="Formelrechner", exact=True)).to_have_attribute("aria-selected", "true")
     page.get_by_role("tab", name="Nachschlagen", exact=True).click()
