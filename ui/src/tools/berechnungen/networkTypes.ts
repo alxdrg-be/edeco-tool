@@ -14,12 +14,15 @@ export interface NetworkEdge {
   to: string;
   values: Record<string, string>;
 }
+export type NetworkPlacement = "dock" | "free";
 export interface NetworkDocument {
   version: 1;
   name: string;
   nodes: NetworkNode[];
   edges: NetworkEdge[];
   orientation?: NetworkOrientation;
+  /** Dock keeps equal cells on one raster. Free keeps the saved coordinates. */
+  placement?: NetworkPlacement;
 }
 export type NetworkTone = "ok" | "warning" | "error" | "neutral";
 export interface NetworkIssue {

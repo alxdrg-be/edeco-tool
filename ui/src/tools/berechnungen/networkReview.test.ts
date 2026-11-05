@@ -33,6 +33,7 @@ test("snapshot data is deep-copied and deep-frozen, never edited through the liv
 test("moving and changing orientation do not invalidate the physical check", () => {
   const document = createDefaultNetwork(), review = checkNetwork(document, stamp), changed = clone(document);
   changed.orientation = "vertical";
+  changed.placement = "dock";
   changed.nodes.forEach((node, index) => { node.x = index * 50 - 40; node.y = 1000 + index * 250; });
   assert.equal(networkCalculationKey(changed), review.key);
   assert.equal(reviewIsCurrent(review, changed), true);

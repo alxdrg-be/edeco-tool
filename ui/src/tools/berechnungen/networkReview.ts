@@ -37,7 +37,7 @@ function byIdThenContent(a: unknown, b: unknown) {
 export function networkCalculationKey(document: NetworkDocument): string {
   const raw = document as unknown as Record<string, unknown>;
   if (raw === null || typeof raw !== "object") return encoded({ revision: NETWORK_CHECK_REVISION, document: raw });
-  const physics = Object.fromEntries(Object.entries(raw).filter(([key]) => key !== "orientation"));
+  const physics = Object.fromEntries(Object.entries(raw).filter(([key]) => key !== "orientation" && key !== "placement"));
   if (Array.isArray(raw.nodes)) physics.nodes = raw.nodes.map(node => node !== null && typeof node === "object" ? Object.fromEntries(Object.entries(node).filter(([key]) => key !== "x" && key !== "y")) : node).sort(byIdThenContent);
   if (Array.isArray(raw.edges)) physics.edges = [...raw.edges].sort(byIdThenContent);
   return encoded({ revision: NETWORK_CHECK_REVISION, document: physics });
