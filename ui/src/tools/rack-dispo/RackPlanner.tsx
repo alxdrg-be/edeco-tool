@@ -41,15 +41,26 @@ function Overlay({ title, close, busy = false, children }: { title: string; clos
     </section>
   </div>;
 }
+/** Outer sizes named in the Steiger catalogue 2026. Usable depth is not stated there and stays empty. */
+const RACK_SIZES = [
+  { id: '967461', units: 42, widthMm: 800, heightMm: 2000, depthMm: 1000, name: 'Netzwerkschrank' },
+  { id: '967460', units: 42, widthMm: 800, heightMm: 2000, depthMm: 800, name: 'Netzwerkschrank' },
+  { id: '967454', units: 24, widthMm: 600, heightMm: 1130, depthMm: 600, name: 'Wandgehäuse' },
+  { id: '967453', units: 21, widthMm: 600, heightMm: 997, depthMm: 600, name: 'Wandgehäuse' },
+  { id: '967452', units: 15, widthMm: 600, heightMm: 730, depthMm: 600, name: 'Wandgehäuse' },
+  { id: '967451', units: 12, widthMm: 600, heightMm: 597, depthMm: 600, name: 'Wandgehäuse' },
+  { id: '967450', units: 9, widthMm: 600, heightMm: 464, depthMm: 400, name: 'Wandgehäuse' },
+] as const;
 function NewRackDialog({ close, add, error }: { close: () => void; add: (rack: Rack) => void; error: string }) {
-  const [size, setSize] = useState<42 | 24>(42), [label, setLabel] = useState('Rack 0.1');
+  const [sizeId, setSizeId] = useState<(typeof RACK_SIZES)[number]['id']>('967461'), [label, setLabel] = useState('Rack 0.1');
+  const size = RACK_SIZES.find(item => item.id === sizeId) ?? RACK_SIZES[0];
   return <Overlay title="Neues Rack" close={close}><form onSubmit={event => {
-    event.preventDefault(); add({ id: crypto.randomUUID(), label: label.trim(), units: size,
-      widthMm: size === 42 ? 800 : 600, heightMm: size === 42 ? 2100 : 1200, depthMm: size === 42 ? 1000 : 600,
+    event.preventDefault(); add({ id: crypto.randomUUID(), label: label.trim(), units: size.units,
+      widthMm: size.widthMm, heightMm: size.heightMm, depthMm: size.depthMm,
       usableDepthMm: null, frontDoorClearanceMm: null, rearDoorClearanceMm: null, weightLimitKg: null, powerBudgetW: null, room: '', notes: '' });
   }}><label className="rd-field">Kennung<input autoFocus aria-label="Neue Rack-Kennung" required maxLength={120} value={label} onChange={event => setLabel(event.target.value)} /></label>
-    <div className="rd-preset-options" role="group" aria-label="Rack-Grösse">{([42, 24] as const).map(value => <button type="button" key={value} aria-pressed={size === value} onClick={() => setSize(value)}><Server size={24} /><strong>{value} HE</strong><span>{value === 42 ? '800 × 2100 × 1000 mm' : '600 × 1200 × 600 mm'}</span></button>)}</div>
-    <p className="rd-muted">Startmasse aus der Planungsvorlage. Innenmasse und Herstellerdaten bleiben offen und lassen sich rechts ergänzen.</p>{error && <p className="rd-danger" role="alert">{error}</p>}
+    <div className="rd-preset-options" role="group" aria-label="Rack-Grösse">{RACK_SIZES.map(value => <button type="button" key={value.id} aria-pressed={sizeId === value.id} onClick={() => setSizeId(value.id)}><Server size={20} /><strong>{value.units} HE</strong><span>{value.name} · {value.id}<br />{value.widthMm} × {value.heightMm} × {value.depthMm} mm</span></button>)}</div>
+    <p className="rd-muted">Aussenmasse aus dem Steiger-Katalog 2026, Artikel {size.id}.{size.id === '967461' ? ' Die HE-Zahl steht bei diesem Artikel nicht im Namen; 42 HE entsprechen dem gleich hohen Schrank 967460.' : ''} Die nutzbare Tiefe steht dort nicht und bleibt leer, bis sie aus dem Herstellerplan kommt.</p>{error && <p className="rd-danger" role="alert">{error}</p>}
     <footer><button type="button" className="btn" onClick={close}>Abbrechen</button><button type="submit" className="btn primary">Rack anlegen</button></footer>
   </form></Overlay>;
 }
@@ -237,7 +248,7 @@ export default function RackPlanner({ onHome, onOpenTool }: ToolProps) {
     {notice && <div className="rd-message" role="status"><CheckCircle2 size={17} />{notice}<button aria-label="Hinweis schliessen" onClick={() => setNotice('')}><X size={17} /></button></div>}
     <div className="rd-workspace" inert={Boolean(busy) || undefined}>
       <aside className="rd-library-pane"><RackLibrary profiles={document.profiles} onAdd={id => { add(id); }} onAddFree={addFree} onDragProfile={setDragProfile} />
-        <details className="rd-help"><summary><Info size={15} />Bedienung & Grundlagen</summary><p>Geräte ins Rack ziehen oder per Klick hinzufügen. HE zählen von unten. Pfeiltasten verschieben um 1 HE. Umschalt + Klick wählt mehrere Geräte. Strg/Cmd + C/V kopiert innerhalb des Racks.</p><p>19″ = 482,6 mm Montagebreite · 1 HE = 44,45 mm. Gehäusemasse und freie Montagetiefe sind eigene Angaben.</p><p>Neutrale Geräteprofile sind Platzhalter. Abmessungen, Gewicht und Leistung mit den Herstellerdaten ergänzen. Mechanische Modellprüfung, keine Installationsfreigabe.</p><button className="btn" onClick={() => replace(createExampleDocument(), 'Beispiel laden?')}>Beispiel laden</button></details>
+        <details className="rd-help"><summary><Info size={15} />Bedienung & Grundlagen</summary><p>Geräte ins Rack ziehen oder per Klick hinzufügen. HE zählen von unten. Pfeiltasten verschieben um 1 HE. Umschalt + Klick wählt mehrere Geräte. Strg/Cmd + C/V kopiert innerhalb des Racks, zuerst direkt darüber und sonst direkt darunter.</p><p>19″ = 482,6 mm Montagebreite · 1 HE = 44,45 mm. Gehäusemasse und freie Montagetiefe sind eigene Angaben.</p><p>Neutrale Geräteprofile sind Platzhalter. Abmessungen, Gewicht und Leistung mit den Herstellerdaten ergänzen. Mechanische Modellprüfung, keine Installationsfreigabe.</p><button className="btn" onClick={() => replace(createExampleDocument(), 'Beispiel laden?')}>Beispiel laden</button></details>
       </aside>
       <main className="rd-main-pane">
         <div className="rd-rackbar"><div className="rd-rack-tabs" role="tablist" aria-label="Racks">{document.racks.map(item => <button key={item.id} role="tab" aria-selected={rack?.id === item.id} onClick={() => chooseRack(item.id)}>{item.label}<small>{item.units} HE</small></button>)}</div><button className="btn" onClick={() => setDialog('new-rack')} disabled={document.racks.length >= 50}><Plus size={16} />Neues Rack</button></div>

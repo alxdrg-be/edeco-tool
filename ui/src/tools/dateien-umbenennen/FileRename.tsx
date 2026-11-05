@@ -174,13 +174,13 @@ export default function FileRename({ onHome, onOpenTool, deliveryMode = false }:
       {projectError && <p role="alert" className="rename-error">Projektzentrale nicht erreichbar: {projectError} Die Projektnummer kann manuell eingegeben werden.</p>}
       <details className="rename-template rename-naming" aria-label="Namensvorlage" open={templateOpen} onToggle={event => setTemplateOpen(event.currentTarget.open)}>
         <summary><span><strong>Namensvorlage</strong><small>{example}</small></span><ChevronDown size={18} aria-hidden="true" /></summary>
-        <div className="rename-naming-fields"><p>Bausteine auswählen und ihre Reihenfolge festlegen. E = Elektro, G = Grundriss, APP = Apparatenplan. Eigene Kürzel sind möglich.</p>
+        <div className="rename-naming-fields"><p>Bausteine auswählen und ihre Reihenfolge festlegen. Die Auswahllisten folgen der Dokumentenbezeichnung edeco AG: Fachbereich A, E, KO, L, H, S, K; Planart G oder P; Gewerk zum Beispiel SUS, UKV oder RTV; Geschoss UG, EG, OG, DG; Massstab 1, 5, 50, 100, 1000; Index a–c und Planungsphase 31, 32, 41, 51, 53. APP bleibt für den bisherigen Apparatenplan wählbar. Eigene Kürzel sind möglich.</p>
         <fieldset disabled={Boolean(busy)} className="rename-parts"><legend>Namensbausteine und Reihenfolge</legend>
           {settings.order.map((key, position) => {
             const part = PARTS.find(p => p.key === key)!;
             return <div className={`rename-part ${settings.enabled[key] ? "" : "is-off"}`} key={key}>
               <label className="rename-check"><input type="checkbox" checked={settings.enabled[key]} onChange={event => changeSettings(old => ({ ...old, enabled: { ...old.enabled, [key]: event.target.checked } }))} />{part.label} verwenden</label>
-              {key === "floor" ? <div className="rename-auto">Automatisch pro PDF<br/><small>Stil: EG00 · OG02 · UG01</small></div> : <>
+              {key === "floor" ? <div className="rename-auto">Automatisch pro PDF<br/><small>Stil: EG00 · OG02 · UG · DG</small></div> : <>
                 <input aria-label={part.label} type={key === "date" ? "date" : "text"} list={part.options.length ? `rename-${key}` : undefined}
                   disabled={!settings.enabled[key] || (deliveryMode && key === "project")} value={settings.values[key]} maxLength={80} placeholder={key === "project" ? "z. B. 1498" : ""}
                   onChange={event => { if (key === "project") projectTouched.current = true; changeSettings(old => ({ ...old, values: { ...old.values, [key]: event.target.value } })); }} />
