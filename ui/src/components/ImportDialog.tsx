@@ -187,7 +187,7 @@ export default function ImportDialog({
             <div className="ip-body">
               <nav className="ip-list" aria-label="Dateien">
                 {rows.map((r, i) => (
-                  <div key={`${r.file.name}-${i}`} className={`ip-item ${i === selected ? "on" : ""}`} onClick={() => setSelected(i)}>
+                  <div key={`${r.file.name}-${i}`} className={`ip-item ${i === selected ? "on" : ""}`} tabIndex={0} aria-current={i === selected ? "true" : undefined} onClick={() => setSelected(i)} onKeyDown={(event) => { if (event.target !== event.currentTarget) return; if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setSelected(i); } }}>
                     <input
                       type="checkbox"
                       checked={r.include}

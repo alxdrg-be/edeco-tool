@@ -106,7 +106,7 @@ export default function ProjectsPage({ categories, novaVersion, notify, onOpenSe
               </thead>
               <tbody>
                 {shown.map((p) => (
-                  <tr key={p.id} className="clickable" onClick={() => setOpen(p.id)}>
+                  <tr key={p.id} className="clickable" tabIndex={0} aria-label={`${p.name} öffnen`} onClick={() => setOpen(p.id)} onKeyDown={(event) => { if (event.target !== event.currentTarget) return; if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setOpen(p.id); } }}>
                     <td>
                       {p.project_number && <span className="hint">{p.project_number} · </span>}
                       <button className="project-open" onClick={(e) => { e.stopPropagation(); setOpen(p.id); }}>{p.name}</button>
