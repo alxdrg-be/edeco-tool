@@ -32,7 +32,20 @@ ASSETS = Path(__file__).parent / "assets"
 MAX_UPLOAD = 250 * 1024 * 1024
 MAX_FRONTEND_RESPONSE = 32 * 1024 * 1024
 HOP_HEADERS = {"host", "connection", "keep-alive", "transfer-encoding", "te", "trailer", "upgrade", "proxy-authorization", "proxy-authenticate"}
+STIRLING_COOKIES = {"jsessionid"}
 LOGGER = logging.getLogger(__name__)
+
+
+def stirling_cookie(header: str) -> str:
+    kept = []
+    for part in header.split(";"):
+        piece = part.strip()
+        if not piece or "=" not in piece:
+            continue
+        name = piece.split("=", 1)[0].strip().lower()
+        if name in STIRLING_COOKIES:
+            kept.append(piece)
+    return "; ".join(kept)
 
 
 async def frontend_bytes(upstream, *, decoded=False):
@@ -204,10 +217,8 @@ def register(app):
         headers = {key: value for key, value in request.headers.items()
                    if key.lower() not in HOP_HEADERS | {"origin", "referer", "accept-encoding", "cookie"}
                    and not key.lower().startswith("x-edeco-")}
-        # The local Toolbox session must never be forwarded to the service.
-        remote_cookies = "; ".join(part.strip() for part in request.headers.get("cookie", "").split(";")
-                                   if part.strip() and not part.strip().split("=", 1)[0].lower().startswith("edeco_"))
-        headers["cookie"] = remote_cookies
+        # Only the Stirling session cookie leaves this machine. Local and unrelated cookies stay here.
+        headers["cookie"] = stirling_cookie(request.headers.get("cookie", ""))
         headers["accept-encoding"] = "identity"
         headers["origin"] = config.url
         if config.runtime:

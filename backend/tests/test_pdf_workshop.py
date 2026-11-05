@@ -50,7 +50,8 @@ def test_proxy_preserves_stirling_page_and_streams_files_without_forwarding_loca
     async def handler(request):
         calls.append(request.url.path)
         assert "edeco_" not in request.headers.get("Cookie", "")
-        assert "JSESSIONID=remote-session" in request.headers.get("Cookie", "")
+        assert request.headers.get("Cookie", "") == "JSESSIONID=remote-session"
+        assert "unrelated" not in request.headers.get("Cookie", "")
         assert not any(key.lower().startswith("x-edeco-") for key in request.headers)
         assert request.url.path.startswith(ROOT + "/")
         if request.url.path.endswith("test.pdf"):
@@ -59,6 +60,7 @@ def test_proxy_preserves_stirling_page_and_streams_files_without_forwarding_loca
     app.state.pdf_proxy_transport = httpx.MockTransport(handler)
     client.cookies.set("edeco_toolbox_session_80", "local-toolbox-only")
     client.cookies.set("JSESSIONID", "remote-session")
+    client.cookies.set("unrelated", "leak")
     page = client.get(ROOT + "/", headers={"X-Edeco-Session": "local-toolbox-only", "X-Edeco-Projects": "local-projects-only"})
     assert page.status_code == 200 and "Original Stirling UI" in page.text
     assert "edeco PDF-Werkstatt" in page.text and "/edeco/bridge.js" in page.text and "/edeco/theme.css" in page.text
