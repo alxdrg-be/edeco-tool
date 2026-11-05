@@ -329,3 +329,20 @@ test("short-circuit voltage tolerances share cmax rules and preserve cmin", () =
   assert.throws(() => calculate("kurzschlussstrom", { voltageTolerance: "plus20" }), /Spannungstoleranz/);
   assert.throws(() => calculate("kurzschlussstrom", { voltage: "690" }), /voltage/);
 });
+
+test("230 V names the uk reference and zero length matches the transformer Ik,max", () => {
+  const nameplate = calculate("kurzschlussstrom", { voltage: "230", length: "1", kva: "250", uk: "4" });
+  assert.match(nameplate.status.text, /eigenes 1~-Netz/);
+  const preset = calculate("kurzschlussstrom", { voltage: "230", sourceMode: "preset", sourcePreset: "250", length: "1", kva: "", uk: "" });
+  assert.match(preset.status.text, /400 V/);
+  assert.notEqual(metric(nameplate, "L–N-Kurzschluss · Modell").toFixed(3), metric(preset, "L–N-Kurzschluss · Modell").toFixed(3));
+  const fault = calculate("kurzschlussstrom", { length: "0", kva: "250", uk: "4", voltage: "400", voltageTolerance: "plus10", trafos: "1" });
+  const trafo = calculate("transformator", { kva: "250", u2: "400", uk: "4", phase: "3", voltageTolerance: "plus10" });
+  close(metric(fault, "3~-Kurzschluss · Modell"), metric(trafo, "Ik,max mit c_max"));
+});
+
+test("a leap year counts 366 operating days and 367 is rejected", () => {
+  const leap = calculate("verlustleistung", { durationMode: "calendar", dailyHours: "1", days: "366", years: "1" });
+  close(row(leap, "Betriebsstunden total"), 366);
+  assert.throws(() => calculate("verlustleistung", { durationMode: "calendar", days: "367" }));
+});
