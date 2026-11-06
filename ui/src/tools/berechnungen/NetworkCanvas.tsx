@@ -5,7 +5,7 @@ import type { NetworkDocument, NetworkNode, NetworkNodeKind, NetworkOrientation,
 export type NetworkSelection = { kind: "node" | "edge"; id: string } | null;
 export interface PaletteItem { kind: NetworkNodeKind; device?: string; label: string }
 import { routeNetworkEdge, NETWORK_NODE_WIDTH as NODE_WIDTH, NETWORK_NODE_HEIGHT as NODE_HEIGHT } from "./networkRouting";
-import { NETWORK_COORDINATE_LIMIT, findAttachmentParent } from "./networkEditor";
+import { NETWORK_COORDINATE_LIMIT, findAttachmentParent, snapDockPosition } from "./networkEditor";
 import { currentFlowClass } from "./currentFlow";
 import "./current-flow.css";
 const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
@@ -16,8 +16,14 @@ export function NetworkSymbol({ kind, device = "", x = 0, y = 0 }: { kind: Netwo
   let glyph;
   if (kind === "source") glyph = <><circle r="24" /><path d="M-17 0q8-18 17 0t17 0M0-35v11M0 24v11" /></>;
   else if (kind === "transformer") glyph = <><circle cx="-11" r="22" /><circle cx="11" r="22" /><path d="M0-35v13M0 22v13" /></>;
-  else if (kind === "distribution") glyph = device === "busbar" ? <><path d="M-39-6H39M-39 6H39M0-35V-6M-26 6V28M0 6V35M26 6V28" /></> : device === "meter" ? <><rect x="-26" y="-25" width="52" height="50" rx="4" /><text x="0" y="5" textAnchor="middle" className="np-symbol-text">kWh</text><path d="M0-35v10M0 25v10" /></> : <><rect x="-30" y="-24" width="60" height="48" rx="4" /><path d="M-18-6H18M-18 6H18M0-35v11M0 24v11" />{device === "hak" && <path d="M-13 17 13-17" />}</>;
-  else if (kind === "protection") glyph = <><path d="M0-35v12M0 23v12" /><rect x="-22" y="-23" width="44" height="46" rx="3" />{device === "RCD" || device === "RCBO" ? <><path d="M-12 13 0-13 12 13Z" />{device === "RCBO" && <path d="M-17 16 17-16" />}</> : device === "NH" ? <path d="M-6-16V16M6-16V16" /> : device === "SWITCH" ? <path d="M-8 15 11-13" /> : <path d="M-9 15 10-15M-9-9H-4M4 9H9" />}</>;
+  else if (kind === "distribution") glyph = device === "busbar" ? <><path d="M-39-6H39M-39 6H39M0-35V-6M-26 6V28M0 6V35M26 6V28" /></> : device === "meter" ? <><circle r="18" /><path d="M-11-11 11 11M11-11-11 11M0-35v17M0 18v17" /></> : <><rect x="-22" y="-20" width="44" height="40" rx="3" /><path d="M0-35v15M0 20v15" />{device === "hak" && <path d="M-12 12 12-12" />}</>;
+  else if (kind === "protection") {
+    const residual = device === "RCD" || device === "RCBO";
+    const thermal = device !== "RCD" && device !== "SWITCH" && device !== "NH";
+    glyph = device === "NH"
+      ? <><path d="M0-35v10M0 25v10M-14-16H14M-14 8H14M-8-16v24M8-16v24" /></>
+      : <><path d={residual ? "M0-35v17M0-18v16" : "M0-35v23"} />{residual && <ellipse cy="-10" rx="16" ry="11" />}<path d="M-16 16 0-12" /><circle cy="-12" r="2.4" fill="currentColor" /><circle cy="16" r="2.4" fill="currentColor" /><path d="M0 16v19" />{thermal && <rect x="9" y="-3" width="10" height="14" />}</>;
+  }
   else if (device === "motor" || device === "fan") glyph = <><circle r="24" /><text x="0" y="8" textAnchor="middle" className="np-symbol-letter">{device === "motor" ? "M" : "V"}</text><path d="M0-35v11" /></>;
   else if (device === "light") glyph = <><circle r="24" /><path d="M-17-17 17 17M17-17-17 17M0-35v11" /></>;
   else if (device === "socket") glyph = <><circle r="24" /><circle cx="-8" cy="-3" r="2.5" /><circle cx="8" cy="-3" r="2.5" /><path d="M-8 12H8M0-35v11" /></>;
@@ -32,7 +38,17 @@ function labelLines(label: string): string[] {
   return [`${label.slice(0, 18).trim()}…`];
 }
 
-export default function NetworkCanvas({ document, result, selection, connectFrom, connectMode, onSelect, onPort, onMove, onDrop, onConnect, dragItem, resetViewToken = 0, orientation = "horizontal", focusRequest }: {
+function nodeSummary(node: NetworkNode): string {
+  const names: Record<string, string> = { meter: "Zähler", uv: "UV", hak: "HAK", busbar: "Schiene", LS: "LS", NH: "NH", MCCB: "MCCB", RCD: "FI", RCBO: "FI/LS", MOTOR: "Motorschutz", SWITCH: "Schalter" };
+  if (node.kind === "source") return `${node.values.phases || "–"}~ ${node.values.voltage || "–"} V · ${node.values.maxCurrent || "–"} A`;
+  if (node.kind === "transformer") return `${node.values.kva || "–"} kVA · uk ${node.values.uk || "–"} %`;
+  if (node.kind === "load") return `${node.values.power || "–"} kW · ${node.values.phases || "–"}~`;
+  const name = names[node.values.device] ?? (node.values.device?.toUpperCase() || "–");
+  if (node.kind === "protection" && (node.values.device === "LS" || node.values.device === "RCBO")) return `${name} ${node.values.curve || ""}${node.values.rated || "–"}`;
+  return `${name} · ${node.values.rated || "–"} A`;
+}
+
+export default function NetworkCanvas({ document, result, selection, connectFrom, connectMode, onSelect, onPort, onMove, onDrop, onConnect, dragItem, resetViewToken = 0, orientation = "horizontal", placement: cellPlacement = "free", focusRequest }: {
   document: NetworkDocument;
   result: NetworkResult;
   selection: NetworkSelection;
@@ -46,6 +62,7 @@ export default function NetworkCanvas({ document, result, selection, connectFrom
   dragItem: PaletteItem | null;
   resetViewToken?: number;
   orientation?: NetworkOrientation;
+  placement?: "dock" | "free";
   focusRequest?: { selection: NetworkSelection; token: number };
 }) {
   const canvas = useRef<HTMLDivElement>(null), svg = useRef<SVGSVGElement>(null), unique = useId().replaceAll(":", "");
@@ -170,7 +187,9 @@ export default function NetworkCanvas({ document, result, selection, connectFrom
     else {
       if (!current.started && Math.hypot(dx, dy) < 3) return;
       if (!current.started) { current.started = true; onMove(current.id, current.x, current.y, "start"); }
-      const x=Math.round(clamp(current.x+dx,-NETWORK_COORDINATE_LIMIT,NETWORK_COORDINATE_LIMIT)/10)*10,y=Math.round(clamp(current.y+dy,-NETWORK_COORDINATE_LIMIT,NETWORK_COORDINATE_LIMIT)/10)*10;
+      const rawX=clamp(current.x+dx,-NETWORK_COORDINATE_LIMIT,NETWORK_COORDINATE_LIMIT), rawY=clamp(current.y+dy,-NETWORK_COORDINATE_LIMIT,NETWORK_COORDINATE_LIMIT);
+      const snapped=cellPlacement==="dock" ? snapDockPosition(document, rawX, rawY, current.id) : {x:Math.round(rawX/10)*10,y:Math.round(rawY/10)*10};
+      const x=snapped.x,y=snapped.y;
       onMove(current.id,x,y,"move"); const node=nodes.get(current.id); if(node){const parent=findAttachmentParent(document,{x,y},node.kind,node.id);setPlacement(parent?{x,y,kind:node.kind,parent}:null);}
 
     }
@@ -188,8 +207,8 @@ export default function NetworkCanvas({ document, result, selection, connectFrom
     if (event.key === "Enter" || event.key === " ") { event.preventDefault(); event.stopPropagation(); onPort(id, port); }
   }
   return <div className="np-canvas-shell">
-    <div className="np-canvas-heading"><span><i />Einlinienschema · {orientation === "horizontal" ? "links → rechts" : "oben → unten"}</span><span>{document.nodes.length} Bauteile · {document.edges.length} Leitungen</span></div>
-    <div className={`np-canvas${connectMode ? " np-canvas-connect" : ""}`} data-document-zoom="true" ref={canvas} onDragLeave={event=>{if(!event.currentTarget.contains(event.relatedTarget as Node))setPlacement(null);}} onDragOver={event => { if (event.dataTransfer.types.includes("application/x-edeco-network-node")) { event.preventDefault(); event.dataTransfer.dropEffect = "copy"; if(dragItem){const p=world(event.clientX,event.clientY),x=Math.round((p.x-NODE_WIDTH/2)/10)*10,y=Math.round((p.y-NODE_HEIGHT/2)/10)*10;setPlacement({x,y,kind:dragItem.kind,parent:findAttachmentParent(document,{x,y},dragItem.kind)});} } }} onDrop={event => {
+    <div className="np-canvas-heading"><span><i />Einlinienschema · {orientation === "horizontal" ? "links → rechts" : "oben → unten"} · {cellPlacement === "dock" ? "gleiche Felder, angedockt" : "freie Platzierung"}</span><span>{document.nodes.length} Bauteile · {document.edges.length} Leitungen</span></div>
+    <div className={`np-canvas${connectMode ? " np-canvas-connect" : ""}`} data-document-zoom="true" ref={canvas} onDragLeave={event=>{if(!event.currentTarget.contains(event.relatedTarget as Node))setPlacement(null);}} onDragOver={event => { if (event.dataTransfer.types.includes("application/x-edeco-network-node")) { event.preventDefault(); event.dataTransfer.dropEffect = "copy"; if(dragItem){const p=world(event.clientX,event.clientY),rawX=p.x-NODE_WIDTH/2,rawY=p.y-NODE_HEIGHT/2,landed=cellPlacement==="dock"?snapDockPosition(document,rawX,rawY):{x:Math.round(rawX/10)*10,y:Math.round(rawY/10)*10};setPlacement({x:landed.x,y:landed.y,kind:dragItem.kind,parent:findAttachmentParent(document,landed,dragItem.kind)});} } }} onDrop={event => {
       event.preventDefault(); setPlacement(null); const raw = event.dataTransfer.getData("application/x-edeco-network-node");
       try { if (raw.length > 2048) return; const item = JSON.parse(raw) as PaletteItem; if (!["source", "transformer", "distribution", "protection", "load"].includes(item.kind) || typeof item.label !== "string" || item.label.length > 100 || item.device !== undefined && (typeof item.device !== "string" || item.device.length > 30)) return; const rect = canvas.current!.getBoundingClientRect(); onDrop(item, view.x + (event.clientX - rect.left) / view.zoom - NODE_WIDTH / 2, view.y + (event.clientY - rect.top) / view.zoom - NODE_HEIGHT / 2); } catch { /* unrelated drag content is ignored */ }
     }}>
@@ -208,7 +227,7 @@ export default function NetworkCanvas({ document, result, selection, connectFrom
         })}
         {document.nodes.map(node => {
           const selected = selection?.kind === "node" && selection.id === node.id, calculation = nodeResults.get(node.id), tone = calculation?.tone ?? issueTone("node",node.id), colour = signal(tone), lines = labelLines(node.label);
-          const summary = node.kind === "source" ? `${node.values.phases || "–"}~ ${node.values.voltage || "–"} V · ${node.values.maxCurrent || "–"} A` : node.kind === "transformer" ? `${node.values.kva || "–"} kVA · uₖ ${node.values.uk || "–"} %` : node.kind === "load" ? `${node.values.power || "–"} kW · ${node.values.phases || "–"}~` : `${node.values.device?.toUpperCase() || "–"}${node.kind === "protection" && ["LS", "RCBO"].includes(node.values.device) ? ` ${node.values.curve || ""}` : ""} · ${node.values.rated || "–"} A`;
+          const summary = nodeSummary(node);
           return <g key={node.id} transform={`translate(${node.x} ${node.y})`} className={`np-node${selected ? " np-selected" : ""}${connectFrom === node.id ? " np-connecting" : ""}`} data-node-id={node.id} data-kind={node.kind} data-state={tone} role="button" tabIndex={0} aria-label={`Bauteil ${node.label}`} onPointerDown={event => startNode(event, node)} onKeyDown={event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); onSelect({ kind: "node", id: node.id }); if (connectMode) onPort(node.id, connectFrom ? "input" : "output"); } }}>
             <title>{node.label}</title>
             <rect width={NODE_WIDTH} height={NODE_HEIGHT} rx="11" fill="var(--panel)" stroke={selected || connectFrom === node.id || wirePreview?.target === node.id ? "var(--accent)" : colour} strokeWidth={selected ? 3 : 1.5} />
@@ -228,7 +247,7 @@ export default function NetworkCanvas({ document, result, selection, connectFrom
         {!document.nodes.length && <g className="np-empty-canvas"><text x={view.x + size.width / view.zoom / 2} y={view.y + size.height / view.zoom / 2} textAnchor="middle">Bauteile aus der Palette hinzufügen</text></g>}
       </svg>
       <div className="np-view-controls"><button type="button" onClick={() => zoomBy(.8)} aria-label="Netzplan verkleinern"><Minus size={16} /></button><span>{Math.round(view.zoom * 100)} %</span><button type="button" onClick={() => zoomBy(1.25)} aria-label="Netzplan vergrössern"><Plus size={16} /></button><button type="button" onClick={() => fit(true)} aria-label="Netzplan vollständig einpassen" title="Alles einpassen"><Maximize2 size={16} /></button></div>
-      {blockedRoutes>0 && <div className="np-routing-hint" role="status">{blockedRoutes} Leitungsweg{blockedRoutes>1?"e":""} durch überlagerte Bauteile blockiert. „Anordnen“ oder Bauteile verschieben.</div>}
+      {blockedRoutes>0 && <div className="np-routing-hint" role="status">{blockedRoutes} Leitungsweg{blockedRoutes>1?"e":""} durch überlagerte Bauteile blockiert. „Andocken“ oder Bauteile verschieben.</div>}
       {connectMode && <div className="np-connect-hint" role="status">{connectFrom ? "Ziel-Eingang oder Zielbauteil wählen" : "Ausgang eines Bauteils wählen"}</div>}
     </div>
     <div className="np-canvas-legend"><span><i style={{ background: "var(--accent)" }} />Schema / Live-Modell</span><span><i style={{ background: "var(--ok)" }} />Berechnete Bedingungen erfüllt</span><span><i style={{ background: "var(--wire)" }} />Prüfung offen / nahe Grenze</span><span><i style={{ background: "var(--danger)" }} />Grenze überschritten / ungültig</span><span>Bewegte Linie: berechnete Last &gt; 0 · symbolischer Leistungsfluss</span><span className="np-pan-hint">Ausgang → Eingang ziehen: verbinden · Bauteil ziehen: verschieben · Mausrad: zoomen</span></div>

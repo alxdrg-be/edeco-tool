@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { NETWORK_COORDINATE_LIMIT, arrangeNetwork, findAttachmentParent, nextNetworkPosition, networkHistory, networkHistoryReducer, networkOrientation, parseNetworkDocument } from "./networkEditor.ts";
+import { NETWORK_COORDINATE_LIMIT, NETWORK_DOCK_X, NETWORK_DOCK_Y, arrangeNetwork, findAttachmentParent, nextNetworkPosition, networkHistory, networkHistoryReducer, networkOrientation, parseNetworkDocument, snapDockPosition } from "./networkEditor.ts";
 import type { NetworkDocument } from "./networkTypes.ts";
 
 const example = (): NetworkDocument => ({ version: 1, name: "Schulhaus", nodes: [
@@ -32,17 +32,17 @@ test("one dragged gesture is one undo step and editing after undo removes redo h
 test("horizontal arrangement puts children in the next column and stacks branches without overlap", () => {
   const result = arrangeNetwork(example()), source = result.nodes[0];
   assert.equal(result.orientation, "horizontal");
-  assert.equal(result.nodes[1].x, source.x + 280); assert.equal(result.nodes[2].x, source.x + 280);
-  assert.notEqual(result.nodes[1].y, result.nodes[2].y); assert.equal(source.y, (result.nodes[1].y + result.nodes[2].y) / 2);
-  assert.ok(Math.abs(result.nodes[1].y - result.nodes[2].y) >= 230);
+  assert.equal(result.nodes[1].x, source.x + NETWORK_DOCK_X); assert.equal(result.nodes[2].x, source.x + NETWORK_DOCK_X);
+  assert.notEqual(result.nodes[1].y, result.nodes[2].y); assert.equal(source.y, Math.min(result.nodes[1].y, result.nodes[2].y));
+  assert.ok(Math.abs(result.nodes[1].y - result.nodes[2].y) >= NETWORK_DOCK_Y);
   const loop = example(); loop.edges.push({ id: "loop", from: "a", to: "source", values: {} });
   assert.ok(arrangeNetwork(loop).nodes.every(node => Number.isFinite(node.x) && Number.isFinite(node.y)));
 });
 
 test("vertical layout stays available and old saved positions imply their orientation without moving", () => {
   const vertical = arrangeNetwork(example(), "vertical"), source = vertical.nodes[0];
-  assert.equal(vertical.nodes[1].y, source.y + 230); assert.equal(vertical.nodes[2].y, source.y + 230);
-  assert.ok(Math.abs(vertical.nodes[1].x - vertical.nodes[2].x) >= 280);
+  assert.equal(vertical.nodes[1].y, source.y + NETWORK_DOCK_Y); assert.equal(vertical.nodes[2].y, source.y + NETWORK_DOCK_Y);
+  assert.ok(Math.abs(vertical.nodes[1].x - vertical.nodes[2].x) >= NETWORK_DOCK_X);
   const legacy = { ...vertical, orientation: undefined };
   assert.equal(networkOrientation(legacy), "vertical");
   assert.deepEqual(parseNetworkDocument(legacy).nodes, legacy.nodes.map(node => node.kind === "source" ? { ...node, values: { ...node.values, voltageTolerance: "legacy" } } : node));
@@ -70,7 +70,20 @@ test("a free distribution cannot auto-attach to its own downstream component",()
 
 test("click placement uses the selected parent next column and leaves occupied branches separate",()=>{
  const doc=arrangeNetwork(example()),p=nextNetworkPosition(doc,doc.nodes[0]);
- assert.equal(p.x,doc.nodes[0].x+280);assert.ok(doc.nodes.every(n=>Math.abs(n.x-p.x)>=228||Math.abs(n.y-p.y)>=195));
+ assert.equal(p.x,doc.nodes[0].x+NETWORK_DOCK_X);assert.ok(doc.nodes.every(n=>Math.abs(n.x-p.x)>=228||Math.abs(n.y-p.y)>=195));
+});
+
+test("docking snaps onto the same cell size and steps past an occupied cell", () => {
+  const doc = arrangeNetwork(example());
+  doc.placement = "dock";
+  const source = doc.nodes[0];
+  const snapped = snapDockPosition(doc, source.x + 12, source.y - 8, "source");
+  assert.deepEqual(snapped, { x: source.x, y: source.y });
+  const blocked = snapDockPosition(doc, source.x + 12, source.y - 8);
+  assert.equal(blocked.x, source.x);
+  assert.equal(blocked.y, source.y + NETWORK_DOCK_Y);
+  assert.equal(parseNetworkDocument({ ...doc, placement: "dock" }).placement, "dock");
+  assert.throws(() => parseNetworkDocument({ ...example(), placement: "loose" }));
 });
 
 
