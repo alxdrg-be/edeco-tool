@@ -22,6 +22,10 @@ export const EXPLANATIONS: Record<string, string> = {
   "premium-sia2056": "Die Zonenbilanz hält Leistung und Jahresenergie getrennt. Kcor korrigiert die rohen W/m², die Jahresgleichzeitigkeit die rohen kWh/(m²·a). Die Gesamtkennwerte werden nach Fläche gewichtet; Roh- und Zielwerte stammen aus der belegten Projektgrundlage.",
   "premium-poe": "Die physische Kanallänge und die mit manuellen Faktoren gewichtete elektrische Länge werden getrennt ausgewiesen. Die Reserve bezieht sich auf die dokumentierte Vorgabe bei 20 °C; eine Bündelerwärmung wird nicht berechnet.",
   "premium-brandlast": "Ist-Zustand und Sanierungsannahme werden mit derselben Bezugsstrecke verglichen. Weniger mittlere Brandlast ersetzt keine Prüfung von CPR-Klassen, lokalen Häufungen oder der Ausführung.",
+  leistungsbilanz: "Jede Zeile ist Anzahl mal Leistung mal Gleichzeitigkeit. Die Gleichzeitigkeit der Verteilung gilt danach auf diese Summe. Der Strom nimmt die gesamte gleichzeitige Leistung am gewählten Anschluss an.",
+  "zev-gestehung": "Die Annuität verteilt die Investition auf die Laufzeit. Zusammen mit den jährlichen Betriebskosten und geteilt durch den mittleren Ertrag ergeben sich die Gestehungskosten. Das ist kein Tarif für die Teilnehmenden.",
+  "rtv-daempfung": "Der Startpegel wird Abschnitt für Abschnitt weitergerechnet. Ein Kabel zieht Länge mal dB/100 m ab, ein Gerät addiert die eingegebene Pegeländerung. Die Frequenz ist nur eine Beschriftung.",
+  "bkp-schaetzung": "Jede Position ist Menge mal eingegebenem Einheitspreis. Die Bandbreite legt nur die angegebene Schätzgenauigkeit um diese Summe. Es sind keine Marktpreise hinterlegt.",
 };
 
 export function calculationExplanation(id: string, input: Record<string, string>): string {

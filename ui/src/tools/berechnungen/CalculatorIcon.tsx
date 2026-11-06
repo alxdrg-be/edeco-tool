@@ -1,7 +1,7 @@
 import {
   Activity, AlarmSmoke, Banknote, BookOpen, Cable, Calculator, CarFront,
   ChartNoAxesCombined, CircuitBoard, CircleGauge, Cog, EthernetPort, Flame,
-  FolderArchive, Network, Omega, ParkingSquare, Router, ShieldCheck, Split,
+  FolderArchive, ListTree, Network, Omega, ParkingSquare, Radio, Receipt, Router, ShieldCheck, Split,
   Sun, Thermometer, ToggleLeft, Truck, UtilityPole, Zap, Lightbulb, Layers,
   type LucideIcon,
 } from "lucide-react";
@@ -36,6 +36,10 @@ export const CALCULATOR_ICONS: Readonly<Record<string, LucideIcon>> = {
   "premium-sia2056": ChartNoAxesCombined,
   "premium-poe": Router,
   "premium-brandlast": FolderArchive,
+  leistungsbilanz: ListTree,
+  "zev-gestehung": Sun,
+  "rtv-daempfung": Radio,
+  "bkp-schaetzung": Receipt,
   netzplaner: Network,
 };
 

@@ -19,6 +19,9 @@ const PROPERTY_WORDS: Record<string, [RegExp, string][]> = {
   selectivityStages: [[/nennstrom/i,"rated"],[/länge/i,"length"],[/r\/x|querschnitt/i,"area"],[/herstellerquelle|quellenvermerk|hersteller.*(?:geräte|tabellenquelle)/i,"pairReference"],[/herstellergrenze|paargrenze/i,"pairLimitKA"],[/einphas|dreiphas/i,"system"]],
   fireloadRows: [[/bezeichnung|herstellerbeleg/i,"name"],[/brandlast/i,"mjPerMeter"],[/anzahl/i,"quantity"],[/länge/i,"length"],[/cpr/i,"cpr"],[/nachweis|brandverhalten/i,"evidence"]],
   siaZones: [[/leistungsziel|ziel leistung/i,"powerTarget"],[/energieziel|ziel energie/i,"energyTarget"],[/fläche/i,"area"],[/kcor/i,"kcor"],[/jahresgleichzeitigkeit/i,"yearGlz"],[/bezeichnung/i,"label"]],
+  loadBoards: [[/gleichzeitigkeit/i,"diversity"],[/leistung/i,"watts"],[/anzahl/i,"count"],[/bezeichnung/i,"label"]],
+  rtvSegments: [[/dämpfung/i,"attenuation"],[/länge/i,"length"],[/pegel/i,"gain"],[/bezeichnung/i,"label"]],
+  costItems: [[/einheitspreis/i,"price"],[/menge/i,"quantity"],[/bezeichnung/i,"label"],[/bkp/i,"code"],[/gruppe/i,"group"]],
 };
 
 export function propertyForLabel(field: string, label: string): string | undefined {

@@ -5,6 +5,7 @@ import { siaReportInputs } from "./workbench/siaDefinition.ts";
 import { poeRouteReportInputs } from "./workbench/poeRoute.ts";
 import { fireloadReportInputs } from "./workbench/fireloadReport.ts";
 import { selectivityReportInputs } from "./workbench/selectivityStages.ts";
+import { sheetReportInputs } from "./workbench/projectSheets.ts";
 
 /** The reference identifies the subject; it does not expand the implemented proof. */
 export const CALCULATION_NORMS: Record<string, string> = {
@@ -30,6 +31,10 @@ export const CALCULATION_NORMS: Record<string, string> = {
   "premium-sia2056": "SIA 2056 · manuelle Zonen- und Zielwerte",
   "premium-poe": "IEEE 802.3 · EN 50173 / ISO/IEC 11801 · manuelle Streckenprüfung",
   "premium-brandlast": "VKF BSR 14-15 · 5.2.1 · NIN 4.2.2.2.7 · Brandlastbilanz",
+  leistungsbilanz: "Leistungszusammenstellung · Menge, Leistung und Gleichzeitigkeit aus der Eingabe",
+  "zev-gestehung": "Annuität der Investition plus Betrieb, geteilt durch den mittleren Ertrag",
+  "rtv-daempfung": "Pegelkette in dBµV · Dämpfung und Gerätepegel aus der Eingabe",
+  "bkp-schaetzung": "Kostenschätzung in CHF · eigene Einheitspreise und angegebene Bandbreite",
 };
 
 export function calculationNorm(id: string, input: Inputs): string {
@@ -49,11 +54,11 @@ export function workbenchReport(definition: CalculatorDefinition, input: Inputs,
   return {
     title: definition.title,
     norm: calculationNorm(definition.id, input),
-    inputs: [...definition.fields.filter(field => !["grids", "depotUnits", "depotPoints", "costRows", "siaZones", "poeSegments", "fireloadRows", "fireloadRowsAfter", "chargingSourceConnection", "selectivityStages"].includes(field.key) && (!field.visibleWhen || field.visibleWhen.every(condition => condition.values.includes(input[condition.key])))).map(field => {
+    inputs: [...definition.fields.filter(field => !["grids", "depotUnits", "depotPoints", "costRows", "siaZones", "poeSegments", "fireloadRows", "fireloadRowsAfter", "chargingSourceConnection", "selectivityStages", "loadBoards", "rtvSegments", "costItems"].includes(field.key) && (!field.visibleWhen || field.visibleWhen.every(condition => condition.values.includes(input[condition.key])))).map(field => {
       const options = field.options ?? fieldOptions(definition.id, field.key);
       const option = options?.find(option => option.value === input[field.key]);
       return { label: field.label, value: option?.label ?? format(input[field.key], field.unit) };
-    }), ...planningReportInputs(definition.id, input), ...(definition.id === "premium-selektivitaet" ? selectivityReportInputs(input) : []), ...(definition.id === "premium-sia2056" ? siaReportInputs(input) : []), ...(definition.id === "premium-poe" ? poeRouteReportInputs(input) : []), ...(["brandlast", "premium-brandlast"].includes(definition.id) ? fireloadReportInputs(input) : []), ...(project ? [{ label: "Projekt", value: `${project.number} · ${project.name}` }] : [])],
+    }), ...planningReportInputs(definition.id, input), ...(definition.id === "premium-selektivitaet" ? selectivityReportInputs(input) : []), ...(definition.id === "premium-sia2056" ? siaReportInputs(input) : []), ...(definition.id === "premium-poe" ? poeRouteReportInputs(input) : []), ...(["brandlast", "premium-brandlast"].includes(definition.id) ? fireloadReportInputs(input) : []), ...sheetReportInputs(definition.id, input), ...(project ? [{ label: "Projekt", value: `${project.number} · ${project.name}` }] : [])],
     results: [...result.metrics.map(metric => ({ label: metric.label, value: format(metric.value, metric.unit, metric.digits ?? 3) })), ...(result.rows ?? []).map(row => ({ label: row.label, value: format(row.value, row.unit) }))],
     formula: result.formula,
     status: result.status.text,

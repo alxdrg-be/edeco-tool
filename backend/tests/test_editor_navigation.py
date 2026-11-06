@@ -358,8 +358,8 @@ def test_calculations_hub_and_lightning_visualisation_validate_and_restore_input
     page, _, _, _ = editor
     page.get_by_role("button", name="Zum Toolhub", exact=True).click()
     page.get_by_role("button", name="Berechnungen öffnen", exact=True).click()
-    playwright.expect(page.locator(".calc-tile")).to_have_count(26)
-    playwright.expect(page.get_by_role("button", name="Demnächst")).to_have_count(1)
+    playwright.expect(page.locator(".calc-tile")).to_have_count(29)
+    playwright.expect(page.get_by_role("button", name="Demnächst")).to_have_count(0)
     page.get_by_role("button", name="Blitzschutz öffnen", exact=True).click()
     playwright.expect(named_cards(page, "Blitzschutzklasse")).to_be_enabled()
     choose_card(named_cards(page, "Blitzschutzklasse"), "I")
@@ -530,9 +530,9 @@ def test_every_calculator_has_review_image_without_overlapping_labels(editor, tm
     page.emulate_media(reduced_motion="reduce")
     page.get_by_role("button", name="Zum Toolhub", exact=True).click()
     page.get_by_role("button", name="Berechnungen öffnen", exact=True).click()
-    playwright.expect(page.locator(".calc-tile")).to_have_count(26)
+    playwright.expect(page.locator(".calc-tile")).to_have_count(29)
     launchers = page.locator(".calc-tile button:not([disabled])").evaluate_all("nodes => nodes.map(node => node.getAttribute('aria-label'))")
-    assert len(launchers) == 25
+    assert len(launchers) == 29
     assert "premium" not in page.locator("body").inner_text().lower()
     page.screenshot(path=str(tmp_path / "00-berechnungen.png"), full_page=True)
     native_titles = {"Blitzschutz", "Kabelberechnung", "E-Mobilität · AC-Vorplanung"}

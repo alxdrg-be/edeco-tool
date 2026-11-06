@@ -9,7 +9,7 @@ from test_documents_local_ui import documents_browser, env, playwright  # noqa: 
 def open_formulas(page):
     page.get_by_role("button", name="Zum Toolhub", exact=True).click()
     page.get_by_role("button", name="Berechnungen öffnen", exact=True).click()
-    playwright.expect(page.locator(".calc-tile")).to_have_count(26)
+    playwright.expect(page.locator(".calc-tile")).to_have_count(29)
     page.get_by_role("button", name="Formelrechner öffnen", exact=True).click()
     playwright.expect(page.get_by_role("tab", name="Formelrechner", exact=True)).to_have_attribute("aria-selected", "true")
     playwright.expect(page.locator(".toolhub-header")).to_have_count(1)
@@ -87,3 +87,35 @@ def test_meter_microfarads_and_rappen_change_the_actual_results_and_fit_mobile(d
     playwright.expect(panel.locator(".calc-kpi").last).to_contain_text("3.000 CHF")
     page.set_viewport_size({"width": 390, "height": 844})
     assert panel.locator(".calc-tool").evaluate("element=>element.scrollWidth<=element.clientWidth+1")
+
+
+def metric(page, label):
+    return page.locator(".wb-metric").filter(has_text=label)
+
+
+def test_added_office_sheets_calculate_from_entered_values(documents_browser, tmp_path):
+    page, _, _, _, _ = documents_browser
+    page.set_viewport_size({"width": 1500, "height": 1100})
+    page.get_by_role("button", name="Zum Toolhub", exact=True).click()
+    page.get_by_role("button", name="Berechnungen öffnen", exact=True).click()
+    page.get_by_role("button", name="Leistungsbilanz öffnen", exact=True).click()
+    playwright.expect(metric(page, "Gleichzeitige Leistung")).to_contain_text("2 kW")
+    page.get_by_text("Verteilungen und Verbraucher bearbeiten", exact=False).click()
+    page.get_by_label("Beispielverbraucher · Leistung", exact=True).fill("4000")
+    page.get_by_label("Beispielverbraucher · Gleichzeitigkeit", exact=True).fill("0.5")
+    playwright.expect(metric(page, "Gleichzeitige Leistung")).to_contain_text("2 kW")
+    playwright.expect(metric(page, "Installierte Leistung")).to_contain_text("4 kW")
+    page.screenshot(path=str(tmp_path / "leistungsbilanz.png"), full_page=True)
+    page.get_by_role("button", name="Zum Toolhub", exact=True).click()
+    page.get_by_role("button", name="Berechnungen öffnen", exact=True).click()
+    page.get_by_role("button", name="ZEV-Gestehungskosten öffnen", exact=True).click()
+    playwright.expect(metric(page, "Gestehungskosten")).to_contain_text("11 Rp./kWh")
+    page.get_by_role("button", name="Zum Toolhub", exact=True).click()
+    page.get_by_role("button", name="Berechnungen öffnen", exact=True).click()
+    page.get_by_role("button", name="RTV-Dämpfung öffnen", exact=True).click()
+    playwright.expect(metric(page, "Pegel am Ende")).to_contain_text("67 dBµV")
+    page.get_by_role("button", name="Zum Toolhub", exact=True).click()
+    page.get_by_role("button", name="Berechnungen öffnen", exact=True).click()
+    page.get_by_role("button", name="BKP-Kostenschätzung öffnen", exact=True).click()
+    playwright.expect(metric(page, "Schätzsumme")).to_contain_text("CHF")
+    page.screenshot(path=str(tmp_path / "bkp-schaetzung.png"), full_page=True)

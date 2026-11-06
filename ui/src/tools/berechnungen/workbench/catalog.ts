@@ -22,6 +22,10 @@ export const WORKBENCH_CATALOG = [
   ["premium-sia2056", "SIA 2056 · Zonenbilanz", "Leistung & Energie", "Leistungs- und Energiebilanz mit dokumentierten Zonenkennwerten aufbauen."],
   ["premium-poe", "PoE-Streckenplaner", "Leitungen & Schutz", "Mehrere Leitungssegmente mit expliziten Längenfaktoren bewerten."],
   ["premium-brandlast", "Brandlast Fluchtweg", "Grundlagen & Räume", "Ist-Zustand und Sanierungsannahme für die Kabel-Brandlast vergleichen."],
+  ["leistungsbilanz", "Leistungsbilanz", "Leistung & Energie", "Verbraucher je Verteilung mit Menge, Leistung und Gleichzeitigkeit zusammenzählen."],
+  ["zev-gestehung", "ZEV-Gestehungskosten", "Leistung & Energie", "Investition und Betrieb einer PV-Anlage auf den erwarteten Ertrag beziehen."],
+  ["rtv-daempfung", "RTV-Dämpfung", "Leitungen & Schutz", "Pegel einer Empfangsstrecke aus eigenen Kabel- und Gerätewerten weiterrechnen."],
+  ["bkp-schaetzung", "BKP-Kostenschätzung", "Kosten", "Positionen mit Menge und eigenem Einheitspreis zur Schätzsumme addieren."],
 ] as const;
 
 export const WORKBENCH_TOOLS = WORKBENCH_CATALOG.map(([id, title, , description]) => ({

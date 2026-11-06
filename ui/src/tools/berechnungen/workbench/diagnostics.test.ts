@@ -19,8 +19,8 @@ function failure(id: string, input: Inputs) {
   return { caught, diagnostics: errorDiagnostics(d, input, caught) };
 }
 
-test("all 22 workbench models expose current explanation data without changing inputs", () => {
-  assert.equal(CALCULATORS.length, 22);
+test("all workbench models expose current explanation data without changing inputs", () => {
+  assert.equal(CALCULATORS.length, 26);
   for (const d of CALCULATORS) {
     const input = Object.freeze(defaults(d)), before = JSON.stringify(input), result = d.calculate(input);
     const diagnostics = resultDiagnostics(d, input, result);
