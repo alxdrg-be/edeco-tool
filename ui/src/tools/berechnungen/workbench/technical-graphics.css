@@ -8,4 +8,8 @@
 @media print{.technical-scroll{overflow:visible}.engineering-lab .technical-svg{min-width:0!important;width:100%}.technical-figure{break-inside:avoid}}
 
 .engineering-lab .technical-svg .technical-core-label{font:600 13px ui-monospace,monospace;fill:var(--fg)}
+.escape-switch{display:flex;gap:8px;flex-wrap:wrap;padding:0 20px 12px}.escape-switch button{border:1px solid var(--line-strong);border-radius:8px;background:var(--bg);color:var(--fg);padding:8px 12px;font-size:12px}.escape-switch button[aria-pressed=true]{border-color:var(--accent);background:var(--accent-soft);color:var(--fg)}
+.escape-count{margin:0;padding:0 20px 8px;color:var(--muted);font-size:12px}
+.escape-legend{display:flex;flex-wrap:wrap;gap:8px 16px;margin:0;padding:4px 20px 8px;list-style:none;color:var(--muted);font-size:12px}.escape-legend li{display:flex;align-items:center;gap:7px}.escape-legend i{width:14px;height:4px;border-radius:2px;background:var(--muted)}.escape-legend i[data-tone=ok]{background:var(--ok)}.escape-legend i[data-tone=warning]{background:var(--wire)}.escape-legend i[data-tone=error]{background:var(--danger)}
+.engineering-lab .escape-route-svg{min-width:720px}
 .technical-figure figcaption summary{cursor:pointer;font-size:12px;color:var(--muted)}.technical-figure figcaption p{font-size:12px;margin:10px 0 0;line-height:1.7}

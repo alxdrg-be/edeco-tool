@@ -12,9 +12,9 @@ function ValueField({ label, value, onChange, disabled, text = false }: { label:
 }
 
 type CatalogRow = FireLoadRow & { catalogId?: string; supplier?: string; cpr?: string };
-function CatalogChoice({ row, label, onChange, disabled }: { row: CatalogRow; label: string; onChange: (row: CatalogRow) => void; disabled: boolean }) {
+function CatalogChoice({ row, label, onChange, disabled, familyHint = "all" }: { row: CatalogRow; label: string; onChange: (row: CatalogRow) => void; disabled: boolean; familyHint?: string }) {
   const fact = FIRE_CABLE_FACTS.find(item => item.id === row.catalogId);
-  const [family, setFamily] = useState<string>(fact?.family ?? "all"), [query, setQuery] = useState("");
+  const [family, setFamily] = useState<string>(fact?.family ?? familyHint), [query, setQuery] = useState("");
   const words = query.trim().toLocaleLowerCase("de-CH").split(/\s+/).filter(Boolean);
   const matches = FIRE_CABLE_FACTS.filter(item => (family === "all" || item.family === family) && words.every(word => `${item.label} ${item.cpr} ${item.id}`.toLocaleLowerCase("de-CH").includes(word)));
   function choose(id: string, supplier = "") {
@@ -42,14 +42,21 @@ export default function FireLoadControls({ input, onChange, disabled = false, ro
   let rows: CatalogRow[];
   try { rows = parseFireLoadRows(input[rowsKey], true); }
   catch (error) { return <p role="alert" className="lab-error">{(error as Error).message}</p>; }
+  const [familyHints, setFamilyHints] = useState<Record<string, string>>({});
   const change = (next: CatalogRow[]) => onChange(rowsKey, JSON.stringify(next));
   const update = (id: string, key: keyof CatalogRow, value: string) => change(rows.map(row => row.id === id ? { ...row, [key]: value, ...(["name", "mjPerMeter", "cpr"].includes(key) ? { catalogId: "", supplier: "" } : {}) } : row));
+  const addRow = (name = "Neue Kabelposition", family = "all") => {
+    const row = { ...createFireLoadRow(`fire-${crypto.randomUUID()}`), name, length: input[lengthKey] };
+    setFamilyHints(current => ({ ...current, [row.id]: family }));
+    change([...rows, row]);
+  };
   return <section className="fireload-controls" aria-label={`${title} im Fluchtweg`}>
-    <div className="fireload-controls-heading"><h2>{title} · {rows.length} Positionen</h2><button type="button" className="lab-open" disabled={disabled || rows.length >= 1000} onClick={() => change([...rows, { ...createFireLoadRow(`fire-${crypto.randomUUID()}`), length: input[lengthKey] }])}>Kabelposition hinzufügen</button></div>
+    <div className="fireload-controls-heading"><h2>{title} · {rows.length} Positionen</h2><button type="button" className="lab-open" disabled={disabled || rows.length >= 1000} onClick={() => addRow()}>Kabelposition hinzufügen</button></div>
+    <div className="fireload-families" role="group" aria-label={`${title} · Kabel über Familie hinzufügen`}>{FIRE_CABLE_FAMILIES.map(family => <button type="button" key={family.value} disabled={disabled || rows.length >= 1000} onClick={() => addRow(family.label, family.value)}>{family.label}</button>)}</div>
     <p className="lab-note">MJ/m aus dem Herstellerbeleg eintragen. Länge je Kabel im betrachteten Fluchtweg; die Bezugsstrecke wird separat angegeben.</p>
     {!rows.length && <p className="lab-note">Noch keine Kabelposition erfasst.</p>}
     {rows.map((row, index) => <details data-diagnostic-field={rowsKey} data-diagnostic-row={row.id} data-diagnostic-index={index} className="fireload-card" key={row.id} open={index === 0}><summary>{row.name || `Kabelposition ${index + 1}`} · {row.quantity || "–"} Kabel</summary><div className="fireload-fields">
-      <CatalogChoice row={row} label={`${title} · Position ${index + 1}`} disabled={disabled} onChange={next => change(rows.map(item => item.id === row.id ? next : item))} />
+      <CatalogChoice row={row} label={`${title} · Position ${index + 1}`} disabled={disabled} familyHint={familyHints[row.id] ?? "all"} onChange={next => change(rows.map(item => item.id === row.id ? next : item))} />
       <ValueField label={`${title} · Position ${index + 1} · Bezeichnung / Herstellerbeleg`} value={row.name} disabled={disabled} text onChange={value => update(row.id, "name", value)} />
       <ValueField label={`${title} · Position ${index + 1} · Brandlast je Kabel (MJ/m)`} value={row.mjPerMeter} disabled={disabled} onChange={value => update(row.id, "mjPerMeter", value)} />
       <ValueField label={`${title} · Position ${index + 1} · Anzahl`} value={row.quantity} disabled={disabled} onChange={value => update(row.id, "quantity", value)} />
