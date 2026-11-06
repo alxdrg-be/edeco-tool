@@ -5,7 +5,7 @@ import { HE_MM } from "./types";
 import type { DeviceProfile, MountSide, Placement, RackDocument, RackIssue } from "./types";
 import { placementRect, rackGeometry, rawStartUnitFromY } from "./geometry";
 import { addPlacement, movePlacements } from "./model";
-import { rackPortGrid, readRackDragProfile } from "./rackCanvasGeometry";
+import { limitRackViewport, rackPortGrid, readRackDragProfile } from "./rackCanvasGeometry";
 import { rackDrawingFill, rackDrawingInk } from "./rackDrawingPalette";
 import "./rack-canvas.css";
 
@@ -30,6 +30,15 @@ const BASE_SCALE = .48;
 // Annotation and tool sizes stay readable in screen pixels while the rack stays in mm.
 const FIT_MARGIN = { left: 44, right: 76, top: 26, bottom: 62 };
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
+/** Fixed drawing size, so zooming in enlarges the text with the cabinet and it stays inside its band. */
+function drawingFont(naturalMm: number, maxMm: number) {
+  return Math.min(maxMm, naturalMm);
+}
+function textPlate(x: number, y: number, text: string, font: number, anchor: "start" | "middle" | "end") {
+  const width = Math.max(font * 1.15, text.length * font * .62), height = font * 1.42;
+  const left = anchor === "middle" ? x - width / 2 : anchor === "end" ? x - width : x;
+  return { x: left - font * .32, y: y - height / 2, width: width + font * .64, height, rx: Math.min(4, font * .18) };
+}
 const onFace = (item: Placement, view: "front" | "rear") => item.side === view || item.side === "zero-left" || item.side === "zero-right" || view === "rear" && item.side === "zero-rear";
 const number = (value: number) => value.toLocaleString("de-CH", { maximumFractionDigits: 1 });
 const toneFor = (issues: RackIssue[]) => issues.some(issue => issue.severity === "error") ? "error" : issues.some(issue => issue.severity === "warning") ? "warning" : issues.length ? "open" : "neutral";
@@ -54,7 +63,7 @@ export function RackDeviceGlyph({ profile, width, height }: { profile: DevicePro
         const portWidth = cellWidth * .76, portHeight = Math.min(cellHeight * .56, portWidth * .8);
         return <g key={port.number} data-port-number={port.number} transform={`translate(${x} ${y})`}><title>{`${profile.medium} · Port ${port.number}`}</title>
           {profile.medium === "LWL" ? <><rect x={0} y={cellHeight * .32} width={portWidth * .43} height={portHeight} rx="1" /><rect x={portWidth * .54} y={cellHeight * .32} width={portWidth * .43} height={portHeight} rx="1" /></> : <path d={`M0 ${cellHeight * .32}h${portWidth}v${portHeight}h${-portWidth * .24}v${portHeight * .18}h${-portWidth * .52}v${-portHeight * .18}H0Z`} />}
-          <text className="rd-port-number" fill="currentColor" stroke="none" x={portWidth / 2} y={cellHeight * .22} textAnchor="middle" fontSize={Math.min(9, cellHeight * .25)}>{port.number}</text>
+          <text className="rd-port-number" fill="currentColor" stroke="none" x={portWidth / 2} y={cellHeight * .22} textAnchor="middle" fontSize={Math.min(11, cellHeight * .3)}>{port.number}</text>
         </g>;
       })}
       {profile.kind === "switch" && <><circle cx="20" cy={height / 2 - 5} r="2.5" /><circle cx="20" cy={height / 2 + 5} r="2.5" /><path d={`M${width - 28} ${height / 2 - 6}h12m-12 6h12m-12 6h12`} /></>}
@@ -82,6 +91,13 @@ export default function RackCanvas({ document, rackId, view, selectedIds, dragPr
   const rack = document.racks.find(item => item.id === rackId);
   const context = useRef({ document, rack, viewport, size, view, selectedIds, dragProfileId });
   context.current = { document, rack, viewport, size, view, selectedIds, dragProfileId };
+  const place = useCallback((next: Viewport | ((old: Viewport) => Viewport)) => {
+    setViewport(old => {
+      const value = typeof next === "function" ? next(old) : next;
+      const current = context.current;
+      return current.rack ? limitRackViewport(value, current.rack, current.size) : value;
+    });
+  }, []);
   const profiles = new Map(document.profiles.map(item => [item.id, item]));
   const visible = document.placements.filter(item => item.rackId === rackId && item.status !== "removed" && onFace(item, view));
   const fit = useCallback(() => {
@@ -90,20 +106,20 @@ export default function RackCanvas({ document, rackId, view, selectedIds, dragPr
     const width = Math.max(1, area.width - FIT_MARGIN.left - FIT_MARGIN.right);
     const height = Math.max(1, area.height - FIT_MARGIN.top - FIT_MARGIN.bottom);
     const scale = clamp(Math.min(width / current.widthMm, height / current.heightMm), .04, 1.5);
-    setViewport({ x: -(FIT_MARGIN.left + (width - current.widthMm * scale) / 2) / scale,
+    place({ x: -(FIT_MARGIN.left + (width - current.widthMm * scale) / 2) / scale,
       y: -(FIT_MARGIN.top + (height - current.heightMm * scale) / 2) / scale, scale });
-  }, []);
+  }, [place]);
   const zoom = useCallback((factor: number, at?: { x: number; y: number }, absolute?: number) => {
     const current = context.current, point = at ?? { x: current.size.width / 2, y: current.size.height / 2 };
-    setViewport(old => { const scale = clamp(absolute ?? old.scale * factor, .04, 2.4); return { x: old.x + point.x / old.scale - point.x / scale, y: old.y + point.y / old.scale - point.y / scale, scale }; });
-  }, []);
+    place(old => { const scale = clamp(absolute ?? old.scale * factor, .04, 2.4); return { x: old.x + point.x / old.scale - point.x / scale, y: old.y + point.y / old.scale - point.y / scale, scale }; });
+  }, [place]);
   const fitWidth = useCallback(() => {
     const { rack: current, size: area } = context.current;
     if (!current) return;
     const width = Math.max(1, area.width - FIT_MARGIN.left - FIT_MARGIN.right);
     const scale = clamp(width / current.widthMm, .04, 2.4);
-    setViewport({ x: -(FIT_MARGIN.left + (width - current.widthMm * scale) / 2) / scale, y: -FIT_MARGIN.top / scale, scale });
-  }, []);
+    place({ x: -(FIT_MARGIN.left + (width - current.widthMm * scale) / 2) / scale, y: -FIT_MARGIN.top / scale, scale });
+  }, [place]);
   useEffect(() => {
     const element = holder.current; if (!element) return;
     const observer = new ResizeObserver(entries => { const rect = entries[0].contentRect; if (rect.width && rect.height) setSize({ width: rect.width, height: rect.height }); });
@@ -115,11 +131,11 @@ export default function RackCanvas({ document, rackId, view, selectedIds, dragPr
     const wheel = (event: WheelEvent) => {
       event.preventDefault();
       if (event.ctrlKey || event.metaKey) { const rect = element.getBoundingClientRect(); zoom(Math.exp(-event.deltaY * .002), { x: event.clientX - rect.left, y: event.clientY - rect.top }); }
-      else setViewport(old => ({ ...old, x: old.x + event.deltaX / old.scale, y: old.y + event.deltaY / old.scale }));
+      else place(old => ({ ...old, x: old.x + event.deltaX / old.scale, y: old.y + event.deltaY / old.scale }));
     };
     element.addEventListener("wheel", wheel, { passive: false });
     return () => element.removeEventListener("wheel", wheel);
-  }, [zoom]);
+  }, [place, zoom]);
   useEffect(() => {
     const release = () => { setSpace(false); };
     window.addEventListener("keyup", release); window.addEventListener("blur", release);
@@ -132,8 +148,8 @@ export default function RackCanvas({ document, rackId, view, selectedIds, dragPr
     if (!item || !profile) return;
     const rect = placementRect(current.rack, item, profile), scale = Math.max(current.viewport.scale, BASE_SCALE);
     if (current.view === "rear" && ["zero-left", "zero-right"].includes(item.side)) rect.x = current.rack.widthMm - rect.x - rect.width;
-    setViewport({ x: rect.x + rect.width / 2 - current.size.width / scale / 2, y: rect.y + rect.height / 2 - current.size.height / scale / 2, scale });
-  }, [focusPlacementId]);
+    place({ x: rect.x + rect.width / 2 - current.size.width / scale / 2, y: rect.y + rect.height / 2 - current.size.height / scale / 2, scale });
+  }, [focusPlacementId, place]);
 
   function world(clientX: number, clientY: number) {
     const rect = holder.current!.getBoundingClientRect(), current = context.current.viewport;
@@ -190,7 +206,7 @@ export default function RackCanvas({ document, rackId, view, selectedIds, dragPr
     const active = gesture.current; if (!active) return;
     const dx = event.clientX - active.clientX, dy = event.clientY - active.clientY;
     active.moved ||= Math.hypot(dx, dy) > 4;
-    if (active.kind === "pan") { setViewport({ ...active.viewport, x: active.viewport.x - dx / active.viewport.scale, y: active.viewport.y - dy / active.viewport.scale }); return; }
+    if (active.kind === "pan") { place({ ...active.viewport, x: active.viewport.x - dx / active.viewport.scale, y: active.viewport.y - dy / active.viewport.scale }); return; }
     if (!active.moved) return;
     const delta = -Math.round(dy / context.current.viewport.scale / HE_MM);
     if (delta === active.delta && preview) return;
@@ -223,10 +239,14 @@ export default function RackCanvas({ document, rackId, view, selectedIds, dragPr
   }
 
   if (!rack) return <div className="rd-canvas-empty">Rack auswählen oder neu anlegen.</div>;
-  const geometry = rackGeometry(rack), selected = new Set(selectedIds), labelSize = 11 / viewport.scale;
+  const geometry = rackGeometry(rack), selected = new Set(selectedIds);
+  const labelSize = drawingFont(HE_MM * .5, HE_MM * .58);
+  const titleSize = drawingFont(geometry.railTopMm * .58, geometry.railTopMm * .72);
+  const baseSize = drawingFont((rack.heightMm - geometry.railBottomMm) * .5, Math.max(12, (rack.heightMm - geometry.railBottomMm) * .68));
+  const dimensionSize = drawingFont(22, 28);
   const cabinetFill = rackDrawingFill(rack.metadata?.drawingFill, "#cccccc");
   const cabinetStyle = { "--rd-cabinet-fill": cabinetFill, "--rd-cabinet-ink": rackDrawingInk(cabinetFill) } as CSSProperties;
-  const unitLabelStep = Math.max(1, Math.ceil(12 / (HE_MM * viewport.scale)));
+  const unitLabelStep = Math.max(1, Math.ceil(labelSize * 1.35 / HE_MM));
   const previewItems = preview?.document.placements.filter(item => preview.ids.includes(item.id)) ?? [];
   const activePreview = previewItems[0], activeProfile = activePreview && profiles.get(activePreview.profileId);
   const previewText = activePreview && activeProfile ? activeProfile.units === 0 ? "0 HE · seitliches Zubehör" : `HE ${activePreview.startUnit}${activeProfile.units > 1 ? `–${activePreview.startUnit + activeProfile.units - 1}` : ""} · ${activeProfile.units} HE` : "";
@@ -234,9 +254,18 @@ export default function RackCanvas({ document, rackId, view, selectedIds, dragPr
   const errors = preview?.issues.filter(issue => issue.severity === "error") ?? [];
   const fitPercentage = Math.round(viewport.scale / BASE_SCALE * 100);
   const cabinetPixelWidth = rack.widthMm * viewport.scale;
-  const brandText = cabinetPixelWidth < 160 ? rack.label : `${rack.label} · ${rack.units} HE`;
-  const brandLimit = Math.max(4, Math.floor((cabinetPixelWidth - 12) / 6.8));
+  const brandText = cabinetPixelWidth < 180 ? rack.label : `${rack.label} · ${rack.units} HE`;
+  const brandLimit = Math.max(4, Math.floor((cabinetPixelWidth - 28) / Math.max(7.2, titleSize * viewport.scale * .62)));
   const visibleBrand = brandText.length > brandLimit ? `${brandText.slice(0, brandLimit - 1)}…` : brandText;
+  const brandBox = textPlate(rack.widthMm / 2, geometry.railTopMm / 2, visibleBrand, titleSize, "middle");
+  const baseText = cabinetPixelWidth < 190 ? "19″" : "19″ · 482,6 mm Einbauebene";
+  const baseY = rack.heightMm - (rack.heightMm - geometry.railBottomMm) / 2;
+  const baseBox = textPlate(rack.widthMm / 2, baseY, baseText, baseSize, "middle");
+  const widthLabel = `${number(rack.widthMm)} mm`;
+  const heightLabel = `${number(rack.heightMm)} mm${rack.heightMm * viewport.scale >= 190 ? " Gehäusehöhe" : ""}`;
+  const widthY = rack.heightMm + Math.max(36, dimensionSize * 2.2);
+  const widthBox = textPlate(rack.widthMm / 2, widthY, widthLabel, dimensionSize, "middle");
+  const heightBox = textPlate(0, 0, heightLabel, dimensionSize, "middle");
   const showBrand = geometry.railTopMm * viewport.scale >= 20 && cabinetPixelWidth >= 70;
   const showBase = (rack.heightMm - geometry.railBottomMm) * viewport.scale >= 18 && cabinetPixelWidth >= 70;
   const dimensionLineX = rack.widthMm + 22 + 24 / viewport.scale;
@@ -247,9 +276,10 @@ export default function RackCanvas({ document, rackId, view, selectedIds, dragPr
     const rect = placementRect(rack, item, profile), itemIssues = issues.filter(issue => issue.placementIds.includes(item.id)), tone = toneFor(itemIssues);
     if (view === "rear" && ["zero-left", "zero-right"].includes(item.side)) rect.x = rack.widthMm - rect.x - rect.width;
     const isSelected = selected.has(item.id), zero = item.side.startsWith("zero"), faded = !ghost && preview?.ids.includes(item.id), openPosition = zero && (item.zeroStartMm === null || item.zeroHeightMm === null);
-    const captionSize = Math.min(23, rect.height * .4), captionText = item.label || profile.name;
+    const captionSize = drawingFont(Math.min(26, rect.height * .46), rect.height * .55), captionText = item.label || profile.name;
     const captionLimit = Math.max(1, Math.floor((rect.width - 50) / (captionSize * .6)));
     const visibleCaption = captionText.length > captionLimit ? `${captionText.slice(0, captionLimit - 1)}…` : captionText;
+    const captionBox = textPlate(rect.width / 2, rect.height / 2, visibleCaption, captionSize, "middle");
     const deviceFill = rackDrawingFill(profile.metadata?.drawingFill, "#ffffff");
     const deviceStyle = { "--rd-drawing-fill": deviceFill, "--rd-device-ink": rackDrawingInk(deviceFill) } as CSSProperties;
     return <g key={`${ghost ? "ghost-" : ""}${item.id}`} style={deviceStyle} className={`rd-rack-device rd-kind-${profile.kind}${isSelected ? " is-selected" : ""}${openPosition ? " is-position-open" : ""}${ghost ? ` is-ghost ${preview?.accepted ? "is-valid" : "is-invalid"}` : ""}${faded ? " is-moving" : ""}`} data-rack-placement={ghost ? undefined : item.id} data-placement-id={item.id} data-unit-start={item.startUnit} data-units={profile.units} data-side={item.side} data-tone={tone} transform={`translate(${rect.x} ${rect.y})`} role={ghost ? undefined : "button"} tabIndex={ghost ? undefined : 0} aria-label={ghost ? undefined : `${item.label || profile.name}, ${zero ? "0 HE Zubehör" : `HE ${item.startUnit} bis ${item.startUnit + profile.units - 1}`}, ${item.side === "rear" || item.side === "zero-rear" ? "Rückseite" : "Vorderseite"}${openPosition ? ", Lage offen" : ""}`} onPointerDown={ghost ? undefined : event => startDevice(event, item)} onKeyDown={ghost ? undefined : event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); event.stopPropagation(); onSelect(item.id, event.ctrlKey || event.metaKey || event.shiftKey); } }}>
@@ -257,7 +287,7 @@ export default function RackCanvas({ document, rackId, view, selectedIds, dragPr
       <rect className="rd-device-body" x="1" y="1" width={Math.max(0, rect.width - 2)} height={Math.max(0, rect.height - 2)} rx={zero ? 8 : 3} />
       {!zero && <g className="rd-device-ears">{[8, rect.width - 8].flatMap(x => [Math.min(10, rect.height / 2), Math.max(rect.height - 10, rect.height / 2)].map((y, index) => <circle key={`${x}-${index}`} cx={x} cy={y} r="2.7" />))}</g>}
       <RackDeviceGlyph profile={profile} width={rect.width} height={rect.height} />
-      {!profile.portCount && !zero && profile.kind !== "manager" && captionSize * viewport.scale >= 7 && <text className="rd-device-caption" x={rect.width / 2} y={rect.height / 2 + Math.min(11, rect.height * .2)} fontSize={captionSize} textAnchor="middle">{visibleCaption}</text>}
+      {!profile.portCount && !zero && profile.kind !== "manager" && captionSize * viewport.scale >= 8 && <g><rect className="rd-text-plate rd-text-plate-device" x={captionBox.x} y={captionBox.y} width={captionBox.width} height={captionBox.height} rx={captionBox.rx} /><text className="rd-device-caption" x={rect.width / 2} y={rect.height / 2} dominantBaseline="central" fontSize={captionSize} textAnchor="middle">{visibleCaption}</text></g>}
       {isSelected && !ghost && <rect className="rd-selection-ring" x={-3} y={-3} width={rect.width + 6} height={rect.height + 6} rx="5" />}
       {ghost && <path className="rd-snap-cross" d="M-16 0H16M0-16V16" />}
     </g>;
@@ -275,20 +305,20 @@ export default function RackCanvas({ document, rackId, view, selectedIds, dragPr
           {Array.from({ length: rack.units }, (_, index) => {
             const unit = rack.units - index, y = geometry.railTopMm + index * HE_MM;
             const showLabel = unit === 1 || index % unitLabelStep === 0 && unit > unitLabelStep;
-            return <g key={unit} className={`rd-he-row${unit % 5 === 0 ? " is-fifth" : ""}`} data-he={unit}><rect x={geometry.railLeftMm} y={y} width={geometry.railRightMm - geometry.railLeftMm} height={HE_MM} /><line x1={geometry.railLeftMm - 4} x2={geometry.railRightMm + 4} y1={y} y2={y} />{showLabel && <><text x={-22} y={y + HE_MM / 2} dominantBaseline="central" textAnchor="end" fontSize={labelSize}>{unit}</text><text x={rack.widthMm + 22} y={y + HE_MM / 2} dominantBaseline="central" textAnchor="start" fontSize={labelSize}>{unit}</text></>}</g>;
+            return <g key={unit} className={`rd-he-row${unit % 5 === 0 ? " is-fifth" : ""}`} data-he={unit}><rect x={geometry.railLeftMm} y={y} width={geometry.railRightMm - geometry.railLeftMm} height={HE_MM} /><line x1={geometry.railLeftMm - 4} x2={geometry.railRightMm + 4} y1={y} y2={y} />{showLabel && ([["end", -labelSize * .7], ["start", rack.widthMm + labelSize * .7]] as const).map(([anchor, x]) => { const box = textPlate(x, y + HE_MM / 2, String(unit), labelSize, anchor); return <g key={anchor}><rect className="rd-text-plate" x={box.x} y={box.y} width={box.width} height={box.height} rx={box.rx} /><text x={x} y={y + HE_MM / 2} dominantBaseline="central" textAnchor={anchor} fontSize={labelSize}>{unit}</text></g>; })}</g>;
           })}
           <line className="rd-rail-bottom" x1={geometry.railLeftMm - 4} x2={geometry.railRightMm + 4} y1={geometry.railBottomMm} y2={geometry.railBottomMm} />
-          {showBrand && <text className="rd-cabinet-brand" x={rack.widthMm / 2} y={geometry.railTopMm / 2} textAnchor="middle" dominantBaseline="central" fontSize={12 / viewport.scale}><title>{rack.label} · {rack.units} HE</title>{visibleBrand}</text>}
-          {showBase && <text className="rd-cabinet-base" x={rack.widthMm / 2} y={rack.heightMm - (rack.heightMm - geometry.railBottomMm) / 2} textAnchor="middle" dominantBaseline="central" fontSize={10 / viewport.scale}>{cabinetPixelWidth < 160 ? "19″" : "19″ · 482,6 mm Einbauebene"}</text>}
+          {showBrand && <g><rect className="rd-text-plate rd-text-plate-cabinet" x={brandBox.x} y={brandBox.y} width={brandBox.width} height={brandBox.height} rx={brandBox.rx} /><text className="rd-cabinet-brand" x={rack.widthMm / 2} y={geometry.railTopMm / 2} textAnchor="middle" dominantBaseline="central" fontSize={titleSize}><title>{rack.label} · {rack.units} HE</title>{visibleBrand}</text></g>}
+          {showBase && <g><rect className="rd-text-plate rd-text-plate-cabinet" x={baseBox.x} y={baseBox.y} width={baseBox.width} height={baseBox.height} rx={baseBox.rx} /><text className="rd-cabinet-base" x={rack.widthMm / 2} y={baseY} textAnchor="middle" dominantBaseline="central" fontSize={baseSize}>{baseText}</text></g>}
         </g>
-        <g className="rd-canvas-dimensions" fontSize={11 / viewport.scale}><path d={`M0 ${dimensionLineY - 5 / viewport.scale}v${10 / viewport.scale}m0 ${-5 / viewport.scale}H${rack.widthMm}m0 ${-5 / viewport.scale}v${10 / viewport.scale}`} /><text x={rack.widthMm / 2} y={rack.heightMm + 40 / viewport.scale} textAnchor="middle">{number(rack.widthMm)} mm</text><path d={`M${dimensionLineX - 5 / viewport.scale} 0h${10 / viewport.scale}m${-5 / viewport.scale} 0V${rack.heightMm}m${-5 / viewport.scale} 0h${10 / viewport.scale}`} /><text transform={`translate(${dimensionTextX} ${rack.heightMm / 2}) rotate(-90)`} textAnchor="middle">{number(rack.heightMm)} mm{rack.heightMm * viewport.scale >= 160 ? " Gehäusehöhe" : ""}</text></g>
+        <g className="rd-canvas-dimensions" fontSize={dimensionSize}><path d={`M0 ${dimensionLineY - 5 / viewport.scale}v${10 / viewport.scale}m0 ${-5 / viewport.scale}H${rack.widthMm}m0 ${-5 / viewport.scale}v${10 / viewport.scale}`} /><rect className="rd-text-plate" x={widthBox.x} y={widthBox.y} width={widthBox.width} height={widthBox.height} rx={widthBox.rx} /><text x={rack.widthMm / 2} y={widthY} textAnchor="middle" dominantBaseline="central">{widthLabel}</text><path d={`M${dimensionLineX - 5 / viewport.scale} 0h${10 / viewport.scale}m${-5 / viewport.scale} 0V${rack.heightMm}m${-5 / viewport.scale} 0h${10 / viewport.scale}`} /><g transform={`translate(${dimensionTextX} ${rack.heightMm / 2}) rotate(-90)`}><rect className="rd-text-plate" x={heightBox.x} y={heightBox.y} width={heightBox.width} height={heightBox.height} rx={heightBox.rx} /><text textAnchor="middle" dominantBaseline="central">{heightLabel}</text></g></g>
         {visible.map(item => drawDevice(item))}
         {previewItems.map(item => drawDevice(item, true))}
       </svg>
       {preview && <div className={`rd-drop-feedback${preview.accepted ? "" : " is-error"}`} role="status"><strong>{previewText || "Platzierung"}</strong><span>{preview.accepted ? "Am HE-Raster einrasten" : errors[0]?.message || "Position prüfen"}</span></div>}
     </div>
     <div className="rd-canvas-toolbar"><div className="rd-canvas-controls"><button type="button" className={hand ? "is-active" : ""} onClick={() => setHand(value => !value)} title={hand ? "Auswählen" : "Zeichnung verschieben"} aria-label={hand ? "Auswählen" : "Zeichnung verschieben"} aria-pressed={hand}>{hand ? <Hand size={16} /> : <MousePointer2 size={16} />}</button><span className="rd-controls-divider" /><button type="button" onClick={() => zoom(1 / 1.2)} aria-label="Zeichnung verkleinern"><Minus size={16} /></button><button type="button" className="rd-zoom-value" onClick={() => zoom(1, undefined, BASE_SCALE)} title="100 Prozent">{fitPercentage} %</button><button type="button" onClick={() => zoom(1.2)} aria-label="Zeichnung vergrössern"><Plus size={16} /></button><button type="button" onClick={fitWidth} aria-label="Rack auf Breite einpassen" title="Breite einpassen"><MoveHorizontal size={16} /></button><button type="button" onClick={fit} aria-label="Ganzes Rack einpassen" title="Ganzes Rack einpassen"><Maximize2 size={16} /></button></div></div>
-    <div className="rd-canvas-status"><span>{selectedItem && selectedProfile ? `${selectedIds.length > 1 ? `${selectedIds.length} Geräte ausgewählt` : selectedItem.label || selectedProfile.name}${selectedProfile.units > 0 ? ` · HE ${selectedItem.startUnit}–${selectedItem.startUnit + selectedProfile.units - 1}` : " · 0 HE Zubehör"}` : "Gerät ziehen · Strg-Klick: Mehrfachauswahl"}</span><span>Strg + Mausrad: Zoom · Leertaste: Verschieben</span></div>
+    <div className="rd-canvas-status"><span>{selectedItem && selectedProfile ? `${selectedIds.length > 1 ? `${selectedIds.length} Geräte ausgewählt` : selectedItem.label || selectedProfile.name}${selectedProfile.units > 0 ? ` · HE ${selectedItem.startUnit}–${selectedItem.startUnit + selectedProfile.units - 1}` : " · 0 HE Zubehör"}` : "Gerät ziehen · Strg-Klick: Mehrfachauswahl"}</span><span>Strg + Mausrad: Zoom · Leertaste: Verschieben · Ansicht bleibt am Rack</span></div>
     <span className="rd-sr-only" role="status" aria-live="polite">{status}</span>
   </section>;
 }

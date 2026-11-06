@@ -6,12 +6,12 @@ export interface NamingSettings {
 }
 export const PARTS: { key: Part; label: string; options: string[] }[] = [
   { key: "project", label: "Projektnummer", options: [] },
-  { key: "discipline", label: "Fachbereich", options: ["E"] },
-  { key: "drawing", label: "Darstellung", options: ["G"] },
-  { key: "plan", label: "Planart", options: ["APP"] },
-  { key: "floor", label: "Geschoss", options: ["EG00", "OG01", "OG02", "OG03", "UG01", "UG02"] },
-  { key: "index", label: "Index", options: ["A", "B", "C", "D"] },
-  { key: "scale", label: "Massstab", options: ["20", "50", "100", "200", "500"] },
+  { key: "discipline", label: "Fachbereich", options: ["A", "E", "KO", "L", "H", "S", "K"] },
+  { key: "drawing", label: "Planart", options: ["G", "P"] },
+  { key: "plan", label: "Gewerk", options: ["APP", "SUS", "STA", "SCH", "ERS", "ERD", "LPS", "NOT", "LIC", "KRA", "BEL", "TEL", "UKV", "KOM", "GSA", "RTV", "SIC", "TAL", "DSP"] },
+  { key: "floor", label: "Geschoss", options: ["UG11", "UG01", "UG", "SG", "EG", "EG00", "OG", "OG01", "OG02", "OG03", "OG11", "AG", "DG", "DA"] },
+  { key: "index", label: "Index", options: ["a", "b", "c", "A", "B", "C", "D", "31", "32", "41", "51", "53"] },
+  { key: "scale", label: "Massstab", options: ["1", "5", "20", "50", "100", "200", "500", "1000"] },
   { key: "date", label: "Datum", options: [] },
 ];
 export const DEFAULTS: NamingSettings = {

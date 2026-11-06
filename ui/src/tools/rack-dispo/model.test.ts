@@ -130,6 +130,24 @@ test('copying a rack or panel keeps source geometry but clears physical port des
   const cloned = copied.placements.find(p => p.rackId !== doc.racks[0].id)!; assert.equal(portRows(copied, cloned.id)[0].state, 'unknown');
   const doubled = duplicatePlacements(doc, ['a']); assert.equal(doubled.accepted, true); assert.equal(doubled.document.ports.length, 1);
 });
+test('a copy goes directly below when the slot above is taken, and the top unit does not fail while space remains', () => {
+  const doc = fixture();
+  doc.profiles[0] = { ...doc.profiles[0], units: 1 };
+  doc.placements = [placed(doc, 'mid', 10), placed(doc, 'above', 11)];
+  const down = duplicatePlacements(doc, ['mid']);
+  assert.equal(down.accepted, true);
+  assert.equal(down.document.placements.find(p => p.id !== 'mid' && p.id !== 'above')?.startUnit, 9);
+  doc.placements = [placed(doc, 'top', doc.racks[0].units)];
+  const top = duplicatePlacements(doc, ['top']);
+  assert.equal(top.accepted, true);
+  assert.equal(top.document.placements.find(p => p.label.endsWith('Kopie'))?.startUnit, doc.racks[0].units - 1);
+  const full = fixture();
+  full.profiles[0] = { ...full.profiles[0], units: 1 };
+  full.placements = Array.from({ length: full.racks[0].units }, (_, index) => placed(full, `u${index + 1}`, index + 1));
+  const blocked = duplicatePlacements(full, ['u42']);
+  assert.equal(blocked.accepted, false);
+  assert.match(blocked.issues[0]?.message ?? '', /kein freier Platz/);
+});
 test('example follows panel, manager, switch and computed counts with explicitly open dimensions', () => {
   const doc = createExampleDocument(); assert.equal(validateDocument(doc).valid, true);
   const panel = doc.placements.find(p => p.label === 'Patchpanel 24 Ports')!;

@@ -329,6 +329,22 @@ export function movePlacements(doc: RackDocument, ids: string[], delta: number):
   const candidate = { ...doc, placements: doc.placements.map(p => ids.includes(p.id) && !isZeroSide(p.side) ? { ...p, startUnit: p.startUnit + delta } : p) };
   return mutation(candidate, ids);
 }
+function slotFree(doc: RackDocument, rackId: string, profile: DeviceProfile, side: MountSide, start: number): boolean {
+  return !doc.placements.some(p => p.rackId === rackId && p.side === side && p.status !== 'removed' &&
+    unitRangesOverlap(start, profile.units, p.startUnit, doc.profiles.find(pr => pr.id === p.profileId)?.units ?? 0));
+}
+/** Adjacent slot above first, then directly below, then the nearest gap in either direction. */
+export function copyStart(doc: RackDocument, rackId: string, profileId: string, side: MountSide, origin: number): number | null {
+  const rack = doc.racks.find(r => r.id === rackId), profile = doc.profiles.find(p => p.id === profileId);
+  if (!rack || !profile) return null;
+  if (isZeroSide(side)) return profile.units === 0 ? 1 : null;
+  if (profile.units < 1) return null;
+  const max = Math.max(0, rack.units - profile.units + 1), ordered: number[] = [];
+  const push = (start: number) => { if (start >= 1 && start <= max && !ordered.includes(start)) ordered.push(start); };
+  push(origin + profile.units); push(origin - profile.units);
+  for (let step = 1; step <= rack.units; step++) { push(origin - step); push(origin + step); }
+  return ordered.find(start => slotFree(doc, rackId, profile, side, start)) ?? null;
+}
 export function findFreeStart(doc: RackDocument, rackId: string, profileId: string, side: MountSide, preferred = 1): number | null {
   const rack = doc.racks.find(r => r.id === rackId); const profile = doc.profiles.find(p => p.id === profileId);
   if (!rack || !profile) return null;
@@ -344,8 +360,12 @@ export function duplicatePlacements(doc: RackDocument, ids: string[]): MutationR
   for (const p of doc.placements.filter(p => ids.includes(p.id) && p.status !== 'removed')) {
     const profile = doc.profiles.find(pr => pr.id === p.profileId);
     if (!profile) continue;
-    const startUnit = findFreeStart(candidate, p.rackId, p.profileId, p.side, p.startUnit + profile.units);
-    if (startUnit === null) return { document: doc, placementIds: [], issues: [], accepted: false };
+    const startUnit = copyStart(candidate, p.rackId, p.profileId, p.side, p.startUnit);
+    if (startUnit === null) return { document: doc, placementIds: [], accepted: false, issues: [{
+      id: `${p.rackId}:copy-space:${p.id}`, code: 'copy-space', severity: 'error', rackId: p.rackId, placementIds: [p.id], field: 'startUnit',
+      message: `${p.label || profile.name}: kein freier Platz zum Kopieren.`,
+      explanation: 'Die Kopie sucht zuerst direkt darüber und danach direkt darunter. Auf dieser Seite ist keine gleich hohe Lücke frei.',
+    }] };
     const clone: Placement = { ...p, id: newId('device'), startUnit, label: `${p.label || profile.name} · Kopie`, supportedById: null };
     copied.set(p.id, clone.id); created.push(clone.id);
     candidate = { ...candidate, placements: [...candidate.placements, clone] };
