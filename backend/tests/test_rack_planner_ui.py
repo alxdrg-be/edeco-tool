@@ -283,7 +283,7 @@ def test_drag_preview_blocks_a_collision_then_snaps_to_the_requested_free_he(rac
     zone = page.locator('[data-rack-dropzone="true"]')
     transfer = page.evaluate_handle("() => new DataTransfer()")
     source.dispatch_event("dragstart", {"dataTransfer": transfer})
-    occupied = page.locator('.rd-he-row[data-he="39"] rect').bounding_box()
+    occupied = page.locator('.rd-he-row[data-he="39"] > rect').bounding_box()
     pointer = {"dataTransfer": transfer, "clientX": occupied["x"] + occupied["width"] / 2,
                "clientY": occupied["y"] + occupied["height"] / 2}
     zone.dispatch_event("dragover", pointer)
@@ -294,7 +294,7 @@ def test_drag_preview_blocks_a_collision_then_snaps_to_the_requested_free_he(rac
     assert len(saved_document(page, tmp_path)["placements"]) == 3
     page.get_by_role("button", name="Meldung schliessen", exact=True).click()
     source.dispatch_event("dragstart", {"dataTransfer": transfer})
-    free = page.locator('.rd-he-row[data-he="37"] rect').bounding_box()
+    free = page.locator('.rd-he-row[data-he="37"] > rect').bounding_box()
     pointer = {"dataTransfer": transfer, "clientX": free["x"] + free["width"] / 2,
                "clientY": free["y"] + free["height"] / 2}
     zone.dispatch_event("dragover", pointer)
