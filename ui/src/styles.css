@@ -575,6 +575,9 @@ details.fold[open] > summary { margin-bottom: 10px; }
 .table-scroll.sticky .list-table .stick-1 { left: 0; width: 56px; min-width: 56px; }
 .table-scroll.sticky .list-table .stick-2 { left: 56px; min-width: 220px; max-width: 340px; box-shadow: inset -1px 0 0 var(--line); }
 .table-scroll.sticky .group-row td.stick { background: var(--panel-2); }
+.quantity-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 0 0 12px; }
+.quantity-bar .search-field { flex: 1 1 240px; }
+.quantity-bar .hint { flex: 1 1 220px; margin: 0; }
 .list-table td.plan-col, .list-table th.plan-col { min-width: 74px; }
 .list-table th.plan-col { white-space: normal; text-transform: none; letter-spacing: 0; font-size: 13px; }
 
