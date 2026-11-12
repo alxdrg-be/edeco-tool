@@ -24,6 +24,7 @@ import { PDF_CATEGORIES, PDF_TOOLS, filterPdfTools, pdfToolAvailability, recordR
   type EndpointCapabilities, type PdfTool } from "./toolCatalog";
 import "./pdf-workshop.css";
 import "./pdf-workshop-flow.css";
+import { readJson } from "../../shared/http";
 
 interface State {
   service_url: string; managed: boolean; local: boolean; title: string; accent: string; session_key: string;
@@ -53,9 +54,7 @@ async function action<T>(path: string, sessionKey: string, body: object | FormDa
   if (!(body instanceof FormData)) headers["Content-Type"] = "application/json";
   const response = await fetch(API + path, { method: "POST", headers,
     body: body instanceof FormData ? body : JSON.stringify(body) });
-  const data = await response.json();
-  if (!response.ok) throw new Error(typeof data.detail === "string" ? data.detail : "Die Aktion konnte nicht abgeschlossen werden.");
-  return data as T;
+  return readJson<T>(response, "Die Aktion konnte nicht abgeschlossen werden.");
 }
 
 function LeaveDialog({ onClose, onLeave }: { onClose: () => void; onLeave: () => void }) {

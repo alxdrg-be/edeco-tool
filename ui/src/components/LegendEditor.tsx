@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { downloadBlob } from "../shared/download";
 import type { DragEvent as ReactDragEvent, PointerEvent as ReactPointerEvent } from "react";
 import { api, Category, CompanySymbolLook, FamilyItem, GeneralInfo, LegendInfo, LegendLayout, LegendPrim, ProjectDetail, StencilData, StencilEntry, SymbolRender } from "../api";
 import { exportDiagnostic } from "../diagnostics";
@@ -815,14 +816,7 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
         onOpenTool("pdf-werkzeuge");
         return;
       }
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = name;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.setTimeout(() => URL.revokeObjectURL(url), 30000);
+      downloadBlob(blob, name);
       notify(`${name} exportiert`);
     } catch (e) {
       notify((e as Error).message, true);

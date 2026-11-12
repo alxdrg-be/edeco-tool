@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { downloadBlob } from "../shared/download";
 import { api } from "../api";
 import type { CompanyGeneral, FamilyItem, GeneralRow, SymbolRender } from "../api";
 import Desc from "./Desc";
@@ -86,14 +87,7 @@ export default function GeneralPartEditor({ notify, reloadKey = 0, onSourceChang
     const name = `edeco ag-Allgemeinteil-${cols}-spaltig.${format}`;
     try {
       const blob = await api.legendExportFile(`/api/company/general/export/${encodeURIComponent(name)}?cols=${cols}&format=${format}`);
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = name;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.setTimeout(() => URL.revokeObjectURL(url), 30000);
+      downloadBlob(blob, name);
       notify(`${name} exportiert`);
     } catch (e) {
       notify((e as Error).message, true);
@@ -150,14 +144,7 @@ export default function GeneralPartEditor({ notify, reloadKey = 0, onSourceChang
     const name = `E_Legende Allgemeinteil Vorlage.${format}`;
     try {
       const blob = await api.legendExportFile(`/api/company/general/template/${encodeURIComponent(name)}?format=${format}`);
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = name;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.setTimeout(() => URL.revokeObjectURL(url), 30000);
+      downloadBlob(blob, name);
       notify(`${name} exportiert. In Nova oder AutoCAD bearbeiten und als Servervorlage ablegen.`);
     } catch (e) {
       notify((e as Error).message, true);

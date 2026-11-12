@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { downloadBlob } from "../../shared/download";
 import { ChevronDown } from "lucide-react";
 import type { ToolProps } from "../../toolbox/modules";
 import { buildName, DEFAULTS, nameIssue, PARTS, restoreSettings, type NamingSettings, type Part } from "./naming";
@@ -8,6 +9,7 @@ import DeliveryHistory from "../planlieferung/DeliveryHistory";
 import ToolHeader from "../../toolbox/ToolHeader";
 import { IncomingToolFiles } from "../../toolbox/ToolHandoffPanel";
 import "../projektzentrale/project-hub.css";
+import { responseError } from "../../shared/http";
 
 const API = "/api/tools/dateien-umbenennen";
 const STORAGE = "edeco.rename.template.v1";
@@ -17,8 +19,7 @@ function load(): NamingSettings {
   try { return restoreSettings(localStorage.getItem(STORAGE)); } catch { return structuredClone(DEFAULTS); }
 }
 async function failure(response: Response): Promise<never> {
-  const data = await response.json().catch(() => ({}));
-  throw new Error(typeof data.detail === "string" ? data.detail : "Die Aktion konnte nicht abgeschlossen werden.");
+  throw new Error(await responseError(response, "Die Aktion konnte nicht abgeschlossen werden."));
 }
 
 export default function FileRename({ onHome, onOpenTool, deliveryMode = false }: ToolProps & { deliveryMode?: boolean }) {
@@ -134,9 +135,7 @@ export default function FileRename({ onHome, onOpenTool, deliveryMode = false }:
         plans: rows.map((row, index) => ({ filename: names[index], floor: row.floor, plan_type: row.plan ?? settings.values.plan, index: row.index ?? settings.values.index, scale: row.scale ?? settings.values.scale })) }));
       const response = await fetch(deliveryMode ? "/api/tools/planlieferung/prepare" : API + "/export", { method: "POST", headers: deliveryMode ? { "X-Edeco-Projects": projects!.session_key } : { "X-Edeco-Rename": session }, body: form });
       if (!response.ok) await failure(response);
-      const url = URL.createObjectURL(await response.blob());
-      const link = document.createElement("a"); link.href = url; link.download = deliveryMode ? "edeco-planlieferung.zip" : "edeco-Dateikopien.zip"; link.click();
-      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+      downloadBlob(await response.blob(), deliveryMode ? "edeco-planlieferung.zip" : "edeco-Dateikopien.zip");
       setExported(true); setNotice(deliveryMode ? "Lieferung vorbereitet und protokolliert. ZIP enthält PDFs und Planliste (CSV, Druckansicht, JSON). Downloadordner prüfen; Versand bei Bedarf separat bestätigen." : "ZIP-Download gestartet. Bitte im Downloadordner prüfen. Die Originaldateien bleiben erhalten.");
       if (deliveryMode) notifyProjectsChanged();
     } catch (e) { setError((e as Error).message); }

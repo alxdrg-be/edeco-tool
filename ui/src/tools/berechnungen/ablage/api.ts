@@ -1,3 +1,4 @@
+import { readJson } from "../../../shared/http.ts";
 export const ARCHIVE_API = "/api/tools/berechnungsablage";
 export interface ArchiveProject { id: string; number: string; name: string }
 export interface ArchiveSettings { root: string; subfolder: string; revision: string; managed: boolean; configured: boolean; author: string }
@@ -9,9 +10,7 @@ export async function archiveRequest<T>(path: string, state?: ArchiveState | nul
   const headers: Record<string, string> = state ? { "X-Edeco-Projects": state.session_key } : {};
   if (body && !(body instanceof FormData)) headers["Content-Type"] = "application/json";
   const response = await fetch(ARCHIVE_API + path, { method, headers, body: body instanceof FormData ? body : body ? JSON.stringify(body) : undefined });
-  const data = await response.json();
-  if (!response.ok) throw new Error(typeof data.detail === "string" ? data.detail : "Bitte Projekt, Bezeichnung und Eingaben prüfen.");
-  return data as T;
+  return readJson<T>(response, "Bitte Projekt, Bezeichnung und Eingaben prüfen.");
 }
 const RESTORE = "edeco.archive.restore.v1";
 export function prepareRestore(record: ArchiveRecord) { sessionStorage.setItem(RESTORE, JSON.stringify(record)); }

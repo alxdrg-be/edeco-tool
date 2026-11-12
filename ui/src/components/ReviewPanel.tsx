@@ -1,4 +1,5 @@
 import { Review, ReviewCheck } from "../api";
+import { downloadText } from "../shared/download";
 
 type Target = ReviewCheck["target"];
 
@@ -60,14 +61,7 @@ export default function ReviewPanel({
           disabled={!review}
           onClick={() => {
             if (!review) return;
-            const blob = new Blob([reportText(review)], { type: "text/plain;charset=utf-8" });
-            const link = document.createElement("a");
-            link.href = URL.createObjectURL(blob);
-            link.download = fileName;
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-            URL.revokeObjectURL(link.href);
+            downloadText(fileName, reportText(review));
           }}
         >
           Fehleranalyse exportieren

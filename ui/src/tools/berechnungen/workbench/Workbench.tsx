@@ -2,7 +2,7 @@ import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { Calculator, ListTree } from "lucide-react";
 import type { ToolProps } from "../../../toolbox/modules";
 import { useProjectHub } from "../../projektzentrale/projectHubState";
-import { downloadBlob } from "../../planlieferung/DeliveryHistory";
+import { downloadBlob } from "../../../shared/download";
 import { ChoiceCards, Explanation, InfoButton, LabShell, type Help } from "../LabUI";
 import { KnowledgeLink } from "../KnowledgeLink";
 import { consumeRestore, type ArchiveProject } from "../ablage/api";

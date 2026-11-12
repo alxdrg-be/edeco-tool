@@ -1,3 +1,4 @@
+import { readJson } from "../../shared/http.ts";
 export const ROOT = "/api/tools/dokumenten-assistent";
 export interface DocumentInfo {
   id: string; title: string; filename: string; edition: string; kind: string;
@@ -26,9 +27,7 @@ export async function request<T>(path: string, key = "", init: RequestInit = {})
   if (key) headers.set("X-Edeco-Documents", key);
   if (typeof init.body === "string") headers.set("Content-Type", "application/json");
   const response = await fetch(ROOT + path, { ...init, headers });
-  const data = await response.json();
-  if (!response.ok) throw new Error(typeof data.detail === "string" ? data.detail : "Die Aktion konnte nicht abgeschlossen werden.");
-  return data as T;
+  return readJson<T>(response, "Die Aktion konnte nicht abgeschlossen werden.");
 }
 
 export function sourceLabel(source: Source) {

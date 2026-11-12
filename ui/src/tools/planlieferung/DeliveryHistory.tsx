@@ -1,11 +1,8 @@
 import { useState } from "react";
+import { downloadBlob } from "../../shared/download";
 import { planListCsv } from "./planList";
 import { notifyProjectsChanged, useProjectHub, type DeliveryRecord } from "../projektzentrale/projectHubState";
 
-export function downloadBlob(blob: Blob, name: string) {
-  const url = URL.createObjectURL(blob), link = document.createElement("a");
-  link.href = url; link.download = name; link.click(); setTimeout(() => URL.revokeObjectURL(url), 60_000);
-}
 function exportList(record: DeliveryRecord) {
   downloadBlob(new Blob([planListCsv(record)], { type: "text/csv;charset=utf-8" }), `Planliste-${record.id}.csv`);
 }

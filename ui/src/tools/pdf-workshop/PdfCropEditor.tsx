@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useId, useRef, useState, type ChangeEvent, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent } from "react";
+import { downloadBlob } from "../../shared/download";
 import { ArrowLeft, ChevronLeft, ChevronRight, Crop, Download, FilePlus2, Hand, Maximize, Minus, Plus, RotateCcw, Upload } from "lucide-react";
 import { FULL_CROP, clampCrop, constrainCrop, cropMargins, cropPageRange, cropPoint, drawCrop, equalCrop,
   fitCropZoom, marginsCrop, moveCrop, resizeCrop, type CropHandle, type CropMargins, type CropPoint, type CropRect, type CropSize } from "./cropGeometry";
 import "./pdf-crop-editor.css";
+import { responseError } from "../../shared/http";
 
 interface Props { sessionKey: string; onBack: () => void; initialFile?: File; onDirtyChange?: (dirty: boolean) => void; onFilesChange?: (files: File[]) => void; onWorking?: (busy: boolean) => void; onResultFiles?: (files: File[]) => void }
 interface CropPage extends CropSize { page: number; rotation: number; user_unit?: number | null }
@@ -23,9 +25,6 @@ const HANDLE_POSITIONS: { key: CropHandle; x: number; y: number; label: string }
 const format = (number: number, precision = 2) => new Intl.NumberFormat("de-CH", { maximumFractionDigits: precision, useGrouping: false }).format(number);
 const physicalFactor = (page: CropPage) => typeof page.user_unit === "number" && Number.isFinite(page.user_unit) && page.user_unit > 0 ? page.user_unit : 1;
 const ratioFor = (aspect: string, page: CropSize) => aspect === "portrait" ? 210 / 297 : aspect === "landscape" ? 297 / 210 : aspect === "original" ? page.width / page.height : null;
-async function errorText(response: Response, fallback: string): Promise<string> {
-  try { const data = await response.json(); return typeof data.detail === "string" ? data.detail : fallback; } catch { return fallback; }
-}
 function downloadName(response: Response, original: string): string {
   const disposition = response.headers.get("Content-Disposition") || "";
   const encoded = /filename\*=UTF-8''([^;]+)/i.exec(disposition);
@@ -67,7 +66,7 @@ export default function PdfCropEditor({ sessionKey, onBack, initialFile, onDirty
     try {
       const body = new FormData(); body.append("file", file);
       const response = await fetch(API, { method: "POST", headers: headers(), body, signal: controller.signal });
-      if (!response.ok) throw new Error(await errorText(response, "Das PDF konnte nicht geöffnet werden."));
+      if (!response.ok) throw new Error(await responseError(response, "Das PDF konnte nicht geöffnet werden."));
       const next = await response.json() as CropDocument;
       if (!next || typeof next.id !== "string" || typeof next.name !== "string" || !Array.isArray(next.pages) || !next.pages.length || !Number.isInteger(next.page_count)
         || next.pages.some(item => !Number.isInteger(item.page) || item.page < 1 || !Number.isFinite(item.width) || !Number.isFinite(item.height) || item.width <= 0 || item.height <= 0)) throw new Error("Die PDF-Seitenangaben konnten nicht gelesen werden.");
@@ -97,7 +96,7 @@ export default function PdfCropEditor({ sessionKey, onBack, initialFile, onDirty
     void (async () => {
       try {
         const response = await fetch(`${API}/${encodeURIComponent(document.id)}/pages/${page.page}?width=2500`, { headers: headers(), signal: controller.signal });
-        if (!response.ok) throw new Error(await errorText(response, "Die Seitenvorschau konnte nicht geladen werden."));
+        if (!response.ok) throw new Error(await responseError(response, "Die Seitenvorschau konnte nicht geladen werden."));
         const blob = await response.blob(); if (controller.signal.aborted) return;
         objectUrl = URL.createObjectURL(blob); setPreview({ id: document.id, page: page.page, url: objectUrl });
       } catch (caught) { if (!controller.signal.aborted) setError(caught instanceof Error ? caught.message : "Die Vorschau fehlt."); }
@@ -239,10 +238,9 @@ export default function PdfCropEditor({ sessionKey, onBack, initialFile, onDirty
     try {
       const response = await fetch(`${API}/${encodeURIComponent(document.id)}/crop`, { method: "POST", headers: { ...headers(), "Content-Type": "application/json" },
         body: JSON.stringify({ pages, rect }), signal: controller.signal });
-      if (!response.ok) throw new Error(await errorText(response, "Der Ausschnitt konnte nicht gespeichert werden."));
+      if (!response.ok) throw new Error(await responseError(response, "Der Ausschnitt konnte nicht gespeichert werden."));
       const blob = await response.blob(); if (controller.signal.aborted) return;
-      const name = downloadName(response, document.name), url = URL.createObjectURL(blob), anchor = window.document.createElement("a");
-      anchor.href = url; anchor.download = name; anchor.click(); window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+      const name = downloadName(response, document.name); downloadBlob(blob, name);
       onResultFiles?.([new File([blob], name, { type: "application/pdf" })]);
       const applied = pages === "all" ? document.pages.map(item => item.page) : pages;
       const remaining = Object.entries(rects).some(([number, value]) => !applied.includes(Number(number)) && !equalCrop(value, FULL_CROP));

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "r
 import { ArrowDownToLine, ArrowUpFromLine, CheckCircle2, ChevronDown, CircleAlert, CircleHelp, CircleX, GitBranch, LayoutGrid, Link2, MousePointer2, Plus, Redo2, Trash2, Undo2, X } from "lucide-react";
 import type { ToolProps } from "../../toolbox/modules";
 import { useProjectHub } from "../projektzentrale/projectHubState";
-import { downloadBlob } from "../planlieferung/DeliveryHistory";
+import { downloadBlob } from "../../shared/download";
 import { ChoiceCards, LabShell, type Help } from "./LabUI";
 import { useDialogFocus } from "../../useDialogFocus";
 import { consumeRestore, type ArchiveProject } from "./ablage/api";

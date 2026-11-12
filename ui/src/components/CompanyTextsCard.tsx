@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { downloadBlob } from "../shared/download";
 import { api } from "../api";
 import type { CompanyText } from "../api";
 import Desc from "./Desc";
@@ -58,14 +59,7 @@ export default function CompanyTextsCard({ notify }: { notify: (text: string, er
   async function exportCsv() {
     try {
       const blob = await api.legendExportFile(api.descriptionsExportUrl);
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "edeco ag-Firmentexte.csv";
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.setTimeout(() => URL.revokeObjectURL(url), 30000);
+      downloadBlob(blob, "edeco ag-Firmentexte.csv");
     } catch (e) {
       notify((e as Error).message, true);
     }

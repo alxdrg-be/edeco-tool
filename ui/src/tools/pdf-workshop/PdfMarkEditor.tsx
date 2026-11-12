@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { ChevronLeft, ChevronRight, FilePlus2, Info, Minus, Plus, RotateCcw, ShieldCheck, Signature, Trash2, Upload, X } from "lucide-react";
 import "./pdf-mark-editor.css";
+import { responseError } from "../../shared/http";
 
 interface Props {
   mode: "sign" | "redact"; sessionKey: string; initialFile?: File;
@@ -17,9 +18,7 @@ const TEMPLATE_KEY = "edeco-pdf-signature-appearance-v1";
 const defaultTemplate = (): Template => ({ name: "", reason: "Kontrolliert", place: "", date: new Intl.DateTimeFormat("de-CH").format(new Date()), image: "" });
 const initialRect: Rect = { x: .53, y: .79, width: .4, height: .1 };
 const clamp = (value: number, lower = 0, upper = 1) => Math.max(lower, Math.min(upper, value));
-async function responseError(response: Response): Promise<string> {
-  try { const value = await response.json(); return value.detail || "Das PDF konnte nicht verarbeitet werden."; } catch { return "Das PDF konnte nicht verarbeitet werden."; }
-}
+const pdfError = (response: Response) => responseError(response, "Das PDF konnte nicht verarbeitet werden.");
 function imageElement(source: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => { const image = new Image(); image.onload = () => resolve(image); image.onerror = reject; image.src = source; });
 }
@@ -88,7 +87,7 @@ export default function PdfMarkEditor({ mode, sessionKey, initialFile, onDirtyCh
     try {
       const body = new FormData(); body.append("file", next);
       const response = await fetch(API, { method: "POST", headers: headers(), body, signal: controller.signal });
-      if (!response.ok) throw new Error(await responseError(response));
+      if (!response.ok) throw new Error(await pdfError(response));
       const value = await response.json() as PdfDocument;
       if (!alive.current || controller.signal.aborted) { removeSession(value.id); return; }
       clearResult();
@@ -107,7 +106,7 @@ export default function PdfMarkEditor({ mode, sessionKey, initialFile, onDirtyCh
     void (async () => {
       try {
         const response = await fetch(`${API}/${encodeURIComponent(document.id)}/pages/${pageNumber}`, { headers: { "X-Edeco-Pdf": sessionKey }, signal: controller.signal });
-        if (!response.ok) throw new Error(await responseError(response));
+        if (!response.ok) throw new Error(await pdfError(response));
         const value = await response.json() as Preview; if (!controller.signal.aborted) setPreview(value);
       } catch (caught) { if (!controller.signal.aborted) setError((caught as Error).message); }
     })();
@@ -190,7 +189,7 @@ export default function PdfMarkEditor({ mode, sessionKey, initialFile, onDirtyCh
         form.append("positions", JSON.stringify([{ ...rect, page: pageNumber }])); form.append("acknowledge_signatures", String(acknowledge)); body = form;
       } else { requestHeaders = { ...requestHeaders, "Content-Type": "application/json" }; body = JSON.stringify({ positions: selections.map(({ page, x, y, width, height }) => ({ page, x, y, width, height })), acknowledge_signatures: acknowledge, confirmed: confirmRedaction, dpi: rasterDpi }); }
       const response = await fetch(`${API}/${encodeURIComponent(document.id)}/${mode === "sign" ? "signature" : "redact"}`, { method: "POST", headers: requestHeaders, body });
-      if (!response.ok) throw new Error(await responseError(response));
+      if (!response.ok) throw new Error(await pdfError(response));
       const blob = await response.blob(); if (!alive.current) return;
       if (blob.type !== "application/pdf") throw new Error("Es wurde keine gültige PDF-Ausgabe geliefert.");
       if (resultRef.current) URL.revokeObjectURL(resultRef.current.url);
@@ -214,7 +213,7 @@ export default function PdfMarkEditor({ mode, sessionKey, initialFile, onDirtyCh
           const body = new FormData(); body.append("image", await (await fetch(await appearance(template))).blob(), "Signaturdarstellung.png");
           body.append("positions", JSON.stringify([{ ...rect, page: pageNumber }])); body.append("acknowledge_signatures", String(acknowledge));
           const response = await fetch(`${API}/${encodeURIComponent(document.id)}/signature`, { method: "POST", headers: headers(), body });
-          if (!response.ok) throw new Error(await responseError(response));
+          if (!response.ok) throw new Error(await pdfError(response));
           blob = await response.blob();
         }
         if (blob.type !== "application/pdf") throw new Error("Die Signaturdarstellung konnte nicht übernommen werden.");

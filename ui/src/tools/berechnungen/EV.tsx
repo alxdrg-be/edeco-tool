@@ -4,7 +4,7 @@ import { evDiagnostics } from "./legacyDiagnostics";
 import { AlertTriangle, CheckCircle2, PlugZap } from "lucide-react";
 import type { ToolProps } from "../../toolbox/modules";
 import { useProjectHub } from "../projektzentrale/projectHubState";
-import { downloadBlob } from "../planlieferung/DeliveryHistory";
+import { downloadBlob } from "../../shared/download";
 import { ChoiceCards, Explanation, InfoButton, LabShell, Parameter, Segments, type Help } from "./LabUI";
 import { consumeRestore, type ArchiveProject } from "./ablage/api";
 import { calculateEV, EV_SOURCE, type EVInput } from "./ev-model";

@@ -1,4 +1,5 @@
 import { api } from "./api";
+import { downloadText } from "./shared/download.ts";
 
 export function diagnosticMarkdown(data: Record<string, unknown>): string {
   return [
@@ -16,21 +17,12 @@ export function diagnosticMarkdown(data: Record<string, unknown>): string {
   ].join("\n");
 }
 
-export function downloadText(name: string, text: string, type = "text/markdown;charset=utf-8"): void {
-  const blob = new Blob([text], { type });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = name;
-  a.click();
-  URL.revokeObjectURL(url);
-}
 
 export async function exportDiagnostic(projectId: string, notify: (text: string, error?: boolean) => void): Promise<void> {
   try {
     const data = await api.diagnostics(projectId);
     const stamp = new Date().toISOString().slice(0, 16).replace(/[:T]/g, "");
-    downloadText(`pruefbericht-${stamp}.md`, diagnosticMarkdown(data));
+    downloadText(`pruefbericht-${stamp}.md`, diagnosticMarkdown(data), "text/markdown;charset=utf-8");
     notify("Prüfbericht heruntergeladen");
   } catch (e) {
     notify((e as Error).message, true);

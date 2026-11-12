@@ -1,4 +1,5 @@
 import { useId, useRef, useState } from "react";
+import { downloadBlob } from "../shared/download";
 import { Info, Maximize2, Plus, Trash2, Type, X } from "lucide-react";
 import LegendSection from "./LegendSection";
 import { DEFAULT_LEGEND_TEXT_RULES, legendAbbreviationProblem, legendAbbreviationsCsv, parseLegendAbbreviationsCsv } from "../legendTextRules";
@@ -25,9 +26,7 @@ export default function LegendTextPanel({ value = DEFAULT_LEGEND_TEXT_RULES, onC
   const update = (id: string, patch: Partial<LegendAbbreviation>) => onChange({ ...value, rules: value.rules.map(rule => rule.id === id ? { ...rule, ...patch } : rule) });
   const add = () => onChange({ ...value, rules: [...value.rules, { id: crypto.randomUUID(), long: "", short: "", scope: "all", active: true }] });
   function exportCsv() {
-    const url = URL.createObjectURL(new Blob([legendAbbreviationsCsv(value.rules)], { type: "text/csv;charset=utf-8" }));
-    const link = document.createElement("a"); link.href = url; link.download = "Legenden-Abkuerzungen.csv"; link.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    downloadBlob(new Blob([legendAbbreviationsCsv(value.rules)], { type: "text/csv;charset=utf-8" }), "Legenden-Abkuerzungen.csv");
   }
 
   const modeLabel = value.mode === "warn" ? "Warnen" : value.mode === "abbreviate" ? "Kürzen" : "Umbruch";

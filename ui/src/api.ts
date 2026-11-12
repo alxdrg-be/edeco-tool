@@ -2,6 +2,7 @@ import type { LegendDoc } from "./legend";
 import type { LegendScopeInfo } from "./legendScope";
 import type { LegendTextWarning } from "./legendTextRules";
 import type { LegendVariantInfo } from "./components/LegendVariantPanel";
+import { readJson, responseError, statusFallback } from "./shared/http.ts";
 // Thin client for the local Python API.
 
 export interface SymbolBrief {
@@ -549,17 +550,7 @@ async function request<T>(method: string, url: string, body?: unknown, signal?: 
     body: body !== undefined ? JSON.stringify(body) : undefined,
     signal,
   });
-  if (!res.ok) {
-    let msg = `${res.status} ${res.statusText}`;
-    try {
-      const data = await res.json();
-      if (data.detail) msg = typeof data.detail === "string" ? data.detail : JSON.stringify(data.detail);
-    } catch {
-      /* keep status text */
-    }
-    throw new Error(msg);
-  }
-  return res.json() as Promise<T>;
+  return readJson<T>(res, statusFallback(res));
 }
 
 async function upload<T>(url: string, fields: Record<string, string>, file: File): Promise<T> {
@@ -567,17 +558,7 @@ async function upload<T>(url: string, fields: Record<string, string>, file: File
   for (const [k, v] of Object.entries(fields)) form.append(k, v);
   form.append("file", file);
   const res = await fetch(url, { method: "POST", body: form });
-  if (!res.ok) {
-    let msg = `${res.status} ${res.statusText}`;
-    try {
-      const data = await res.json();
-      if (data.detail) msg = typeof data.detail === "string" ? data.detail : JSON.stringify(data.detail);
-    } catch {
-      /* keep status text */
-    }
-    throw new Error(msg);
-  }
-  return res.json() as Promise<T>;
+  return readJson<T>(res, statusFallback(res));
 }
 
 const qs = (params: Record<string, string | boolean | number>) =>
@@ -688,16 +669,7 @@ export const api = {
   importDescriptions: (file: File) => upload<{ changed: number; removed: number; rows: number }>("/api/descriptions/import", {}, file),
   legendExportFile: async (url: string): Promise<Blob> => {
     const res = await fetch(url);
-    if (!res.ok) {
-      let msg = `${res.status} ${res.statusText}`;
-      try {
-        const data = await res.json();
-        if (data.detail) msg = typeof data.detail === "string" ? data.detail : JSON.stringify(data.detail);
-      } catch {
-        /* keep status text */
-      }
-      throw new Error(msg);
-    }
+    if (!res.ok) throw new Error(await responseError(res, statusFallback(res)));
     return res.blob();
   },
   rememberLegend: (id: string, doc: LegendDoc) =>
@@ -751,8 +723,7 @@ export const api = {
     const form = new FormData();
     form.append("file", file);
     const res = await fetch("/api/categories/assignments/import", { method: "POST", body: form });
-    if (!res.ok) throw new Error((await res.json().catch(() => ({}))).detail || `Fehler ${res.status}`);
-    return res.json();
+    return readJson(res, `Fehler ${res.status}`);
   },
   resetCategories: () => request<{ items: Category[] }>("POST", "/api/categories/reset"),
 };

@@ -4,7 +4,7 @@ import { cableDiagnostics } from "./legacyDiagnostics";
 import { AlertTriangle, Cable as CableIcon, CheckCircle2 } from "lucide-react";
 import type { ToolProps } from "../../toolbox/modules";
 import { useProjectHub } from "../projektzentrale/projectHubState";
-import { downloadBlob } from "../planlieferung/DeliveryHistory";
+import { downloadBlob } from "../../shared/download";
 import { CALCULATION_BASIS_OPTIONS, calculateCable, CABLE_SOURCE, NIN_SOURCE, RESISTANCE_20, type CableInput } from "./engineering";
 import { ChoiceCards, Explanation, InfoButton, LabShell, Parameter, Segments, type Help } from "./LabUI";
 import CableCanvas from "./CableCanvas";

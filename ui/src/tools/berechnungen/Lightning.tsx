@@ -4,7 +4,7 @@ import { lightningDiagnostics } from "./legacyDiagnostics";
 import { AlertTriangle, CheckCircle2, CircleDashed, Zap } from "lucide-react";
 import type { ToolProps } from "../../toolbox/modules";
 import { useProjectHub } from "../projektzentrale/projectHubState";
-import { downloadBlob } from "../planlieferung/DeliveryHistory";
+import { downloadBlob } from "../../shared/download";
 import { calculateLightning, FACTORS, SOURCE, type LightningInput } from "./lightning-model";
 import { ChoiceCards, Explanation, InfoButton, LabShell, Parameter, type Help } from "./LabUI";
 import BuildingCanvas from "./BuildingCanvas";

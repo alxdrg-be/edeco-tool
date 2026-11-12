@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { downloadBlob } from "../shared/download";
 import { api, Category, DATASET_LABEL, FamilyItem, ProjectDetail, ProjectSummary, Review, Suggestion, UnknownElement } from "../api";
 import { planFiles } from "../floors";
 import { quantityCsv, quantityFileName, quantityMatches, type QuantitySource } from "../quantityList";
@@ -212,14 +213,7 @@ export default function ProjectView({ projectId, projects, categories, notify, o
 
   function downloadQuantities(rows: QuantitySource[]) {
     const csv = quantityCsv(plans.map((plan) => ({ id: plan.id, name: plan.name })), rows);
-    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = quantityFileName(projectName);
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(url);
+    downloadBlob(new Blob([csv], { type: "text/csv;charset=utf-8" }), quantityFileName(projectName));
   }
 
   // Group the overall list by the first category of each row

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
+import { downloadBlob } from "../../shared/download";
 import { BookOpen } from "lucide-react";
 import ToolHeader from "../../toolbox/ToolHeader";
 import type { ToolProps } from "../../toolbox/modules";
@@ -114,9 +115,7 @@ export default function DocumentAssistant({ onHome, onOpenTool }: ToolProps) {
     try {
       const response = await fetch(`${ROOT}/documents/${page.document.id}/file`, { headers: { "X-Edeco-Documents": library.session_key } });
       if (!response.ok) throw new Error("Das Original konnte nicht heruntergeladen werden.");
-      const url = URL.createObjectURL(await response.blob());
-      const link = document.createElement("a"); link.href = url; link.download = page.document.filename; link.click();
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      downloadBlob(await response.blob(), page.document.filename);
     } catch (e) { setError((e as Error).message); }
   }
 

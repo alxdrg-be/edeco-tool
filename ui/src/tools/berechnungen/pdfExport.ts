@@ -1,4 +1,5 @@
 import logoSVG from "../../assets/edeco-logo.svg?raw";
+import { downloadBlob } from "../../shared/download.ts";
 import { A4, calculationFilename, imagePagesPDF, wrapReportText, type PDFPageImage } from "./pdfDocument.ts";
 
 export interface CalculationPDF {
@@ -127,9 +128,5 @@ export async function buildCalculationPDF(report: CalculationPDF): Promise<Blob>
 }
 
 export async function exportCalculationPDF(report: CalculationPDF): Promise<void> {
-  const pdf = await buildCalculationPDF(report), url = URL.createObjectURL(pdf);
-  const link = document.createElement("a");
-  link.href = url; link.download = calculationFilename(report.title, report.inputs.map(row => printable(row.value)), report.filename);
-  document.body.append(link); link.click(); link.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  downloadBlob(await buildCalculationPDF(report), calculationFilename(report.title, report.inputs.map(row => printable(row.value)), report.filename));
 }

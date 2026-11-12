@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { readJson } from "../../shared/http.ts";
 
 export interface Contact { name: string; role: string; company: string; email: string; phone: string }
 export interface DocumentRef { id: string; title: string; path: string; added_at: string }
@@ -15,14 +16,7 @@ const API = "/api/tools/projektzentrale";
 const EVENT = "edeco-projects-changed";
 export function notifyProjectsChanged() { window.dispatchEvent(new Event(EVENT)); }
 
-async function read<T>(response: Response): Promise<T> {
-  const data = await response.json();
-  if (!response.ok) {
-    const detail = data.detail;
-    throw new Error(typeof detail === "string" ? detail : "Bitte Pflichtfelder, vollständige Pfade und Eingabelängen prüfen.");
-  }
-  return data as T;
-}
+const read = <T,>(response: Response) => readJson<T>(response, "Bitte Pflichtfelder, vollständige Pfade und Eingabelängen prüfen.");
 export async function projectAction<T>(path: string, session: string, body: object = {}, method = "POST"): Promise<T> {
   const result = await read<T>(await fetch(API + path, { method, headers: { "Content-Type": "application/json", "X-Edeco-Projects": session }, body: JSON.stringify(body) }));
   notifyProjectsChanged();

@@ -5,6 +5,7 @@ import { useDialogFocus } from "../useDialogFocus";
 import { TOOLS } from "./catalog";
 import { DEFAULT_DEMO_TOOLS, type PresentationPolicy } from "./presentationPolicy";
 import "./presentation.css";
+import { readJson } from "../shared/http";
 
 const API = "/api/toolbox/presentation";
 interface ContextValue {
@@ -17,8 +18,7 @@ const PresentationContext = createContext<ContextValue>({ policy: null, error: "
 export const usePresentation = () => useContext(PresentationContext);
 
 async function readResponse(response: Response): Promise<PresentationPolicy> {
-  const data = await response.json();
-  if (!response.ok) throw new Error(typeof data.detail === "string" ? data.detail : "Die Toolhub-Einstellungen konnten nicht geladen werden.");
+  const data = await readJson<PresentationPolicy | null>(response, "Die Toolhub-Einstellungen konnten nicht geladen werden.");
   if (!data || typeof data.revision !== "string" || typeof data.demo_enabled !== "boolean" || !Array.isArray(data.demo_tools) || !Array.isArray(data.admins)) {
     throw new Error("Die Toolhub-Einstellungen haben ein unbekanntes Format.");
   }
