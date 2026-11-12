@@ -508,6 +508,23 @@ def center_rack_device(page, placement_id):
     controls.get_by_role("button", name="Auswählen", exact=True).click()
 
 
+PORT_NUMBER_HEIGHTS = """() => [...document.querySelectorAll('.rd-rack-svg .rd-port-number')].map(el => el.getBoundingClientRect().height)"""
+
+
+def test_port_numbers_appear_only_when_readable(rack_ui):
+    """Tiny port numbers collide on Windows, where glyphs round up to whole pixels; they show once zoomed in."""
+    page, _ = rack_ui
+    import_rack(page, rack_document())
+    page.set_viewport_size({"width": 960, "height": 900})
+    page.get_by_role("button", name="Ganzes Rack einpassen", exact=True).click()
+    assert all(height >= 4 for height in page.evaluate(PORT_NUMBER_HEIGHTS))
+    page.locator('[data-rack-placement="patch1"]').click()
+    page.locator(".rd-zoom-value").click()
+    playwright.expect(page.locator("[data-rack-dropzone]")).to_have_attribute("data-rack-zoom", "100")
+    heights = page.evaluate(PORT_NUMBER_HEIGHTS)
+    assert heights and all(height >= 4 for height in heights)
+
+
 def test_rack_text_layout_at_working_sizes(rack_ui):
     page, _ = rack_ui
     import_rack(page, rack_document())

@@ -47,8 +47,11 @@ type Preview = { document: RackDocument; ids: string[]; accepted: boolean; issue
 type Gesture = { kind: "pan"; clientX: number; clientY: number; viewport: Viewport; moved: boolean } |
   { kind: "move"; clientX: number; clientY: number; ids: string[]; moved: boolean; delta: number };
 
-/** Independent technical glyphs; the profile controls HE, medium and ports. */
-export function RackDeviceGlyph({ profile, width, height }: { profile: DeviceProfile; width: number; height: number }) {
+/** Port numbers smaller than this on screen are unreadable, and Windows rounds their glyphs up so they collide. */
+const MIN_PORT_NUMBER_PX = 5;
+
+/** Independent technical glyph; the profile controls HE, medium and ports. `screenScale` (px per mm) hides port numbers while they are too small to read. The sheet passes none. */
+export function RackDeviceGlyph({ profile, width, height, screenScale }: { profile: DeviceProfile; width: number; height: number; screenScale?: number }) {
   const ports = rackPortGrid(profile.portCount);
   if (profile.kind === "pdu") {
     const count = profile.portCount || 8, gap = height / (count + 1), radius = Math.min(width * .29, gap * .25);
@@ -57,13 +60,14 @@ export function RackDeviceGlyph({ profile, width, height }: { profile: DevicePro
   if (ports.length) {
     const inset = profile.kind === "switch" ? 40 : 17, available = width - inset * 2;
     const cellWidth = available / ports[0].columns, cellHeight = (height - 9) / ports[0].rows;
+    const portFont = Math.min(11, cellHeight * .3, cellWidth * .7);
     return <g className={`rd-device-glyph rd-ports rd-medium-${profile.medium.toLowerCase()}`} data-port-count={ports.length}>
       {ports.map(port => {
         const x = inset + port.column * cellWidth + cellWidth * .12, y = 4 + port.row * cellHeight;
         const portWidth = cellWidth * .76, portHeight = Math.min(cellHeight * .56, portWidth * .8);
         return <g key={port.number} data-port-number={port.number} transform={`translate(${x} ${y})`}><title>{`${profile.medium} · Port ${port.number}`}</title>
           {profile.medium === "LWL" ? <><rect x={0} y={cellHeight * .32} width={portWidth * .43} height={portHeight} rx="1" /><rect x={portWidth * .54} y={cellHeight * .32} width={portWidth * .43} height={portHeight} rx="1" /></> : <path d={`M0 ${cellHeight * .32}h${portWidth}v${portHeight}h${-portWidth * .24}v${portHeight * .18}h${-portWidth * .52}v${-portHeight * .18}H0Z`} />}
-          <text className="rd-port-number" fill="currentColor" stroke="none" x={portWidth / 2} y={cellHeight * .22} textAnchor="middle" fontSize={Math.min(11, cellHeight * .3, cellWidth * .7)}>{port.number}</text>
+          {(screenScale === undefined || portFont * screenScale >= MIN_PORT_NUMBER_PX) && <text className="rd-port-number" fill="currentColor" stroke="none" x={portWidth / 2} y={cellHeight * .22} textAnchor="middle" fontSize={portFont}>{port.number}</text>}
         </g>;
       })}
       {profile.kind === "switch" && <><circle cx="20" cy={height / 2 - 5} r="2.5" /><circle cx="20" cy={height / 2 + 5} r="2.5" /><path d={`M${width - 28} ${height / 2 - 6}h12m-12 6h12m-12 6h12`} /></>}
@@ -286,7 +290,7 @@ export default function RackCanvas({ document, rackId, view, selectedIds, dragPr
       <title>{`${item.label || profile.name}\n${zero ? `0 HE · HE-Felder bleiben frei${openPosition ? " · schematische Lage; Montagehöhe offen" : ""}` : `${profile.units} HE · HE ${item.startUnit}–${item.startUnit + profile.units - 1}`}\n${itemIssues.map(issue => issue.message).join("\n")}`}</title>
       <rect className="rd-device-body" x="1" y="1" width={Math.max(0, rect.width - 2)} height={Math.max(0, rect.height - 2)} rx={zero ? 8 : 3} />
       {!zero && <g className="rd-device-ears">{[8, rect.width - 8].flatMap(x => [Math.min(10, rect.height / 2), Math.max(rect.height - 10, rect.height / 2)].map((y, index) => <circle key={`${x}-${index}`} cx={x} cy={y} r="2.7" />))}</g>}
-      <RackDeviceGlyph profile={profile} width={rect.width} height={rect.height} />
+      <RackDeviceGlyph profile={profile} width={rect.width} height={rect.height} screenScale={viewport.scale} />
       {!profile.portCount && !zero && profile.kind !== "manager" && captionSize * viewport.scale >= 8 && <g><rect className="rd-text-plate rd-text-plate-device" x={captionBox.x} y={captionBox.y} width={captionBox.width} height={captionBox.height} rx={captionBox.rx} /><text className="rd-device-caption" x={rect.width / 2} y={rect.height / 2} dominantBaseline="central" fontSize={captionSize} textAnchor="middle">{visibleCaption}</text></g>}
       {isSelected && !ghost && <rect className="rd-selection-ring" x={-3} y={-3} width={rect.width + 6} height={rect.height + 6} rx="5" />}
       {ghost && <path className="rd-snap-cross" d="M-16 0H16M0-16V16" />}
