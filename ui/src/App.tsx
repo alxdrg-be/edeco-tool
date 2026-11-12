@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { api, Category, Options, setDatasetNames, Status, UpdateInfo } from "./api";
 import Library from "./components/Library";
 import Categories from "./components/Categories";
@@ -11,7 +11,6 @@ import { Icon } from "./components/Icons";
 import Menu from "./components/Menu";
 import edecoLogo from "./assets/edeco-logo.svg?raw";
 import ToolHeader from "./toolbox/ToolHeader";
-import Minesweeper from "./components/Minesweeper";
 import UpdateDialog, { type UpdatePhase } from "./components/UpdateDialog";
 
 type Tab = "projects" | "library" | "categories" | "settings" | "help";
@@ -140,16 +139,7 @@ function AppContent({ onHome, onOpenTool }: NovaToolProps) {
   const noDatasets = status && status.datasets.length === 0;
   const dataWarning = noDatasets || Boolean(status && (status.company_error || !status.settings.company_folder));
   const current = NAVIGATION.find((item) => item.id === tab)!;
-  const [mineOpen, setMineOpen] = useState(false);
-  const secretClicks = useRef<number[]>([]);
-  const secret = () => {
-    const now = Date.now();
-    secretClicks.current = [...secretClicks.current.filter((t) => now - t < 4000), now];
-    if (secretClicks.current.length >= 5) {
-      secretClicks.current = [];
-      setMineOpen(true);
-    }
-  };
+
 
   // the legend editor asks for the settings (e.g. to choose the general part)
   useEffect(() => {
@@ -196,14 +186,13 @@ function AppContent({ onHome, onOpenTool }: NovaToolProps) {
 
   return (
     <div className={`app${onHome ? " app-in-toolbox" : ""}`} inert={pending}>
-      {onHome && <ToolHeader title="NOVA-Legenden" onHome={() => navigate(onHome)} onOpenTool={onOpenTool ? id => { void navigate(() => onOpenTool(id)); } : undefined} onLogoClick={secret}>{headerActions}</ToolHeader>}
+      {onHome && <ToolHeader title="NOVA-Legenden" onHome={() => navigate(onHome)} onOpenTool={onOpenTool ? id => { void navigate(() => onOpenTool(id)); } : undefined}>{headerActions}</ToolHeader>}
       <aside className="app-nav" aria-label="Programmnavigation">
         {!onHome && <div className="brand">
           <div
             className="brand-logo"
             role="img"
             aria-label="edeco ag"
-            onClick={secret}
             dangerouslySetInnerHTML={{ __html: edecoLogo.replace(/<\?xml[^?]*\?>/, "") }}
           />
           <div className="brand-name">NOVA<span>Legenden</span></div>
@@ -237,7 +226,7 @@ function AppContent({ onHome, onOpenTool }: NovaToolProps) {
           )}
           <span>Elektroplanung</span>
           <span className="nav-copy">
-            <button type="button" className="nav-secret" onClick={secret}>© 2026 edeco ag</button>
+            <span>© 2026 edeco ag</span>
             <span>Alle Rechte vorbehalten.</span>
           </span>
           <span className="powered">Powered by Trimble Nova</span>
@@ -290,7 +279,6 @@ function AppContent({ onHome, onOpenTool }: NovaToolProps) {
         </div>
       </div>
       {toast && <div className={`toast ${toast.error ? "error" : ""}`} role={toast.error ? "alert" : "status"}>{toast.text}</div>}
-      {mineOpen && <Minesweeper onClose={() => setMineOpen(false)} />}
       {updateOpen && (
         <UpdateDialog
           phase={updatePhase}

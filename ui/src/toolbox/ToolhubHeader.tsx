@@ -7,10 +7,10 @@ import { DemoBadge, usePresentation } from "./PresentationSettings";
 import { allowedToolId } from "./presentationPolicy";
 import "./toolhub-navigation.css";
 
-export default function ToolhubHeader({ title, onHome, onOpenTool, currentToolId, disabled, onTitleActivate,
+export default function ToolhubHeader({ title, onHome, onOpenTool, currentToolId, disabled,
   className = "", children, knowledge, parent }: {
   title: string; onHome: () => void; onOpenTool?: (id: string) => void; currentToolId?: string | null;
-  disabled?: boolean; onTitleActivate?: () => void; className?: string; children?: ReactNode;
+  disabled?: boolean; className?: string; children?: ReactNode;
   knowledge?: ReactNode; parent?: { label: string; onClick: () => void };
 }) {
   const location = useToolhubLocation(), id = currentToolId ?? location;
@@ -22,7 +22,7 @@ export default function ToolhubHeader({ title, onHome, onOpenTool, currentToolId
     {id && <button type="button" className="toolhub-back" aria-label="Zum Toolhub" disabled={disabled} onClick={onHome}><ArrowLeft size={15} aria-hidden="true" /><span>Zum Toolhub</span></button>}
     <nav className="toolhub-breadcrumbs" aria-label="Aktueller Bereich">
       {parent && <><button type="button" disabled={disabled} onClick={parent.onClick}>{parent.label}</button><ChevronRight size={14} aria-hidden="true" /></>}
-      <span className="tool-header-title" onDoubleClick={onTitleActivate}>{title}</span>
+      <span className="tool-header-title">{title}</span>
     </nav>
     <div className="toolhub-header-actions">
       <DemoBadge />
