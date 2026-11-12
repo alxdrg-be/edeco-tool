@@ -63,6 +63,11 @@ class Note(BaseModel):
     config_revision: str = Field(min_length=1, max_length=80)
 
 
+class OpenFolder(BaseModel):
+    """Open one record's folder, or the archive root without a key."""
+    key: str | None = Field(default=None, max_length=800)
+
+
 def register(app):
     store = ArchiveStore(local_home() / "calculation-archive")
     app.state.calculation_archive = store
@@ -115,10 +120,10 @@ def register(app):
         return perform(lambda: store.add_note(body.key, body.text, body.author, body.config_revision))
 
     @app.post(PREFIX + "/open-folder")
-    def folder(request: Request, body: dict):
+    def folder(request: Request, body: OpenFolder):
         authorize(request)
-        key = body.get("key")
-        path = perform(lambda: store.folder(key) if isinstance(key, str) else store.base())
+        key = body.key
+        path = perform(lambda: store.folder(key) if key is not None else store.base())
         perform(lambda: open_folder(str(path)))
         return {"ok": True}
 

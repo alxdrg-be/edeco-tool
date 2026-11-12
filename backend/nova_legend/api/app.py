@@ -121,6 +121,14 @@ class ThemeIn(BaseModel):
     mode: str
 
 
+class OptionsIn(BaseModel):
+    """Company-wide display options; only the known switches, each a yes/no value."""
+    merge_labels: bool | None = None
+    merge_orientation: bool | None = None
+    show_empty_categories: bool | None = None
+    legend_by_category: bool | None = None
+
+
 # -- app factory -----------------------------------------------------------------
 
 def lineage(cat_id: str, parents: dict) -> list[str]:
@@ -281,8 +289,8 @@ def register(app: FastAPI, state: AppState | None = None, ui_dir: Path | None = 
         return st.company.options()
 
     @app.put("/api/options")
-    def put_options(body: dict) -> dict:
-        return st.company.set_options(body)
+    def put_options(body: OptionsIn) -> dict:
+        return st.company.set_options(body.model_dump(exclude_none=True))
 
     # -- library -------------------------------------------------------------------
 
