@@ -1,18 +1,26 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { downloadBlob } from "../../../shared/download";
-import { api, Category, DATASET_LABEL, FamilyItem, ProjectDetail, ProjectSummary, Review, Suggestion, UnknownElement } from "../api";
+import { api, Category, ProjectDetail, ProjectSummary } from "../api";
 import { planFiles } from "../floors";
-import { quantityCsv, quantityFileName, quantityMatches, type QuantitySource } from "../quantityList";
-import { formatDateTime, layerStateText, plansOpen, rememberPlansOpen } from "../uiState";
-import ChangesTab, { changeHint } from "./ChangesTab";
+import { quantityCsv, quantityFileName, type QuantitySource } from "../quantityList";
+import { plansOpen, rememberPlansOpen } from "../uiState";
+import ChangesTab from "./ChangesTab";
 import LegendEditor from "./LegendEditor";
 import LegendTabs from "./LegendTabs";
 import ImportDialog from "./ImportDialog";
 import ReviewPanel from "./ReviewPanel";
 import Menu from "./Menu";
-import { TrashIcon } from "./Icons";
 import { useNavigation } from "../Navigation";
-import Desc from "./Desc";
+import { UnknownList } from "./project-view/UnknownList";
+import { PlansPanel } from "./project-view/PlansPanel";
+import { QuantityTab } from "./project-view/QuantityTab";
+import { LayersTab } from "./project-view/LayersTab";
+import { IgnoredTab } from "./project-view/IgnoredTab";
+import { ProjectHead } from "./project-view/ProjectHead";
+import { useProjectReview } from "./project-view/useProjectReview.ts";
+import { useProjectQuantities } from "./project-view/useProjectQuantities.ts";
+import type { ImportStatus, Tab } from "./project-view/types.ts";
+
 
 interface Props {
   projectId: string;
@@ -24,14 +32,7 @@ interface Props {
   onOpenTool?: (id: string) => void;
 }
 
-type Tab = "list" | "legend" | "unknown" | "layers" | "ignored" | "changes" | "review";
 
-interface ImportStatus {
-  kind: "busy" | "ok" | "error";
-  text: string;
-}
-
-const DETACH_TEXT = "Entfernt nur die gespeicherte Plandatei. Importierte Anzahlen und Versionen bleiben erhalten.";
 
 export default function ProjectView({ projectId, projects, categories, notify, onBack, onOpenProject, onOpenTool }: Props) {
   const { navigate } = useNavigation();
@@ -44,41 +45,12 @@ export default function ProjectView({ projectId, projects, categories, notify, o
   const legendId = legendSel?.project === projectId ? legendSel.id : null;
   const [busy, setBusy] = useState(false);
   const [pending, setPending] = useState<{ files: File[]; planId?: number } | null>(null);
-  const fileRef = useRef<HTMLInputElement>(null);
-  const reimportRef = useRef<HTMLInputElement>(null);
-  const [reimportPlan, setReimportPlan] = useState<number | null>(null);
   const [number, setNumber] = useState("");
   const [title, setTitle] = useState("");
-  const [dragPlan, setDragPlan] = useState<number | null>(null);
-  const [dropHot, setDropHot] = useState(false);
   const [importStatus, setImportStatus] = useState<ImportStatus | null>(null);
   const [open, setOpen] = useState(true);
   const [editorPlansOpen, setEditorPlansOpen] = useState(false);
-  const [allCategories, setAllCategories] = useState(false);
-  const [review, setReview] = useState<Review | null>(null);
-  const [reviewLoading, setReviewLoading] = useState(false);
-  const reviewGeneration = useRef(0);
-
-  const loadReview = useCallback(async () => {
-    const generation = ++reviewGeneration.current;
-    setReviewLoading(true);
-    try {
-      const r = await api.review(projectId);
-      if (generation === reviewGeneration.current) setReview(r);
-    } catch {
-      /* the check is optional; the tab shows «Noch nicht geprüft» */
-    } finally {
-      if (generation === reviewGeneration.current) setReviewLoading(false);
-    }
-  }, [projectId]);
-
-  // check again after every change of the project and when the tab is opened
-  useEffect(() => {
-    if (data) loadReview();
-  }, [data, loadReview]);
-  useEffect(() => {
-    if (tab === "review") loadReview();
-  }, [tab, loadReview]);
+  const { review, reviewLoading, loadReview } = useProjectReview(projectId, data, tab);
 
   const load = useCallback(async () => {
     const generation = ++loadGeneration.current;
@@ -140,37 +112,7 @@ export default function ProjectView({ projectId, projects, categories, notify, o
     if (r) setData(r);
   }
 
-  const catById = useMemo(() => Object.fromEntries(categories.map((c) => [c.id, c])), [categories]);
-  const quantityRows = useMemo((): QuantitySource[] => {
-    if (!data || data.id !== projectId) return [];
-    const recognized = data.rows.map((row) => ({
-      key: row.family_key,
-      category: catById[row.categories[0]]?.title ?? "Ohne Kategorie",
-      title: row.title,
-      names: row.names,
-      code: row.item,
-      dataset: row.datasets.map(DATASET_LABEL).join(", "),
-      assignment: "erkannt" as const,
-      counts: row.counts,
-      total: row.total,
-    }));
-    const unknown = data.unknown.map((row) => ({
-      key: row.source_key,
-      category: "Unbekannt",
-      title: row.name || "(ohne Namen)",
-      names: row.graphic_name && row.graphic_name !== row.name ? [row.graphic_name] : [],
-      code: row.item,
-      dataset: row.dataset ? DATASET_LABEL(row.dataset) : "",
-      assignment: "unbekannt" as const,
-      counts: row.counts,
-      total: row.total,
-    }));
-    return [...recognized, ...unknown];
-  }, [data, projectId, catById]);
-  const colorById = useMemo(
-    () => Object.fromEntries((data?.category_colors ?? []).map((c) => [c.id, c])),
-    [data],
-  );
+  const { catById, quantityRows, colorById } = useProjectQuantities(data, projectId, categories);
 
   if (!data || data.id !== projectId) {
     return (
@@ -199,32 +141,15 @@ export default function ProjectView({ projectId, projects, categories, notify, o
     0,
   );
   const toChoose = data.category_colors.filter((c) => c.state === "waehlen").length;
-  const usedCats = data.category_colors.filter((c) => c.used > 0 || c.manual);
-  const shownCats = allCategories ? data.category_colors : usedCats;
   const headDirty = number !== (data.meta.project_number || "") || title !== data.meta.name;
   const exportName = data.export_name;
   const projectName = data.meta.name;
-  const quantityNeedle = quantityQuery.trim();
-  const visibleQuantities = quantityRows.filter((row) => quantityMatches(row, quantityQuery));
-  const visibleRecognized = new Set(
-    visibleQuantities.filter((row) => row.assignment === "erkannt").map((row) => row.key),
-  );
-  const visibleUnknown = visibleQuantities.filter((row) => row.assignment === "unbekannt");
 
   function downloadQuantities(rows: QuantitySource[]) {
     const csv = quantityCsv(plans.map((plan) => ({ id: plan.id, name: plan.name })), rows);
     downloadBlob(new Blob([csv], { type: "text/csv;charset=utf-8" }), quantityFileName(projectName));
   }
 
-  // Group the overall list by the first category of each row
-  const groups: { cat: Category | null; rows: typeof data.rows }[] = [];
-  for (const row of data.rows) {
-    if (quantityNeedle && !visibleRecognized.has(row.family_key)) continue;
-    const cat = catById[row.categories[0]] ?? null;
-    const last = groups[groups.length - 1];
-    if (last && last.cat?.id === cat?.id) last.rows.push(row);
-    else groups.push({ cat, rows: [row] });
-  }
 
   async function saveHead() {
     if (!title.trim()) {
@@ -255,352 +180,13 @@ export default function ProjectView({ projectId, projects, categories, notify, o
   return (
     <div className={`page project-page ${tab === "legend" ? "is-editing" : ""}`}>
       <div className="page-inner full">
-        <div className="card project-head">
-          <div className="project-breadcrumb">
-            <button className="btn small project-back-button" aria-label="Zurück zur Projektübersicht" onClick={() => navigate(onBack)}>
-              ← Projekte
-            </button>
-            <label className="filter-label">
-              Projekt wechseln
-              <select
-                className="select"
-                style={{ maxWidth: 320 }}
-                value={projectId}
-                title="Öffnet ein anderes Projekt aus dem Projektordner"
-                onChange={(e) => {
-                  const id = e.target.value;
-                  navigate(() => onOpenProject(id));
-                }}
-              >
-                {projects.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.project_number ? `${p.project_number} · ` : ""}
-                    {p.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-          <div className="project-heading-line">
-            <div>
-              <h2 className="project-title">
-                {data.meta.project_number && <span className="number">{data.meta.project_number}</span>}
-                {data.meta.name}
-              </h2>
-              <div className="hint">{plans.length} {plans.length === 1 ? "Geschoss" : "Geschosse"} · {data.rows.length} Symbolarten</div>
-            </div>
-            <div className="project-actions">
-            <Menu label="Projektaktionen" disabled={busy}>
-              <button
-                className="btn small"
-                disabled={busy}
-                onClick={async () => {
-                  const name = window.prompt("Name des duplizierten Projekts", `${data.meta.name} Kopie`);
-                  if (!name) return;
-                  await navigate(async () => {
-                    const r = await run(() => api.copyProject(projectId, name), "Projekt dupliziert");
-                    if (r) onOpenProject(r.id);
-                  });
-                }}
-              >
-                Projekt duplizieren
-              </button>
-              <a
-                className="btn small"
-                href={api.exportUrl(projectId)}
-                download={data.export_name}
-                onClick={(e) => {
-                  e.preventDefault();
-                  navigate(() => downloadProject());
-                }}
-                title={`Speichert ${data.export_name}: Projektdatei projekt.nlproj und eine Plandatei pro Geschoss.`}
-              >
-                Projekt als ZIP exportieren
-              </a>
-              <button className="btn small" disabled={busy} onClick={() => openTab("review")}>
-                Fehleranalyse
-              </button>
-              <button
-                className="btn small"
-                disabled={busy}
-                title="Ändert nur, ob das Projekt beim Anlegen eines neuen Projekts als Vorlage erscheint."
-                onClick={async () => {
-                  const next = data.meta.use_as_template === false;
-                  const r = await run(
-                    () => api.updateProject(projectId, { use_as_template: next }),
-                    next ? "Wieder als Vorlage wählbar" : "Nicht mehr als Vorlage angeboten",
-                  );
-                  if (r) setData(r);
-                }}
-              >
-                {data.meta.use_as_template === false ? "Als Vorlage anbieten" : "Vorlage ausblenden"}
-              </button>
-              <div className="menu-divider" />
-              <button
-                className="btn danger"
-                disabled={busy}
-                aria-label="Projekt nach ‚Gelöscht‘ verschieben"
-                title="Nach _Geloescht verschieben, nichts geht verloren"
-                onClick={async () => {
-                  if (!window.confirm(`Projekt «${data.meta.name}» in den Ordner _Geloescht verschieben? Nichts wird endgültig gelöscht.`)) return;
-                  await navigate(async () => {
-                    const r = await run(() => api.deleteProject(projectId), "Projekt nach _Geloescht verschoben");
-                    if (r) onBack();
-                  });
-                }}
-              >
-                <TrashIcon /> Projekt nach ‚Gelöscht‘ verschieben
-              </button>
-            </Menu>
-            </div>
-          </div>
-          <details className="project-details">
-            <summary>Projektdetails bearbeiten{headDirty && <span className="dirty"> · Ungespeicherte Änderungen</span>}</summary>
-            <div className="head-fields">
-              <label className="field">
-                <span>Projektnummer</span>
-                <input
-                  className="input"
-                  style={{ width: 150 }}
-                  value={number}
-                  onChange={(e) => setNumber(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && headDirty && saveHead()}
-                />
-              </label>
-              <label className="field grow">
-                <span>Bezeichnung</span>
-                <input
-                  className="input"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && headDirty && saveHead()}
-                />
-              </label>
-              <button className="btn primary" disabled={busy || !headDirty} onClick={saveHead}>
-                Speichern
-              </button>
-              <label className="field">
-                <span>Nova-Version des Projekts</span>
-                <select
-                  className="select"
-                  value={data.meta.nova_version}
-                  title="Gespeicherte Angabe zum Projekt. Keine Zusage, dass der Import versionsabhängig arbeitet."
-                  onChange={async (e) => {
-                    const r = await run(() => api.updateProject(projectId, { nova_version: e.target.value }), "Nova-Version gespeichert");
-                    if (r) setData(r);
-                  }}
-                >
-                  <option value="19.2">Nova 19.2</option>
-                  <option value="20">Nova 20</option>
-                </select>
-              </label>
-            </div>
-            <div className="muted-line" title={data.folder}>
-              Ordner: {data.folder} · angelegt {data.meta.created_at?.slice(0, 10)} von {data.meta.created_by}
-              {data.meta.template_from ? ` · Vorlage: ${data.meta.template_from}` : ""}
-            </div>
-          </details>
-        </div>
+        <ProjectHead projectId={projectId} projects={projects} data={data} busy={busy} run={run} setData={setData}
+          number={number} setNumber={setNumber} title={title} setTitle={setTitle} headDirty={headDirty} saveHead={saveHead}
+          downloadProject={downloadProject} openTab={openTab} navigate={navigate} onBack={onBack} onOpenProject={onOpenProject} />
 
-        <details
-          className={`card fold ${dropHot ? "drop-hot" : ""}`}
-          open={plansExpanded}
-          onToggle={(e) => {
-            const next = (e.currentTarget as HTMLDetailsElement).open;
-            if (next !== plansExpanded) toggleOpen(next);
-          }}
-          onDragOver={(e) => {
-            if (![...e.dataTransfer.types].includes("Files")) return;
-            e.preventDefault();
-            setDropHot(true);
-          }}
-          onDragLeave={() => setDropHot(false)}
-          onDrop={(e) => {
-            if (!e.dataTransfer.files?.length) return;
-            e.preventDefault();
-            setDropHot(false);
-            openImport([...e.dataTransfer.files]);
-          }}
-        >
-          <summary onClick={(e) => plans.length === 0 && e.preventDefault()}>
-            Pläne · {plans.length === 1 ? "1 Geschoss" : `${plans.length} Geschosse`}
-            {!plansExpanded && tab !== "legend" && <span className="hint">Dateien hierher ziehen importiert Geschosse (mehrere möglich)</span>}
-            {importStatus?.kind === "busy" && <span className="hint">· importiert …</span>}
-          </summary>
-          <Desc short="Ein Plan pro Geschoss." more="Datei hierher ziehen oder unten wählen. Formate: DXF, N4D und N4M (Nova-Modell), DWG mit ODA File Converter. Geschosse sortierst du durch Ziehen am Griff ⠿ oder mit ↑ ↓." />
-          {plans.length > 0 && (
-            <div className="table-scroll">
-              <table className="list-table">
-                <thead>
-                  <tr>
-                    <th>Geschoss</th>
-                    <th>Plandatei</th>
-                    <th className="type-col">Typ</th>
-                    <th>Letzter Import</th>
-                    <th className="num-col">Apparate</th>
-                    <th />
-                  </tr>
-                </thead>
-                <tbody>
-                  {plans.map((p, i) => (
-                    <tr
-                      key={p.id}
-                      draggable
-                      onDragStart={() => setDragPlan(p.id)}
-                      onDragOver={(e) => {
-                        if ([...e.dataTransfer.types].includes("Files")) return;
-                        e.preventDefault();
-                      }}
-                      onDrop={(e) => {
-                        if (e.dataTransfer.files?.length || dragPlan == null || dragPlan === p.id) return;
-                        e.preventDefault();
-                        const ids = plans.map((x) => x.id);
-                        ids.splice(ids.indexOf(dragPlan), 1);
-                        ids.splice(i, 0, dragPlan);
-                        setDragPlan(null);
-                        reorder(ids);
-                      }}
-                    >
-                      <td style={{ whiteSpace: "nowrap" }}>
-                        <span className="handle" title="Ziehen zum Sortieren" aria-hidden>
-                          ⠿
-                        </span>
-                        <b>{p.name}</b>
-                      </td>
-                      <td>
-                        {p.file_name ? (
-                          <span title={p.file_name}>{p.file_name}</span>
-                        ) : (
-                          <span className="hint">Plandatei entfernt</span>
-                        )}
-                        <div className="hint">
-                          {p.versions === 1 ? "1 Importversion" : `${p.versions} Importversionen`}
-                          {p.versions > 1 && p.change_summary ? ` · ${changeHint(p.change_summary)}` : ""}
-                        </div>
-                      </td>
-                      <td className="type-col">{p.format ? p.format.toUpperCase() : ""}</td>
-                      <td>
-                        {p.imported_at ? formatDateTime(p.imported_at) : ""}
-                        <div className="hint">{p.imported_by}</div>
-                      </td>
-                      <td className="num-col">{planTotals[p.id]}</td>
-                      <td className="plan-actions">
-                        <div>
-                          <button
-                            className="btn small"
-                            disabled={busy}
-                            title="Neue Version einlesen, die alte bleibt zum Vergleich"
-                            onClick={() => {
-                              setReimportPlan(p.id);
-                              reimportRef.current?.click();
-                            }}
-                          >
-                            Neue Planversion importieren
-                          </button>
-                          <button
-                            className="btn small"
-                            disabled={busy || i === 0}
-                            aria-label={`${p.name} nach oben`}
-                            title="Nach oben"
-                            onClick={() => {
-                              const ids = plans.map((x) => x.id);
-                              [ids[i - 1], ids[i]] = [ids[i], ids[i - 1]];
-                              reorder(ids);
-                            }}
-                          >
-                            ↑
-                          </button>
-                          <button
-                            className="btn small"
-                            disabled={busy || i === plans.length - 1}
-                            aria-label={`${p.name} nach unten`}
-                            title="Nach unten"
-                            onClick={() => {
-                              const ids = plans.map((x) => x.id);
-                              [ids[i + 1], ids[i]] = [ids[i], ids[i + 1]];
-                              reorder(ids);
-                            }}
-                          >
-                            ↓
-                          </button>
-                          <Menu label="Weitere Aktionen" disabled={busy}>
-                            <button
-                              onClick={async () => {
-                                const name = window.prompt("Name des Geschosses", p.name);
-                                if (!name || name === p.name) return;
-                                const r = await run(() => api.renamePlan(projectId, p.id, name), "Geschoss umbenannt");
-                                if (r) setData(r);
-                              }}
-                            >
-                              Geschoss umbenennen
-                            </button>
-                            <button
-                              className="danger"
-                              disabled={!p.file_name}
-                              onClick={async () => {
-                                if (!window.confirm(`Datei von «${p.name}» entfernen?\n\n${DETACH_TEXT}`)) return;
-                                const r = await run(() => api.detachPlan(projectId, p.id), "Plandatei entfernt, Anzahlen bleiben");
-                                if (r) setData(r);
-                              }}
-                            >
-                              Datei entfernen
-                              <span className="hint">{p.file_name ? DETACH_TEXT : "Keine Plandatei gespeichert."}</span>
-                            </button>
-                          </Menu>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-          <input
-            ref={reimportRef}
-            type="file"
-            accept=".dxf,.dwg,.n4d,.n4m"
-            style={{ display: "none" }}
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (f && reimportPlan) setPending({ files: [f], planId: reimportPlan });
-              e.target.value = "";
-            }}
-          />
-          <div className="head-fields" style={{ marginTop: 12 }}>
-            <input
-              ref={fileRef}
-              type="file"
-              accept=".dxf,.dwg,.n4d,.n4m"
-              multiple
-              style={{ display: "none" }}
-              onChange={(e) => {
-                const list = [...(e.target.files ?? [])];
-                e.target.value = "";
-                if (list.length) openImport(list);
-              }}
-            />
-            <button className="btn primary" disabled={busy} onClick={() => fileRef.current?.click()}>
-              Pläne importieren …
-            </button>
-            <span className="hint" style={{ lineHeight: "34px" }}>
-              Mehrere DXF, DWG, N4D oder N4M auf einmal: wählen oder hierher ziehen. Danach Geschossnamen prüfen.
-            </span>
-          </div>
-          {importStatus && (
-            <div className={`import-status ${importStatus.kind}`} role="status" aria-live="polite">
-              <b>{importStatus.kind === "busy" ? "Läuft: " : importStatus.kind === "ok" ? "Fertig: " : "Fehler: "}</b>
-              {importStatus.text}
-              {importStatus.kind !== "busy" && (
-                <>
-                  {" "}
-                  <button className="btn small" onClick={() => setImportStatus(null)}>
-                    Ausblenden
-                  </button>
-                </>
-              )}
-            </div>
-          )}
-        </details>
+        <PlansPanel projectId={projectId} plans={plans} planTotals={planTotals} plansExpanded={plansExpanded} toggleOpen={toggleOpen}
+          tab={tab} busy={busy} run={run} setData={setData} reorder={reorder} openImport={openImport} setPending={setPending}
+          importStatus={importStatus} setImportStatus={setImportStatus} />
 
         {pending && (
           <ImportDialog
@@ -688,130 +274,9 @@ export default function ProjectView({ projectId, projects, categories, notify, o
             </div>
 
             {tab === "list" && (
-              <>
-              <div className="quantity-bar">
-                <label className="search-field">
-                  <input className="search" value={quantityQuery} onChange={(event) => setQuantityQuery(event.target.value)}
-                    placeholder="Suchen, z. B. RJ45" aria-label="Apparate suchen" />
-                </label>
-                <button type="button" className="btn small" disabled={!visibleQuantities.length}
-                  title="CSV für Excel: Apparat, Code und Anzahl je Geschoss"
-                  onClick={() => downloadQuantities(visibleQuantities)}>Mengen als CSV</button>
-                <span className="hint">{quantityNeedle
-                  ? `${visibleQuantities.length} Treffer. Die CSV entspricht dieser Suche.`
-                  : `${data.rows.length} erkannte Apparate. Die CSV enthält auch ${data.unknown.length} noch nicht zugeordnete.`}</span>
-              </div>
-              {quantityNeedle && !groups.length && !visibleUnknown.length && <p className="hint">Kein Apparat passt auf die Suche.</p>}
-              <div className="table-scroll sticky">
-                <table className="list-table summary">
-                  <thead>
-                    <tr>
-                      <th className="stick stick-1" />
-                      <th className="stick stick-2">Symbol</th>
-                      <th>Code · Symbol-Datensatz</th>
-                      {plans.map((p) => (
-                        <th key={p.id} className="num-col plan-col" title={p.name}>
-                          {p.name}
-                        </th>
-                      ))}
-                      <th className="num-col">Total</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {groups.map((g) => {
-                      const info = g.cat ? colorById[g.cat.id] : undefined;
-                      return (
-                        <GroupRows
-                          key={g.cat?.id ?? "none"}
-                          title={g.cat?.title ?? "Ohne Kategorie"}
-                          color={info?.color || undefined}
-                          layer={info?.layer || ""}
-                          state={info ? layerStateText(info).text : ""}
-                          colSpan={4 + plans.length}
-                          picker={
-                            g.cat ? (
-                              <LayerSelect
-                                value={info?.manual ? info.layer : ""}
-                                layers={data.layers}
-                                disabled={busy}
-                                label={`Ebene für ${g.cat.title}`}
-                                onChange={async (layer) => {
-                                  const r = await run(() => api.setCategoryLayer(projectId, g.cat!.id, layer));
-                                  if (r) setData(r);
-                                }}
-                              />
-                            ) : undefined
-                          }
-                        >
-                          {g.rows.map((r) => (
-                            <tr key={r.family_key}>
-                              <td className="stick stick-1">
-                                <div className="mini-pic">
-                                  {r.svg ? (
-                                    <span style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: r.svg }} />
-                                  ) : (
-                                    <span className="hint" title="Keine Symbolvorschau verfügbar. Das Symbol ist erkannt.">
-                                      –
-                                    </span>
-                                  )}
-                                </div>
-                              </td>
-                              <td className="stick stick-2">
-                                <b>{r.title}</b>
-                                {r.names.length > 0 && <div className="hint">im Plan: {r.names.join(", ")}</div>}
-                              </td>
-                              <td>
-                                {r.item}
-                                <div className="hint">{r.datasets.map(DATASET_LABEL).join(", ")}</div>
-                              </td>
-                              {plans.map((p) => (
-                                <td key={p.id} className="num-col plan-col">
-                                  {r.counts[p.id] ?? ""}
-                                </td>
-                              ))}
-                              <td className="num-col">
-                                <b>{r.total}</b>
-                                {r.total === 0 && r.sources.length > 0 && (
-                                  <>
-                                    {" "}
-                                    <button
-                                      className="btn small danger"
-                                      disabled={busy}
-                                      title="Entfernt die Zeile mit Total 0 aus den aktuellen Importen"
-                                      onClick={async () => {
-                                        const next = await run(() => api.deleteRows(projectId, r.sources), "Zeile gelöscht");
-                                        if (next) setData(next);
-                                      }}
-                                    >
-                                      Zeile löschen
-                                    </button>
-                                  </>
-                                )}
-                              </td>
-                            </tr>
-                          ))}
-                        </GroupRows>
-                      );
-                    })}
-                    {quantityNeedle && visibleUnknown.length > 0 && (
-                      <GroupRows title="Unbekannt" layer="" state="noch nicht zugeordnet" colSpan={4 + plans.length}>
-                        {data.unknown.filter((row) => visibleUnknown.some((item) => item.key === row.source_key)).map((row) => (
-                          <tr key={row.source_key}>
-                            <td className="stick stick-1" />
-                            <td className="stick stick-2"><b>{row.name || "(ohne Namen)"}</b></td>
-                            <td>{row.item}</td>
-                            {plans.map((plan) => (
-                              <td key={plan.id} className="num-col plan-col">{row.counts[plan.id] ?? ""}</td>
-                            ))}
-                            <td className="num-col"><b>{row.total}</b></td>
-                          </tr>
-                        ))}
-                      </GroupRows>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-              </>
+              <QuantityTab projectId={projectId} data={data} plans={plans} busy={busy} run={run} setData={setData}
+                quantityQuery={quantityQuery} setQuantityQuery={setQuantityQuery} quantityRows={quantityRows} catById={catById}
+                colorById={colorById} downloadQuantities={downloadQuantities} />
             )}
 
             {tab === "legend" && (
@@ -844,111 +309,7 @@ export default function ProjectView({ projectId, projects, categories, notify, o
               <UnknownList projectId={projectId} plans={plans} items={data.unknown} notify={notify} onChanged={load} />
             )}
 
-            {tab === "layers" && (
-              <>
-                <Desc short="Jede Kategorie behält ihre Legendenebene." more="Für die Farbe sucht das Programm in den Plänen zuerst denselben Ebenennamen, danach den Namensteil nach der BKP-Nummer (E_232.5_Licht passt zu E_Licht, E_233_Leuchten nicht). Bei mehreren Treffern zählt die Ebene mit den meisten Apparaten. Eine manuell gewählte Ebene gilt nur für dieses Projekt." />
-                <div className="row" style={{ justifyContent: "space-between", marginBottom: 8 }}>
-                  <span className="hint">
-                    {allCategories
-                      ? `Alle ${data.category_colors.length} Kategorien`
-                      : `${usedCats.length} Kategorien mit Apparaten in den aktuellen Importen`}
-                    {toChoose ? ` · ${toChoose} brauchen eine Ebene` : " · keine offene Entscheidung"}
-                  </span>
-                  <label className="toggle">
-                    <input type="checkbox" checked={allCategories} onChange={(e) => setAllCategories(e.target.checked)} />
-                    Alle Kategorien anzeigen
-                  </label>
-                </div>
-                {shownCats.length === 0 ? (
-                  <div className="empty">Keine Kategorie hat Apparate in den aktuellen Importen.</div>
-                ) : (
-                  <div className="table-scroll">
-                    <table className="list-table">
-                      <thead>
-                        <tr>
-                          <th>Kategorie</th>
-                          <th>Zustand</th>
-                          <th>Farbe</th>
-                          <th>Ebene für dieses Projekt</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {shownCats.map((c) => {
-                          const st = layerStateText(c);
-                          return (
-                            <tr key={c.id}>
-                              <td>
-                                <b>{c.title}</b>
-                                <div className="hint">
-                                  Legendenebene: {c.legend_layer || "keine"} ·{" "}
-                                  {c.used ? `${c.used} Apparate` : "keine Apparate"}
-                                </div>
-                              </td>
-                              <td>
-                                <span className={`status ${st.cls}`}>{st.text}</span>
-                                {st.detail && <div className="hint">{st.detail}</div>}
-                              </td>
-                              <td style={{ whiteSpace: "nowrap" }}>
-                                {c.color ? (
-                                  <>
-                                    <span className="swatch big" style={{ background: c.color }} />{" "}
-                                    <span className="hint">{c.color}</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <span className="swatch big none" />{" "}
-                                    <span className="hint">{c.layer && c.no_color ? "ohne Farbangabe" : "keine Farbe"}</span>
-                                  </>
-                                )}
-                              </td>
-                              <td>
-                                <LayerSelect
-                                  value={c.manual ? c.layer : ""}
-                                  layers={data.layers}
-                                  disabled={busy}
-                                  label={`Ebene für ${c.title}`}
-                                  onChange={async (layer) => {
-                                    const next = await run(() => api.setCategoryLayer(projectId, c.id, layer));
-                                    if (next) setData(next);
-                                  }}
-                                />
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-                <h4 style={{ margin: "20px 0 6px" }}>Ebenen aus den Plänen ({data.layers.length})</h4>
-                <p className="hint" style={{ marginTop: 0 }}>
-                  Alle Ebenen der importierten Pläne mit Farbe und Linienart, wie sie in der Datei stehen.
-                </p>
-                <div className="table-scroll">
-                  <table className="list-table">
-                    <thead>
-                      <tr>
-                        <th>Farbe</th>
-                        <th>Ebene</th>
-                        <th>Linienart</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {data.layers.map((l) => (
-                        <tr key={l.name}>
-                          <td style={{ whiteSpace: "nowrap" }}>
-                            <span className={`swatch big ${l.color ? "" : "none"}`} style={l.color ? { background: l.color } : undefined} />{" "}
-                            <span className="hint">{l.color || "ohne Farbangabe"}</span>
-                          </td>
-                          <td style={{ wordBreak: "break-word" }}>{l.name}</td>
-                          <td>{l.linetype}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </>
-            )}
+            {tab === "layers" && <LayersTab projectId={projectId} data={data} busy={busy} run={run} setData={setData} />}
 
             {tab === "review" && (
               <ReviewPanel
@@ -960,40 +321,7 @@ export default function ProjectView({ projectId, projects, categories, notify, o
               />
             )}
 
-            {tab === "ignored" && (
-              <table className="list-table">
-                <thead>
-                  <tr>
-                    <th>Element</th>
-                    <th>Grund</th>
-                    <th className="num-col">Anzahl</th>
-                    <th />
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.ignored.map((g) => (
-                    <tr key={g.source_key}>
-                      <td>{g.name}</td>
-                      <td className="hint">{g.manual ? "von Hand ignoriert (gilt für die ganze Firma)" : g.reason}</td>
-                      <td className="num-col">{g.total}</td>
-                      <td style={{ textAlign: "right" }}>
-                        {g.manual && (
-                          <button
-                            className="btn small"
-                            onClick={async () => {
-                              await run(() => api.setMapping(g.source_key, null), "Wird wieder berücksichtigt");
-                              load();
-                            }}
-                          >
-                            Wieder berücksichtigen
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
+            {tab === "ignored" && <IgnoredTab items={data.ignored} run={run} load={load} />}
           </div>
         )}
       </div>
@@ -1001,213 +329,3 @@ export default function ProjectView({ projectId, projects, categories, notify, o
   );
 }
 
-function LayerSelect({
-  value,
-  layers,
-  disabled,
-  label,
-  onChange,
-}: {
-  value: string;
-  layers: ProjectDetail["layers"];
-  disabled?: boolean;
-  label: string;
-  onChange: (layer: string | null) => void;
-}) {
-  return (
-    <select
-      className="select"
-      style={{ maxWidth: 280 }}
-      value={value}
-      disabled={disabled}
-      aria-label={label}
-      title={value ? `Manuell: ${value}. «automatisch» sucht wieder nach dem Namen.` : "automatisch: passender Ebenenname"}
-      onChange={(e) => onChange(e.target.value || null)}
-    >
-      <option value="">automatisch</option>
-      {layers.map((l) => (
-        <option key={l.name} value={l.name}>
-          {l.name}
-          {l.color ? "" : " (ohne Farbangabe)"}
-        </option>
-      ))}
-    </select>
-  );
-}
-
-function GroupRows({
-  title,
-  color,
-  layer,
-  state,
-  colSpan,
-  picker,
-  children,
-}: {
-  title: string;
-  color?: string;
-  layer: string;
-  state: string;
-  colSpan: number;
-  picker?: React.ReactNode;
-  children: React.ReactNode;
-}) {
-  return (
-    <>
-      <tr className="group-row">
-        <td colSpan={colSpan}>
-          <div className="row" style={{ position: "sticky", left: 8, display: "inline-flex" }}>
-            <span className={`swatch ${color ? "" : "none"}`} style={color ? { background: color } : undefined} title={`${layer} ${color ?? ""}`} />
-            <span>{title}</span>
-            {state && <span className="hint">· {state}</span>}
-            {picker}
-          </div>
-        </td>
-      </tr>
-      {children}
-    </>
-  );
-}
-
-function UnknownList({
-  projectId,
-  plans,
-  items,
-  notify,
-  onChanged,
-}: {
-  projectId: string;
-  plans: ProjectDetail["plans"];
-  items: UnknownElement[];
-  notify: (text: string, error?: boolean) => void;
-  onChanged: () => void;
-}) {
-  if (!items.length) return <div className="empty">Alle Elemente sind erkannt.</div>;
-  return (
-    <div className="unknown-list">
-      <Desc short="Wähle für jedes Element das passende Symbol." more="Die Entscheidung gilt für die ganze Firma und bei jedem weiteren Import automatisch." />
-      {items.map((u) => (
-        <UnknownCard key={u.source_key} projectId={projectId} plans={plans} item={u} notify={notify} onChanged={onChanged} />
-      ))}
-    </div>
-  );
-}
-
-function UnknownCard({
-  projectId,
-  plans,
-  item,
-  notify,
-  onChanged,
-}: {
-  projectId: string;
-  plans: ProjectDetail["plans"];
-  item: UnknownElement;
-  notify: (text: string, error?: boolean) => void;
-  onChanged: () => void;
-}) {
-  const [suggestions, setSuggestions] = useState<Suggestion[] | null>(null);
-  const [search, setSearch] = useState("");
-  const [results, setResults] = useState<FamilyItem[]>([]);
-
-  useEffect(() => {
-    api
-      .suggestions(projectId, item.source_key)
-      .then((r) => setSuggestions(r.items))
-      .catch((e) => notify((e as Error).message, true));
-  }, [projectId, item.source_key, notify]);
-
-  useEffect(() => {
-    if (search.trim().length < 2) {
-      setResults([]);
-      return;
-    }
-    const h = window.setTimeout(() => {
-      api
-        .families({ q: search, category: "", dataset: "", mounting: "", all_variants: true })
-        .then((r) => setResults(r.items.slice(0, 12)))
-        .catch(() => undefined);
-    }, 250);
-    return () => window.clearTimeout(h);
-  }, [search]);
-
-  async function choose(symbolKey: string, label: string) {
-    try {
-      await api.setMapping(item.source_key, symbolKey, item.name);
-      notify(symbolKey === "__ignore__" ? `«${item.name}» wird ignoriert` : `«${item.name}» = ${label}`);
-      onChanged();
-    } catch (e) {
-      notify((e as Error).message, true);
-    }
-  }
-
-  return (
-    <div className="unknown-card">
-      <div className="row" style={{ justifyContent: "space-between" }}>
-        <div>
-          <b>{item.name || "(ohne Namen)"}</b>
-          <div className="hint">
-            {item.item && `Code ${item.item} · `}
-            {item.graphic_name && `Grafik «${item.graphic_name}» · `}
-            {plans
-              .filter((p) => item.counts[p.id])
-              .map((p) => `${p.name}: ${item.counts[p.id]}`)
-              .join(", ")}{" "}
-            · Ebenen: {Object.keys(item.layers).join(", ")}
-          </div>
-        </div>
-        <button className="btn small" onClick={() => choose("__ignore__", "")}>
-          Kein Apparat (ignorieren)
-        </button>
-      </div>
-      <div className="suggestions">
-        {suggestions === null && <span className="hint">Vorschläge werden berechnet …</span>}
-        {suggestions?.map((s) => (
-          <button
-            key={s.symbol_key}
-            className="suggestion"
-            onClick={() => choose(s.symbol_key, s.name)}
-            title={Object.entries(s.parts).map(([k, v]) => `${k} ${v} %`).join(" · ")}
-          >
-            <div className="pic">
-              {s.svg ? <span style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: s.svg }} /> : "–"}
-            </div>
-            <div className="name">{s.name}</div>
-            <div className="hint">
-              {s.item} · {DATASET_LABEL(s.dataset)}
-            </div>
-            <div className="score">{s.score} %</div>
-          </button>
-        ))}
-      </div>
-      <div className="row" style={{ marginTop: 6 }}>
-        <input
-          className="input"
-          style={{ flex: 1 }}
-          placeholder="Anderes Symbol suchen (Name oder Code)"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-      </div>
-      {results.length > 0 && (
-        <div className="suggestions">
-          {results.map((r) => (
-            <button key={r.id} className="suggestion" onClick={() => choose(r.representative.key, r.representative.name)}>
-              <div className="pic">
-                {r.representative.svg ? (
-                  <span style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: r.representative.svg }} />
-                ) : (
-                  "–"
-                )}
-              </div>
-              <div className="name">{r.representative.name}</div>
-              <div className="hint">
-                {r.representative.item} · {DATASET_LABEL(r.representative.dataset)}
-              </div>
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
