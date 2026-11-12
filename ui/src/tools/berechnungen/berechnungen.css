@@ -60,3 +60,12 @@
   .calc-layout { display: block; max-width: none; }
   .calc-tool, .calc-body { height: auto !important; overflow: visible !important; background: #fff; color: #111; }
 }
+/* Formula list like a reference index: every formula one click away; the select stays for narrow screens. */
+.calc-with-list { display:grid; grid-template-columns:230px minmax(0,1fr); gap:26px; align-items:start; }
+.calc-formula-list { position:sticky; top:14px; display:grid; gap:12px; max-height:calc(100dvh - 28px); overflow:auto; padding-right:4px; }
+.calc-formula-list span { display:block; margin:0 0 4px 9px; font-size:10.5px; font-weight:650; letter-spacing:.09em; text-transform:uppercase; color:var(--muted); }
+.calc-formula-list button { display:block; width:100%; padding:6px 9px; border:0; border-radius:7px; background:none; color:var(--fg); font:inherit; font-size:12.5px; line-height:1.35; text-align:left; cursor:pointer; }
+.calc-formula-list button:hover { background:var(--panel-2); }
+.calc-formula-list button[aria-pressed="true"] { background:var(--accent-soft); color:var(--accent); font-weight:600; }
+.calc-with-list .calc-selector { display:none; }
+@media (max-width:860px) { .calc-with-list { display:block; } .calc-formula-list { display:none; } .calc-with-list .calc-selector { display:grid; } }

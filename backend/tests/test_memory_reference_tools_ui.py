@@ -3,17 +3,17 @@
 import re
 
 from test_editor_navigation import editor, env, playwright  # noqa: F401
-from test_electro_memory_ui import open_memory
+from test_electro_memory_ui import open_chapter, open_memory
 
 
-def open_reference(page, title):
+def open_reference(page, chapter):
     open_memory(page)
-    page.locator(".memory-reference-shortcuts").get_by_role("button", name=re.compile(title)).click()
+    open_chapter(page, chapter)
 
 
 def test_socket_fronts_preserve_contact_shapes_and_show_selected_type(editor, tmp_path):
     page = editor[0]
-    open_reference(page, "Steckdosen erkennen")
+    open_reference(page, "RCD, Schutzorgane & Stecksysteme")
     guide = page.get_by_role("region", name="Schweizer Steckdosen erkennen", exact=True)
     for kind, count, shape in [(13, 3, "round"), (23, 3, "rectangle"), (15, 5, "round"), (25, 5, "rectangle")]:
         front = guide.locator(f'[data-socket-type="{kind}"]')
@@ -42,7 +42,7 @@ def test_socket_fronts_preserve_contact_shapes_and_show_selected_type(editor, tm
 
 def test_ip_decoder_differentiates_missing_and_zero_and_keeps_help_sections_independent(editor, tmp_path):
     page = editor[0]
-    open_reference(page, "IP-Decoder")
+    open_reference(page, "IP-Schutz & Kennzeichen")
     decoder = page.get_by_role("region", name="IP-Decoder", exact=True)
     code = decoder.get_by_label("Schutzart", exact=True)
     code.fill("IPX7")
@@ -79,32 +79,25 @@ def test_ip_decoder_differentiates_missing_and_zero_and_keeps_help_sections_inde
     page.screenshot(path=str(tmp_path / "memory-ip-panel-mobile.png"))
 
 
-def test_bath_reference_does_not_draw_unverified_zones_and_favorite_survives_reload(editor, tmp_path):
+def test_bath_zones_ik_lookup_and_ppe_caveats(editor, tmp_path):
     page = editor[0]
-    open_reference(page, "Bad und Dusche")
-    reference = page.get_by_role("region", name="Bad und Dusche: Geometrie und Quelle", exact=True)
-    playwright.expect(reference).to_contain_text("Zonengeometrie: Normabgleich offen.")
-    reference.get_by_role("button", name="Dusche ohne Tasse", exact=True).click()
-    reference.get_by_role("checkbox", name="Feste Abtrennung anzeigen", exact=True).check()
-    playwright.expect(reference.get_by_role("img")).to_have_attribute("aria-label", re.compile("Dusche ohne Tasse mit fester Abtrennung.*ohne normativ bestätigte Bereichsgrenzen"))
-    assert reference.locator('[data-bath-zone]').count() == 0
+    open_reference(page, "Badewanne & Dusche")
+    zones = page.locator("#memory-entry-em-p12-bath-zones")
+    playwright.expect(zones.get_by_role("img")).to_have_attribute("aria-label", re.compile("Bereich 1 über der Wanne bis 2,25 m"))
+    zones.get_by_role("button", name="Dusche ohne Wanne · Grundriss", exact=True).click()
+    playwright.expect(zones.get_by_role("img")).to_have_attribute("aria-label", re.compile("1,2 m ab Wasserauslass"))
+    playwright.expect(zones).to_contain_text("2,25 m ab Boden")
+    playwright.expect(page.locator("#memory-entry-em-p12-bath-equipment")).to_contain_text("12 V AC / 30 V DC SELV")
     page.set_viewport_size({"width": 1440, "height": 1000})
-    page.evaluate("window.scrollTo({top:0,behavior:'instant'})")
-    page.screenshot(path=str(tmp_path / "memory-bath-reference.png"), full_page=True)
-    page.get_by_role("button", name="Als Favorit merken", exact=True).click()
-    page.get_by_role("button", name="Alle Themen", exact=True).click()
-    page.get_by_role("button", name="Favoriten (1)", exact=True).click()
-    playwright.expect(page.locator(".memory-topic-card")).to_have_count(1)
-    page.reload()
-    page.get_by_role("button", name="Favoriten (1)", exact=True).click()
-    playwright.expect(page.locator(".memory-topic-card")).to_have_count(1)
-    playwright.expect(page.get_by_role("heading", name="Badewanne und Dusche", exact=True)).to_be_visible()
-    page.set_viewport_size({"width": 1440, "height": 1000})
-    page.screenshot(path=str(tmp_path / "memory-favorites.png"), full_page=True)
-    page.get_by_role("heading", name="Badewanne und Dusche", exact=True).click()
-    page.get_by_role("combobox", name="Thema wechseln", exact=True).select_option("em-safety-rules")
+    page.screenshot(path=str(tmp_path / "memory-bath-zones.png"), full_page=True)
+    open_chapter(page, "Messpraxis & Prüfungen")
+    final = page.locator("#memory-entry-em-p06-disconnection-04s")
+    final.get_by_role("group", name="Nennstrom wählen").get_by_role("button", name="16", exact=True).click()
+    playwright.expect(final.locator("tr.is-picked")).to_contain_text("121")
+    playwright.expect(final.locator("tr.is-dimmed").first).to_be_visible()
+    open_chapter(page, "Sicherheitsregeln & PSA")
     ppe = page.locator("#memory-entry-em-p03-arc-ppe-levels")
-    ppe.locator("summary").first.click()
     playwright.expect(ppe).to_contain_text("Arbeitsabstand")
     playwright.expect(ppe).to_contain_text("keine Schutzklasse oder Kleidungsfreigabe")
     playwright.expect(ppe).not_to_contain_text("Kurzarm zulässig")
+    playwright.expect(page.locator("#memory-entry-em-p03-five-electrical-rules ol li")).to_have_count(5)

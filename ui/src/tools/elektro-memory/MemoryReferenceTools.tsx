@@ -1,6 +1,6 @@
 import { useId, useLayoutEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
-import { ArrowUpRight, Bath, Info, Plug, ShieldCheck, X } from "lucide-react";
+import { Info, Plug, ShieldCheck, X } from "lucide-react";
 import { IP_ADDITIONAL, IP_FIRST, IP_SECOND, IP_SUPPLEMENTARY, SWISS_SOCKETS, parseIpCode, socketContactPoints } from "./memoryReference";
 import type { IpFirstDigit, IpSecondDigit, SwissSocket } from "./memoryReference";
 
@@ -100,35 +100,4 @@ export function SwissSocketGuide() {
     <p className="memory-small">Gleiche Vorderansicht · schematische Kontaktbilder, keine Masszeichnungen. Mechanische Steckbarkeit und Einbaubedingungen separat prüfen.</p>
     {info && <ReferenceDrawer title="Schweizer Steckdosentypen" onClose={() => setInfo(false)}><p>Die Kontaktbilder unterscheiden die vier gezeigten Steckdosentypen. Sie zeigen keine genormten Abmessungen und sind keine Auswahlfreigabe.</p><div className="memory-table-wrap"><table><thead><tr><th>Typ</th><th>Kontakte</th><th>Bemessung</th></tr></thead><tbody>{SWISS_SOCKETS.map(value => <tr key={value.type}><th scope="row">{value.type}</th><td>{value.conductors}</td><td>{value.current} A / {value.voltage}</td></tr>)}</tbody></table></div><p>10-A-Ausführungen haben runde Kontaktöffnungen, 16-A-Ausführungen rechteckige Kontaktprofile. Die Normabmessungen und das Kontaktbild bestimmen gemeinsam die mechanische Steckbarkeit. Diese Übersicht ersetzt keine vollständige Kompatibilitätsmatrix.</p><details className="memory-reference-detail"><summary>Quelle und Stand</summary><p>E-Memory_DE_PNG.pdf, Seite 15: ESTI-Übersicht «CH-Stecker-System SN 441011 IP20». Der Quellenfuss nennt SN 441011-1_2019 und den Dokumentstand 28.09.2025. IP20-Darstellungen nicht auf IP55- oder Feuchtraumausführungen übertragen.</p></details></ReferenceDrawer>}
   </section>;
-}
-
-const BATH_CASES = ["Wanne", "Dusche mit Tasse", "Dusche ohne Tasse"] as const;
-export function BathReference() {
-  const [kind, setKind] = useState<(typeof BATH_CASES)[number]>("Wanne");
-  const [partition, setPartition] = useState(false);
-  const [info, setInfo] = useState(false);
-  return <section className="memory-reference-tool memory-bath-reference" aria-label="Bad und Dusche: Geometrie und Quelle">
-    <header><div><Bath size={20} aria-hidden="true" /><h3>Den passenden Raumfall wählen</h3></div><InfoButton label="Badbereiche und Quellenstand erklären" onClick={() => setInfo(true)} /></header>
-    <div className="memory-reference-tabs" role="group" aria-label="Raumfall">{BATH_CASES.map(value => <button type="button" key={value} aria-pressed={kind === value} onClick={() => setKind(value)}>{value}</button>)}</div>
-    <figure className="memory-bath-figure"><svg viewBox="0 0 540 270" role="img" aria-label={`${kind}${partition ? " mit fester Abtrennung" : ""}, neutrale Raumskizze ohne normativ bestätigte Bereichsgrenzen`}>
-      <path className="memory-room-wall" d="M35 30H505V235H35Z" />
-      {kind === "Wanne" ? <g><rect className="memory-bath-outline" x="80" y="88" width="230" height="112" rx="30" /><rect className="memory-bath-inner" x="92" y="100" width="206" height="88" rx="22" /></g> : kind === "Dusche mit Tasse" ? <g><rect className="memory-bath-outline" x="80" y="75" width="150" height="130" rx="7" /><rect className="memory-bath-inner" x="90" y="85" width="130" height="110" rx="4" /><circle className="memory-drain" cx="154" cy="151" r="6" /></g> : <g><path className="memory-shower-floor" d="M80 185L230 75M98 205L250 93M80 146L177 75M137 205L250 132M80 107L119 75M194 205L250 171" /><circle className="memory-drain" cx="154" cy="151" r="6" /></g>}
-      <path className="memory-water-outlet" d="M105 30V63H135V77" /><circle className="memory-drain" cx="135" cy="77" r="4" />
-      {partition && <path className="memory-room-partition" d="M335 30V175" />}
-      <text x="165" y="59">Wasserauslass</text><path className="memory-drawing-leader" d="M157 56H140L135 71" />
-      <text x="350" y="210">Raumgeometrie</text>
-    </svg><figcaption>Neutrale Raumskizze. Bereichsgrenzen sind hier bewusst nicht eingezeichnet.</figcaption></figure>
-    <label className="memory-partition-choice"><input type="checkbox" checked={partition} onChange={event => setPartition(event.target.checked)} />Feste Abtrennung anzeigen</label>
-    <div className="memory-reference-callout"><strong>Zonengeometrie: Normabgleich offen.</strong> Die genaue Kontur, offene Seiten, Höhen und das Fadenmass müssen anhand des gewählten Raumfalls und der zutreffenden NIN-Ausgabe geprüft werden.</div>
-    <p className="memory-small">Die folgenden Einträge enthalten die vorhandene Quellenreferenz zu Bereichen, Wasserschutz und Betriebsmitteln.</p>
-    {info && <ReferenceDrawer title="Bad und Dusche: Quelle und Grenzen" onClose={() => setInfo(false)}><p>E-Memory_DE_PNG.pdf, Seite 12 · Bereiche nach dem dort genannten Bezug NIN 7.01.3. Die Skizze hilft, Wanne, Duschfläche, Wasserauslass und feste Abtrennungen zu unterscheiden.</p><p>Sie enthält keine farbigen Bereichsflächen, weil ihre genaue Geometrie für die passende Normausgabe noch nicht abschliessend abgeglichen wurde. Dadurch wird auch keine Gerätefreigabe aus einer schematischen Farbfläche abgeleitet.</p><details className="memory-reference-detail" open><summary>Was am tatsächlichen Raum zu prüfen ist</summary><ul><li>Wanne oder Dusche, mit beziehungsweise ohne Tasse</li><li>Lage und Höhe des festen Wasserauslasses</li><li>Kontur, offene Seiten und feste Abtrennungen</li><li>Grundriss, Schnitt und gegebenenfalls Fadenmass</li><li>Schutzart, Spannung, Anschluss und Einbaubedingungen des konkreten Betriebsmittels</li></ul></details><p>Die Quellenwerte und ihre Einschränkungen sind in den aufklappbaren Einträgen hinterlegt. Normausgabe und vollständigen Anwendungsfall vor einer Installationsentscheidung prüfen.</p></ReferenceDrawer>}
-  </section>;
-}
-
-export function MemoryReferenceShortcuts({ onOpenTopic }: { onOpenTopic: (id: string) => void }) {
-  return <div className="memory-reference-shortcuts" aria-label="Grafisch nachschlagen">
-    <button type="button" onClick={() => onOpenTopic("em-swiss-connectors")}><span className="memory-shortcut-sockets">{SWISS_SOCKETS.map(socket => <SocketFront key={socket.type} socket={socket} />)}</span><span><strong>Steckdosen erkennen</strong><small>T13 · T23 · T15 · T25</small></span><ArrowUpRight size={17} aria-hidden="true" /></button>
-    <button type="button" onClick={() => onOpenTopic("em-ip-symbols")}><span className="memory-shortcut-ip" aria-hidden="true">IP<span>44</span></span><span><strong>IP-Decoder</strong><small>Kennziffern und Prüfbedingungen</small></span><ArrowUpRight size={17} aria-hidden="true" /></button>
-    <button type="button" onClick={() => onOpenTopic("em-bathroom")}><Bath size={29} aria-hidden="true" /><span><strong>Bad und Dusche</strong><small>Raumfälle und Quellenreferenz</small></span><ArrowUpRight size={17} aria-hidden="true" /></button>
-  </div>;
 }

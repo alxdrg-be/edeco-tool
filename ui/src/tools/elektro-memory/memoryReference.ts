@@ -50,10 +50,3 @@ export function socketContactPoints(socket: SwissSocket): readonly (readonly [nu
   // Same front view for all four types. Functional contact pattern only, no dimensions.
   return socket.contacts === 3 ? [[29, 43], [71, 43], [50, 55]] : [[29, 43], [71, 43], [50, 55], [29, 68], [71, 68]];
 }
-
-export function readMemoryFavorites(value: string | null, allowedIds: readonly string[]): string[] {
-  try {
-    const parsed: unknown = JSON.parse(value ?? "[]");
-    return Array.isArray(parsed) ? [...new Set(parsed.filter((id): id is string => typeof id === "string" && allowedIds.includes(id)))] : [];
-  } catch { return []; }
-}

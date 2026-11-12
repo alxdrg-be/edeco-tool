@@ -11,43 +11,45 @@ def open_memory(page):
     playwright.expect(page.get_by_role("heading", name="Elektro-Memory", exact=True)).to_be_visible()
 
 
-def test_memory_exposes_all_source_pages_and_clear_source_corrections(editor, tmp_path):
+def open_chapter(page, title):
+    page.locator(".memory-sidebar").get_by_role("button", name=re.compile(re.escape(title))).click()
+    playwright.expect(page.locator(".memory-page-head h2")).to_have_text(title)
+
+
+def test_memory_shows_all_chapters_and_clear_source_corrections(editor, tmp_path):
     page = editor[0]
     open_memory(page)
-    assert page.locator(".memory-topic-card").count() == 18  # 15 digital subject groups + 3 independent basics
+    sidebar = page.locator(".memory-sidebar")
+    playwright.expect(sidebar.locator("nav button")).to_have_count(11)  # 7 E-Memory chapters + 4 further topics
+    playwright.expect(sidebar.locator(".memory-chapter-icon").first).to_have_text("1")
     page.locator(".memory-source-info > summary").click()
     playwright.expect(page.locator(".memory-source-info")).to_contain_text("16/16 Seiten erfasst")
     playwright.expect(page.locator(".memory-source-info")).to_contain_text("25 Formeleinträge")
     page.locator(".memory-source-info > summary").click()
-    page.set_viewport_size({"width": 1440, "height": 1050})
-    page.screenshot(path=str(tmp_path / "memory-overview.png"), full_page=True)
-    page.get_by_role("heading", name="RCD, Sicherungen und LS", exact=True).click()
-    page.locator(".memory-entry > summary").filter(has_text="RCD-Typen A, F, B und B+").click()
+    open_chapter(page, "RCD, Schutzorgane & Stecksysteme")
     entry = page.locator("#memory-entry-em-p07-rcd-types")
     playwright.expect(entry).to_contain_text("Typ A erfasst sinusförmige Wechsel- und pulsierende Gleichfehlerströme")
-    playwright.expect(entry.locator(".memory-correction > div")).not_to_be_visible()
-    entry.locator(".memory-correction > summary").click()
-    playwright.expect(entry.locator(".memory-correction > div")).to_contain_text("keine allgemeine Erfassung glatter Gleichfehlerströme")
-    page.screenshot(path=str(tmp_path / "memory-reference-correction.png"), full_page=True)
+    playwright.expect(entry.locator(".memory-correction")).to_be_visible()
+    playwright.expect(entry.locator(".memory-correction")).to_contain_text("keine allgemeine Erfassung glatter Gleichfehlerströme")
+    playwright.expect(entry.locator(".memory-rcd")).to_contain_text("0–20 kHz")
+    playwright.expect(page.locator("#memory-entry-em-p07-diazed-colors .memory-swatch")).to_have_count(9)
+    page.screenshot(path=str(tmp_path / "memory-rcd.png"), full_page=True)
 
 
-def test_memory_search_opens_the_exact_formula_and_preserves_values_between_tabs(editor, tmp_path):
+def test_memory_search_spans_chapters_and_preserves_values_between_tabs(editor, tmp_path):
     page = editor[0]
     open_memory(page)
     page.get_by_role("searchbox", name="Elektro-Memory durchsuchen", exact=True).fill("Zählerkonstante")
-    page.get_by_role("heading", name="Formeln und Einheiten", exact=True).click()
-    playwright.expect(page.locator(".memory-entry")).to_have_count(1)
-    page.locator(".memory-entry > summary").click()
+    playwright.expect(page.locator(".memory-page-head h2")).to_contain_text("Treffer für «Zählerkonstante»")
     entry = page.locator("#memory-entry-em-p16-meter-power")
+    playwright.expect(entry.locator(".memory-card-chapter")).to_have_text("Formeln & Einheiten")
     playwright.expect(entry.locator(".memory-equation")).to_contain_text("3600")
     playwright.expect(entry.locator(".memory-equation sub")).to_have_count(4)
     entry.get_by_role("button", name="Mit Werten berechnen", exact=True).click()
-    selector = page.get_by_role("combobox", name="Formel wählen", exact=True)
-    playwright.expect(selector).to_have_value("zaehlerleistung")
+    playwright.expect(page.locator('.calc-formula-list [data-formula="zaehlerleistung"]')).to_have_attribute("aria-pressed", "true")
     time = page.get_by_role("textbox", name="Messzeit in s", exact=True)
     time.fill("72")
     playwright.expect(page.locator(".calc-results")).to_contain_text("0.500 kW")
-    page.screenshot(path=str(tmp_path / "memory-calculator-valid.png"), full_page=True)
     page.get_by_role("tab", name="Nachschlagen", exact=True).click()
     playwright.expect(entry).to_be_visible()
     page.get_by_role("tab", name="Formelrechner", exact=True).click()
@@ -55,16 +57,15 @@ def test_memory_search_opens_the_exact_formula_and_preserves_values_between_tabs
     page.get_by_role("textbox", name="Zählerkonstante in U/kWh", exact=True).fill("0")
     playwright.expect(page.locator(".calc-status")).to_contain_text("Zählerkonstante")
     playwright.expect(page.locator(".calc-results")).to_have_count(0)
-    page.screenshot(path=str(tmp_path / "memory-calculator-input-guidance.png"), full_page=True)
+    page.get_by_role("tab", name="Nachschlagen", exact=True).click()
+    page.get_by_role("button", name="Suche leeren", exact=True).click()
+    playwright.expect(page.locator(".memory-page-head h2")).not_to_contain_text("Treffer")
 
 
 def test_memory_basics_use_vectors_and_stay_inside_a_small_dark_window(editor, tmp_path):
     page = editor[0]
     open_memory(page)
-    page.get_by_role("button", name="Grundlagen", exact=True).click()
-    playwright.expect(page.locator(".memory-topic-card")).to_have_count(3)
-    page.get_by_role("heading", name="Gleich-, Wechsel- & Drehstrom", exact=True).click()
-    page.locator(".memory-entry > summary").filter(has_text="Wirk-, Blind- und Scheinleistung").click()
+    open_chapter(page, "Grundlagen")
     playwright.expect(page.get_by_role("img", name=re.compile("Leistungsdreieck:"))).to_be_visible()
     assert page.locator(".memory-main img, .memory-main canvas").count() == 0
     page.get_by_role("button", name="Dunkler Modus", exact=True).click()
@@ -76,33 +77,28 @@ def test_memory_basics_use_vectors_and_stay_inside_a_small_dark_window(editor, t
     page.screenshot(path=str(tmp_path / "memory-dark-vector.png"), full_page=True)
 
 
-def test_reference_navigation_keeps_print_furniture_in_source_notes_and_restores_search_focus(editor, tmp_path):
+def test_chapter_survives_reload_emergency_jumps_to_first_aid_and_print_notes_stay_in_source(editor, tmp_path):
     page = editor[0]
     open_memory(page)
-    search = page.get_by_role("searchbox", name="Elektro-Memory durchsuchen", exact=True)
-    search.fill("Ohm")
-    topic = page.get_by_role("button").filter(has=page.get_by_role("heading", name="Ohmsches Gesetz und Formelscheibe", exact=True))
-    topic.click()
-    playwright.expect(page.locator(".memory-entry")).to_have_count(4)
+    open_chapter(page, "Leitungen, Rohre & Ausmass")
+    playwright.expect(page.locator("#memory-entry-em-p08-wire-colors .memory-swatch").first).to_be_visible()
     playwright.expect(page.locator("#memory-entry-em-p01-ruler")).to_have_count(0)
-    back = page.get_by_role("button", name="Alle Themen", exact=True)
-    playwright.expect(back).to_be_visible()
-    page.get_by_role("combobox", name="Thema wechseln", exact=True).select_option("em-protective-devices")
-    playwright.expect(page.get_by_role("heading", name="RCD, Sicherungen und LS", exact=True)).to_be_visible()
-    back.click()
-    playwright.expect(search).to_have_value("Ohm")
-    playwright.expect(topic).to_be_focused()
-    topic.press("Enter")
+    page.reload()
+    playwright.expect(page.locator(".memory-page-head h2")).to_have_text("Leitungen, Rohre & Ausmass")
+    page.get_by_role("button", name="Notfall · 144", exact=True).click()
+    playwright.expect(page.locator(".memory-page-head h2")).to_have_text("Nothilfe bei Stromunfällen")
+    playwright.expect(page.locator("#memory-entry-em-p02-first-aid")).to_contain_text("30 Thoraxkompressionen")
+    playwright.expect(page.locator("#memory-entry-em-p02-emergency-report")).to_contain_text("Notruf 144")
     page.locator(".memory-source-info > summary").click()
     page.locator(".memory-source-print > summary").click()
     playwright.expect(page.locator(".memory-source-print")).to_contain_text("Aufgedrucktes Lineal")
     playwright.expect(page.locator(".memory-source-print")).to_contain_text("Quellstand und Impressum")
     page.locator(".memory-source-info > summary").click()
     page.set_viewport_size({"width": 1440, "height": 1050})
-    page.screenshot(path=str(tmp_path / "memory-topic-navigation-light.png"), full_page=True)
+    page.screenshot(path=str(tmp_path / "memory-chapter-light.png"), full_page=True)
     page.get_by_role("button", name="Dunkler Modus", exact=True).click()
-    page.screenshot(path=str(tmp_path / "memory-topic-navigation-dark.png"), full_page=True)
+    page.screenshot(path=str(tmp_path / "memory-chapter-dark.png"), full_page=True)
     page.set_viewport_size({"width": 390, "height": 844})
     assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
-    playwright.expect(page.get_by_role("combobox", name="Thema wechseln", exact=True)).to_be_visible()
-    page.screenshot(path=str(tmp_path / "memory-topic-navigation-mobile.png"), full_page=True)
+    playwright.expect(page.get_by_role("searchbox", name="Elektro-Memory durchsuchen", exact=True)).to_be_visible()
+    page.screenshot(path=str(tmp_path / "memory-chapter-mobile.png"), full_page=True)

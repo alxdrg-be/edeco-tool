@@ -16,15 +16,21 @@ def open_formulas(page):
     return page.locator("#memory-calculator-panel")
 
 
+def choose(panel, identifier):
+    """Wide screens pick a formula from the list; narrow ones use the select (see test below)."""
+    panel.locator(f'.calc-formula-list [data-formula="{identifier}"]').click()
+    playwright.expect(panel.locator(f'.calc-formula-list [data-formula="{identifier}"]')).to_have_attribute("aria-pressed", "true")
+
+
 def test_every_formula_opens_inside_memory_without_replacing_the_existing_calculations(documents_browser):
     page, _, _, _, _ = documents_browser
     page.set_viewport_size({"width": 1500, "height": 1100})
     panel = open_formulas(page)
-    chooser = panel.get_by_label("Formel wählen", exact=True)
-    ids = chooser.locator("option").evaluate_all("options=>options.map(option=>option.value)")
-    assert len(ids) == len(set(ids)) == 29
+    ids = panel.locator(".calc-formula-list [data-formula]").evaluate_all("buttons=>buttons.map(button=>button.dataset.formula)")
+    options = panel.get_by_label("Formel wählen", exact=True).locator("option").evaluate_all("options=>options.map(option=>option.value)")
+    assert len(ids) == len(set(ids)) == 29 and ids == options
     for identifier in ids:
-        chooser.select_option(identifier)
+        choose(panel, identifier)
         playwright.expect(panel.locator(".calc-panel .calc-formula").first).to_be_visible()
         assert "NaN" not in panel.inner_text() and "Infinity" not in panel.inner_text()
         for explanation in panel.locator(".calc-info").all():
@@ -33,7 +39,7 @@ def test_every_formula_opens_inside_memory_without_replacing_the_existing_calcul
         foundation.locator(":scope > summary").click()
         playwright.expect(foundation).to_have_attribute("open", "")
         foundation.locator(":scope > summary").click()
-    chooser.select_option("leistung-3p")
+    choose(panel, "leistung-3p")
     directory = os.environ.get("DOCUMENTS_REVIEW_DIR")
     if directory:
         target = Path(directory)
@@ -44,7 +50,7 @@ def test_every_formula_opens_inside_memory_without_replacing_the_existing_calcul
 def test_ohm_supports_all_six_given_pairs_including_power_and_keeps_bad_input_visible(documents_browser):
     page, _, _, _, _ = documents_browser
     panel = open_formulas(page)
-    panel.get_by_label("Formel wählen", exact=True).select_option("ohm")
+    choose(panel, "ohm")
     labels = {"u": ("Spannung in V", "12"), "i": ("Strom in A", "2"), "r": ("Widerstand in Ω", "6"), "p": ("Leistung in W", "24")}
     for pair in ["ui", "ur", "ir", "pu", "pi", "pr"]:
         panel.get_by_label("Gegebene Grössen", exact=True).select_option(pair)
@@ -63,12 +69,11 @@ def test_ohm_supports_all_six_given_pairs_including_power_and_keeps_bad_input_vi
 def test_meter_microfarads_and_rappen_change_the_actual_results_and_fit_mobile(documents_browser):
     page, _, _, _, _ = documents_browser
     panel = open_formulas(page)
-    chooser = panel.get_by_label("Formel wählen", exact=True)
-    chooser.select_option("zaehlerleistung")
+    choose(panel, "zaehlerleistung")
     playwright.expect(panel.locator(".calc-kpi").first).to_contain_text("1.000 kW")
     panel.get_by_label("Messzeit in s", exact=True).fill("72")
     playwright.expect(panel.locator(".calc-kpi").first).to_contain_text("0.500 kW")
-    chooser.select_option("kapazitiv")
+    choose(panel, "kapazitiv")
     playwright.expect(panel.locator(".calc-kpi").first).to_contain_text("318.310 Ω")
     panel.get_by_label("Kapazität in µF", exact=True).fill("20")
     playwright.expect(panel.locator(".calc-kpi").first).to_contain_text("159.155 Ω")
@@ -78,15 +83,18 @@ def test_meter_microfarads_and_rappen_change_the_actual_results_and_fit_mobile(d
     panel.get_by_label("Gesuchte Grösse / Rechenart", exact=True).select_option("ratio")
     panel.get_by_label("Strom am idealen Kondensator in A", exact=True).fill("2")
     playwright.expect(panel.locator(".calc-kpi").first).to_contain_text("115.000 Ω")
-    chooser.select_option("stern-dreieck")
+    choose(panel, "stern-dreieck")
     panel.get_by_label("Gesuchte Grösse / Rechenart", exact=True).select_option("delta-inverse")
     playwright.expect(panel.locator(".calc-kpi").last).to_contain_text("17.321 A")
-    chooser.select_option("energiekosten")
+    choose(panel, "energiekosten")
     playwright.expect(panel.locator(".calc-kpi").last).to_contain_text("1.500 CHF")
     panel.get_by_label("Arbeitspreis in Rp/kWh", exact=True).fill("50")
     playwright.expect(panel.locator(".calc-kpi").last).to_contain_text("3.000 CHF")
     page.set_viewport_size({"width": 390, "height": 844})
     assert panel.locator(".calc-tool").evaluate("element=>element.scrollWidth<=element.clientWidth+1")
+    playwright.expect(panel.locator(".calc-formula-list")).to_be_hidden()
+    panel.get_by_label("Formel wählen", exact=True).select_option("ohm")
+    playwright.expect(panel.locator(".calc-panel h2, .calc-panel h3").first).to_contain_text("Ohmsches Gesetz")
 
 
 def metric(page, label):

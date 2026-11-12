@@ -2,7 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { BASIC_TOPICS } from "./basics.ts";
 import { SOURCE_CATALOG } from "./sourceCatalog.ts";
-import { filterMemoryEntries, filterMemoryTopics, memoryPagesLabel, referenceMemoryTopics } from "./memorySearch.ts";
+import { memoryEntryMatches } from "./memorySearch.ts";
+import { MEMORY_CHAPTERS } from "./chapters.ts";
 import { isFormulaId } from "../berechnungen/formulaCatalog.ts";
 
 test("the uploaded 16-page source has an explicit complete page inventory", () => {
@@ -34,16 +35,14 @@ test("source topics and independent additions keep unique identities and provena
 });
 
 test("search covers units, table cells, accents and multiple terms", () => {
-  assert.deepEqual(filterMemoryTopics(BASIC_TOPICS, "ampere", "all").map(topic => topic.id), ["einheiten-praefixe"]);
-  assert.ok(filterMemoryTopics(BASIC_TOPICS, "gross klein", "all").some(topic => topic.id === "einheiten-praefixe"));
-  assert.ok(filterMemoryTopics(BASIC_TOPICS, "scheinleistung phi", "all").some(topic => topic.id === "gleich-wechsel-drehstrom"));
-  assert.equal(filterMemoryTopics(BASIC_TOPICS, "unbekannter Suchbegriff", "all").length, 0);
-  assert.equal(filterMemoryTopics(BASIC_TOPICS, "", "basics").length, BASIC_TOPICS.length);
-  assert.equal(filterMemoryTopics(BASIC_TOPICS, "", "reference").length, 0);
-  assert.equal(memoryPagesLabel([16, 3, 16]), "PDF S. 3, 16");
-  assert.equal(memoryPagesLabel([]), "Ergänzende Grundlagen");
-  const sourceFormulas = SOURCE_CATALOG.topics.find(topic => topic.id === "em-basic-formulas")!;
-  assert.deepEqual(filterMemoryEntries(sourceFormulas, "Zählerkonstante").map(entry => entry.id), ["em-p16-meter-power"]);
+  const entries = [...SOURCE_CATALOG.topics, ...BASIC_TOPICS].flatMap(topic => topic.entries).filter(entry => entry.presentation !== "source-note");
+  const ids = (query: string) => entries.filter(entry => memoryEntryMatches(entry, query)).map(entry => entry.id);
+  assert.ok(ids("ampere").includes("elektrische-einheiten"));
+  assert.ok(ids("gross klein").includes("si-praefixe"));
+  assert.ok(ids("scheinleistung phi").includes("leistungsdreieck-grundlagen"));
+  assert.deepEqual(ids("unbekannter Suchbegriff"), []);
+  assert.ok(ids("Zählerkonstante").includes("em-p16-meter-power"));
+  assert.ok(ids("zahlerkonstante").includes("em-p16-meter-power"));
 });
 
 test("known source errors remain explicit and corrected in the product data", () => {
@@ -59,20 +58,13 @@ test("known source errors remain explicit and corrected in the product data", ()
   assert.ok(fuse.table?.rows.some(row => row.some(cell => cell.includes("65 A [prüfen: üblich 63 A]"))));
 });
 
-test("print furniture stays in provenance while all technical entries remain searchable", () => {
+test("print furniture stays in provenance while all technical entries are placed in chapters", () => {
   const sourceEntries = SOURCE_CATALOG.topics.flatMap(topic => topic.entries);
   const sourceNotes = sourceEntries.filter(entry => entry.presentation === "source-note");
-  const digital = referenceMemoryTopics(SOURCE_CATALOG.topics);
+  const placed = new Set(MEMORY_CHAPTERS.flatMap(chapter => chapter.entries));
   assert.equal(sourceEntries.length, 70);
-  assert.equal(digital.length, 15);
   assert.deepEqual(sourceNotes.map(entry => entry.id), ["em-p01-ruler", "em-p16-imprint"]);
-  assert.equal(digital.flatMap(topic => topic.entries).length, 68);
-  assert.equal(digital[0].entries.length, 4);
-  assert.ok(digital.every(topic => topic.entries.length > 0));
-  assert.deepEqual(digital.flatMap(topic => topic.entries).map(entry => entry.id), sourceEntries.filter(entry => entry.presentation !== "source-note").map(entry => entry.id));
-  assert.equal(filterMemoryTopics(digital, "Aufgedrucktes Lineal", "all").length, 0);
-  assert.ok(filterMemoryTopics(digital, "Widerstand", "all").some(topic => topic.id === "em-ohm-cover"));
-  assert.deepEqual(filterMemoryTopics(digital, "Asbest", "all").map(topic => topic.id), ["em-asbestos"]);
-  assert.deepEqual(filterMemoryTopics(digital, "Rohrbelegung", "all").map(topic => topic.id), ["em-conduits"]);
-  assert.equal(digital.find(topic => topic.id === "em-spd-conduits")!.entries[0].id, "em-p11-spd-flow");
+  assert.ok(sourceNotes.every(entry => !placed.has(entry.id)));
+  assert.equal(sourceEntries.filter(entry => placed.has(entry.id)).length, 68);
+  assert.ok(MEMORY_CHAPTERS.every(chapter => chapter.entries.length > 0));
 });

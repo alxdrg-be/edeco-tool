@@ -14,3 +14,12 @@ test("counted titles get numbered lists", () => {
   assert.equal(isNumberedTitle("5+5 Sicherheitsregeln und PSA"), true);
   assert.equal(isNumberedTitle("RCD-Typen A, F, B und B+"), false);
 });
+
+import { memoryEntryMatches } from "./memorySearch.ts";
+test("entry search ignores accents and case and needs every word", () => {
+  const entry = { id: "x", title: "Zählerformel", kind: "formula" as const, confidence: "verified" as const, source: {}, explanation: "Zählerkonstante in U/kWh" };
+  assert.ok(memoryEntryMatches(entry, "zahlerkonstante"));
+  assert.ok(memoryEntryMatches(entry, "ZÄHLER kwh"));
+  assert.ok(!memoryEntryMatches(entry, "zähler lux"));
+  assert.ok(memoryEntryMatches(entry, "messpraxis", "Messpraxis & Prüfungen"));
+});

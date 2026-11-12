@@ -593,9 +593,15 @@ export function FormulaCalculator({ initialFormula, onFormulaChange }: { initial
   const [tab, setTab] = useState<FormulaId>(isFormulaId(initialFormula) ? initialFormula : "ohm");
   useEffect(() => { if (isFormulaId(initialFormula)) setTab(initialFormula); }, [initialFormula]);
   const formula = FORMULAS.find(item => item.id === tab)!;
-  return <div className="calc-tool calc-embedded"><div className="calc-body">
-    <label className="calc-selector">Formel wählen<select aria-label="Formel wählen" value={tab} onChange={event => { if (isFormulaId(event.target.value)) { setTab(event.target.value); onFormulaChange?.(event.target.value); } }}>
-      {Array.from(new Set(FORMULAS.map(item => item.group))).map(group => <optgroup key={group} label={group}>{FORMULAS.filter(item=>item.group===group).map(item=><option key={item.id} value={item.id}>{item.title}</option>)}</optgroup>)}
+  const choose = (id: string) => { if (isFormulaId(id)) { setTab(id); onFormulaChange?.(id); } };
+  const groups = Array.from(new Set(FORMULAS.map(item => item.group)));
+  return <div className="calc-tool calc-embedded calc-with-list">
+    <nav className="calc-formula-list" aria-label="Formeln">{groups.map(group => <div key={group}><span>{group}</span>
+      {FORMULAS.filter(item => item.group === group).map(item => <button type="button" key={item.id} data-formula={item.id} aria-pressed={item.id === tab} onClick={() => choose(item.id)}>{item.title}</button>)}
+    </div>)}</nav>
+    <div className="calc-body">
+    <label className="calc-selector">Formel wählen<select aria-label="Formel wählen" value={tab} onChange={event => choose(event.target.value)}>
+      {groups.map(group => <optgroup key={group} label={group}>{FORMULAS.filter(item=>item.group===group).map(item=><option key={item.id} value={item.id}>{item.title}</option>)}</optgroup>)}
     </select></label><p className="calc-note">{formula.description}</p>
     <div className="calc-layout">
       {isMemoryFormula(tab) ? <MemoryFormulaPanel key={tab} id={tab} /> : null}
