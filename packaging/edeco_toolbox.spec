@@ -10,6 +10,22 @@ pdf_runtime = root / 'packaging' / 'pdf-runtime'
 if not (pdf_runtime / 'manifest.json').is_file():
     raise RuntimeError('Prepare the locked offline PDF runtime before building the Toolbox')
 
+# BIM2STEIGER ships what it reads at run time. The source data the catalogue database is
+# rebuilt from, the portal evidence and the design mock-up stay in the repository only.
+BIM_SOURCE_ONLY = {"data/catalogue.json", "data/assemblies.json", "data/chapter_information.json",
+                   "data/source_snapshots.zip", "web/bim2steiger-mockup.html"}
+bim_root = root / "backend" / "bim2steiger"
+bim_datas = []
+for folder in ("data", "web"):
+    for item in sorted((bim_root / folder).iterdir()):
+        relative = f"{folder}/{item.name}"
+        if relative in BIM_SOURCE_ONLY:
+            continue
+        bim_datas.append((str(item), f"bim2steiger/{relative}" if item.is_dir() else f"bim2steiger/{folder}"))
+missing = [name for name in BIM_SOURCE_ONLY if not (bim_root / name).exists()]
+if missing:
+    raise RuntimeError(f"BIM2STEIGER exclusion list is out of date: {missing}")
+
 a = Analysis(
     [str(root / "packaging" / "toolbox_launcher.py")],
     pathex=[str(root / "backend")],
@@ -17,8 +33,7 @@ a = Analysis(
     datas=[(str(root / "ui" / "dist"), "ui/dist"),
            (str(root / "backend" / "nova_legend" / "legend" / "template_texts.json"), "nova_legend/legend"),
            (str(root / "backend" / "nova_legend" / "legend" / "resources"), "nova_legend/legend/resources"),
-           (str(root / "backend" / "bim2steiger" / "data"), "bim2steiger/data"),
-           (str(root / "backend" / "bim2steiger" / "web"), "bim2steiger/web"),
+           *bim_datas,
            (str(root / "backend" / "bim2steiger" / "version.json"), "bim2steiger"),
            (str(root / "backend" / "edeco_toolbox" / "pdf_workshop" / "assets"), "edeco_toolbox/pdf_workshop/assets"),
            (str(root / "packaging" / "toolbox.ico"), "packaging")]
