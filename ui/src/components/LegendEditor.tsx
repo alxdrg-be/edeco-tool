@@ -1,12 +1,10 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type DragEvent as ReactDragEvent, type PointerEvent as ReactPointerEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent as ReactDragEvent, type PointerEvent as ReactPointerEvent } from "react";
 import { downloadBlob } from "../shared/download";
-import { api, Category, FamilyItem, GeneralInfo, LegendInfo, LegendLayout, LegendPrim, ProjectDetail, StencilData, StencilEntry, SymbolRender } from "../api";
+import { api, Category, FamilyItem, GeneralInfo, LegendInfo, LegendLayout, LegendPrim, ProjectDetail, StencilEntry, SymbolRender } from "../api";
 import InfoTip from "./InfoTip";
-import { addBlock, addItem, beginSave, blockForCategory, commit, combineItems, coveredRows, describe, entryText, duplicateItems, hideCovered, History, historyOf, inLegend, insertItem, isCurrentSave, LegendBlock, LegendDoc, LegendItem, missingRows, moveBlockInOrder, moveItemInOrder, moveItemTo, moveItemToBlock, companyKey, makeItem, placeInCell, push, redo, removeBlock, removeItem, replace, rotateItem, Selection, staleItems, symbolRequestKey, undo, updateItem } from "../legend";
+import { addBlock, addItem, blockForCategory, commit, combineItems, coveredRows, describe, entryText, duplicateItems, hideCovered, History, historyOf, inLegend, insertItem, LegendBlock, LegendDoc, LegendItem, missingRows, moveBlockInOrder, moveItemInOrder, moveItemTo, moveItemToBlock, companyKey, makeItem, placeInCell, push, redo, removeBlock, removeItem, replace, rotateItem, Selection, staleItems, symbolRequestKey, undo, updateItem } from "../legend";
 import { Icon } from "./Icons";
 import { SaveSession } from "../saveSession";
-import { useNavigation } from "../Navigation";
-import Menu from "./Menu";
 import { ArrowLeft, ChevronDown, Hand, Maximize2, Minimize2, Minus, Plus, SlidersHorizontal } from "lucide-react";
 import { a4CompactLegendDocument, alignLegendSectionColors, compactLegendDocument, legendItemColors, legendVisibleItemColors, legendVisibleLayerColors } from "../legendViewport";
 import { useLegendViewport } from "../useLegendViewport";
@@ -18,14 +16,21 @@ import LegendPresentationPanel from "./LegendPresentationPanel";
 import LegendDefaultsPanel from "./LegendDefaultsPanel";
 import { stageToolHandoff } from "../toolbox/toolHandoff";
 import { legendSourceSelection } from "../legendSourceSelection";
-import { FREE_TEXT_HINT, DragPayload, DropTarget, DROP_ID, groupByEntry, formatStamp } from "./legend-editor/editorShared.ts";
-import { GRID_KEY, BAR_KEY, TOOLBAR_ITEMS, TOOLBAR_DEFAULT, readBarPref, readGridPref, PANE_KEY, PANE_LIMITS, readPanes } from "./legend-editor/editorPrefs.ts";
+import { DragPayload, DropTarget, DROP_ID, groupByEntry, formatStamp } from "./legend-editor/editorShared.ts";
 import { Prim, GridLines, DropCell, DropMarker } from "./legend-editor/SheetPrimitives";
-import { SymIcon, NumberInput } from "./legend-editor/SymbolBits";
+import { SymIcon } from "./legend-editor/SymbolBits";
 import { ItemProps, CombineBox } from "./legend-editor/ItemProps";
 import { BlockProps, TitleProps } from "./legend-editor/BlockProps";
 import { GeneralProps, GeneralRowProps } from "./legend-editor/GeneralProps";
 import { DocProps } from "./legend-editor/DocProps";
+import { useEditorPrefs } from "./legend-editor/useEditorPrefs.ts";
+import { useEntryGlide } from "./legend-editor/useEntryGlide.ts";
+import { useWindowedFocus } from "./legend-editor/useWindowedFocus.ts";
+import { useLegendStencil } from "./legend-editor/useLegendStencil.ts";
+import { useFamilySearch } from "./legend-editor/useFamilySearch.ts";
+import { useLegendSave } from "./legend-editor/useLegendSave.ts";
+import { useLegendLayout } from "./legend-editor/useLegendLayout.ts";
+import { LegendToolbar } from "./legend-editor/LegendToolbar";
 import "./LegendSection.css";
 import "./LegendEditor.css";
 
@@ -40,15 +45,10 @@ interface Props {
   onOpenTool?: (toolId: string) => void;
 }
 
-type SaveState = "idle" | "saving" | "saved" | "error";
-
 export default function LegendEditor({ projectId, data, categories, notify, legendId = null, onProjects, onOpenTool }: Props) {
   const [hist, setHist] = useState<History<LegendDoc> | null>(null);
   const [info, setInfo] = useState<LegendInfo | null>(null);
-  const [placed, setPlaced] = useState<LegendLayout | null>(null);
   const [general, setGeneral] = useState<(GeneralInfo & { svg: string; prims: LegendPrim[] }) | null>(null);
-  const [saveState, setSaveState] = useState<SaveState>("idle");
-  const [savedInfo, setSavedInfo] = useState("");
   const [sel, setSel] = useState<Selection>(null);
   // a second entry chosen with Ctrl/Shift+click: it can be combined with the selected one
   const [pick, setPick] = useState<{ block: string; item: string } | null>(null);
@@ -63,57 +63,18 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
     });
   }, []);
   const [generalRev, setGeneralRev] = useState(0);
+  const doc = hist?.present ?? null;
+  const { placed, setPlaced, layoutBusy } = useLegendLayout(projectId, doc, generalRev, notify);
   const [symbols, setSymbols] = useState<Record<string, SymbolRender>>({});
   const [busy, setBusy] = useState(false);
-  const [search, setSearch] = useState("");
-  const [results, setResults] = useState<FamilyItem[]>([]);
+  const { search, setSearch, results } = useFamilySearch();
   const [exportBlock, setExportBlock] = useState("");
 
-  const [showGrid, setShowGrid] = useState(readGridPref);
-  const [panes, setPanes] = useState(readPanes);
-
-  /** Drag the border of a side panel, like a pane in the Explorer. Double click: back to the default. */
-  function startPaneDrag(e: ReactPointerEvent, which: "outline" | "props") {
-    e.preventDefault();
-    const x0 = e.clientX;
-    const w0 = panes[which];
-    const [lo, hi] = PANE_LIMITS[which];
-    let latest = panes;
-    const move = (ev: PointerEvent) => {
-      const dx = ev.clientX - x0;
-      const w = Math.round(Math.max(lo, Math.min(hi, which === "outline" ? w0 + dx : w0 - dx)));
-      latest = { ...latest, [which]: w };
-      setPanes(latest);
-    };
-    const up = () => {
-      window.removeEventListener("pointermove", move);
-      window.removeEventListener("pointerup", up);
-      document.body.classList.remove("pane-resizing");
-      try {
-        window.localStorage.setItem(PANE_KEY, JSON.stringify(latest));
-      } catch {
-        /* only a convenience */
-      }
-    };
-    document.body.classList.add("pane-resizing");
-    window.addEventListener("pointermove", move);
-    window.addEventListener("pointerup", up);
-  }
-
-  function resetPane(which: "outline" | "props") {
-    const next = { ...panes, [which]: which === "outline" ? 240 : 280 };
-    setPanes(next);
-    try {
-      window.localStorage.setItem(PANE_KEY, JSON.stringify(next));
-    } catch {
-      /* only a convenience */
-    }
-  }
+  const { showGrid, toggleGrid, panes, startPaneDrag, resetPane, bar, saveBar, toggleBar } = useEditorPrefs();
   const [detached, setDetached] = useState(false);
   const [windowed, setWindowed] = useState(false);
   const [outlineOpen, setOutlineOpen] = useState(true);
   const [grayscale, setGrayscale] = useState(false);
-  const [layoutBusy, setLayoutBusy] = useState(false);
   const [originalEdit, setOriginalEdit] = useState("");
   // sections opened in the list on the left (one line per section until opened)
   const [openBlocks, setOpenBlocks] = useState<Set<string>>(() => new Set());
@@ -123,21 +84,6 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
     else next.add(id);
     return next;
   });
-  const [bar, setBar] = useState<Set<string>>(readBarPref);
-  const saveBar = (next: Set<string>) => {
-    setBar(next);
-    try {
-      window.localStorage.setItem(BAR_KEY, JSON.stringify([...next]));
-    } catch {
-      /* only a convenience */
-    }
-  };
-  const toggleBar = (id: string) => {
-    const next = new Set(bar);
-    if (next.has(id)) next.delete(id);
-    else next.add(id);
-    saveBar(next);
-  };
   const [dropAt, setDropAt] = useState<DropTarget | null>(null);
   // while dragging onto a cell: the legend as it would look after the drop (others make room)
   const [preview, setPreview] = useState<{ layout: LegendLayout; id: string } | null>(null);
@@ -148,8 +94,6 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
   const justDragged = useRef(false);
   // one save session per legend: writes always go to the legend that was edited
   const [saveSession] = useState(() => new SaveSession(projectId, (pid: string, d: LegendDoc) => api.saveLegend(pid, d, undefined, legendId)));
-  const { register } = useNavigation();
-  const layoutGate = useRef({ generation: 0 });
   const fieldBefore = useRef<LegendDoc | null>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<HTMLDivElement>(null);
@@ -157,42 +101,8 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
   const viewport = useLegendViewport(canvasRef, paperRef, viewLayout?.width ?? 200, viewLayout?.height ?? 100, Boolean(info && hist));
   const { zoom } = viewport;
 
-  useEffect(() => {
-    const editor = editorRef.current;
-    if (!windowed || !editor) return;
-    const previousFocus = document.activeElement as HTMLElement | null;
-    const oldOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    // Keep the project/header behind the enlarged editor out of keyboard navigation.
-    const changed: { node: HTMLElement; inert: boolean }[] = [];
-    let branch: HTMLElement = editor;
-    while (branch.parentElement) {
-      for (const child of branch.parentElement.children) {
-        if (child === branch || !(child instanceof HTMLElement) || child.classList.contains("legend-window-back")) continue;
-        changed.push({ node: child, inert: child.inert }); child.inert = true;
-      }
-      branch = branch.parentElement;
-      if (branch === document.body) break;
-    }
-    const controls = () => [...editor.querySelectorAll<HTMLElement>("button:not(:disabled),input:not(:disabled),select:not(:disabled),textarea:not(:disabled),[tabindex='0']")].filter(node => node.getClientRects().length > 0);
-    (controls()[0] ?? editor).focus();
-    const trap = (event: KeyboardEvent) => {
-      if (event.key !== "Tab") return;
-      const nodes = controls(), first = nodes[0] ?? editor, last = nodes[nodes.length - 1] ?? editor;
-      if (!editor.contains(document.activeElement) || (event.shiftKey ? document.activeElement === first : document.activeElement === last)) {
-        event.preventDefault(); (event.shiftKey ? last : first).focus();
-      }
-    };
-    document.addEventListener("keydown", trap);
-    return () => {
-      document.body.style.overflow = oldOverflow;
-      changed.forEach(({ node, inert }) => { node.inert = inert; });
-      document.removeEventListener("keydown", trap);
-      if (previousFocus?.isConnected) previousFocus.focus();
-    };
-  }, [windowed]);
+  useWindowedFocus(editorRef, windowed);
 
-  const doc = hist?.present ?? null;
   const colorByCat = useMemo(() => Object.fromEntries(data.category_colors.map((c) => [c.id, c.color])), [data.category_colors]);
   const layerByCat = useMemo(() => Object.fromEntries(categories.map((c) => [c.id, c.layer ?? ""])), [categories]);
   const catTitle = useMemo(() => Object.fromEntries(categories.map((c) => [c.id, c.title])), [categories]);
@@ -217,21 +127,9 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
     const saved = familyKey ? companySymbols[familyKey] : undefined;
     return saved ? { symbol_factor: saved.symbol_factor, rotation: saved.rotation, mirror: saved.mirror } : {};
   };
-  // your Nova user stencil: loaded once per editor, one tab open at a time
-  const [stencil, setStencil] = useState<StencilData | null>(null);
-  const [stencilTab, setStencilTab] = useState<string | null>(null);
-  useEffect(() => {
-    let alive = true;
-    api.stencils(projectId).then((r) => alive && setStencil(r)).catch(() => undefined);
-    return () => {
-      alive = false;
-    };
-  }, [projectId]);
-  const openStencilEntries = useMemo(() => {
-    if (!stencil || !stencilTab) return [];
-    const [si, ti] = stencilTab.split(":").map(Number);
-    return stencil.sets[si]?.tabs[ti]?.entries ?? [];
-  }, [stencil, stencilTab]);
+  const { stencil, stencilTab, setStencilTab, openStencilEntries } = useLegendStencil(projectId);
+
+  const { saveState, savedInfo, setSavedInfo, saveNow, saveLegend } = useLegendSave(saveSession, doc, notify);
 
   // -- load, general part, save ------------------------------------------------------------
 
@@ -268,64 +166,7 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
     };
   }, [projectId, legendId, notify, saveSession]);
 
-  // Register the latest rendered edit before navigation events can flush it.
-  useLayoutEffect(() => { saveSession.update(doc); }, [doc, saveSession]);
 
-  const saveNow = useCallback(async (): Promise<void> => {
-    if (!saveSession.dirty) return;
-    setSaveState("saving");
-    try {
-      await saveSession.flush();
-      const r = saveSession.result;
-      setSaveState("saved");
-      if (r) setSavedInfo(`${formatStamp(r.legend.updated_at)} von ${r.legend.updated_by}`);
-    } catch (e) {
-      setSaveState("error");
-      notify(`Legende nicht gespeichert: ${(e as Error).message}. Bitte erneut versuchen; deine Änderungen bleiben im Editor.`, true);
-      throw e;
-    }
-  }, [notify, saveSession]);
-
-  const saveLegend = useCallback(async () => {
-    if (!saveSession.dirty) {
-      notify("Die Legende ist bereits gespeichert.");
-      return;
-    }
-    try {
-      await saveNow();
-      notify("Legende gespeichert.");
-    } catch {
-      /* saveNow already reported the error */
-    }
-  }, [notify, saveNow, saveSession]);
-
-  useEffect(() => register({ flush: saveNow, dirty: () => saveSession.dirty }), [register, saveNow, saveSession]);
-
-  useEffect(() => {
-    if (!saveSession.dirty) return;
-    setSaveState("saving");
-    const handle = window.setTimeout(() => { saveNow().catch(() => undefined); }, 700);
-    return () => window.clearTimeout(handle);
-  }, [doc, saveNow, saveSession]);
-
-  // layout from the backend (same code as the DXF export)
-  useEffect(() => {
-    if (!doc) return;
-    const ctrl = new AbortController();
-    const handle = window.setTimeout(() => {
-      const generation = beginSave(layoutGate.current);
-      setLayoutBusy(true);
-      api
-        .layoutLegend(projectId, doc, ctrl.signal)
-        .then((r) => isCurrentSave(layoutGate.current, generation) && setPlaced(r))
-        .catch(error => { if (!ctrl.signal.aborted && isCurrentSave(layoutGate.current, generation)) notify(`Vorschau nicht aktualisiert: ${(error as Error).message}`, true); })
-        .finally(() => { if (isCurrentSave(layoutGate.current, generation)) setLayoutBusy(false); });
-    }, 120);
-    return () => {
-      window.clearTimeout(handle);
-      ctrl.abort();
-    };
-  }, [doc, projectId, generalRev, notify]);
 
   // symbol drawings for the placed symbols (and those of a general part from a template project),
   // plus the small icons of the lists on the left (same drawing, without length)
@@ -378,19 +219,6 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
       .catch(() => undefined);
   }, [placed, general, symbols, data.rows, results, openStencilEntries, stripFill, doc]);
 
-  useEffect(() => {
-    if (search.trim().length < 2) {
-      setResults([]);
-      return;
-    }
-    const h = window.setTimeout(() => {
-      api
-        .families({ q: search, category: "", dataset: "", mounting: "", all_variants: false })
-        .then((r) => setResults(r.items.slice(0, 10)))
-        .catch(() => undefined);
-    }, 250);
-    return () => window.clearTimeout(h);
-  }, [search]);
 
   // -- editing helpers ---------------------------------------------------------------------
 
@@ -669,32 +497,8 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
     };
   }, [dropAt, doc, projectId]);
 
-  // Entries glide to their new place when the layout changes (drag preview, drop, undo):
-  // FLIP, start where the entry was, then let CSS move it to where it is now.
-  const entryPos = useRef<Map<string, { x: number; y: number }>>(new Map());
   const layoutNow = dropAt?.cell !== undefined && preview ? preview.layout : placed;
-  useLayoutEffect(() => {
-    const svg = paperRef.current;
-    if (!svg || !layoutNow) return;
-    const now = new Map<string, { x: number; y: number }>();
-    for (const p of layoutNow.prims) if (p.t === "hit" && p.kind === "item") now.set(p.id, { x: p.x, y: p.y });
-    const before = entryPos.current;
-    entryPos.current = now;
-    if (!before.size || window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
-    svg.querySelectorAll<SVGGElement>("g[data-entry]").forEach((g) => {
-      const id = g.dataset.entry ?? "";
-      const a = before.get(id);
-      const b = now.get(id);
-      if (!a || !b || (Math.abs(a.x - b.x) < 0.01 && Math.abs(a.y - b.y) < 0.01)) return;
-      g.style.transition = "none";
-      g.style.transform = `translate(${a.x - b.x}px, ${a.y - b.y}px)`;
-      g.getBoundingClientRect();           // apply the start position before the move
-      requestAnimationFrame(() => {
-        g.style.transition = "transform 180ms cubic-bezier(.2,.7,.3,1)";
-        g.style.transform = "";
-      });
-    });
-  }, [layoutNow]);
+  useEntryGlide(paperRef, layoutNow);
 
   // -- save now and export ----------------------------------------------------------------
 
@@ -757,15 +561,6 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
     return openBlocks.has(b.id) || (sel?.type === "item" && sel.block === b.id);
   }
 
-  function toggleGrid() {
-    const next = !showGrid;
-    setShowGrid(next);
-    try {
-      window.localStorage.setItem(GRID_KEY, next ? "1" : "0");
-    } catch {
-      /* only a convenience */
-    }
-  }
 
   // -- render ------------------------------------------------------------------------------
 
@@ -855,187 +650,23 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
         </div>
       </div>}
       {generalBox}
-      <div className="legend-toolbar">
-        <button type="button" className="btn small" aria-expanded={outlineOpen} aria-controls="legend-sections-outline" onClick={() => setOutlineOpen(value => !value)}>Abschnitte {outlineOpen ? "ausblenden" : "einblenden"}</button>
-        {bar.has("history") && (
-          <div className="tool-group" role="group" aria-label="Verlauf">
-            <button className="btn small" disabled={busy} onClick={proposal} title="Legende aus den aktuellen Projektzahlen neu vorschlagen">
-              Neuer Vorschlag
-            </button>
-            <button className="btn small icon-btn" disabled={!hist?.past.length} onClick={() => setHist((h) => (h ? undo(h) : h))}
-              title="Rückgängig (Strg+Z)" aria-label="Rückgängig">↶</button>
-            <button className="btn small icon-btn" disabled={!hist?.future.length} onClick={() => setHist((h) => (h ? redo(h) : h))}
-              title="Wiederholen (Strg+Y)" aria-label="Wiederholen">↷</button>
-          </div>
-        )}
-        {bar.has("insert") && (
-          <Menu label="Einfügen" portalContainer={() => editorRef.current}>
-            <button className="btn small" onClick={() => addKind("text")} title={FREE_TEXT_HINT}>+ Freier Text</button>
-            <button className="btn small" onClick={() => addKind("line")} title="Linienmuster, z. B. für Leitungen und Trassen">+ Linie</button>
-            <button className="btn small" onClick={() => addKind("note")}>+ Hinweis</button>
-            <button className="btn small" onClick={() => {
-              const r = addBlock(doc, "Neuer Abschnitt");
-              change(r.doc);
-              setSel({ type: "block", block: r.id });
-            }}>+ Abschnitt</button>
-          </Menu>
-        )}
-        {(bar.has("grid") || bar.has("rows")) && (
-          <div className="tool-group" role="group" aria-label="Raster">
-          {bar.has("grid") && (<label className="filter-label">
-            Raster
-            <select
-              className="select"
-              value={style.grid}
-              onChange={(e) => {
-                if (e.target.value === "custom") {
-                  setStyle({ grid: "custom" });
-                  return;
-                }
-                // row and text step change at once, so the grid lines follow without a reload
-                const g = info.grids.find((x) => x.id === e.target.value);
-                if (g) setStyle({ grid: g.id, row: g.row, text_offset: g.text_offset });
-              }}
-              aria-label="Rastermass"
-              title="Zeilenhöhe / Textabstand in mm"
-            >
-              {info.grids.map((g) => (
-                <option key={g.id} value={g.id}>
-                  {g.id === "standard"
-                    ? "Standard (aus Schrift)"
-                    : `${g.label} ${String(g.row).replace(".", ",")} / ${String(g.text_offset).replace(".", ",")} mm`}
-                </option>
-              ))}
-              <option value="custom">Eigenes Mass</option>
-            </select>
-          </label>)}
-            {bar.has("rows") && (
-              <>
-                <label className="filter-label">
-                  Zeile
-                  <span className="grid-mm">
-                    <NumberInput label="Zeilenhöhe in mm" value={style.row} step={0.5} min={3} max={30}
-                      onCommit={(v) => setStyle({ grid: "custom", row: Math.round(v * 100) / 100 })} />
-                  </span>
-                </label>
-                <label className="filter-label">
-                  Text
-                  <span className="grid-mm">
-                    <NumberInput label="Textabstand in mm" value={style.text_offset} step={0.5} min={5} max={45}
-                      onCommit={(v) => setStyle({ grid: "custom", text_offset: Math.round(v * 100) / 100 })} />
-                  </span>
-                </label>
-              </>
-            )}
-          </div>
-        )}
-        {bar.has("sizes") && (
-          <div className="tool-group" role="group" aria-label="Grössen">
-            <label className="filter-label">
-              Schrift
-              <span className="grid-mm">
-                <NumberInput label="Schriftgrösse in mm" value={style.text_size} step={0.25} min={1} max={10}
-                  onCommit={(v) => setStyle({ text_size: Math.max(1, Math.min(10, v)) })} />
-              </span>
-            </label>
-            <label className="filter-label">
-              Symbole
-              <span className="grid-mm">
-                <NumberInput label="Symbolmassstab" value={style.symbol_scale} step={0.1} min={0.2} max={5}
-                  onCommit={(v) => setStyle({ symbol_scale: Math.max(0.2, Math.min(5, v)) })} />
-              </span>
-            </label>
-            {(style.symbol_size ?? "tile") === "tile" && style.symbol_fit !== "corridor" && (
-              <label className="toggle" title="Jedes Symbol bekommt dieselbe Fläche, mit einem kleinen freien Rand">
-                <input type="checkbox" checked={style.normalize_size !== false} onChange={(e) => setStyle({ normalize_size: e.target.checked })} />
-                Gleiche Fläche
-              </label>
-            )}
-          </div>
-        )}
-        {bar.has("general") && general?.kind && (
-          <label className="toggle tool-toggle" title={`Allgemeinteil in dieser Legende zeigen (Vorschau und Export). ${general.kind === "dxf" ? "DXF/DWG" : "Vorlagen-Projekt"} vom Server, gesperrt. Schrift, Symbolgrösse, Abstand und Spalten übernimmt er von dieser Legende.`}>
-            <input type="checkbox" checked={exportGeneral} onChange={(e) => setExportGeneral(e.target.checked)} />
-            Allgemeinteil
-          </label>
-        )}
-        {bar.has("gridlines") && (
-          <button className={`btn small ${showGrid ? "is-on" : ""}`} aria-pressed={showGrid} onClick={toggleGrid} aria-label="Raster anzeigen"
-            title="Rasterlinien im gewählten Mass einblenden. Sie erscheinen nicht im Export.">
-            ▦ Raster
-          </button>
-        )}
-        <Menu label="Ansicht" portalContainer={() => editorRef.current}>
-          <div className="menu-fields">
-            <label className="filter-label">
-              Raster
-              <select
-                className="select"
-                value={style.grid}
-                onChange={(e) => {
-                  if (e.target.value === "custom") {
-                    setStyle({ grid: "custom" });
-                    return;
-                  }
-                  // row and text step change at once, so the grid lines follow without a reload
-                  const g = info.grids.find((x) => x.id === e.target.value);
-                  if (g) setStyle({ grid: g.id, row: g.row, text_offset: g.text_offset });
-                }}
-                aria-label="Rastermass"
-                title="Zeilenhöhe / Textabstand in mm"
-              >
-                {info.grids.map((g) => (
-                  <option key={g.id} value={g.id}>
-                    {g.id === "standard"
-                      ? "★ Standard · Kachel aus der Schrift"
-                      : `${g.label} · Zeile ${String(g.row).replace(".", ",")} mm · Text ${String(g.text_offset).replace(".", ",")} mm`}
-                  </option>
-                ))}
-                <option value="custom">Benutzerdefiniert</option>
-              </select>
-            </label>
-          </div>
-          {!bar.has("gridlines") && (
-            <button className={`btn small ${showGrid ? "is-on" : ""}`} aria-pressed={showGrid} onClick={toggleGrid}>Raster anzeigen</button>
-          )}
-          <button className={`btn small ${style.compact_flow && style.columns !== 4 ? "is-on" : ""}`} aria-pressed={Boolean(style.compact_flow && style.columns !== 4)} onClick={applyCompact}>
-            Dichte wie Entwurf
-          </button>
-          <button className={`btn small ${style.compact_flow && style.columns === 4 ? "is-on" : ""}`} aria-pressed={Boolean(style.compact_flow && style.columns === 4)} onClick={applyA4} title="Vier Spalten, kompakte Abstände. Die Seitenhöhe folgt dem Inhalt.">
-            A4 kompakt
-          </button>
-          <button className="btn small" onClick={alignSectionColors} title="Rubrikmarkierung und Trennlinie auf die häufigste Originalfarbe ihrer Symbole setzen. Quellfarben, Farbvarianten und eigene Symbolfarben bleiben unverändert.">
-            Rubrikfarben aus Symbolen
-          </button>
-          <button className={`btn small ${detached ? "is-on" : ""}`} aria-pressed={detached} onClick={() => setDetached((v) => !v)}>
-            {detached ? "Einstellungen andocken" : "Einstellungen schwebend"}
-          </button>
-          <div className="menu-divider" />
-          <div className="menu-fields bar-choice" role="group" aria-label="Sichtbar in der Leiste">
-            <span className="hint">In der Leiste zeigen:</span>
-            {TOOLBAR_ITEMS.map((t) => (
-              <label key={t.id} className="toggle">
-                <input type="checkbox" checked={bar.has(t.id)} onChange={() => toggleBar(t.id)} />
-                {t.label}
-              </label>
-            ))}
-            <button className="btn small" onClick={() => saveBar(new Set(TOOLBAR_DEFAULT))}>Standard</button>
-          </div>
-        </Menu>
-
-        <span style={{ flex: 1 }} />
-        <span className={saveState === "error" ? "dirty" : saveState === "saving" ? "hint" : "saved"} role="status"
-          title={savedInfo ? `Zuletzt gespeichert ${savedInfo}` : undefined}>
-          {saveState === "saving" ? "Speichert …" : saveState === "error" ? "Nicht gespeichert" : savedInfo ? "Gespeichert" : ""}
-        </span>
-        {bar.has("export") && (
-          <button className="btn small primary" disabled={busy || exporting}
-            onClick={() => exportFile("dxf", exportBlock, exportGeneral && Boolean(general?.kind))}
-            title={exportBlock ? "Den gewählten Abschnitt als DXF herunterladen" : "Die ganze Legende als DXF herunterladen"}>
-            <Icon name="download" size={16} /> {exporting ? "Exportiert …" : "DXF herunterladen"}
-          </button>
-        )}
-      </div>
+      <LegendToolbar bar={bar} toggleBar={toggleBar} saveBar={saveBar} showGrid={showGrid} toggleGrid={toggleGrid}
+        outlineOpen={outlineOpen} onToggleOutline={() => setOutlineOpen(value => !value)}
+        busy={busy} exporting={exporting} exportBlock={exportBlock}
+        canUndo={Boolean(hist?.past.length)} canRedo={Boolean(hist?.future.length)}
+        onUndo={() => setHist((h) => (h ? undo(h) : h))} onRedo={() => setHist((h) => (h ? redo(h) : h))} onProposal={proposal}
+        onAddKind={addKind} onAddBlock={() => {
+          const r = addBlock(doc, "Neuer Abschnitt");
+          change(r.doc);
+          setSel({ type: "block", block: r.id });
+        }}
+        style={style} grids={info.grids} setStyle={setStyle}
+        generalKind={general?.kind} exportGeneral={exportGeneral} setExportGeneral={setExportGeneral}
+        applyCompact={applyCompact} applyA4={applyA4} alignSectionColors={alignSectionColors}
+        detached={detached} onToggleDetached={() => setDetached((v) => !v)}
+        saveState={saveState} savedInfo={savedInfo}
+        onExportDxf={() => exportFile("dxf", exportBlock, exportGeneral && Boolean(general?.kind))}
+        menuContainer={() => editorRef.current} />
 
       <div className={`legend-body ${detached ? "detached" : ""} ${outlineOpen ? "" : "outline-hidden"}`}
         style={{ ["--outline-w" as string]: `${panes.outline}px`, ["--props-w" as string]: `${panes.props}px` }}>
