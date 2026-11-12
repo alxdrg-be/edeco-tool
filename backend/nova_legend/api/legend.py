@@ -459,7 +459,7 @@ def register(app: FastAPI, st, project, evaluator, category_colors) -> None:
     def builtin_general_preview():
         """Preview the actual bundled geometry before the explicit company-wide change."""
         import pypdfium2 as pdfium
-        from edeco_toolbox.documents.extract import PDF_LOCK
+        from ..pdfium_lock import PDF_LOCK
 
         gen = general_part.load(general_part.BUILTIN_SOURCE, 190, None)
         if gen.error or not gen.rows:

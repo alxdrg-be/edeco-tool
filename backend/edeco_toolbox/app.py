@@ -2,10 +2,11 @@
 
 from pathlib import Path
 
+from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 
 from nova_legend import config
-from nova_legend.api.app import AppState, create_app as create_nova_app
+from nova_legend.api.app import AppState, register as register_nova
 
 from . import APP_NAME, APP_VERSION, BUILD, COMMIT
 from .bim import create_app as create_bim_app
@@ -23,10 +24,9 @@ from .ui_cache import CurrentUIFiles
 
 
 def create_app(state: AppState | None = None, ui_dir: Path | None = None):
-    # Keep Nova's existing /api routes and data paths for compatibility.
-    app = create_nova_app(state, serve_ui=False, updates_enabled=False)
-    app.title = APP_NAME
-    app.version = APP_VERSION
+    app = FastAPI(title=APP_NAME, version=APP_VERSION)
+    # Nova keeps its existing /api routes and data paths for compatibility.
+    register_nova(app, state, serve_ui=False, updates_enabled=False)
     register_local_security(app)
     register_presentation(app)
     register_updates(app)

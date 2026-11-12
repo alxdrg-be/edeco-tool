@@ -133,7 +133,15 @@ def lineage(cat_id: str, parents: dict) -> list[str]:
 
 def create_app(state: AppState | None = None, ui_dir: Path | None = None, *,
                serve_ui: bool = True, updates_enabled: bool = True) -> FastAPI:
+    """Standalone NOVA-Legenden program: its own FastAPI app with the Nova routes."""
     app = FastAPI(title="NOVA-Legenden", version=config.APP_VERSION)
+    register(app, state, ui_dir, serve_ui=serve_ui, updates_enabled=updates_enabled)
+    return app
+
+
+def register(app: FastAPI, state: AppState | None = None, ui_dir: Path | None = None, *,
+             serve_ui: bool = True, updates_enabled: bool = True) -> AppState:
+    """Add the Nova routes to an app, like every other tool's register(app). Returns the shared state."""
     st = state or AppState()
     app.state.nova = st
     if state is None:
@@ -481,7 +489,7 @@ def create_app(state: AppState | None = None, ui_dir: Path | None = None, *,
     # -- UI --------------------------------------------------------------------------
 
     if not serve_ui:
-        return app
+        return st
     ui = ui_dir or (config.resource_dir() / "ui" / "dist")
     if (ui / "index.html").exists():
         app.mount("/", StaticFiles(directory=ui, html=True), name="ui")
@@ -490,7 +498,7 @@ def create_app(state: AppState | None = None, ui_dir: Path | None = None, *,
         def no_ui() -> str:
             return ("<h1>NOVA-Legenden</h1><p>Die Oberfläche ist nicht gebaut. "
                     "Im Ordner ui: <code>npm install</code> und <code>npm run build</code>.</p>")
-    return app
+    return st
 
 
 def _symbol_brief(sym, show_fill: bool = True) -> dict:

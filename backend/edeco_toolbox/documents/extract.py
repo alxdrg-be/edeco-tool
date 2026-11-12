@@ -2,14 +2,14 @@
 
 import base64
 import io
-import threading
 from contextlib import closing
 from pathlib import Path
 
 import pypdfium2 as pdfium
 
-# PDFium must not be used concurrently, including across different documents.
-PDF_LOCK = threading.RLock()
+# PDFium must not be used concurrently, including across different documents: PDF_LOCK is shared by every tool.
+from nova_legend.pdfium_lock import PDF_LOCK
+
 MAX_BYTES = 100 * 1024 * 1024
 MAX_PAGES = 2000
 MAX_TEXT = 8_000_000
