@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { planListCsv } from "./planList";
 import { notifyProjectsChanged, useProjectHub, type DeliveryRecord } from "../projektzentrale/projectHubState";
 
 export function downloadBlob(blob: Blob, name: string) {
@@ -6,10 +7,7 @@ export function downloadBlob(blob: Blob, name: string) {
   link.href = url; link.download = name; link.click(); setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }
 function exportList(record: DeliveryRecord) {
-  const cell = (value: string) => '"' + (/^[\s]*[=+\-@]|^[\t\r\n]/.test(value) ? "'" : "") + value.replaceAll('"', '""') + '"';
-  const rows = [["Projektnummer", "Lieferdatum", "Empfänger", "Dateiname", "Geschoss", "Planart", "Index", "Massstab", "SHA-256"],
-    ...record.plans.map(plan => [record.project_number, record.delivery_date, record.recipient, plan.filename, plan.floor, plan.plan_type, plan.index, plan.scale, plan.sha256])];
-  downloadBlob(new Blob(["\ufeff" + rows.map(row => row.map(cell).join(";")).join("\r\n")], { type: "text/csv;charset=utf-8" }), `Planliste-${record.id}.csv`);
+  downloadBlob(new Blob([planListCsv(record)], { type: "text/csv;charset=utf-8" }), `Planliste-${record.id}.csv`);
 }
 export default function DeliveryHistory({ projectId }: { projectId: string }) {
   const { hub, error: loadError } = useProjectHub();

@@ -295,7 +295,8 @@ Details: [Absicherung und Rechenfaktoren](docs/ABSICHERUNG_20261102.md).
 
 ```sh
 .venv/bin/python -m ruff check backend
-PYTHONPATH=backend .venv/bin/python -m pytest backend/tests -q
+PYTHONPATH=backend .venv/bin/python -m pytest backend/tests -q -m "not browser"   # schnell, ohne Browser, rund 30 s
+PYTHONPATH=backend .venv/bin/python -m pytest backend/tests -q                    # alles, mit Browsertests, rund 15 min
 (cd backend/bim2steiger && ../../.venv/bin/python -m unittest discover -s tests -q)
 cd ui
 npm run lint
