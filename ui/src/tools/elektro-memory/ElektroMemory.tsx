@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowUpRight, Bath, BookOpen, Cable, Calculator, Earth, HardHat, HeartPulse, Info, Layers, Moon, ScanLine, Search, ShieldCheck, Sigma, Sun, X, Zap } from "lucide-react";
+import { ArrowUpRight, Bath, BookOpen, Cable, Calculator, Earth, HardHat, HeartPulse, Info, Layers, Moon, Printer, ScanLine, Search, ShieldCheck, Sigma, Sun, X, Zap } from "lucide-react";
 import type { ToolProps } from "../../toolbox/modules";
 import ToolhubHeader from "../../toolbox/ToolhubHeader";
 import { useToolhubLocation } from "../../toolbox/ToolhubNavigation";
@@ -143,7 +143,9 @@ export default function ElektroMemory({ onHome, onOpenTool, initialTab = "refere
             <header className="memory-page-head"><h2>{hitCount ? `${hitCount} Treffer für «${query.trim()}»` : `Kein Treffer für «${query.trim()}»`}</h2><p>{hitCount ? "Alle Kapitel durchsucht. Kapitel links öffnet die ganze Seite." : "Anderen Begriff, eine Einheit oder eine Zahl versuchen, zum Beispiel «Riso», «IPX4» oder «M20»."}</p></header>
             <div className="memory-cards">{hits.flatMap(hit => hit.entries.map(entry => <MemoryCard key={entry.id} entry={entry} chapterTitle={hit.chapter.title} onCalculate={calculate} />))}</div>
           </> : <>
-            <header className="memory-page-head"><span className="memory-page-icon"><ChapterIcon chapter={chapter} size={24} /></span><div><span className="memory-page-number">{chapter.number ? `Kapitel ${chapter.number}` : "Weitere Themen"}</span><h2>{chapter.title}</h2><p>{chapter.short}</p></div></header>
+            <header className="memory-page-head"><span className="memory-page-icon"><ChapterIcon chapter={chapter} size={24} /></span><div><span className="memory-page-number">{chapter.number ? `Kapitel ${chapter.number}` : "Weitere Themen"}</span><h2>{chapter.title}</h2><p>{chapter.short}</p></div>
+              <button type="button" className="memory-print" onClick={() => window.print()}><Printer size={16} aria-hidden="true" />Kapitel drucken</button></header>
+            <p className="memory-print-source">edeco Toolhub · Elektro-Memory · nach E-Memory EIT.swiss, 1. Auflage 2025 · gedruckt {new Date().toLocaleDateString("de-CH")}</p>
             {chapter.tool === "sockets" && <SwissSocketGuide />}
             {chapter.tool === "ip" && <IpDecoder />}
             <div className="memory-cards">{chapterEntries(chapter).map(entry => <MemoryCard key={entry.id} entry={entry} onCalculate={calculate} />)}</div>

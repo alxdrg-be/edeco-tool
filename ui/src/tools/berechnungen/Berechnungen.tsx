@@ -26,6 +26,7 @@ import type { InstallMethod, Insulation } from "./iz";
 import { GRID_CURRENT_VALUES } from "./electricalOptions";
 import { ChargeSingleLine, LimitBar, SelectivitySketch } from "./graphics";
 import { FORMULAS, isFormulaId, type FormulaId } from "./formulaCatalog";
+import { toBaseUnit, unitChoices } from "./unitChoices";
 import { calculateMemoryFormula, isMemoryFormula, memoryFormulaFields, type MemoryFormulaId } from "./memoryFormulas";
 import "./berechnungen.css";
 
@@ -48,12 +49,14 @@ function optional(raw: string): number {
   return Number.isFinite(value) ? value : Number.NaN;
 }
 
-function Num({ label, value, onChange, unit }: { label: string; value: string; onChange: (value: string) => void; unit?: string }) {
+function Num({ label, value, onChange, unit, units, onUnit }: { label: string; value: string; onChange: (value: string) => void; unit?: string; units?: readonly string[]; onUnit?: (unit: string) => void }) {
   return <label className="field"><span>{label}</span>
     <div className="calc-affix">
       <input className="input" inputMode="decimal" autoComplete="off" value={value} aria-label={unit ? `${label} in ${unit}` : label}
         onChange={(event) => onChange(event.target.value)} />
-      {unit && <em className="calc-unit">{unit}</em>}
+      {unit && units && units.length > 1 && onUnit
+        ? <select className="calc-unit-select" aria-label={`Einheit für ${label}`} value={unit} onChange={event => onUnit(event.target.value)}>{units.map(item => <option key={item} value={item}>{item}</option>)}</select>
+        : unit && <em className="calc-unit">{unit}</em>}
     </div>
   </label>;
 }
@@ -618,7 +621,10 @@ export default FormulaCalculator;
 function MemoryFormulaPanel({ id }: { id: MemoryFormulaId }) {
   const [mode,setMode] = useState(id === "stern-dreieck" ? "star" : id === "kondensator-netzwerk" ? "parallel" : "forward");
   const fields = memoryFormulaFields(id,mode), [values,setValues] = useState<Record<string,string>>({});
-  const parsed = Object.fromEntries(fields.map(field=>[field.key,required(values[field.key]??field.value)]));
+  // Chosen input unit per field; the formula always receives the field's base unit.
+  const [units,setUnits] = useState<Record<string,string>>({});
+  const unitOf = (field: { key: string; unit: string }) => units[field.key] ?? field.unit;
+  const parsed = Object.fromEntries(fields.map(field=>{ const raw=required(values[field.key]??field.value); return [field.key,raw===null?null:toBaseUnit(raw,field.unit,unitOf(field))]; }));
   const result = Object.values(parsed).every(value=>value!==null) ? calculateMemoryFormula(id,parsed as Record<string,number>,mode) : null;
   const info=FORMULAS.find(item=>item.id===id)!;
   const modes = id === "leistung-1p" || id === "leistung-3p" ? [{value:"forward",label:"Leistung aus Strom"},{value:"inverse",label:"Strom aus Nutzleistung"}]
@@ -631,7 +637,7 @@ function MemoryFormulaPanel({ id }: { id: MemoryFormulaId }) {
     : id === "widerstand-netzwerk" || id === "kondensator-netzwerk" ? [{value:id==="widerstand-netzwerk"?"forward":"series",label:"Reihe"},{value:"parallel",label:"Parallel"}] : [];
   return <Panel id={`formula-${id}`} title={info.title} norm="Elektrotechnische Grundgleichung · Einheiten beachten" info={<p>{info.description} Die Beziehungen gelten für die jeweils genannte ideale beziehungsweise stationäre Annahme. Daraus folgt keine automatische Anlagen-, Schutz- oder Normfreigabe.</p>}>
     {modes.length>0&&<Sel label="Gesuchte Grösse / Rechenart" value={mode} onChange={setMode} options={modes}/>}
-    <div className="calc-grid">{fields.map(field=><Num key={field.key} label={field.label} unit={field.unit} value={values[field.key]??field.value} onChange={value=>setValues(current=>({...current,[field.key]:value}))}/>)}</div>
+    <div className="calc-grid">{fields.map(field=><Num key={field.key} label={field.label} unit={unitOf(field)} units={unitChoices(field.unit).map(choice=>choice.unit)} onUnit={unit=>setUnits(current=>({...current,[field.key]:unit}))} value={values[field.key]??field.value} onChange={value=>setValues(current=>({...current,[field.key]:value}))}/>)}</div>
     {result===null&&<Missing text="Eingabe unvollständig oder nicht numerisch; jede benötigte Grösse mit ihrer Einheit eintragen."/>}
     {result&&!result.ok&&<Missing text={result.message}/>}
     {result?.ok&&<><Kpis items={result.value.rows.map(row=>({label:row.label,value:`${de(row.value,Math.abs(row.value)>0&&Math.abs(row.value)<.01?6:3)} ${row.unit}`}))}/><p className="calc-formula">{result.value.equation}</p><p className="calc-factors">Eingesetzt: {fields.map(field=>`${field.label} = ${de(parsed[field.key]!,3)} ${field.unit}`).join(" · ")}</p></>}

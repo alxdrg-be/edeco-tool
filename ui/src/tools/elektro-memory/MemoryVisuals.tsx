@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from "react";
 import type { MemoryEntry } from "./types";
+import { checkIk } from "./ikCheck";
 
 /** Own drawings and table views for single reference entries. Values come from the checked catalogue. */
 
@@ -32,11 +33,34 @@ function ColorTable({ entry }: { entry: MemoryEntry }) {
       : <td key={cell}>{COLORS[value.toLowerCase().split("/")[0].trim()] ? <ColorCell value={value} /> : value}</td>)}</tr>)}</tbody></table></div>;
 }
 
+/** Measured Ik against the rule-of-thumb row: the verdict never replaces the manufacturer's curve. */
+function IkCheck({ entry, rating, onRating }: { entry: MemoryEntry; rating: string | null; onRating: (value: string) => void }) {
+  const table = entry.table!;
+  const [device, setDevice] = useState(3);
+  const [measured, setMeasured] = useState("");
+  const [unit, setUnit] = useState<"A" | "kA">("A");
+  const value = Number(measured.trim().replace(",", ".")) * (unit === "kA" ? 1000 : 1);
+  const verdict = rating && measured.trim() ? checkIk(table, device, rating, value) : null;
+  const deviceName = table.headers[device].replace(/\s*(Bauform \/ )?A$/, "");
+  return <div className="memory-ik-check" aria-label="Ik prüfen" role="group">
+    <label>Schutzorgan<select value={device} onChange={event => setDevice(Number(event.target.value))}>{table.headers.slice(1).map((header, index) => <option key={header} value={index + 1}>{header.replace(/\s*(Bauform \/ )?A$/, "")}</option>)}</select></label>
+    <label>Nennstrom<select value={rating ?? ""} onChange={event => onRating(event.target.value)}><option value="" disabled>wählen</option>{table.rows.map(row => <option key={row[0]} value={row[0]}>{row[0]} A</option>)}</select></label>
+    <label>Gemessener Ik<span className="memory-ik-value"><input inputMode="decimal" autoComplete="off" value={measured} onChange={event => setMeasured(event.target.value)} placeholder="z. B. 180" /><select aria-label="Einheit Ik" value={unit} onChange={event => setUnit(event.target.value as "A" | "kA")}><option>A</option><option>kA</option></select></span></label>
+    <p className={`memory-ik-verdict${verdict ? ` is-${verdict.kind}` : ""}`} role="status" aria-live="polite">
+      {!verdict ? "Schutzorgan, Nennstrom und gemessenen Ik eingeben."
+        : verdict.kind === "none" ? `Für ${deviceName} ${rating} A nennt die Faustregel keinen Wert («${verdict.label}»). Kennlinie des Herstellers verwenden.`
+        : verdict.kind === "ok" ? `Genügt nach Faustregel: ${value.toLocaleString("de-CH")} A ≥ ${verdict.required} A (${deviceName} ${rating} A).`
+        : `Zu klein nach Faustregel: ${value.toLocaleString("de-CH")} A < ${verdict.required} A. Kennlinie des Herstellers prüfen.`}
+    </p>
+  </div>;
+}
+
 /** Long lookup tables: pick the first-column value to highlight its row (Ik rules of thumb, conduit fill). */
-function LookupTable({ entry, label }: { entry: MemoryEntry; label: string }) {
+function LookupTable({ entry, label, ik = false }: { entry: MemoryEntry; label: string; ik?: boolean }) {
   const table = entry.table!;
   const [picked, setPicked] = useState<string | null>(null);
   return <div className="memory-lookup">
+    {ik && <IkCheck entry={entry} rating={picked} onRating={setPicked} />}
     <div className="memory-lookup-chips" role="group" aria-label={label}>
       {table.rows.map(row => <button type="button" key={row[0]} aria-pressed={picked === row[0]} onClick={() => setPicked(current => current === row[0] ? null : row[0])}>{row[0]}</button>)}
     </div>
@@ -94,7 +118,7 @@ export function BathZones() {
 export function entryVisual(entry: MemoryEntry): { node: ReactNode; replacesTable: boolean } | null {
   switch (entry.id) {
     case "em-p08-wire-colors": case "em-p07-diazed-colors": return entry.table ? { node: <ColorTable entry={entry} />, replacesTable: true } : null;
-    case "em-p06-disconnection-5s": case "em-p06-disconnection-04s": return entry.table ? { node: <LookupTable entry={entry} label="Nennstrom wählen" />, replacesTable: true } : null;
+    case "em-p06-disconnection-5s": case "em-p06-disconnection-04s": return entry.table ? { node: <LookupTable entry={entry} label="Nennstrom wählen" ik />, replacesTable: true } : null;
     case "em-p11-conduit-fill": return entry.table ? { node: <LookupTable entry={entry} label="Rohrgrösse wählen" />, replacesTable: true } : null;
     case "em-p07-rcd-types": return { node: <RcdOverview />, replacesTable: false };
     case "em-p12-bath-zones": return { node: <BathZones />, replacesTable: false };

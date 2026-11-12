@@ -69,3 +69,4 @@
 .calc-formula-list button[aria-pressed="true"] { background:var(--accent-soft); color:var(--accent); font-weight:600; }
 .calc-with-list .calc-selector { display:none; }
 @media (max-width:860px) { .calc-with-list { display:block; } .calc-formula-list { display:none; } .calc-with-list .calc-selector { display:grid; } }
+.calc-unit-select { flex:0 0 auto; min-height:42px; padding:0 6px; border:1px solid var(--line-strong); border-radius:8px; background:var(--panel-2); color:var(--fg); font:600 12px/1 inherit; cursor:pointer; }

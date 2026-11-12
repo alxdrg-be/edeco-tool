@@ -670,7 +670,7 @@ export const SOURCE_CATALOG: MemoryCatalog = {
               ],
               [
                 "40",
-                "DII 242",
+                "DIII 242",
                 "303",
                 "303",
                 "420",
@@ -694,7 +694,7 @@ export const SOURCE_CATALOG: MemoryCatalog = {
               ],
               [
                 "80",
-                "DIV 576",
+                "DV 576",
                 "685",
                 "606",
                 "840",
@@ -750,7 +750,7 @@ export const SOURCE_CATALOG: MemoryCatalog = {
             "rows": [
               [
                 "6",
-                "DI/DIII 53",
+                "DI/DII 53",
                 "71",
                 "45",
                 "91",
@@ -782,7 +782,7 @@ export const SOURCE_CATALOG: MemoryCatalog = {
               ],
               [
                 "20",
-                "DI/DIII 182",
+                "DII/DIII 182",
                 "236",
                 "152",
                 "303",
@@ -790,7 +790,7 @@ export const SOURCE_CATALOG: MemoryCatalog = {
               ],
               [
                 "25",
-                "DI/DIII 242",
+                "DII/DIII 242",
                 "323",
                 "189",
                 "379",

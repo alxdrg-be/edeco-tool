@@ -68,3 +68,11 @@ test("print furniture stays in provenance while all technical entries are placed
   assert.equal(sourceEntries.filter(entry => placed.has(entry.id)).length, 68);
   assert.ok(MEMORY_CHAPTERS.every(chapter => chapter.entries.length > 0));
 });
+
+test("Ik rule-of-thumb tables match the printed fuse sizes (checked against page 6)", () => {
+  const entries = SOURCE_CATALOG.topics.flatMap(topic => topic.entries);
+  const column = (id: string) => Object.fromEntries(entries.find(entry => entry.id === id)!.table!.rows.map(row => [row[0], row[1]]));
+  const start = column("em-p06-disconnection-5s"), end = column("em-p06-disconnection-04s");
+  assert.deepEqual([start["32"], start["40"], start["80"], start["100"]], ["DIII 227", "DIII 242", "DV 576", "keine"]);
+  assert.deepEqual([end["6"], end["10"], end["16"], end["20"], end["25"], end["32"]], ["DI/DII 53", "DI/DII 83", "DII/DIII 121", "DII/DIII 182", "DII/DIII 242", "DIII 364"]);
+});

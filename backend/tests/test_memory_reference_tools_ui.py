@@ -95,9 +95,37 @@ def test_bath_zones_ik_lookup_and_ppe_caveats(editor, tmp_path):
     final.get_by_role("group", name="Nennstrom wählen").get_by_role("button", name="16", exact=True).click()
     playwright.expect(final.locator("tr.is-picked")).to_contain_text("121")
     playwright.expect(final.locator("tr.is-dimmed").first).to_be_visible()
+    check = final.get_by_role("group", name="Ik prüfen")
+    check.get_by_label("Schutzorgan").select_option(label="LS B")
+    playwright.expect(check.get_by_label("Nennstrom")).to_have_value("16")
+    check.get_by_label("Gemessener Ik").fill("150")
+    playwright.expect(check.get_by_role("status")).to_contain_text("Genügt nach Faustregel: 150 A ≥ 121 A")
+    check.get_by_label("Gemessener Ik").fill("0,1")
+    check.get_by_label("Einheit Ik").select_option("kA")
+    playwright.expect(check.get_by_role("status")).to_contain_text("Zu klein nach Faustregel: 100 A < 121 A")
+    check.get_by_label("Schutzorgan").select_option(label="D-Sicherung")
+    check.get_by_label("Nennstrom").select_option("13")
+    playwright.expect(check.get_by_role("status")).to_contain_text("keinen Wert")
     open_chapter(page, "Sicherheitsregeln & PSA")
     ppe = page.locator("#memory-entry-em-p03-arc-ppe-levels")
     playwright.expect(ppe).to_contain_text("Arbeitsabstand")
     playwright.expect(ppe).to_contain_text("keine Schutzklasse oder Kleidungsfreigabe")
     playwright.expect(ppe).not_to_contain_text("Kurzarm zulässig")
     playwright.expect(page.locator("#memory-entry-em-p03-five-electrical-rules ol li")).to_have_count(5)
+
+
+def test_chapter_print_view_hides_navigation_and_keeps_every_card(editor, tmp_path):
+    page = editor[0]
+    open_reference(page, "Fundamenterder & Potenzialausgleich")
+    playwright.expect(page.get_by_role("button", name="Kapitel drucken", exact=True)).to_be_visible()
+    cards = page.locator(".memory-card").count()
+    page.emulate_media(media="print")
+    playwright.expect(page.locator(".memory-sidebar")).to_be_hidden()
+    playwright.expect(page.locator(".memory-topbar")).to_be_hidden()
+    playwright.expect(page.locator(".memory-print-source")).to_be_visible()
+    assert page.locator(".memory-card:visible").count() == cards == 4
+    pdf = page.pdf(format="A4")
+    assert pdf.startswith(b"%PDF") and pdf.count(b"/Type /Page") >= 1
+    (tmp_path / "memory-chapter.pdf").write_bytes(pdf)
+    page.emulate_media(media="screen")
+    playwright.expect(page.locator(".memory-sidebar")).to_be_visible()
