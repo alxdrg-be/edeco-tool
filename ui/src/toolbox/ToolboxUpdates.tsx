@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Check, Download, LoaderCircle, RotateCw, ShieldCheck } from "lucide-react";
-import { useDialogFocus } from "../useDialogFocus";
-import { parseReleaseNotes } from "../releaseNotes";
+import { useDialogFocus } from "../shared/useDialogFocus";
+import { parseReleaseNotes } from "./releaseNotes";
 import "./toolbox-updates.css";
 
 interface UpdateState {

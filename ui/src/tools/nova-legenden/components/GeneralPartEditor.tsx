@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { downloadBlob } from "../shared/download";
+import { downloadBlob } from "../../../shared/download";
 import { api } from "../api";
 import type { CompanyGeneral, FamilyItem, GeneralRow, SymbolRender } from "../api";
 import Desc from "./Desc";

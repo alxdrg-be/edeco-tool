@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { SymbolRender } from "../../api";
-import InfoTip from "../InfoTip";
+import InfoTip from "../../../../shared/InfoTip";
 import { legendLayerColors, legendVisibleLayerColors, type LayerColorSource } from "../../legendViewport";
 import { tint, innerSvg } from "./editorShared.ts";
 

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { api, Category, CompanySymbolLook, SymbolRender } from "../../api";
-import InfoTip from "../InfoTip";
+import InfoTip from "../../../../shared/InfoTip";
 import { entryText, LegendBlock, LegendDoc, LegendItem, LineStyle, companyKey, splitItem, detachPart, LegendPart, updatePart, updateItem } from "../../legend";
 import { TrashIcon } from "../Icons";
 import { legendItemColors, legendVisibleItemColors, legendVisibleLayerColors } from "../../legendViewport";

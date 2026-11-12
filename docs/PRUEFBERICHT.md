@@ -85,7 +85,7 @@ Die früheren Korrekturen sind im Quellstand vorhanden. Die gespeicherten Formel
 - Selektivität vergibt aus dem Nennstromverhältnis keine Freigabe (`selectivityStages.ts:91`).
 - cmax 1,10 bei +10 % und 1,05 bei +6 %, cmin 0,95. Der Normentext von IEC 60909-0 lag nicht auf.
 - `local_security` hängt weiter vor den übrigen Routern (`backend/edeco_toolbox/app.py:30`).
-- In `ui/src` steht kein ß in einem sichtbaren Text. Einzige Fundstelle bleibt die Zeichennormalisierung in `ui/src/legend.ts:561`.
+- In `ui/src` steht kein ß in einem sichtbaren Text. Einzige Fundstelle bleibt die Zeichennormalisierung in `ui/src/tools/nova-legenden/legend.ts:561`.
 - Fehlende Leitung im Netz wird rot gezeichnet (`NetworkCanvas.tsx:201`–`:205`).
 
 ## Geschwindigkeit, zuletzt gemessen

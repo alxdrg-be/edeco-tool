@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import type { ToolProps } from "../../toolbox/modules";
 import ToolHeader from "../../toolbox/ToolHeader";
-import { useDialogFocus } from "../../useDialogFocus";
+import { useDialogFocus } from "../../shared/useDialogFocus";
 import { dataOf, EMPTY_PROJECT, projectAction, useProjectHub, type Project, type ProjectData } from "./projectHubState";
 import "./project-hub.css";
 import DeliveryHistory from "../planlieferung/DeliveryHistory";

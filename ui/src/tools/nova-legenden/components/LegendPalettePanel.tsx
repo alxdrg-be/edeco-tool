@@ -1,7 +1,7 @@
 import { Palette } from "lucide-react";
 import LegendSection from "./LegendSection";
 import { paletteConflicts, paperContrast, type PaletteEntry } from "../legendPalette";
-import InfoTip from "./InfoTip";
+import InfoTip from "../../../shared/InfoTip";
 
 interface Props {
   entries: PaletteEntry[];

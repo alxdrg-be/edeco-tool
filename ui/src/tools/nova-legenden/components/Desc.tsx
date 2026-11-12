@@ -1,4 +1,4 @@
-import InfoTip from "./InfoTip";
+import InfoTip from "../../../shared/InfoTip";
 
 /** One short sentence on the page; the rest of the explanation waits behind the «i». */
 export default function Desc({ short, more }: { short: string; more?: string }) {

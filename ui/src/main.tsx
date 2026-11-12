@@ -4,8 +4,8 @@ import Toolbox from "./toolbox/Toolbox";
 import "@fontsource-variable/inter";
 import "./styles.css";
 import "./toolbox/toolhub-theme.css";
-import { applyTheme, loadTheme } from "./theme";
-import { installAppZoomGuard } from "./appZoom";
+import { applyTheme, loadTheme } from "./shared/theme";
+import { installAppZoomGuard } from "./toolbox/appZoom";
 
 applyTheme(loadTheme());
 const releaseZoomGuard = installAppZoomGuard();

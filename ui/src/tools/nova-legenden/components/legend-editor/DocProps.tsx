@@ -1,6 +1,6 @@
 import { api, LegendInfo } from "../../api";
 import { exportDiagnostic } from "../../diagnostics";
-import InfoTip from "../InfoTip";
+import InfoTip from "../../../../shared/InfoTip";
 import { LegendDoc } from "../../legend";
 import { FieldFn } from "./editorShared.ts";
 import { NumberInput } from "./SymbolBits";

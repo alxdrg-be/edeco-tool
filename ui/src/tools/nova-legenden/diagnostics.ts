@@ -1,5 +1,5 @@
 import { api } from "./api";
-import { downloadText } from "./shared/download.ts";
+import { downloadText } from "../../shared/download.ts";
 
 export function diagnosticMarkdown(data: Record<string, unknown>): string {
   return [

@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
-import { useDialogFocus } from "./useDialogFocus";
+import { useDialogFocus } from "../../shared/useDialogFocus";
 
 interface PendingSave {
   flush: () => Promise<void>;

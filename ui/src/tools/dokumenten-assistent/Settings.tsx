@@ -1,6 +1,6 @@
 import { useRef, useState, type FormEvent } from "react";
 import { ChevronDown, Info } from "lucide-react";
-import { useDialogFocus } from "../../useDialogFocus";
+import { useDialogFocus } from "../../shared/useDialogFocus";
 import { request, type AISettings } from "./api";
 import QwenGuide from "./QwenGuide";
 import DataRoute from "./DataRoutePanel";

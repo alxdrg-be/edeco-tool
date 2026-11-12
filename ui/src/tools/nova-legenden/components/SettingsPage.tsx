@@ -4,8 +4,8 @@ import CompanyTextsCard from "./CompanyTextsCard";
 import CompanySymbolsCard from "./CompanySymbolsCard";
 import { api, DATASET_LABEL, StencilData, Status, UpdateInfo } from "../api";
 import { TrashIcon } from "./Icons";
-import InfoTip from "./InfoTip";
-import type { ThemeMode } from "../theme";
+import InfoTip from "../../../shared/InfoTip";
+import type { ThemeMode } from "../../../shared/theme";
 import Desc from "./Desc";
 
 interface Props {

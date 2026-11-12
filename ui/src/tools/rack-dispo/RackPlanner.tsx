@@ -4,7 +4,7 @@ import type { ToolProps } from '../../toolbox/modules';
 import ToolHeader from '../../toolbox/ToolHeader';
 import { stageToolHandoff, type HandoffTarget } from '../../toolbox/toolHandoff';
 import { useProjectHub } from '../projektzentrale/projectHubState';
-import { useDialogFocus } from '../../useDialogFocus';
+import { useDialogFocus } from '../../shared/useDialogFocus';
 import RackCanvas from './RackCanvas';
 import RackLibrary, { FreePartDialog, isFreeProfile, RackProfileDialog } from './RackLibrary';
 import { responsibleParties } from './responsibility';

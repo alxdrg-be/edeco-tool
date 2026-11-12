@@ -1,5 +1,5 @@
 import { useId, useRef, useState } from 'react';
-import InfoTip from '../../components/InfoTip';
+import InfoTip from '../../shared/InfoTip';
 import { parsePlanningNumber, type NumberRules } from './rackPanelModel';
 
 export function RackNumberField({ label, value, onCommit, unit, help, field, ...rules }: NumberRules & {

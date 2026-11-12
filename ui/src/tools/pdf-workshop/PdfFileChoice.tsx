@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import { FileText, X } from "lucide-react";
-import { useDialogFocus } from "../../useDialogFocus";
+import { useDialogFocus } from "../../shared/useDialogFocus";
 
 export default function PdfFileChoice({ title, files, onChoose, onClose }: {
   title: string; files: readonly File[]; onChoose: (file: File) => void; onClose: () => void;

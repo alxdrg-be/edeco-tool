@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent as ReactDragEvent, type PointerEvent as ReactPointerEvent } from "react";
-import { downloadBlob } from "../shared/download";
+import { downloadBlob } from "../../../shared/download";
 import { api, Category, FamilyItem, GeneralInfo, LegendInfo, LegendLayout, LegendPrim, ProjectDetail, StencilEntry, SymbolRender } from "../api";
-import InfoTip from "./InfoTip";
+import InfoTip from "../../../shared/InfoTip";
 import { addBlock, addItem, blockForCategory, commit, combineItems, coveredRows, describe, entryText, duplicateItems, hideCovered, History, historyOf, inLegend, insertItem, LegendBlock, LegendDoc, LegendItem, missingRows, moveBlockInOrder, moveItemInOrder, moveItemTo, moveItemToBlock, companyKey, makeItem, placeInCell, push, redo, removeBlock, removeItem, replace, rotateItem, Selection, staleItems, symbolRequestKey, undo, updateItem } from "../legend";
 import { Icon } from "./Icons";
 import { SaveSession } from "../saveSession";
@@ -14,7 +14,7 @@ import LegendVariantPanel from "./LegendVariantPanel";
 import LegendPalettePanel from "./LegendPalettePanel";
 import LegendPresentationPanel from "./LegendPresentationPanel";
 import LegendDefaultsPanel from "./LegendDefaultsPanel";
-import { stageToolHandoff } from "../toolbox/toolHandoff";
+import { stageToolHandoff } from "../../../toolbox/toolHandoff";
 import { legendSourceSelection } from "../legendSourceSelection";
 import { DragPayload, DropTarget, DROP_ID, groupByEntry, formatStamp } from "./legend-editor/editorShared.ts";
 import { Prim, GridLines, DropCell, DropMarker } from "./legend-editor/SheetPrimitives";

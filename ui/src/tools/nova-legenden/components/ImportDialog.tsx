@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { api, ImportPreview, Plan, PreviewChange, ProjectDetail } from "../api";
 import { floorNameFor, matchPlan } from "../floors";
-import { useDialogFocus } from "../useDialogFocus";
+import { useDialogFocus } from "../../../shared/useDialogFocus";
 
 interface Row {
   file: File;

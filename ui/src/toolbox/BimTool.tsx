@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { applyTheme, effectiveDark, loadTheme } from "../theme";
+import { applyTheme, effectiveDark, loadTheme, saveTheme } from "../shared/theme";
 import ToolHeader from "./ToolHeader";
 import type { ToolProps } from "./modules";
-import { api } from "../api";
 
 interface BimWindow extends Window {
   edecoToolbox?: { prepareLeave: () => Promise<boolean> };
@@ -18,7 +17,7 @@ export default function BimTool({ onHome, onOpenTool }: ToolProps) {
     const sync = (event: StorageEvent) => {
       if (event.key === "nova-legenden-theme") {
         applyTheme(loadTheme());
-        api.saveTheme(loadTheme()).catch(() => undefined);
+        saveTheme(loadTheme()).catch(() => undefined);
       }
     };
     window.addEventListener("storage", sync);

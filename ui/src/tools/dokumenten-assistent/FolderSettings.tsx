@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { ChevronDown, FolderOpen, Info } from "lucide-react";
-import { useDialogFocus } from "../../useDialogFocus";
+import { useDialogFocus } from "../../shared/useDialogFocus";
 import { request, type DocumentInfo } from "./api";
 import SetupGuide from "./SetupGuide";
 

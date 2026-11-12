@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { GeneralInfo, LegendInfo } from "../../api";
-import InfoTip from "../InfoTip";
+import InfoTip from "../../../../shared/InfoTip";
 import { GeneralSection, LegendDoc } from "../../legend";
 import { generalSectionOf } from "./editorShared.ts";
 import { NumberInput } from "./SymbolBits";

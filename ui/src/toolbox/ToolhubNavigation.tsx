@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { Calculator, Check, ChevronDown, Search, Shapes, X } from "lucide-react";
 import { TOOLS, type ToolInfo } from "./catalog";
 import ToolIcon from "./ToolIcon";
-import { useDialogFocus } from "../useDialogFocus";
+import { useDialogFocus } from "../shared/useDialogFocus";
 import { usePresentation } from "./PresentationSettings";
 import { toolAllowed, type PresentationPolicy } from "./presentationPolicy";
 import "./toolhub-navigation.css";

@@ -2,7 +2,7 @@ import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { Check, ChevronDown, Download, FolderOpen, Info, Moon, MoreHorizontal, Printer, Save, Search, Sun, X } from "lucide-react";
 import { calculatorPurpose } from "./purpose";
 import type { ToolProps } from "../../toolbox/modules";
-import { useDialogFocus } from "../../useDialogFocus";
+import { useDialogFocus } from "../../shared/useDialogFocus";
 import "./lab.css";
 import { ArchiveSaveDialog } from "./ablage/ArchiveDialogs";
 import type { ArchivePayload } from "./ablage/api";

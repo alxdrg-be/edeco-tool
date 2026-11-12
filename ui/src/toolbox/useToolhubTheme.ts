@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { api } from "../api";
-import { applyTheme, effectiveDark, loadTheme } from "../theme";
+import { applyTheme, effectiveDark, loadTheme, saveTheme } from "../shared/theme";
 
 /** Every workspace follows the same stored theme and operating-system setting. */
 export function useToolhubTheme() {
@@ -20,6 +19,6 @@ export function useToolhubTheme() {
   return { dark, toggle: () => {
     const next = dark ? "light" : "dark";
     applyTheme(next);
-    api.saveTheme(next).catch(() => undefined);
+    saveTheme(next).catch(() => undefined);
   } };
 }

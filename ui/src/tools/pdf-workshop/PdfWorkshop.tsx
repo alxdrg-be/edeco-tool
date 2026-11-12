@@ -12,7 +12,7 @@ import ToolHeader from "../../toolbox/ToolHeader";
 import type { ToolProps } from "../../toolbox/modules";
 import { IncomingToolFiles, SendFilesToTool } from "../../toolbox/ToolHandoffPanel";
 import { useProjectHub } from "../projektzentrale/projectHubState";
-import { useDialogFocus } from "../../useDialogFocus";
+import { useDialogFocus } from "../../shared/useDialogFocus";
 import PdfCropEditor from "./PdfCropEditor";
 import PageWorkbench from "./PageWorkbench";
 import PdfTask from "./PdfTask";

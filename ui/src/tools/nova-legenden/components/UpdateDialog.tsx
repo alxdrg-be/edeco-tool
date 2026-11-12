@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import type { UpdateInfo } from "../api";
-import { useDialogFocus } from "../useDialogFocus";
-import { parseReleaseNotes } from "../releaseNotes";
+import { useDialogFocus } from "../../../shared/useDialogFocus";
+import { parseReleaseNotes } from "../../../toolbox/releaseNotes";
 import { Icon } from "./Icons";
 
 export type UpdatePhase = "checking" | "ready" | "installing";

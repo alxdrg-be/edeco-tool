@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { api } from "../api";
 import type { CategoryColor, LegendListItem } from "../api";
 import { useNavigation } from "../Navigation";
-import { useDialogFocus } from "../useDialogFocus";
+import { useDialogFocus } from "../../../shared/useDialogFocus";
 
 interface Props {
   projectId: string;

@@ -4,7 +4,7 @@ import type { ToolProps } from "../../toolbox/modules";
 import { useProjectHub } from "../projektzentrale/projectHubState";
 import { downloadBlob } from "../../shared/download";
 import { ChoiceCards, LabShell, type Help } from "./LabUI";
-import { useDialogFocus } from "../../useDialogFocus";
+import { useDialogFocus } from "../../shared/useDialogFocus";
 import { consumeRestore, type ArchiveProject } from "./ablage/api";
 import { optionsWithProjectValue } from "./electricalOptions";
 import { NETWORK_EDGE_FIELDS, NETWORK_NODE_FIELDS, NETWORK_NODE_LABELS, calculateNetwork, createDefaultNetwork, createNetworkEdge, createNetworkNode, networkDropIgnoresEdgeTemperature } from "./networkModel";

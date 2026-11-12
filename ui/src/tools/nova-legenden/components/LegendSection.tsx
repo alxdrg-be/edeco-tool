@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { ChevronDown, type LucideIcon } from "lucide-react";
-import InfoTip from "./InfoTip";
+import InfoTip from "../../../shared/InfoTip";
 import "./LegendSection.css";
 
 const KEY = "edeco.legend.sections";

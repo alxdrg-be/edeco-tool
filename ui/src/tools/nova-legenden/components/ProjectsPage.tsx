@@ -3,7 +3,7 @@ import { api, Category, ProjectSummary } from "../api";
 import { formatDateTime } from "../uiState";
 import { Icon, TrashIcon } from "./Icons";
 import ProjectView from "./ProjectView";
-import { useDialogFocus } from "../useDialogFocus";
+import { useDialogFocus } from "../../../shared/useDialogFocus";
 
 interface Props {
   categories: Category[];

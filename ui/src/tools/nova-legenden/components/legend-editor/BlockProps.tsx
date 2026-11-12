@@ -1,4 +1,4 @@
-import InfoTip from "../InfoTip";
+import InfoTip from "../../../../shared/InfoTip";
 import { LegendBlock, LegendDoc, SectionStyle, updateBlock, updateSectionStyle } from "../../legend";
 import { TrashIcon } from "../Icons";
 import { alignLegendSectionColors } from "../../legendViewport";

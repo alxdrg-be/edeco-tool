@@ -6,7 +6,7 @@ import { WORKBENCH_CATALOG } from "../tools/berechnungen/workbench/catalog";
 export interface ToolProps { onHome: () => void; onOpenTool?: (toolId: string) => void }
 
 export const MODULES: Readonly<Record<string, LazyExoticComponent<ComponentType<ToolProps>> | undefined>> = {
-  "nova-legenden": lazy(() => import("../App")),
+  "nova-legenden": lazy(() => import("../tools/nova-legenden/App")),
   "rack-dispo": lazy(() => import("../tools/rack-dispo/RackPlanner")),
   "bim2steiger": lazy(() => import("./BimTool")),
   "dokumenten-assistent": lazy(() => import("../tools/dokumenten-assistent/DocumentAssistant")),

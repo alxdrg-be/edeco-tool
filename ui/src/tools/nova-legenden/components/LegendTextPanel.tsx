@@ -1,5 +1,5 @@
 import { useId, useRef, useState } from "react";
-import { downloadBlob } from "../shared/download";
+import { downloadBlob } from "../../../shared/download";
 import { Info, Maximize2, Plus, Trash2, Type, X } from "lucide-react";
 import LegendSection from "./LegendSection";
 import { DEFAULT_LEGEND_TEXT_RULES, legendAbbreviationProblem, legendAbbreviationsCsv, parseLegendAbbreviationsCsv } from "../legendTextRules";

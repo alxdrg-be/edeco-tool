@@ -2,7 +2,7 @@ import type { LegendDoc } from "./legend";
 import type { LegendScopeInfo } from "./legendScope";
 import type { LegendTextWarning } from "./legendTextRules";
 import type { LegendVariantInfo } from "./components/LegendVariantPanel";
-import { readJson, responseError, statusFallback } from "./shared/http.ts";
+import { readJson, responseError, statusFallback } from "../../shared/http.ts";
 // Thin client for the local Python API.
 
 export interface SymbolBrief {

@@ -5,12 +5,12 @@ import Categories from "./components/Categories";
 import SettingsPage from "./components/SettingsPage";
 import HelpPage from "./components/HelpPage";
 import ProjectsPage from "./components/ProjectsPage";
-import { applyTheme, effectiveDark, loadTheme, ThemeMode } from "./theme";
+import { applyTheme, effectiveDark, loadTheme, ThemeMode } from "../../shared/theme";
 import { NavigationProvider, useNavigation } from "./Navigation";
 import { Icon } from "./components/Icons";
 import Menu from "./components/Menu";
-import edecoLogo from "./assets/edeco-logo.svg?raw";
-import ToolHeader from "./toolbox/ToolHeader";
+import edecoLogo from "../../assets/edeco-logo.svg?raw";
+import ToolHeader from "../../toolbox/ToolHeader";
 import UpdateDialog, { type UpdatePhase } from "./components/UpdateDialog";
 
 type Tab = "projects" | "library" | "categories" | "settings" | "help";

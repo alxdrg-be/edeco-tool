@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { Settings, X } from "lucide-react";
 import { createPortal } from "react-dom";
-import { useDialogFocus } from "../useDialogFocus";
+import { useDialogFocus } from "../shared/useDialogFocus";
 import { TOOLS } from "./catalog";
 import { DEFAULT_DEMO_TOOLS, type PresentationPolicy } from "./presentationPolicy";
 import "./presentation.css";

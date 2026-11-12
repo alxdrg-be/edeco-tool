@@ -1,5 +1,5 @@
 import { Review, ReviewCheck } from "../api";
-import { downloadText } from "../shared/download";
+import { downloadText } from "../../../shared/download";
 
 type Target = ReviewCheck["target"];
 
