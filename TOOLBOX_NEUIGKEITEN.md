@@ -1,3 +1,13 @@
+## Verteiler-Dispo und CAD-Allgemeinteil · 15. November 2026
+
+- Neues UV-/HV-Werkzeug mit gemeinsamem Millimetermodell für Front- und Einbauansicht, DIN-Schienen, TE-Geräte, freie Apparate, Klemmen, Sammelschienen, Abdeckungen und reservierte Felder. Ziehen, Fangvorschau, Mehrfachauswahl, Kopieren und Rückgängig/Wiederholen sind integriert.
+- Prüfbericht mit anklickbaren Geometriekonflikten und getrennten offenen Nachweisen. TE-Plätze, sich überlagernde Schienen, Tiefe und Abdeckungsausschnitte werden geprüft; Quellenlinks bestätigen keine elektrische Freigabe.
+- Versionierte IWB-, Primeo- und EBL-Quellen, belegte Apparateplatz-Geometrien und ausgewählte Phoenix-Klemmen. Vorbereitungen für Pragma Multi, PrismaSeT XL, Hager und Almatec sind editierbar; nicht verifizierte Artikelmasse bleiben sichtbar offen.
+- Lokale SQLite-Revisionen, Wiederherstellungsentwurf und Konfliktschutz. Firmenbibliotheken werden vom Server nur gelesen und als validierter Quellenstand lokal zwischengespeichert; gespeicherte Pläne behalten ihre eigenen Profile und Quellen.
+- PDF mit beiden Ansichten und Nachweisanhang, SVG, DXF, Stück-/Klemmenlisten und JSON. PDF-Übergabe an Werkstatt oder Umbenennen erfolgt ausdrücklich. Verteiler-Dispo lässt sich separat für eine Demo auswählen; bestehende Auswahl bleibt erhalten.
+- NOVA-Allgemeinteil mit zusätzlichem Modus «CAD-Vorlage wie gezeichnet»: Anordnung, Farben und Grössen aus der Firmen-DXF/-DWG bleiben erhalten. Vorschau und Export nutzen dieselbe geladene Datei. Der bisherige Zeilenmodus bleibt Standard.
+- Werkzeug-/Demo-Eigenschaften verwenden eine gemeinsame Definition für Frontend und Backend. Die Windows-Anmeldung kommt aus einem gemeinsamen Helfer; bestehende Rechte und Bearbeiternamen bleiben erhalten.
+
 ## Gemeinsame CSV-Ausgabe und interne Bereinigung · 15. November 2026
 
 - Mengen-, Rack- und Lieferlisten verwenden eine gemeinsame CSV-Ausgabe. Texte mit führenden Leerzeichen oder Formelzeichen werden für Excel einheitlich geschützt; echte Zahlen bleiben Zahlen. Das Austauschformat der Abkürzungstabelle bleibt verlustfrei.

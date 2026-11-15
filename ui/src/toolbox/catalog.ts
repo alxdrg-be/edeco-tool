@@ -1,4 +1,5 @@
-import { WORKBENCH_TOOLS } from "../tools/berechnungen/workbench/catalog";
+import { WORKBENCH_TOOLS } from "../tools/berechnungen/workbench/catalog.ts";
+import { hiddenTool } from './toolContract.ts';
 export interface ToolInfo {
   id: string;
   title: string;
@@ -13,7 +14,7 @@ export interface ToolInfo {
 }
 
 /** Planned tools need metadata only; register a loader when their implementation is ready. */
-export const TOOLS: readonly ToolInfo[] = [
+const TOOL_CATALOG: readonly ToolInfo[] = [
   { id: "formelrechner", title: "Formelrechner", category: "Berechnungen", parentId: "berechnungen", symbol: "Σ", color: "indigo",
     description: "Elektrotechnische Formeln mit Werten berechnen und im Elektro-Memory nachschlagen.", status: "available" },
   { id: "wissens-hub", title: "Wissens-Hub", category: "Berechnungen", parentId: "berechnungen", symbol: "W", color: "petrol",
@@ -24,6 +25,8 @@ export const TOOLS: readonly ToolInfo[] = [
     description: "Pläne importieren, Symbole zuordnen und elektrische Legenden erstellen.", status: "available", developmentStatus: "in-progress" },
   { id: "rack-dispo", title: "Rack-Dispo", category: "Elektroplanung", symbol: "HE", color: "steel",
     description: "19-Zoll-Racks mit HE-Raster planen, Geräte einrasten, Tiefen prüfen und Portlisten sowie Ansichten exportieren.", status: "available", developmentStatus: "in-progress" },
+  { id: "verteiler-dispo", title: "Verteiler-Dispo", category: "Elektroplanung", symbol: "UV", color: "coral",
+    description: "UV und HV in Millimetern bestücken, Front und Einbau prüfen und mit dokumentierten Hersteller- und VNB-Quellen exportieren.", status: "available", developmentStatus: "in-progress" },
   { id: "bim2steiger", title: "BIM2STEIGER", category: "BIM", symbol: "B2S", color: "blue",
     description: "Steiger-Katalog durchsuchen, BIM-Objekte zuordnen und Ausschreibungen erstellen.", status: "available", developmentStatus: "in-progress" },
   { id: "dokumenten-assistent", title: "Dokumenten-Assistent", category: "Dokumente", symbol: "KI", color: "violet",
@@ -35,7 +38,7 @@ export const TOOLS: readonly ToolInfo[] = [
   { id: "projektzentrale", title: "Projektzentrale", category: "Projekte", symbol: "P", color: "gold",
     description: "Projektnummern, Kontakte, Ablageordner und Dokumentverweise verwalten; gemeinsames Projekt auswählen.", status: "available", developmentStatus: "in-progress" },
   { id: "planlieferung", title: "Planlieferungs-Assistent", category: "Projekte", symbol: "PL", color: "coral",
-    description: "PDFs prüfen und benennen, Planlisten erstellen und Lieferungen beim Projekt protokollieren.", status: "available", developmentStatus: "in-progress", hiddenFromHub: true },
+    description: "PDFs prüfen und benennen, Planlisten erstellen und Lieferungen beim Projekt protokollieren.", status: "available", developmentStatus: "in-progress" },
   { id: "berechnungen", title: "Berechnungen", category: "Berechnungen", symbol: "=", color: "orange",
     description: "Schweizer Rechenhilfen für Leitungen, Schutz, Ladeinfrastruktur, Energie und Räume mit projektbezogener Ablage.", status: "available", developmentStatus: "in-progress" },
   { id: "elektro-memory", title: "Elektro-Memory", category: "Wissen", symbol: "EM", color: "indigo",
@@ -50,6 +53,8 @@ export const TOOLS: readonly ToolInfo[] = [
   { id: "kabelberechnung", title: "Kabelberechnung", category: "Berechnungen", symbol: "mm²", color: "blue", parentId: "berechnungen",
     description: "Schweizer Spannungsfall-Vorprüfung mit Leiterwiderständen bei 55 °C, Live-Leitungsmodell und Querschnittsvergleich.", status: "available", developmentStatus: "in-progress" },
 ];
+
+export const TOOLS: readonly ToolInfo[] = TOOL_CATALOG.map(tool => tool.parentId ? tool : { ...tool, hiddenFromHub: hiddenTool(tool.id) });
 
 export function filterTools(query: string, category: string, parentId?: string, includeHidden = false): readonly ToolInfo[] {
   const words = query.toLocaleLowerCase("de-CH").trim().split(/\s+/).filter(Boolean);

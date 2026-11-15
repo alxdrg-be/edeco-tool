@@ -298,6 +298,10 @@ export interface GeneralInfo {
   source: string;
   kind: "" | "dxf" | "project";
   error: string;
+  mode?: "flow" | "cad";
+  source_hash?: string;
+  source_width_mm?: number;
+  source_height_mm?: number;
   w: number;
   h: number;
   file?: string;
@@ -349,6 +353,7 @@ export interface GeneralTemplateInfo {
 
 export interface CompanyLegend {
   general_path: string;
+  general_mode?: "flow" | "cad";
   admins: string[];
   text_size: number;
   symbol_scale: number;
@@ -691,7 +696,8 @@ export const api = {
     request<CompanyGeneral>("POST", "/api/company/general/extra", row),
   removeGeneralRow: (extraId: string) => request<CompanyGeneral>("DELETE", `/api/company/general/extra/${encodeURIComponent(extraId)}`),
   orderGeneral: (keys: string[]) => request<CompanyGeneral>("PUT", "/api/company/general/order", { keys }),
-  saveCompanyLegend: (values: { general_path?: string; admins?: string[]; text_size?: number; symbol_scale?: number; hatch_off?: boolean; fill_off?: boolean }) =>
+  companyGeneralPreview: () => request<GeneralInfo & { svg: string }>("GET", "/api/company/general/preview"),
+  saveCompanyLegend: (values: { general_path?: string; general_mode?: "flow" | "cad"; admins?: string[]; text_size?: number; symbol_scale?: number; hatch_off?: boolean; fill_off?: boolean }) =>
     request<CompanyLegend & { general: GeneralInfo }>("PUT", "/api/company/legend", values),
   legendSymbols: (items: { symbol_key: string; family_key: string | null; length_mm: number | null; width_mm: number | null; flat?: boolean }[], fills: { hatch_off: boolean; fill_off: boolean } = { hatch_off: false, fill_off: false }) =>
     request<{ items: SymbolRender[] }>("POST", "/api/legend/symbols", { items, ...fills }),

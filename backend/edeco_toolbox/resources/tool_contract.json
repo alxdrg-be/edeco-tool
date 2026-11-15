@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "tools": [
+    {
+      "id": "nova-legenden",
+      "demo_eligible": true,
+      "demo_default": true,
+      "hidden_from_hub": false
+    },
+    {
+      "id": "berechnungen",
+      "demo_eligible": true,
+      "demo_default": true,
+      "hidden_from_hub": false
+    },
+    {
+      "id": "dateien-umbenennen",
+      "demo_eligible": true,
+      "demo_default": true,
+      "hidden_from_hub": false
+    },
+    {
+      "id": "pdf-werkzeuge",
+      "demo_eligible": true,
+      "demo_default": true,
+      "hidden_from_hub": false
+    },
+    {
+      "id": "elektro-memory",
+      "demo_eligible": true,
+      "demo_default": true,
+      "hidden_from_hub": false
+    },
+    {
+      "id": "rack-dispo",
+      "demo_eligible": true,
+      "demo_default": true,
+      "hidden_from_hub": false
+    },
+    {
+      "id": "verteiler-dispo",
+      "demo_eligible": true,
+      "demo_default": false,
+      "hidden_from_hub": false
+    },
+    {
+      "id": "bim2steiger",
+      "demo_eligible": false,
+      "demo_default": false,
+      "hidden_from_hub": false
+    },
+    {
+      "id": "dokumenten-assistent",
+      "demo_eligible": false,
+      "demo_default": false,
+      "hidden_from_hub": false
+    },
+    {
+      "id": "projektzentrale",
+      "demo_eligible": false,
+      "demo_default": false,
+      "hidden_from_hub": false
+    },
+    {
+      "id": "planlieferung",
+      "demo_eligible": false,
+      "demo_default": false,
+      "hidden_from_hub": true
+    }
+  ]
+}

@@ -8,10 +8,11 @@ cannot be shown reliably. The file is read again whenever it changed.
 
 from __future__ import annotations
 
+import hashlib
 import re
 import shutil
 import tempfile
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 
 NOT_SUPPORTED = ("Die Servervorlage für den Allgemeinteil muss eine DXF- oder DWG-Datei oder ein "
@@ -48,11 +49,18 @@ class GeneralPart:
     # colours of the drawing replaced by the plan colours of the project (old hex -> new hex)
     recolor: dict[str, str] = field(default_factory=dict)
     columns: int = 1                 # source caption columns, including a separate colour-key column
+    mode: str = "flow"               # "cad": preserve the complete drawing as one block
+    source_hash: str = ""
+    source_width_mm: float = 0.0
+    source_height_mm: float = 0.0
 
     def info(self) -> dict:
         out = {"source": self.source, "kind": self.kind, "error": self.error,
-               "w": round(self.w, 2), "h": round(self.h, 2), "file": self.dxf_path}
-        if self.columns > 1:
+               "w": round(self.w, 2), "h": round(self.h, 2), "file": self.dxf_path,
+               "mode": self.mode, "source_hash": self.source_hash,
+               "source_width_mm": round(self.source_width_mm, 2),
+               "source_height_mm": round(self.source_height_mm, 2)}
+        if self.columns > 1 and self.mode != "cad":
             out["source_columns"] = self.columns
             out["scope_warning"] = ("Die Vorlage enthält mehrere Textspalten. Alle erkannten Zeilen gehören zum Allgemeinteil. "
                                     "Für eine Gesamtlegende zuerst nur die allgemeinen Zeilen und Farbcodes als Firmenvorlage auswählen.")
@@ -98,6 +106,15 @@ def text_parts(text: str) -> set[str]:
 
 
 _cache: dict[tuple, GeneralPart] = {}
+
+
+def as_cad(part: GeneralPart) -> GeneralPart:
+    """Use a complete CAD drawing without mutating the cached row interpretation.
+
+    Texts/names remain available for duplicate detection. Row overrides and
+    project recolouring must not alter the company's finished drawing.
+    """
+    return replace(part, mode="cad", rows=[], recolor={})
 
 
 def _files(folder: Path) -> list[Path]:
@@ -167,7 +184,7 @@ def resolve_source(path: str) -> tuple[Path | None, str]:
     return None, f"Servervorlage nicht gefunden: {raw}"
 
 
-def load(path: str, inner_width: float, oda_exe: str | None, project_layout=None) -> GeneralPart:
+def load(path: str, inner_width: float, oda_exe: str | None, project_layout=None, *, mode: str = "flow") -> GeneralPart:
     """Read the general part. ``project_layout(folder)`` returns a layout of a project legend."""
     path = (path or "").strip().strip('"')
     if not path:
@@ -176,21 +193,51 @@ def load(path: str, inner_width: float, oda_exe: str | None, project_layout=None
     if target is None:
         return GeneralPart(source=path, error=missing)
     try:
-        mtime = target.stat().st_mtime
+        stat = target.stat()
+        mtime = stat.st_mtime_ns
     except OSError:
         return GeneralPart(source=path, error=f"Servervorlage nicht gefunden: {path}")
-    key = (str(target), mtime, round(inner_width, 2), bool(oda_exe))
+    mode = "cad" if mode == "cad" else "flow"
+    key = (str(target), mtime, stat.st_size, round(inner_width, 2), bool(oda_exe), mode)
     if key in _cache and target.suffix.lower() in (".dxf", ".dwg"):
         return _cache[key]
+    try:
+        payload = target.read_bytes() if target.is_file() else b""
+        digest = hashlib.sha256(payload).hexdigest() if payload else ""
+    except OSError:
+        return GeneralPart(source=path, error=f"Servervorlage konnte nicht gelesen werden: {path}")
     suffix = target.suffix.lower()
+    drawing = target
+    if mode == "cad" and suffix in (".dxf", ".dwg"):
+        # Preview and export of this loaded version read the exact same bytes,
+        # even when someone replaces the shared source while the editor is open.
+        from .. import config
+
+        cache = config.local_home() / "general-cache"
+        try:
+            cache.mkdir(parents=True, exist_ok=True)
+            drawing = cache / f"{digest}{suffix}"
+            if not drawing.is_file() or hashlib.sha256(drawing.read_bytes()).hexdigest() != digest:
+                with tempfile.NamedTemporaryFile(dir=cache, suffix=suffix, delete=False) as stream:
+                    temporary = Path(stream.name)
+                    stream.write(payload)
+                try:
+                    temporary.replace(drawing)
+                finally:
+                    temporary.unlink(missing_ok=True)
+        except OSError as exc:
+            return GeneralPart(source=path, error=f"CAD-Vorlagenstand konnte nicht lokal gesichert werden: {exc}")
     if suffix == ".nlproj":
         part = _from_project(path, target.parent, project_layout)
     elif suffix == ".dxf":
-        part = _from_dxf(path, target, inner_width)
+        part = _from_dxf(path, drawing, inner_width)
     elif suffix == ".dwg":
-        part = _from_dwg(path, target, inner_width, oda_exe)
+        part = _from_dwg(path, drawing, inner_width, oda_exe)
     else:
         part = GeneralPart(source=path, error=NOT_SUPPORTED)
+    part.source_hash = digest
+    if mode == "cad":
+        part = as_cad(part)
     if part.kind in ("dxf",):
         _cache[key] = part
     return part
@@ -284,6 +331,7 @@ def _from_dxf(source: str, path: Path, inner_width: float) -> GeneralPart:
     part = GeneralPart(source=source, kind="dxf", w=w_mm * fit, h=h_mm * fit, dxf_path=str(path),
                        scale=to_mm * fit, ext_min=(x0, y0), ext_max=(x1, y1))
     part.to_mm = to_mm
+    part.source_width_mm, part.source_height_mm = w_mm, h_mm
     part.svg = _svg(doc, part.w, part.h)
     part.texts = _texts(msp)
     try:

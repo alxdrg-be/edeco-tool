@@ -1,6 +1,8 @@
 """Check the reported floating header/filter controls across real workspaces."""
 from __future__ import annotations
 
+from ui_helpers import wait_for_toolhub
+
 import pytest
 
 from test_editor_navigation import editor, env, playwright  # noqa: F401
@@ -11,10 +13,11 @@ def test_toolhub_header_alignment_palette_and_shared_theme(editor):
     page, _, _, _ = editor
     page.set_viewport_size({"width": 1600, "height": 1000})
     page.get_by_role("button", name="Zum Toolhub", exact=True).click()
-    playwright.expect(page.locator(".toolbox-card")).to_have_count(9)
+    wait_for_toolhub(page)
     palette = page.locator(".toolbox-card.is-available .toolbox-symbol").evaluate_all(
         "nodes => nodes.map(node => getComputedStyle(node).backgroundImage)")
-    assert len(palette) == 9 and len(set(palette)) == 9
+    assert len(palette) == int(page.locator('.toolbox').get_attribute('data-toolhub-count'))
+    assert len(set(palette)) == len(palette)
     geometry = page.locator(".toolhub-header-actions").evaluate("""el =>
       [...el.querySelectorAll(':scope > button, :scope > a, .project-picker select')]
         .filter(node => node.getClientRects().length)

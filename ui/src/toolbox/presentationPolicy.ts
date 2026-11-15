@@ -1,4 +1,5 @@
 import type { ToolInfo } from "./catalog";
+import { DEMO_DEFAULT_IDS } from './toolContract.ts';
 
 export interface PresentationPolicy {
   revision: string;
@@ -11,7 +12,7 @@ export interface PresentationPolicy {
   windows_roles: boolean;
 }
 
-export const DEFAULT_DEMO_TOOLS = ["nova-legenden", "berechnungen", "dateien-umbenennen", "pdf-werkzeuge", "elektro-memory", "rack-dispo"];
+export const DEFAULT_DEMO_TOOLS = DEMO_DEFAULT_IDS;
 
 export function toolAllowed(tool: ToolInfo, policy: PresentationPolicy): boolean {
   if (tool.hiddenFromHub && !policy.is_admin) return false;

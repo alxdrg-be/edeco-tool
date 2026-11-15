@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from ui_helpers import wait_for_toolhub
+
 import os
 import re
 import socket
@@ -290,7 +292,7 @@ def test_toolbox_shows_core_tiles_without_scroll_and_hides_removed_extras(editor
         page.evaluate("font => document.documentElement.style.setProperty('--font-ui', font)", font_family)
     page.set_viewport_size({"width": 1400, "height": 900})
     page.get_by_role("button", name="Zum Toolhub", exact=True).click()
-    playwright.expect(page.locator(".toolbox-card")).to_have_count(9)
+    wait_for_toolhub(page)
     assert page.locator(".toolbox").evaluate("el => el.scrollHeight <= el.clientHeight")
     # A 900px native window also needs space for its Windows title bar.
     page.set_viewport_size({"width": 1400, "height": 860})
@@ -300,6 +302,7 @@ def test_toolbox_shows_core_tiles_without_scroll_and_hides_removed_extras(editor
     playwright.expect(page.get_by_role("heading", name="Blitzschutz", exact=True)).to_have_count(0)
     playwright.expect(page.locator(".toolbox-card:not(.is-available)")).to_have_count(0)
     playwright.expect(page.get_by_role("button", name="NOVA-Legenden öffnen", exact=True)).to_be_enabled()
+    playwright.expect(page.get_by_role("button", name="Verteiler-Dispo öffnen", exact=True)).to_be_enabled()
     playwright.expect(page.get_by_role("button", name="BIM2STEIGER öffnen", exact=True)).to_be_enabled()
     playwright.expect(page.get_by_role("button", name="Dokumenten-Assistent öffnen", exact=True)).to_be_enabled()
     playwright.expect(page.get_by_role("button", name="PDF-Werkstatt öffnen", exact=True)).to_be_enabled()

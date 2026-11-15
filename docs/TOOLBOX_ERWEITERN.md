@@ -43,6 +43,11 @@ sie werden zur Laufzeit weder gewechselt noch heruntergeladen.
   über Berechnungen verfügbar. Änderungsbericht und das frühere Anlagetool werden
   im Hub nicht angeboten; die Netzplanung liegt ebenfalls unter Berechnungen.
   Ältere Phasenberichte beschreiben historische Ausbaustände.
+- Verteiler-Dispo liegt unter `ui/src/tools/verteiler-dispo/` und
+  `backend/edeco_toolbox/tools/verteiler_dispo/`. Es verwendet einen lokalen,
+  revisionsgebundenen SQLite-Dokumentstore und zwei Ansichten derselben
+  Bestückung. Firmenprofile werden validiert lokal zwischengespeichert.
+  [Bedienung und Nachweisgrenzen](VERTEILER_DISPO.md).
 - Der Planlieferungs-Assistent nutzt `FileRename` im Liefermodus und
   `backend/edeco_toolbox/tools/deliveries/`. Liefernachweise werden in einer
   separaten Tabelle der Projektdatenbank gespeichert und bleiben bei Änderungen
@@ -70,6 +75,10 @@ sie werden zur Laufzeit weder gewechselt noch heruntergeladen.
 3. Einen Lazy-Loader in `modules.ts` registrieren. Name, Beschreibung, Kategorie
    und Kennfarbe in `catalog.ts` eintragen, erst nach erfolgreichem Test auf
    `available` setzen. Ein SVG-Symbol in `ToolIcon.tsx` ergänzen.
+   Root-Werkzeuge zusätzlich im gemeinsamen Vertrag
+   `backend/edeco_toolbox/resources/tool_contract.json` aufführen. Demo-Eignung,
+   Demo-Standard und Hub-Sichtbarkeit sind getrennte Eigenschaften; bestehende
+   gespeicherte Demo-Auswahlen nicht automatisch erweitern.
 4. Die gemeinsamen Variablen aus `ui/src/theme.css` und die bestehenden
    Schaltflächen-, Formular- und Dialogstile verwenden. Kennfarben ändern nur die
    Oberfläche, niemals CAD-Symbolfarben oder Exportdaten.

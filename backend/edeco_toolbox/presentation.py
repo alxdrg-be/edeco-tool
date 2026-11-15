@@ -6,11 +6,8 @@ replacement for Windows file permissions or a separate network authentication.
 
 from __future__ import annotations
 
-import ctypes
-import getpass
 import json
 import os
-import sys
 import threading
 import uuid
 from pathlib import Path
@@ -20,49 +17,24 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field
 
 from .paths import local_home
+from .identity import windows_identity as windows_identity, is_admin as is_admin
+from .tool_contract import DEMO_CHOICES, DEMO_DEFAULTS
 
 DEFAULT_ADMINS = ["aduerger", "nstrauss"]
 LEGACY_DEMO_TOOLS = ["nova-legenden", "berechnungen", "dateien-umbenennen", "pdf-werkzeuge"]
 V2_DEMO_TOOLS = [*LEGACY_DEMO_TOOLS, "elektro-memory"]
-DEMO_TOOLS = [*V2_DEMO_TOOLS, "rack-dispo"]
+DEMO_TOOLS = DEMO_DEFAULTS
 SCHEMA_VERSION = 3
 # Each schema step extends the previous *default* selection only.
 _DEFAULT_SETS = {1: set(LEGACY_DEMO_TOOLS), 2: set(V2_DEMO_TOOLS)}
 PREFIX = "/api/toolbox/presentation"
 
 
-def windows_identity() -> tuple[str, bool]:
-    """Read the account from Windows, never from a browser-supplied user name."""
-    if sys.platform != "win32":
-        return getpass.getuser(), False
-    try:
-        size = ctypes.c_ulong(512)
-        value = ctypes.create_unicode_buffer(size.value)
-        if ctypes.windll.secur32.GetUserNameExW(2, value, ctypes.byref(size)):
-            return value.value, True
-        size = ctypes.c_ulong(512)
-        value = ctypes.create_unicode_buffer(size.value)
-        if ctypes.windll.advapi32.GetUserNameW(value, ctypes.byref(size)):
-            return value.value, True
-    except (AttributeError, OSError):
-        pass
-    # Fail closed for configured Windows roles if the OS identity is unavailable.
-    return "", True
-
-
-def is_admin(identity: str, admins: list[str]) -> bool:
-    account = identity.strip().casefold()
-    short = account.rsplit("\\", 1)[-1]
-    return any(name.strip().casefold() == account or
-               "\\" not in name and name.strip().casefold() == short
-               for name in admins) if account else False
-
-
 class PresentationBody(BaseModel):
     model_config = ConfigDict(extra="forbid")
     revision: str = Field(min_length=1, max_length=64)
     demo_enabled: bool
-    demo_tools: list[str] = Field(min_length=1, max_length=len(DEMO_TOOLS))
+    demo_tools: list[str] = Field(min_length=1, max_length=len(DEMO_CHOICES))
     admins: list[str] = Field(max_length=64)
 
 
@@ -103,10 +75,10 @@ class PresentationStore:
         names = list(dict.fromkeys(name.strip() for name in body.admins))
         if any(not name or len(name) > 160 or any(ord(char) < 32 or ord(char) == 127 for char in name) for name in names):
             raise HTTPException(400, "Bitte gültige Windows-Anmeldenamen eintragen.")
-        if set(body.demo_tools) - set(DEMO_TOOLS) or "nova-legenden" not in body.demo_tools:
+        if set(body.demo_tools) - set(DEMO_CHOICES) or "nova-legenden" not in body.demo_tools:
             raise HTTPException(400, "Im Demo-Modus bleibt NOVA-Legenden sichtbar; weitere Demo-Werkzeuge bitte aus der Auswahl wählen.")
         return {"revision": body.revision, "demo_enabled": body.demo_enabled,
-                "demo_tools": [tool for tool in DEMO_TOOLS if tool in body.demo_tools], "admins": names}
+                "demo_tools": [tool for tool in [*DEMO_TOOLS, *[choice for choice in DEMO_CHOICES if choice not in DEMO_TOOLS]] if tool in body.demo_tools], "admins": names}
 
     def snapshot(self):
         with self.lock:

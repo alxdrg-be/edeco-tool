@@ -4,6 +4,7 @@ import { createPortal } from "react-dom";
 import { useDialogFocus } from "../shared/useDialogFocus";
 import { TOOLS } from "./catalog";
 import { DEFAULT_DEMO_TOOLS, type PresentationPolicy } from "./presentationPolicy";
+import { DEMO_CHOICE_IDS } from './toolContract.ts';
 import "./presentation.css";
 import { readJson } from "../shared/http";
 
@@ -73,7 +74,7 @@ function SettingsDialog({ onClose, onSaved }: { onClose: () => void; onSaved?: (
       <form onSubmit={event => { event.preventDefault(); void submit(); }}>
         <fieldset disabled={!policy.can_manage || busy}>
           <label className="toolhub-demo-switch"><input type="checkbox" checked={demo} onChange={event => { setDemo(event.target.checked); setSaved(false); }} /><span><strong>Demo-Modus</strong><small>Nur die gewählten Werkzeuge zeigen.</small></span></label>
-          <div className="toolhub-demo-tools" role="group" aria-label="Werkzeuge im Demo-Modus">{DEFAULT_DEMO_TOOLS.map(id => <label key={id}>
+          <div className="toolhub-demo-tools" role="group" aria-label="Werkzeuge im Demo-Modus">{DEMO_CHOICE_IDS.map(id => <label key={id}>
             <input type="checkbox" checked={tools.includes(id)} disabled={id === "nova-legenden"} onChange={event => { setTools(old => event.target.checked ? [...old, id] : old.filter(value => value !== id)); setSaved(false); }} />
             <span>{TOOLS.find(tool => tool.id === id)?.title}</span>
           </label>)}</div>

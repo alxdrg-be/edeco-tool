@@ -18,6 +18,7 @@ from .tools.projects.api import register as register_projects
 from .tools.deliveries.api import register as register_deliveries
 from .tools.calculation_archive.api import register as register_archive
 from .tools.rack_dispo.api import register as register_rack_dispo
+from .tools.verteiler_dispo.api import register as register_verteiler_dispo
 from .local_security import register as register_local_security
 from .presentation import register as register_presentation
 from .ui_cache import CurrentUIFiles
@@ -37,6 +38,7 @@ def create_app(state: AppState | None = None, ui_dir: Path | None = None):
     register_deliveries(app)
     register_archive(app)
     register_rack_dispo(app)
+    register_verteiler_dispo(app)
 
     @app.get("/api/toolbox/status")
     def status():
