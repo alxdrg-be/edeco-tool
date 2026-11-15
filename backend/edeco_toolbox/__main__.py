@@ -14,12 +14,12 @@ import uvicorn
 import httpx
 
 from nova_legend import config, dialogs
-from nova_legend.__main__ import free_port
 
 from . import APP_NAME, version_label
 from .app import create_app
 from .paths import local_home
 from .desktop_zoom import attach_desktop_zoom_guard
+from .desktop_support import free_port
 from .ui_cache import desktop_ui_url
 
 

@@ -33,19 +33,25 @@ sie werden zur Laufzeit weder gewechselt noch heruntergeladen.
   Projektmodell steht im Ausbauplan. Dateien umbenennen übernimmt die aktive
   Nummer beim Öffnen; bestehende offene Vorschauen werden bei einem externen
   Projektwechsel nicht automatisch verändert.
-- Änderungsbericht,
-  Leistungsbilanz, Kabelberechnung und Anlagetool sind geplante Werkzeuge;
-  die Kacheln sind deaktiviert und enthalten noch keine Fachfunktionen.
-  Umfang und Prioritäten stehen im [Ausbauplan](TOOLBOX_AUSBAUPLAN.md).
+- Rack-Dispo ist als eigenes Werkzeug unter `ui/src/tools/rack-dispo/` und
+  `backend/edeco_toolbox/tools/rack_dispo/` integriert. Der Backend-Endpunkt
+  exportiert übergebene Dokumente; Entwürfe werden im Browser beziehungsweise
+  als versionierte JSON-Datei gespeichert. Das Modul besitzt derzeit keinen
+  persistenten Backend-Dokumentstore. Details unter [Rack-Dispo](RACK_DISPO.md).
+- Elektro-Memory enthält Nachschlageinhalte und den Formelrechner unter
+  `ui/src/tools/elektro-memory/`. Leistungsbilanz und Kabelberechnung sind bereits
+  über Berechnungen verfügbar. Änderungsbericht und das frühere Anlagetool werden
+  im Hub nicht angeboten; die Netzplanung liegt ebenfalls unter Berechnungen.
+  Ältere Phasenberichte beschreiben historische Ausbaustände.
 - Der Planlieferungs-Assistent nutzt `FileRename` im Liefermodus und
   `backend/edeco_toolbox/tools/deliveries/`. Liefernachweise werden in einer
   separaten Tabelle der Projektdatenbank gespeichert und bleiben bei Änderungen
   der Projektstammdaten unverändert. UUID und Inhaltsfingerabdruck schützen vor
   doppelten oder abweichenden Wiederholungen; Dateinamen, Grenzen und Projektversion
   werden vor dem Eintrag geprüft. Vorbereiten und Versandbestätigung sind getrennt.
-- `parentId: "berechnungen"` ordnet Rechner dem neuen Kachelbereich zu. Die
-  Hauptübersicht hat weiterhin zehn Kacheln; Leistungsbilanz bleibt unter
-  Berechnungen deaktiviert. Blitzschutz und Kabel-Spannungsfall liegen unter
+- `parentId: "berechnungen"` ordnet Rechner dem gemeinsamen Kachelbereich zu.
+  Die Hauptübersicht wird aus Katalog, Verfügbarkeit und Präsentationsregeln
+  abgeleitet; ihre Kachelzahl ist kein fester Vertrag. Blitzschutz und Kabel-Spannungsfall liegen unter
   `ui/src/tools/berechnungen/` und arbeiten offline. `LabUI.tsx` kapselt die
   edeco Navigation, lokalen Rechner-Hell-/Dunkelmodus, Parameter mit Zahlenfeld
   und Slider sowie Info-Drawer mit Fokusverwaltung. Tailwind 4 wird ohne Preflight
@@ -94,10 +100,12 @@ Für neue Daten eigene Unterordner verwenden, damit sich Module nicht überschre
 `.venv/bin/python -m pytest backend/tests -q`. Für Browser-Tests zusätzlich
 `backend/requirements-browser-tests.txt` installieren und Chromium bereitstellen.
 Die Browser-Tests decken auch den Wechsel zur Toolbox und Speicherfehler ab.
-Bei Änderungen am Katalog die erwartete Kachelzahl im nativen Fenstercheck
-(`backend/edeco_toolbox/__main__.py` und `.github/workflows/build-windows.yml`)
-sowie im Browser-Layouttest anpassen. Der Layouttest prüft auch die Sichtbarkeit
-aller Kacheln ohne Scrollen bei 1400 × 900 und das Scrollen in kleinen Fenstern.
+Bei Änderungen am Katalog die Präsentationsregeln und die zugehörigen Tests
+mitprüfen. Demo-Standardauswahl und bewusst gespeicherte Auswahl dürfen nicht
+unbemerkt verändert werden. Der native Fenstercheck vergleicht die sichtbaren
+Kacheln mit der vom Hub angegebenen Anzahl statt mit einer fest eingetragenen
+Zahl. Browser-Layouttests prüfen zusätzlich die Darstellung bei verschiedenen
+Fenstergrössen.
 
 Der gemeinsame Windows-Build verwendet `packaging/edeco_toolbox.spec` und
 `packaging/toolbox-setup.iss`. Er besitzt eine eigene Installer-ID und ersetzt

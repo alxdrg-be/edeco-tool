@@ -1,5 +1,6 @@
 import { normalizeImport, portRows } from './model.ts';
 import type { RackDocument } from './types.ts';
+import { csvRows } from '../../shared/csv.ts';
 
 export const RACK_DRAFT_KEY = 'edeco.rack-dispo.draft.v1';
 export const MAX_DOCUMENT_BYTES = 20 * 1024 * 1024;
@@ -37,12 +38,7 @@ export function safeFilename(value: string): string {
 
 /** Quoted semicolon CSV, UTF-8 BOM for Excel; untrusted cells cannot become formulas. */
 export function rackCSV(rows: (string | number | null)[][]): string {
-  const cell = (raw: string | number | null) => {
-    let text = raw === null ? '' : String(raw);
-    if (/^[\s\uFEFF]*[=+\-@]/.test(text)) text = `'${text}`;
-    return `"${text.replaceAll('"', '""')}"`;
-  };
-  return '\uFEFF' + rows.map(row => row.map(cell).join(';')).join('\r\n') + '\r\n';
+  return csvRows(rows, { trailingNewline: true });
 }
 const portStates = { unknown: 'Unbekannt', 'not-built': 'Nicht ausgebaut', built: 'Ausgebaut', occupied: 'Belegt' };
 export function portsCSV(document: RackDocument): string {

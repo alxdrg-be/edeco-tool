@@ -1,4 +1,5 @@
 // Floor quantities already counted by the legend import, shaped for the list and Excel.
+import { csvRows, type CsvValue } from "../../shared/csv.ts";
 
 export interface QuantityPlan {
   id: number | string;
@@ -41,18 +42,10 @@ function floorHeaders(plans: readonly QuantityPlan[]): string[] {
   });
 }
 
-/** Excel de-CH: semicolon, and a leading apostrophe so a symbol name is not a formula. */
-function cell(value: string | number): string {
-  let text = String(value);
-  if (/^[=+\-@\t\r]/.test(text)) text = `'${text}`;
-  if (/[;"\r\n]/.test(text)) text = `"${text.replaceAll('"', '""')}"`;
-  return text;
-}
-
 export function quantityCsv(plans: readonly QuantityPlan[], rows: readonly QuantitySource[]): string {
   const floors = floorHeaders(plans);
   const header = ["Kategorie", "Symbol", "Bezeichnung im Plan", "Code", "Datensatz", "Zuordnung", ...floors, "Total"];
-  const lines = [header.map(cell).join(";")];
+  const lines: CsvValue[][] = [header];
   for (const row of rows) {
     const amounts = plans.map((plan) => {
       const count = row.counts[String(plan.id)];
@@ -67,7 +60,7 @@ export function quantityCsv(plans: readonly QuantityPlan[], rows: readonly Quant
       row.assignment,
       ...amounts,
       row.total,
-    ].map(cell).join(";"));
+    ]);
   }
-  return `\uFEFF${lines.join("\r\n")}\r\n`;
+  return csvRows(lines, { quote: "minimal", trailingNewline: true });
 }

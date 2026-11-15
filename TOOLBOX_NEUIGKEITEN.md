@@ -1,3 +1,9 @@
+## Gemeinsame CSV-Ausgabe und interne Bereinigung · 15. November 2026
+
+- Mengen-, Rack- und Lieferlisten verwenden eine gemeinsame CSV-Ausgabe. Texte mit führenden Leerzeichen oder Formelzeichen werden für Excel einheitlich geschützt; echte Zahlen bleiben Zahlen. Das Austauschformat der Abkürzungstabelle bleibt verlustfrei.
+- Projektmodelle, Dateinamenprüfung, Ordneröffnung und lokale Portwahl sind von einzelnen Werkzeug-APIs getrennt. Bestehende Schnittstellen, Datenpfade und Einzelprogrammstarts bleiben kompatibel.
+- Nicht mehr verwendete Hilfsfunktionen entfernt und die Anleitung zur Werkzeug-Integration an den aktuellen Funktionsumfang angepasst.
+
 ## Rack-Dispo mit Portlisten und Vektorexport · 4. November 2026
 
 - Neues eigenständiges Werkzeug für 19-Zoll-Racks. Geräte rasten im von unten nummerierten HE-Raster ein; Vorderseite, Rückseite und 0-HE-Zubehör sind getrennt. Neutrale 24-/48-Port-Panels, Switches, LWL, Rangierpanels und Zubehör lassen sich ergänzen und bearbeiten.

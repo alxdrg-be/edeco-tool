@@ -64,10 +64,6 @@ def dataset_summary(path: Path) -> tuple[str, int] | None:
     return attrs.get("ID", path.stem), count
 
 
-def is_electrical_dataset(path: Path) -> bool:
-    return dataset_summary(path) is not None
-
-
 def local_home() -> Path:
     env = os.environ.get("NOVA_LEGENDEN_HOME")
     if env:

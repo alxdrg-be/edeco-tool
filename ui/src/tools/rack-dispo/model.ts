@@ -345,16 +345,6 @@ export function copyStart(doc: RackDocument, rackId: string, profileId: string, 
   for (let step = 1; step <= rack.units; step++) { push(origin - step); push(origin + step); }
   return ordered.find(start => slotFree(doc, rackId, profile, side, start)) ?? null;
 }
-export function findFreeStart(doc: RackDocument, rackId: string, profileId: string, side: MountSide, preferred = 1): number | null {
-  const rack = doc.racks.find(r => r.id === rackId); const profile = doc.profiles.find(p => p.id === profileId);
-  if (!rack || !profile) return null;
-  if (isZeroSide(side)) return profile.units === 0 ? 1 : null;
-  if (profile.units < 1) return null;
-  const starts = Array.from({ length: Math.max(0, rack.units - profile.units + 1) }, (_, i) => i + 1);
-  starts.sort((a, b) => Math.abs(a - preferred) - Math.abs(b - preferred) || a - b);
-  return starts.find(start => !doc.placements.some(p => p.rackId === rackId && p.side === side && p.status !== 'removed' &&
-    unitRangesOverlap(start, profile.units, p.startUnit, doc.profiles.find(pr => pr.id === p.profileId)?.units ?? 0))) ?? null;
-}
 export function duplicatePlacements(doc: RackDocument, ids: string[]): MutationResult {
   let candidate = doc; const created: string[] = []; const copied = new Map<string, string>();
   for (const p of doc.placements.filter(p => ids.includes(p.id) && p.status !== 'removed')) {

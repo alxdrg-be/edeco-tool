@@ -1,4 +1,6 @@
 /** Presentation rules are saved alongside a legend; item source descriptions stay intact. */
+import { quoteCsvCell } from "../../shared/csv.ts";
+
 export interface LegendAbbreviation {
   id: string;
   long: string;
@@ -72,6 +74,8 @@ export function parseLegendAbbreviationsCsv(text: string): Omit<LegendAbbreviati
 }
 
 export function legendAbbreviationsCsv(rules: LegendAbbreviation[]): string {
-  const escape = (text: string) => `"${text.replaceAll('"', '""')}"`;
-  return "\uFEFFLangform;Kurzform;Geltungsbereich;Aktiv\r\n" + rules.map(rule => [rule.long, rule.short, rule.scope, rule.active ? "ja" : "nein"].map(escape).join(";")).join("\r\n");
+  // This exchange format is reimported as matching rules, so values must stay lossless.
+  return "\uFEFFLangform;Kurzform;Geltungsbereich;Aktiv\r\n" + rules.map(rule =>
+    [rule.long, rule.short, rule.scope, rule.active ? "ja" : "nein"].map(value => quoteCsvCell(value)).join(";")
+  ).join("\r\n");
 }
