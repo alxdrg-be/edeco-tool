@@ -159,12 +159,20 @@ def drawing_scene(document, view='front') -> Scene:
     rect(ox, oy, cabinet['inner_width_mm'], cabinet['inner_height_mm'], cabinet['color_inner'], stroke=MUTED, role='installation-area')
     for part in cabinet['fields']:
         rect(ox + part['x_mm'], oy + part['y_mm'], part['width_mm'], part['height_mm'], stroke='#b5c0c4', layer='FELDER', role='field', target=part['id'], dashed=True)
+    # Empty openings reveal a cavity and the real rear rail. Covers and their
+    # explicit blanking pieces are painted later, never inferred from devices.
+    if view == 'front':
+        for cover in cabinet['covers']:
+            if not cover['transparent']:
+                for hole in cover['cutouts']:
+                    rect(ox + hole['x_mm'], oy + hole['y_mm'], hole['width_mm'], hole['height_mm'],
+                         fill='#6f7c81', stroke='#6f7c81', layer='OEFFNUNGEN', role='aperture-cavity', target=cover['id'])
+    for rail in cabinet['rails']:
+        rect(ox + rail['x_mm'], oy + rail['y_mm'] - 17.5, rail['length_mm'], 35,
+             fill='#c3cbd0', stroke='#788c95', layer='SCHIENEN', role='rail' if view == 'internal' else 'front-rail', target=rail['id'])
+        line(ox + rail['x_mm'], oy + rail['y_mm'] - 8, rail['length_mm'], 0, '#eef1f2')
+        line(ox + rail['x_mm'], oy + rail['y_mm'] + 8, rail['length_mm'], 0, '#eef1f2')
     if view == 'internal':
-        for rail in cabinet['rails']:
-            rect(ox + rail['x_mm'], oy + rail['y_mm'] - 17.5, rail['length_mm'], 35,
-                 fill='#c3cbd0', stroke='#788c95', layer='SCHIENEN', role='rail', target=rail['id'])
-            line(ox + rail['x_mm'], oy + rail['y_mm'] - 8, rail['length_mm'], 0, '#eef1f2')
-            line(ox + rail['x_mm'], oy + rail['y_mm'] + 8, rail['length_mm'], 0, '#eef1f2')
         for zone in cabinet['reserved_zones']:
             rect(ox + zone['x_mm'], oy + zone['y_mm'], zone['width_mm'], zone['height_mm'], stroke=WARN,
                  layer='SPERRBEREICHE', role='reserved-zone', target=zone['id'], dashed=True)
@@ -252,7 +260,9 @@ def drawing_scene(document, view='front') -> Scene:
         if w >= 12 and h >= 14:
             text(x + 2, y + min(13, h * .23), label, min(9, h * .17), max(1, w - 4), role='device-label', target=target)
     if view == 'front':
-        for cover in cabinet['covers']:
+        # Positive z goes backwards. At the same plane the broad base panel is
+        # painted before the smaller removable blanks; array order is irrelevant.
+        for cover in sorted(cabinet['covers'], key=lambda item: (-item['z_mm'], -item['width_mm']*item['height_mm'], item['id'])):
             fill = cover['color']
             if cover['transparent']:
                 # A transparent cover must not become an opaque white overlay.
@@ -269,9 +279,17 @@ def drawing_scene(document, view='front') -> Scene:
                 rect(ox + x, oy + y, w, h, fill=fill, stroke=fill, layer='ABDECKUNGEN', role='cover-panel', target=cover['id'])
             rect(ox + cover['x_mm'], oy + cover['y_mm'], cover['width_mm'], cover['height_mm'],
                  stroke='#85979e', layer='ABDECKUNGEN', role='cover-outline', target=cover['id'])
+            for hole in cover['cutouts']:
+                rect(ox + hole['x_mm'], oy + hole['y_mm'], hole['width_mm'], hole['height_mm'],
+                     stroke='#63777f', layer='ABDECKUNGEN', role='aperture-outline', target=cover['id'])
         # Captions belong on the front, not below the cover. Full BMKs and
         # device names remain in the appendix if a label strip is too short.
         for rail in cabinet['rails']:
+            if any(not cover['transparent'] for cover in cabinet['covers']) and not any(hole['x_mm'] < rail['x_mm'] + rail['length_mm'] and
+                       hole['x_mm'] + hole['width_mm'] > rail['x_mm'] and
+                       hole['y_mm'] <= rail['y_mm'] <= hole['y_mm'] + hole['height_mm']
+                       for cover in cabinet['covers'] for hole in cover['cutouts']):
+                continue
             labels = [placement['label'] or profiles[placement['profile_id']]['name']
                       for placement in sorted(active_placements, key=lambda item: (item['x_mm'], item['y_mm'], item['z_mm'], item['id']))
                       if placement['rail_id'] == rail['id']]

@@ -232,13 +232,45 @@ def _cabinet(hv, populated):
                            _placement('terminal-stop-right', 'generic-end-stop', 100.8, 482.5, rail='rail-3', label='Endhalter'),
                            _placement('busbar-1', 'generic-busbar-30x5', 44, 605, label='Cu 30 × 5 · Nachweis offen')]
     profile_by_id = {item['id']: item for item in PROFILES}
-    cutouts = [dict(x_mm=item['x_mm']-1, y_mm=item['y_mm']+15,
-                   width_mm=profile_by_id[item['profile_id']]['width_mm']+2, height_mm=48)
-               for item in placements if profile_by_id[item['profile_id']]['kind'] in ('switch', 'rcd', 'mcb', 'knx')]
+    # A row aperture is a physical part of the front, independent of the
+    # number/height of fitted devices. 48 mm is this editable generic draft's
+    # aperture height, not a verified manufacturer dimension. The populated
+    # sample's terminal row remains behind the solid front.
+    front_rails = [] if hv else rails[:2] if populated else rails
+    cutouts = [dict(x_mm=rail['x_mm'], y_mm=rail['y_mm']-24,
+                   width_mm=rail['length_mm'], height_mm=48) for rail in front_rails]
     covers = [] if hv else [dict(id='cover-front', name='Freie Frontabdeckung · kein Herstellernachweis',
                                 x_mm=0, y_mm=0, width_mm=inner_w, height_mm=inner_h, z_mm=0,
                                 material='Freier Entwurf', thickness_mm=None, transparent=False,
                                 color='#d7d8d2', source_id=None, cutouts=cutouts)]
+    for rail, opening in zip(front_rails, cutouts):
+        start, end = rail['x_mm'], rail['x_mm'] + rail['length_mm']
+        occupied = []
+        for item in placements:
+            if item['rail_id'] != rail['id']:
+                continue
+            profile = profile_by_id[item['profile_id']]
+            span = (profile['te'] * rail['te_pitch_mm']) if profile['te'] else profile['width_mm']
+            occupied.append((max(start, item['x_mm']), min(end, item['x_mm'] + span)))
+        cursor = start
+        free = []
+        for left, right in sorted(occupied):
+            if right <= left:
+                continue
+            if left > cursor:
+                free.append((cursor, left))
+            cursor = max(cursor, right)
+        if cursor < end:
+            free.append((cursor, end))
+        for index, (left, right) in enumerate(free, 1):
+            # Explicit, editable parts: subsequent moves/deletions must not
+            # silently create a new blank or shrink the physical opening.
+            covers.append(dict(id=f"cover-blank-{rail['id']}-{index}",
+                               name=f"Blindabdeckung · {rail['name']} · {(right-left)/rail['te_pitch_mm']:g} TE",
+                               x_mm=left, y_mm=opening['y_mm'], width_mm=right-left,
+                               height_mm=opening['height_mm'], z_mm=0,
+                               material='Freier Entwurf · Herstellernachweis offen', thickness_mm=None,
+                               transparent=False, color='#d7d8d2', source_id=None, cutouts=[]))
     return dict(id='cabinet-1', name='HV 01' if hv else 'UV 01', kind='HV' if hv else 'UV',
                 manufacturer='', system='Freier Feldaufbau' if hv else 'Freier Reihenaufbau', article='',
                 width_mm=width, height_mm=height, depth_mm=depth, inner_width_mm=inner_w, inner_height_mm=inner_h,

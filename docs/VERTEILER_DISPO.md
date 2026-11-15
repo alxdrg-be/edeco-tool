@@ -14,6 +14,8 @@ Das Werkzeug plant UV und HV in Millimetern. Front- und Einbauansicht zeigen den
 
 Hersteller- und CAD-Farben bleiben unabhängig vom Hell-/Dunkelmodus erhalten. RAL-Bezeichnungen werden getrennt von den Bildschirmfarben gespeichert; aus einem Hex-Farbwert wird keine RAL-Freigabe abgeleitet.
 
+Neue UV-Vorlagen besitzen durchgehende Reihenausschnitte und separate Blindabdeckungen für freie TE. Unter **Gehäuse → Abdeckungen** lassen sich diese ändern oder entfernen. Beim Einbau eines zusätzlichen Geräts muss die betreffende Blindabdeckung bewusst angepasst werden; sie verschwindet nicht automatisch. Umgekehrt bleibt nach dem Entfernen eines Geräts die Öffnung sichtbar. Die 48-mm-Ausschnitthöhe ist eine frei bearbeitbare Beispielgeometrie, kein verifiziertes Pragma-Artikelmass. Gespeicherte Ausschnitte bestehender Dokumente bleiben erhalten. Die Stückliste zählt derzeit Apparate; Abdeckungen sind in Zeichnung und JSON enthalten.
+
 ## Speichern und Wiederherstellung
 
 Autosave speichert bestätigte Änderungen lokal unter `<EDECO_TOOLBOX_HOME>/verteiler-dispo/` in SQLite. Dokumentrevisionen bleiben erhalten. Ein zweites Fenster mit altem Stand erhält einen Versionskonflikt, statt neuere Arbeit zu überschreiben.

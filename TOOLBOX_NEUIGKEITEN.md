@@ -1,5 +1,6 @@
 ## Verteiler-Dispo und CAD-Allgemeinteil · 15. November 2026
 
+- UV-Front mit durchgehenden Reihenausschnitten und separat bearbeitbaren Blindabdeckungen. Freie Öffnungen zeigen den dahinterliegenden Raum und die Schiene; verdeckte Klemmenreihen bekommen keine Frontbeschriftung. Bestehende gespeicherte Ausschnitte werden nicht umgestellt.
 - Neues UV-/HV-Werkzeug mit gemeinsamem Millimetermodell für Front- und Einbauansicht, DIN-Schienen, TE-Geräte, freie Apparate, Klemmen, Sammelschienen, Abdeckungen und reservierte Felder. Ziehen, Fangvorschau, Mehrfachauswahl, Kopieren und Rückgängig/Wiederholen sind integriert.
 - Prüfbericht mit anklickbaren Geometriekonflikten und getrennten offenen Nachweisen. TE-Plätze, sich überlagernde Schienen, Tiefe und Abdeckungsausschnitte werden geprüft; Quellenlinks bestätigen keine elektrische Freigabe.
 - Versionierte IWB-, Primeo- und EBL-Quellen, belegte Apparateplatz-Geometrien und ausgewählte Phoenix-Klemmen. Vorbereitungen für Pragma Multi, PrismaSeT XL, Hager und Almatec sind editierbar; nicht verifizierte Artikelmasse bleiben sichtbar offen.

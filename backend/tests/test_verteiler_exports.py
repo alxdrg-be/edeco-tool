@@ -78,6 +78,51 @@ def test_cover_cutout_removes_only_its_area_and_internal_shows_rails():
     assert not any(shape.role == 'rail' for shape in front.shapes)
 
 
+def _top_rect_at(scene, x_mm, y_mm):
+    x, y = scene.origin_x + x_mm, scene.origin_y + y_mm
+    return next(shape for shape in reversed(scene.shapes)
+                if shape.kind == 'rect' and shape.fill != 'none' and
+                shape.x < x < shape.x + shape.w and shape.y < y < shape.y + shape.h)
+
+
+def test_uv_real_opening_survives_device_deletion_and_explicit_blank_removal():
+    from edeco_toolbox.tools.verteiler_dispo.catalog import build_document
+
+    document = DistributionDocument.model_validate(build_document('uv-basic'))
+    original = deepcopy(document.model_dump())
+    scene = drawing_scene(document, 'front')
+    assert len([shape for shape in scene.shapes if shape.role == 'aperture-outline']) == 2
+    assert _top_rect_at(scene, 197, 140).target == 'mcb-1'
+    assert _top_rect_at(scene, 350, 140).target == 'cover-blank-rail-1-1'
+    assert not any('Reihe 3' in shape.text for shape in scene.shapes if shape.role == 'front-row-label')
+    assert document.model_dump() == original
+
+    next(item for item in document.cabinet.placements if item.id == 'mcb-1').status = 'removed'
+    scene = drawing_scene(document, 'front')
+    assert _top_rect_at(scene, 197, 140).role == 'front-rail'
+    assert _top_rect_at(scene, 350, 140).target == 'cover-blank-rail-1-1'
+    document.cabinet.covers = [item for item in document.cabinet.covers if item.id != 'cover-blank-rail-1-1']
+    scene = drawing_scene(document, 'front')
+    assert _top_rect_at(scene, 350, 140).role == 'front-rail'
+    assert len([shape for shape in scene.shapes if shape.role == 'aperture-outline']) == 2
+    base_panels = [shape for shape in scene.shapes if shape.role == 'cover-panel' and shape.target == 'cover-front']
+    assert sum(shape.w * shape.h for shape in base_panels) == pytest.approx(520*720 - 2*432*48)
+
+
+def test_cover_layering_is_stable_and_keeps_saved_apertures_unchanged():
+    from edeco_toolbox.tools.verteiler_dispo.catalog import build_document
+
+    document = DistributionDocument.model_validate(build_document('uv-basic'))
+    before = drawing_scene(document, 'front')
+    document.cabinet.covers.reverse()
+    assert drawing_scene(document, 'front') == before
+    saved = sample_document()
+    geometry = deepcopy(saved.cabinet.covers[0].model_dump())
+    for view in ('front', 'internal'):
+        drawing_scene(saved, view)
+    assert saved.cabinet.covers[0].model_dump() == geometry
+
+
 def test_preview_untrusted_labels_remain_literal_text_and_attributes():
     document = sample_document()
     document.cabinet.placements[0].label = '"><script>alert(1)</script>'

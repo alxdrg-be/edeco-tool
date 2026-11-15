@@ -77,3 +77,31 @@ def test_unknown_catalogue_choices_are_not_silently_replaced():
         build_document('does-not-exist')
     with pytest.raises(ValueError, match='VNB'):
         build_document('uv-basic', 'other')
+
+
+def test_uv_front_has_fixed_row_apertures_and_explicit_editable_blanks():
+    document = DistributionDocument.model_validate(build_document('uv-basic'))
+    cover = next(item for item in document.cabinet.covers if item.id == 'cover-front')
+    assert len(cover.cutouts) == 2
+    for opening, rail in zip(cover.cutouts, document.cabinet.rails):
+        assert opening.x_mm == rail.x_mm
+        assert opening.width_mm == rail.length_mm
+        assert opening.y_mm + opening.height_mm / 2 == rail.y_mm
+    blanks = [item for item in document.cabinet.covers if item.id != cover.id]
+    assert [(item.x_mm, item.y_mm, item.width_mm, item.height_mm) for item in blanks] == [
+        (296, 116, 180, 48), (116, 296, 36, 48), (224, 296, 252, 48)]
+    assert all(not item.cutouts and item.source_id is None and item.thickness_mm is None for item in blanks)
+    original_covers = [item.model_dump() for item in document.cabinet.covers]
+    document.cabinet.placements[0].status = 'removed'
+    document.cabinet.placements[1].x_mm += 18
+    reopened = DistributionDocument.model_validate_json(document.model_dump_json())
+    assert [item.model_dump() for item in reopened.cabinet.covers] == original_covers
+
+
+def test_empty_uv_front_has_independent_blank_rows_and_no_fake_manufacturer_source():
+    document = DistributionDocument.model_validate(build_document('uv-empty'))
+    cover = next(item for item in document.cabinet.covers if item.id == 'cover-front')
+    blanks = [item for item in document.cabinet.covers if item.id != cover.id]
+    assert len(cover.cutouts) == len(blanks) == len(document.cabinet.rails) == 3
+    assert all(item.width_mm == 432 and item.source_id is None for item in blanks)
+    assert not document.cabinet.manufacturer
