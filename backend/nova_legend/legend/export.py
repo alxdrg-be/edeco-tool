@@ -175,6 +175,8 @@ def _import_general(doc, msp, general: GeneralPart, x: float, y_bottom: float, f
 
     src = ezdxf.readfile(general.dxf_path)
     strip_raster(src)                        # the helper grid of the template is never exported
+    if general.mode == "cad":
+        _isolate_general_layers(src, doc, general.source_hash[:12] or "drawing")
     blk = doc.blocks.new("Allgemeinteil")
     imp = Importer(src, doc)
     imp.import_entities(src.modelspace(), target_layout=blk)
@@ -182,6 +184,39 @@ def _import_general(doc, msp, general: GeneralPart, x: float, y_bottom: float, f
     sc = general.scale * fit
     msp.add_blockref("Allgemeinteil", (x - general.ext_min[0] * sc, y_bottom - general.ext_min[1] * sc),
                      dxfattribs={"xscale": sc, "yscale": sc, "layer": _layer(doc, FRAME_LAYER)})
+
+
+def _isolate_general_layers(source, target, tag: str) -> None:
+    """Give a complete CAD source private layer definitions before import.
+
+    Importer keeps pre-existing target table entries. A source's layer 0 or
+    X_Geometrie would otherwise silently take the project's colour/lineweight.
+    Only top-level layer-0 entities move to the private zero layer: layer 0
+    inside nested blocks must remain 0 to inherit the effective INSERT layer.
+    All nonzero source layers are remapped, including those in nested blocks.
+    This mutates only the freshly read in-memory source, never its source file
+    or any target layer used by project symbols. The flow exporter is untouched.
+    """
+    mapping = {}
+    for layer in list(source.layers):
+        name = layer.dxf.name
+        stem = re.sub(r'[<>/\\":;?*|=`]', "_", f"NL_CAD_{tag}_{name}")[:110]
+        alias, index = stem, 0
+        while alias in source.layers or alias in target.layers:
+            index += 1
+            alias = f"{stem}_{index}"
+        source.layers.duplicate_entry(name, alias)
+        mapping[name.casefold()] = alias
+    modelspace_owner = source.modelspace().layout_key
+    for entity in source.entitydb.values():
+        if not entity.is_alive or not entity.dxf.is_supported("layer"):
+            continue
+        name = entity.dxf.layer
+        if name == "0" and entity.dxf.get("owner") != modelspace_owner:
+            continue
+        alias = mapping.get(name.casefold())
+        if alias:
+            entity.dxf.layer = alias
 
 
 def _import_general_rows(doc, msp, general: GeneralPart, grows: list[dict], Y) -> None:

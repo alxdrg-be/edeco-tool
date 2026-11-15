@@ -923,8 +923,14 @@ def _texts(msp) -> list[str]:
 def _svg(doc, w: float, h: float) -> str:
     """Preview of the DXF with ezdxf's drawing add-on (white background, original colours)."""
     try:
+        from copy import deepcopy
         from ezdxf.addons.drawing import Frontend, RenderContext, config, layout, svg
+        from .linetypes import simplify_linetypes
 
+        # Some NOVA/DWG exports mark plain dashes as empty shape patterns.
+        # Repair the renderer's copy only; preserve the source CAD definitions.
+        doc = deepcopy(doc)
+        simplify_linetypes(doc)
         backend = svg.SVGBackend()
         cfg = config.Configuration(background_policy=config.BackgroundPolicy.WHITE,
                                    color_policy=config.ColorPolicy.COLOR)

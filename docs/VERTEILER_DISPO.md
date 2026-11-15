@@ -55,4 +55,6 @@ Werkzeug- und Demo-Eigenschaften liegen gemeinsam in `backend/edeco_toolbox/reso
 
 Unter den Firmen-Legendeneinstellungen kann für die DXF-/DWG-Servervorlage **CAD-Vorlage wie gezeichnet übernehmen** gewählt werden. Dieser Modus erhält Anordnung, Farben und Schriftgrössen und erzeugt keinen zusätzlichen Allgemein-Titel. Der bisherige Zeilenmodus bleibt Standard für vorhandene Einstellungen.
 
+Die Firmenzeichnung sollte den Allgemeinteil und seine Farbcodes enthalten. Das Programm übernimmt auch ihr Seitenverhältnis; eine kompakte zweispaltige Anordnung wird in der Vorlage gezeichnet. Eigene Layer werden beim Einfügen getrennt gehalten, damit gleichnamige Projektlayer ihre Farben und Strichstärken behalten. Leere komplexe Linientyp-Markierungen werden nur für die Vorschau und das PDF aufbereitet; die Quellzeichnung und ihre CAD-Definitionen bleiben erhalten.
+
 **Neu laden** und die SVG-Vorschau zeigen den gespeicherten Pfad/Modus; DXF und PDF lassen sich herunterladen. Eine geladene CAD-Datei wird lokal nach Hash kopiert, damit ihre Vorschau und ihr Export denselben geladenen Stand verwenden. Beim erneuten Öffnen gilt weiterhin die aktuelle Firmenquelle; eine dauerhaft pro Altlegende eingefrorene Vorlagenrevision ist damit nicht eingeführt.
