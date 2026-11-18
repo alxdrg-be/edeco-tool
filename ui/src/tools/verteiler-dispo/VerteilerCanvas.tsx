@@ -7,7 +7,7 @@ import type { DeviceProfile, DistributionDocument, Issue } from './types.ts';
 export const DRAG_TYPE = 'application/x-edeco-verteiler-profile';
 interface Props {
   document: DistributionDocument; availableProfiles: DeviceProfile[]; svg: string; selected: string[]; issues: Issue[];
-  focusId: string | null; focusToken: string; dragProfile: string | null; busy: boolean;
+  focusId: string | null; focusToken: string; dragProfile: string | null; busy: boolean; viewLabel: string;
   onSelect: (id: string | null, multiple?: boolean) => void;
   onPlace: (id: string, x: number, y: number) => void;
   onMove: (ids: string[], x: number, y: number) => void;
@@ -18,7 +18,7 @@ interface Viewport { x: number; y: number; scale: number }
 type Gesture = { kind: 'pan'; sx: number; sy: number; x: number; y: number } | { kind: 'move'; ids: string[]; sx: number; sy: number; dx: number; dy: number };
 const clamp = (n: number, a: number, b: number) => Math.min(b, Math.max(a, n));
 
-export default function VerteilerCanvas({ document, availableProfiles, svg, selected, issues, focusId, focusToken, dragProfile, busy, onSelect, onPlace, onMove, onDelete, onCopy }: Props) {
+export default function VerteilerCanvas({ document, availableProfiles, svg, selected, issues, focusId, focusToken, dragProfile, busy, viewLabel, onSelect, onPlace, onMove, onDelete, onCopy }: Props) {
   const host = useRef<HTMLDivElement>(null), art = useRef<HTMLDivElement>(null), gesture = useRef<Gesture | null>(null);
   const [size, setSize] = useState({ width: 680, height: 650 });
   const [bounds, setBounds] = useState<Bounds>({ x: 0, y: 0, width: document.cabinet.width_mm + 100, height: document.cabinet.height_mm + 150, ox: 50, oy: 50 });
@@ -148,7 +148,7 @@ export default function VerteilerCanvas({ document, availableProfiles, svg, sele
       className={preview ? 'vd-ghost-rect' : errors.has(id) ? 'vd-error-rect' : 'vd-selected-rect'} vectorEffect="non-scaling-stroke" />;
   }
   const ghostProfile = availableProfiles.find(p => p.id === ghost?.profile);
-  return <div className={`vd-canvas ${hand || space ? 'vd-hand' : ''}`} ref={host} tabIndex={0} aria-label="Verteiler-Zeichenfläche"
+  return <div className={`vd-canvas ${hand || space ? 'vd-hand' : ''}`} ref={host} tabIndex={0} aria-label={`Verteiler-Zeichenfläche · ${viewLabel}`} aria-busy={busy}
     onPointerDown={pointerDown} onPointerMove={pointerMove} onPointerUp={event => pointerUp(event)} onPointerCancel={event => pointerUp(event, true)}
     onKeyDown={keyDown} onKeyUp={event => { if (event.code === 'Space') setSpace(false); }} onBlur={() => setSpace(false)} onDragOver={dragOver} onDrop={drop} onDragLeave={event => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setGhost(null); }}>
     <div className="vd-canvas-art" ref={art} style={{ width: bounds.width * viewport.scale, height: bounds.height * viewport.scale, transform: `translate(${viewport.x}px,${viewport.y}px)` }}>
@@ -164,14 +164,14 @@ export default function VerteilerCanvas({ document, availableProfiles, svg, sele
     </div>
     {!svg && <div className="vd-canvas-empty">Zeichnung wird aufgebaut …</div>}
     {busy && <span className="vd-rendering" role="status">Zeichnung aktualisieren …</span>}
-    <div className="vd-canvas-controls" onPointerDown={event => event.stopPropagation()}>
+    <div className="vd-canvas-controls" role="group" aria-label={`Ansicht und Zoom · ${viewLabel}`} onPointerDown={event => event.stopPropagation()}>
       <button type="button" onClick={() => setHand(false)} aria-label="Auswählen" aria-pressed={!hand}><MousePointer2 size={16} /></button>
       <button type="button" onClick={() => setHand(!hand)} aria-label="Handmodus" aria-pressed={hand}><Hand size={16} /></button>
       <button type="button" onClick={() => zoom(1 / 1.2)} aria-label="Zeichnung verkleinern"><Minus size={16} /></button>
       <span>{Math.round(viewport.scale * 100)} %</span>
       <button type="button" onClick={() => zoom(1.2)} aria-label="Zeichnung vergrössern"><Plus size={16} /></button>
       <button type="button" onClick={() => fit(true)}><ScanLine size={15} /> Breite</button>
-      <button type="button" onClick={() => fit()}><Maximize2 size={15} /> Ganz</button>
+      <button type="button" onClick={() => fit()}><Maximize2 size={15} /> Ganzes Blatt</button>
     </div>
   </div>;
 }

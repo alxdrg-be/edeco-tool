@@ -15,6 +15,13 @@ def test_socket_fronts_preserve_contact_shapes_and_show_selected_type(editor, tm
     page = editor[0]
     open_reference(page, "RCD, Schutzorgane & Stecksysteme")
     guide = page.get_by_role("region", name="Schweizer Steckdosen erkennen", exact=True)
+    originals = guide.locator(".memory-socket-original")
+    playwright.expect(originals).to_have_count(4)
+    for image in originals.all():
+        playwright.expect(image).to_have_js_property("complete", True)
+        assert image.evaluate("image => image.naturalWidth > 0")
+    playwright.expect(guide).to_contain_text("EIT.swiss ©2025 / ESTI")
+    guide.get_by_role("button", name="Kontaktbilder", exact=True).click()
     for kind, count, shape in [(13, 3, "round"), (23, 3, "rectangle"), (15, 5, "round"), (25, 5, "rectangle")]:
         front = guide.locator(f'[data-socket-type="{kind}"]')
         playwright.expect(front.locator(f'[data-contact="{shape}"]')).to_have_count(count)
@@ -83,9 +90,11 @@ def test_bath_zones_ik_lookup_and_ppe_caveats(editor, tmp_path):
     page = editor[0]
     open_reference(page, "Badewanne & Dusche")
     zones = page.locator("#memory-entry-em-p12-bath-zones")
-    playwright.expect(zones.get_by_role("img")).to_have_attribute("aria-label", re.compile("Bereich 1 über der Wanne bis 2,25 m"))
-    zones.get_by_role("button", name="Dusche ohne Wanne · Grundriss", exact=True).click()
-    playwright.expect(zones.get_by_role("img")).to_have_attribute("aria-label", re.compile("1,2 m ab Wasserauslass"))
+    playwright.expect(zones.get_by_role("img")).to_have_attribute("alt", re.compile("Original: Badewanne im Schnitt"))
+    for label, image in [("Wanne · Grundriss", "bath-plan"), ("Dusche · Schnitt", "shower-section"), ("Dusche · Grundriss", "shower-plan")]:
+        zones.get_by_role("button", name=label, exact=True).click()
+        playwright.expect(zones.get_by_role("img")).to_have_attribute("src", re.compile(image))
+    playwright.expect(zones).to_contain_text("Originalausschnitt · E-Memory S. 12")
     playwright.expect(zones).to_contain_text("2,25 m ab Boden")
     playwright.expect(page.locator("#memory-entry-em-p12-bath-equipment")).to_contain_text("12 V AC / 30 V DC SELV")
     page.set_viewport_size({"width": 1440, "height": 1000})
@@ -112,6 +121,54 @@ def test_bath_zones_ik_lookup_and_ppe_caveats(editor, tmp_path):
     playwright.expect(ppe).to_contain_text("keine Schutzklasse oder Kleidungsfreigabe")
     playwright.expect(ppe).not_to_contain_text("Kurzarm zulässig")
     playwright.expect(page.locator("#memory-entry-em-p03-five-electrical-rules ol li")).to_have_count(5)
+
+
+def test_memory_chapter_links_search_and_original_zoom_keep_the_reading_context(editor):
+    page = editor[0]
+    open_memory(page)
+    page.evaluate("sessionStorage.setItem('edeco-memory-focus', 'bad')")
+    page.reload()
+    playwright.expect(page.locator(".memory-page-head h2")).to_have_text("Badewanne & Dusche")
+    assert page.evaluate("sessionStorage.getItem('edeco-memory-focus')") is None
+    source = page.locator("#memory-entry-em-p12-bath-zones .memory-source-figure")
+    opener = source.get_by_role("button", name="Gross anzeigen", exact=True)
+    opener.click()
+    dialog = page.get_by_role("dialog", name="Wanne · Schnitt · Original", exact=True)
+    playwright.expect(dialog).to_be_visible()
+    close_original = dialog.get_by_role("button", name="Originalabbildung schliessen", exact=True)
+    playwright.expect(close_original).to_be_focused()
+    page.keyboard.press("Control+k")
+    playwright.expect(page.locator(".hub-command-dialog")).to_have_count(0)
+    playwright.expect(close_original).to_be_focused()
+    dialog.get_by_role("button", name="Bild vergrössern", exact=True).click()
+    playwright.expect(dialog.locator("output")).to_have_text("125 %")
+    dialog.get_by_role("button", name="Dusche · Grundriss", exact=True).click()
+    dialog = page.get_by_role("dialog", name="Dusche · Grundriss · Original", exact=True)
+    playwright.expect(dialog.locator("output")).to_have_text("100 %")
+    playwright.expect(dialog.get_by_role("img")).to_have_attribute("src", re.compile("shower-plan"))
+    page.keyboard.press("Escape")
+    playwright.expect(dialog).to_have_count(0)
+    playwright.expect(opener).to_be_focused()
+    page.keyboard.press("Control+f")
+    search = page.get_by_role("searchbox", name="Elektro-Memory durchsuchen", exact=True)
+    playwright.expect(search).to_be_focused()
+    search.fill("Riso")
+    playwright.expect(page.locator(".memory-page-head h2")).to_contain_text("Treffer")
+    page.get_by_role("button", name="Alle Themen", exact=True).click()
+    playwright.expect(page.locator(".memory-topic-card")).to_have_count(11)
+    page.evaluate("window.dispatchEvent(new CustomEvent('edeco-memory-focus', {detail: 'formeln'}))")
+    playwright.expect(page.locator(".memory-page-head h2")).to_have_text("Formeln & Einheiten")
+    playwright.expect(search).to_have_value("")
+    page.evaluate("window.dispatchEvent(new CustomEvent('edeco-memory-focus', {detail: 'unknown'}))")
+    playwright.expect(page.locator(".memory-page-head h2")).to_have_text("Formeln & Einheiten")
+    page.keyboard.press("Control+k")
+    command_search = page.get_by_role("searchbox", name="Werkzeuge, Projekte, Memory und Befehle suchen", exact=True)
+    playwright.expect(command_search).to_be_focused()
+    page.keyboard.press("Control+f")
+    playwright.expect(command_search).to_be_focused()
+    page.keyboard.press("Escape")
+    page.keyboard.press("Control+f")
+    playwright.expect(search).to_be_focused()
 
 
 def test_chapter_print_view_hides_navigation_and_keeps_every_card(editor, tmp_path):

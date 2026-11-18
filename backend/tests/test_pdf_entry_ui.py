@@ -82,7 +82,7 @@ def test_catalog_drop_waits_for_tool_then_opens_large_native_crop(pdf_entry, tmp
     playwright.expect(page.locator(".pdf-native-crop")).to_be_visible()
     page.get_by_label("Rand links (mm)", exact=True).fill("10")
     with page.expect_download() as saved:
-        page.get_by_role("button", name="Zuschneiden & speichern", exact=True).click()
+        page.get_by_role("button", name="Zuschnitt speichern", exact=True).click()
     output = tmp_path / saved.value.suggested_filename
     saved.value.save_as(output)
     with PDF_LOCK, pdfium.PdfDocument(output) as document:
@@ -111,6 +111,6 @@ def test_catalog_rejects_other_files_and_chooses_one_pdf_without_losing_the_othe
     playwright.expect(choice).to_be_visible()
     choice.get_by_role("button", name="Erster Plan.pdf", exact=False).click()
     playwright.expect(page.get_by_role("img", name="PDF-Seite 1 von Erster Plan.pdf", exact=True)).to_be_visible()
-    page.get_by_role("button", name="Werkzeugauswahl", exact=True).click()
+    page.get_by_role("button", name="Alle PDF-Werkzeuge", exact=True).click()
     playwright.expect(page.locator(".pdf-pending-files li")).to_have_count(1)
     playwright.expect(page.locator(".pdf-pending-files li")).to_contain_text("Zweiter Plan.pdf")

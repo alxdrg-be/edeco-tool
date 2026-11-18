@@ -9,3 +9,26 @@
 .pdf-server-explanation { max-width: 780px; margin-top: .75rem; }
 .pdf-server-explanation summary { cursor: pointer; font-weight: 600; }
 .pdf-server-explanation p { margin: .65rem 0; }
+
+/* Compact V10 workspace chrome; document colours stay unchanged. */
+.pdf-data-route { position: relative; flex: none; font-size: 12px; }
+.pdf-data-route > summary { display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 6px 9px; border: 1px solid currentColor; border-radius: 7px; cursor: pointer; list-style: none; }
+.pdf-data-route > summary::-webkit-details-marker { display: none; }
+.pdf-data-route > summary:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+.pdf-data-route > div { position: absolute; z-index: 70; top: calc(100% + 8px); right: 0; width: min(340px, calc(100vw - 32px)); padding: 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); color: var(--fg); box-shadow: var(--shadow-pop); line-height: 1.6; }
+.pdf-data-route p { margin: 8px 0; }
+.pdf-data-route span { display: block; color: var(--muted); margin-top: 10px; }
+.pdf-workshop .pdf-tool-home { padding-top: 26px; }
+.pdf-workshop .pdf-tool-intro { margin-bottom: 20px; }
+.pdf-workshop .pdf-tool-intro h1 { font-size: clamp(25px, 2.3vw, 32px); margin-block: 8px; }
+.pdf-workshop .pdf-tool-tile { min-height: 96px; padding: 18px; border-radius: 9px; }
+.pdf-workshop .pdf-tool-label > span { font-size: 12px; }
+.pdf-workshop .pdf-tool-label small { font-size: 11px; }
+.pdf-workshop .pdf-tool-label strong { font-size: 13px; }
+.pdf-workshop .pdf-editor-heading { padding-block: 9px; }
+.pdf-workshop .pdf-editor-heading > .btn:first-child { font-weight: 650; }
+.pdf-workshop .pdf-native-badge { overflow-wrap: anywhere; }
+@media(max-width:700px) {
+  .pdf-data-route > div { position: fixed; left: 16px; right: 16px; top: 100px; width: auto; }
+  .pdf-workshop .pdf-tool-tile { padding: 14px; }
+}

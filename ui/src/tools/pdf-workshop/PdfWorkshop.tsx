@@ -75,6 +75,18 @@ function readRecent(): string[] {
   } catch { return []; }
 }
 
+function PdfDataRoute({ state, ready }: { state: State; ready: boolean }) {
+  let destination = "Konfigurierter PDF-Dienst";
+  try { destination = new URL(state.service_url).host; } catch { /* The connection form reports an invalid service address. */ }
+  return <details className="pdf-data-route" data-pdf-engine-ready={ready} data-pdf-mode={state.local ? "local" : "service"}><summary><Info size={15} />{state.local ? "Lokal" : "PDF-Dienst"}</summary>
+    <div><strong>{state.local ? "PDF-Engine auf diesem Computer" : destination}</strong>
+      <p>{state.local ? "Die mitgelieferte Engine verarbeitet OCR, Komprimierung und erweiterte PDF-Funktionen auf diesem Computer." : "OCR, Komprimierung und erweiterte PDF-Funktionen übertragen die gewählten Dateien an diesen eingerichteten Dienst."}</p>
+      <p>Zuschneiden, Seiten organisieren und die eigenen Bild-/Textwerkzeuge werden im Toolhub verarbeitet.</p>
+      <span>{ready ? "PDF-Engine bereit" : "PDF-Engine noch nicht bereit"}</span>
+    </div>
+  </details>;
+}
+
 export default function PdfWorkshop({ onHome, onOpenTool }: ToolProps) {
   const { active: activeProject } = useProjectHub();
   const [handoffFiles, setHandoffFiles] = useState<File[]>([]);
@@ -156,6 +168,34 @@ export default function PdfWorkshop({ onHome, onOpenTool }: ToolProps) {
   const title = PDF_TOOLS.find(tool => tool.id === selected)?.title;
   const certificateTool = PDF_TOOLS.find(tool => tool.id === "certSign");
   const certificateAvailable = Boolean(state && health?.ready && certificateTool && pdfToolAvailability(certificateTool, state.local, true, capabilities).enabled);
+
+  useEffect(() => {
+    const element = frame.current;
+    if (!element) return;
+    let child: Window | null = null;
+    const relayToolhubSearch = (event: KeyboardEvent) => {
+      if (event.altKey || !(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== "k") return;
+      const hasModal = child && [...child.document.querySelectorAll('[aria-modal="true"], dialog[open]')].some(node => node.getClientRects().length > 0);
+      if (hasModal) return;
+      event.preventDefault(); event.stopImmediatePropagation();
+      window.dispatchEvent(new Event("edeco-command-search"));
+    };
+    const unbind = () => {
+      try { child?.removeEventListener("keydown", relayToolhubSearch, true); } catch { /* The frame may already have navigated to an external sign-in. */ }
+      child = null;
+    };
+    const bind = () => {
+      unbind();
+      try {
+        const candidate = element.contentWindow;
+        if (candidate && candidate.location.origin === window.location.origin) {
+          child = candidate; child.addEventListener("keydown", relayToolhubSearch, true);
+        }
+      } catch { /* A separately hosted sign-in owns its keyboard until it returns. */ }
+    };
+    element.addEventListener("load", bind); bind();
+    return () => { element.removeEventListener("load", bind); unbind(); };
+  }, [health?.ready, revision]);
 
   useEffect(() => {
     let alive = true;
@@ -410,7 +450,7 @@ export default function PdfWorkshop({ onHome, onOpenTool }: ToolProps) {
     if (event.dataTransfer.types.includes("Files")) { event.preventDefault(); event.dataTransfer.dropEffect = "copy"; }
   }} onDrop={receiveDrop}>
     <ToolHeader title="PDF-Werkstatt" onHome={() => requestLeave(onHome)} onOpenTool={onOpenTool ? id => requestLeave(() => onOpenTool(id)) : undefined} disabled={busy === "workflow" || nativeWorking}>
-      {health?.ready && <span className="pdf-service-badge">{state?.local ? "Offline bereit · auf diesem Computer" : `Stirling-PDF ${health.version} · interner Dienst`}</span>}
+      {state && <PdfDataRoute state={state} ready={Boolean(health?.ready)} />}
       {Boolean(state?.workflows.length) && <button className="btn" onClick={() => setWorkflows(!workflows)}>Firmenabläufe</button>}
       {!state?.local && <button className="btn" onClick={() => setSettings(!settings)}>Verbindung</button>}
       <button className="btn" onClick={toolSettings} disabled={!health?.ready}><Settings size={16} /> Einstellungen</button>
@@ -468,10 +508,10 @@ export default function PdfWorkshop({ onHome, onOpenTool }: ToolProps) {
         {state?.local && <p>Auf diesem PC laufen die enthaltenen PDF-Funktionen ohne Firmenserver. Office-, HTML-/Webseiten-, E-Book-, Video- und KI-Konvertierung benötigen zusätzliche Software und sind im Paket nicht enthalten. Ein eigener Firmenserver kann solche Funktionen bereitstellen, wenn sie dort installiert und freigeschaltet sind. Er schaltet sie nicht automatisch frei.</p>}
         <p>Für die lokale PDF-Werkstatt brauchst du kein Benutzerkonto. Das Zahnrad öffnet die PDF-Einstellungen. Bei einem Firmenserver bleibt dessen Anmeldung bestehen.</p></details>
     </main>}
-    {view === "stirling" && <div className="pdf-editor-heading"><button className="btn" onClick={() => setView("catalog")}><ArrowLeft size={16} /> Werkzeugauswahl</button><strong>{title || (selected === "__settings__" ? "PDF-Einstellungen" : "Alle PDF-Funktionen")}</strong>{(pendingTool || settingsWanted) && <span role="status">{settingsWanted ? "Einstellungen werden geöffnet …" : "Werkzeug wird geöffnet …"}</span>}</div>}
+    {view === "stirling" && <div className="pdf-editor-heading"><button className="btn" onClick={() => setView("catalog")}><ArrowLeft size={16} /> Alle PDF-Werkzeuge</button><strong>{title || (selected === "__settings__" ? "PDF-Einstellungen" : "Alle PDF-Funktionen")}</strong>{(pendingTool || settingsWanted) && <span role="status">{settingsWanted ? "Einstellungen werden geöffnet …" : "Werkzeug wird geöffnet …"}</span>}</div>}
     {view === "stirling" && selected === "annotate" && <details className="pdf-connection pdf-server-explanation"><summary>ⓘ Was bedeutet „Auswählen und bearbeiten“?</summary><p>Damit wählst du vorhandene Anmerkungen, Markierungen oder Stempel aus und änderst deren Farbe, Deckkraft, Text, Grösse oder Position. Für den ursprünglichen Seitentext und die Bilder im PDF verwende „PDF bearbeiten“ in der Werkzeugauswahl.</p></details>}
     {health?.ready && <div className="pdf-embedded-workspace" hidden={view !== "stirling"}><iframe ref={frame} key={revision} className="pdf-stirling-frame" title="Stirling-PDF · edeco PDF-Werkstatt" src="/tools/pdf-werkstatt/" onLoad={() => setBridgeReady(Boolean((frame.current?.contentWindow as PdfWindow | null)?.edecoPDF?.isReady()))} /></div>}
-    {(view === "pages" || view === "task" || view === "convert" || view === "process" || view === "mark") && <div className="pdf-editor-heading"><button className="btn" disabled={nativeWorking} onClick={() => setView("catalog")}><ArrowLeft size={16} /> Werkzeugauswahl</button><strong>{view === "task" && nativeTask ? NATIVE_TASKS[nativeTask].title : title}</strong><span className="pdf-native-badge">{state?.local ? "Auf diesem Computer" : "PDF-Arbeitsbereich"}</span>{health?.ready && <button className="btn" disabled={nativeWorking} onClick={openExtendedTool}>Erweiterte Funktionen</button>}</div>}
+    {(view === "pages" || view === "task" || view === "convert" || view === "process" || view === "mark") && <div className="pdf-editor-heading"><button className="btn" disabled={nativeWorking} onClick={() => setView("catalog")}><ArrowLeft size={16} /> Alle PDF-Werkzeuge</button><strong>{view === "task" && nativeTask ? NATIVE_TASKS[nativeTask].title : title}</strong><span className="pdf-native-badge" role="status">{nativeWorking ? "PDF wird verarbeitet …" : handoffFiles.length ? "Ergebnis bereit · Download gestartet" : "Datei öffnen · Bearbeiten · Herunterladen"}</span>{health?.ready && <button className="btn" disabled={nativeWorking} onClick={openExtendedTool}>Erweiterte Funktionen</button>}</div>}
     {/* Page and crop exports are snapshots for Senden an; tool changes retain the original file selection. */}
     {pagesOpened && state && <div className="pdf-native-workspace" hidden={view !== "pages"}><PageWorkbench tool={pageTool} sessionKey={state.session_key} incomingFiles={pageIncoming} {...workspace("pages")} onResultFiles={setHandoffFiles} /></div>}
     {state && openedTasks.map(id => <div key={id} className="pdf-native-workspace" hidden={view !== "task" || nativeTask !== id}><PdfTask tool={id} sessionKey={state.session_key} incomingFiles={taskIncoming[id]} {...workspace(id)} /></div>)}

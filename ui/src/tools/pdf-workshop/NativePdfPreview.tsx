@@ -3,9 +3,9 @@ import { useEffect, useRef, useState } from "react";
 /** The existing bounded crop session supplies a sharp preview for the large
  * canvas. Thumbnail lists remain small; no second PDF renderer is introduced.
  */
-export default function NativePdfPreview({ file, page, thumbnail, sessionKey, zoom, width, height, onZoom }: {
+export default function NativePdfPreview({ file, page, thumbnail, sessionKey, zoom, width, height, onZoom, fitMode = "page" }: {
   file: File; page: number; thumbnail: string; sessionKey: string; zoom: number;
-  width: number; height: number; onZoom: (value: number) => void;
+  width: number; height: number; onZoom: (value: number) => void; fitMode?: "page" | "width";
 }) {
   const [documentId, setDocumentId] = useState("");
   const [image, setImage] = useState("");
@@ -55,11 +55,13 @@ export default function NativePdfPreview({ file, page, thumbnail, sessionKey, zo
     })();
     return () => { controller.abort(); if (url) URL.revokeObjectURL(url); };
   }, [documentId, page, sessionKey]);
-  const fit = Math.min(size.width / width, size.height / height);
+  const fitWidth = Math.max(1, size.width - 36) / width;
+  const fit = fitMode === "width" ? fitWidth : Math.min(fitWidth, Math.max(1, size.height - 36) / height);
+  const measured = size.width > 36 && size.height > 36;
   return <div ref={viewport} className="pdf-native-preview" tabIndex={0} aria-label="PDF-Vorschau mit Dokumentzoom" data-document-zoom={zoom} onKeyDown={event => {
     if (!event.ctrlKey && !event.metaKey) return;
     if (["0", "+", "=", "-"].includes(event.key)) {
       event.preventDefault(); onZoom(event.key === "0" ? 1 : Math.max(.5, Math.min(4, zoom * (event.key === "-" ? 1 / 1.2 : 1.2))));
     }
-  }}><img src={image || thumbnail} alt={`Vorschau Seite ${page}`} style={{ width: fit > 0 ? width * fit * zoom : "100%", maxWidth: "none" }} /></div>;
+  }}>{measured ? <img src={image || thumbnail} alt={`Vorschau Seite ${page}`} style={{ width: width * fit * zoom, maxWidth: "none" }} /> : <span role="status">Vorschau wird vorbereitet …</span>}</div>;
 }

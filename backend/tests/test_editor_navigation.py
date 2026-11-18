@@ -328,8 +328,8 @@ def test_plan_delivery_downloads_manifest_and_records_only_explicitly_confirmed_
     project = page.request.post(prefix + "/projects", headers={"X-Edeco-Projects": state["session_key"]}, data={"number": "1498", "name": "Planlieferung Test"}).json()
     page.get_by_role("button", name="Zum Toolhub", exact=True).click()
     page.get_by_role("button", name="Werkzeuge", exact=True).click()
-    menu = page.get_by_role("dialog", name="Werkzeug wechseln", exact=True)
-    menu.get_by_role("searchbox", name="Werkzeug suchen", exact=True).fill("Planlieferungs-Assistent")
+    menu = page.get_by_role("dialog", name="Im Toolhub finden", exact=True)
+    menu.get_by_role("searchbox", name="Werkzeuge, Projekte, Memory und Befehle suchen", exact=True).fill("Planlieferungs-Assistent")
     menu.get_by_role("button", name="Planlieferungs-Assistent", exact=True).click()
     playwright.expect(page.get_by_label("Lieferprojekt", exact=True)).to_have_value(project["id"])
     page.get_by_label("Lieferempfänger", exact=True).fill("Bauleitung Test")
@@ -777,6 +777,10 @@ def test_file_rename_template_detects_floors_blocks_duplicates_and_downloads_ori
     page, _, _, _ = editor
     page.get_by_role("button", name="Zum Toolhub", exact=True).click()
     page.get_by_role("button", name="Dateien umbenennen öffnen", exact=True).click()
+    # First setup exposes the missing project number; configured templates are
+    # collapsed on return so the file table remains the main working area.
+    template = page.locator(".rename-naming")
+    playwright.expect(template).to_have_attribute("open", "")
     page.get_by_role("textbox", name="Projektnummer", exact=True).fill("1498")
     page.get_by_label("PDFs hinzufügen", exact=True).set_input_files([
         {"name": "Grundriss 2og.pdf", "mimeType": "application/pdf", "buffer": sample_pdf([["2. Obergeschoss"]])},
@@ -787,8 +791,10 @@ def test_file_rename_template_detects_floors_blocks_duplicates_and_downloads_ori
     playwright.expect(first).to_have_value("1498_E-G-APP-OG02-C-50.pdf")
     playwright.expect(second).to_have_value("1498_E-G-APP-EG00-C-50.pdf")
     download = page.get_by_role("button", name="Benannte Kopien als ZIP herunterladen")
+    top_download = page.get_by_role("button", name="Kopien als ZIP", exact=True)
     page.get_by_label("Geschoss verwenden", exact=True).uncheck()
     playwright.expect(download).to_be_disabled()
+    playwright.expect(top_download).to_be_disabled()
     playwright.expect(page.get_by_text("Namenskonflikt: bitte eindeutig benennen.", exact=True)).to_have_count(2)
     page.get_by_label("Geschoss verwenden", exact=True).check()
     page.get_by_label("Index verwenden", exact=True).uncheck()
@@ -808,6 +814,8 @@ def test_file_rename_template_detects_floors_blocks_duplicates_and_downloads_ori
         assert archive.read(archive.namelist()[0]) == sample_pdf([["2. Obergeschoss"]])
     page.get_by_role("button", name="Zum Toolhub", exact=True).click()
     page.get_by_role("button", name="Dateien umbenennen öffnen", exact=True).click()
+    playwright.expect(template).not_to_have_attribute("open", "")
+    template.locator(":scope > summary").click()
     playwright.expect(page.get_by_role("textbox", name="Projektnummer", exact=True)).to_have_value("1498")
     playwright.expect(page.get_by_role("button", name="PDFs hinzufügen", exact=True)).to_be_enabled()
     page.get_by_label("PDFs hinzufügen", exact=True).set_input_files({

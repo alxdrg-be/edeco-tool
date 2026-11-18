@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { FormEvent, ReactNode } from 'react';
-import { ArrowLeft, Box, Cable, CircleAlert, Cpu, Database, Download, FileUp, Info, LoaderCircle, Maximize2, Plus, Redo2, Rows3, Save, Search, ShieldCheck, SquareDashed, ToggleLeft, Undo2, X, Zap } from 'lucide-react';
+import { ArrowLeft, Box, Cable, CircleAlert, Cpu, Database, Download, FileUp, Info, LoaderCircle, Maximize2, PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen, Plus, Redo2, Rows3, Save, Search, ShieldCheck, SquareDashed, ToggleLeft, Undo2, X, Zap } from 'lucide-react';
 import type { ToolProps } from '../../toolbox/modules.ts';
 import ToolHeader from '../../toolbox/ToolHeader.tsx';
 import { stageToolHandoff } from '../../toolbox/toolHandoff.ts';
@@ -35,7 +35,9 @@ export default function VerteilerDispo({ onHome, onOpenTool }: ToolProps) {
   const [initial] = useState(readInitialDraft), [catalog, setCatalog] = useState<Catalog | null>(null);
   const [history, setHistory] = useState<History | null>(null), [loaded, setLoaded] = useState(false);
   const document = history?.present ?? null, current = useRef<DistributionDocument | null>(null); current.current = document;
-  const [view, setView] = useState<CabinetView>('front'), [svg, setSvg] = useState(''), [analysis, setAnalysis] = useState<Analysis | null>(null);
+  const [view, setView] = useState<CabinetView | 'both'>('front'), [previews, setPreviews] = useState<Partial<Record<CabinetView, string>>>({}), [analysis, setAnalysis] = useState<Analysis | null>(null);
+  const [libraryVisible, setLibraryVisible] = useState(true), [inspectorVisible, setInspectorVisible] = useState(true);
+  const searchInput = useRef<HTMLInputElement>(null);
   const [selected, setSelected] = useState<string[]>([]), [focusId, setFocusId] = useState<string | null>(null), [focusField, setFocusField] = useState('');
   const [focusTarget, setFocusTarget] = useState<string | null>(null);
   const [tab, setTab] = useState<'properties' | 'checks'>('properties'), [search, setSearch] = useState(''), [dragProfile, setDragProfile] = useState<string | null>(null);
@@ -82,7 +84,7 @@ export default function VerteilerDispo({ onHome, onOpenTool }: ToolProps) {
   }
   function setCurrent(next: DistributionDocument, revision: number, key: string) {
     baseRevision.current = revision; savedKey.current = key; saveError.current = false;
-    current.current = next; setHistory(initialHistory(next)); setSelected([]); setFocusId(null); setAnalysis(null); setSvg(''); setPdf(null); setError('');
+    current.current = next; setHistory(initialHistory(next)); setSelected([]); setFocusId(null); setAnalysis(null); setPreviews({}); setPdf(null); setError('');
     setSaveStatus(revision ? `Gespeichert · Revision ${revision}` : 'Neuer Entwurf');
   }
   async function saveCurrent(): Promise<boolean> {
@@ -123,12 +125,25 @@ export default function VerteilerDispo({ onHome, onOpenTool }: ToolProps) {
     if (!document) return;
     const id = ++sequence.current, controller = new AbortController(); setRendering(true);
     const timer = window.setTimeout(() => {
-      void Promise.all([analyzeDocument(document, controller.signal), previewDocument(document, view, controller.signal)]).then(([nextAnalysis, preview]) => {
-        if (sequence.current === id) { setAnalysis(nextAnalysis); setSvg(preview.svg); }
+      const views: CabinetView[] = view === 'both' ? ['front', 'internal'] : [view];
+      void Promise.all([analyzeDocument(document, controller.signal), Promise.all(views.map(async mode => [mode, (await previewDocument(document, mode, controller.signal)).svg] as const))]).then(([nextAnalysis, drawings]) => {
+        if (sequence.current === id) { setAnalysis(nextAnalysis); setPreviews(Object.fromEntries(drawings)); }
       }).catch(caught => { if (!controller.signal.aborted && sequence.current === id) setError(message(caught)); }).finally(() => { if (sequence.current === id) setRendering(false); });
     }, 180);
     return () => { window.clearTimeout(timer); controller.abort(); };
   }, [document, view]);
+  useEffect(() => {
+    const find = (event: KeyboardEvent) => {
+      if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== 'f' || event.altKey || dialog || custom || libraryOpen) return;
+      const modalOpen = Array.from(window.document.querySelectorAll<HTMLElement>('[aria-modal="true"], dialog[open]'))
+        .some(element => element.getClientRects().length > 0 && window.getComputedStyle(element).visibility !== 'hidden');
+      if (modalOpen) return;
+      event.preventDefault(); setLibraryVisible(true);
+      window.requestAnimationFrame(() => { searchInput.current?.focus(); searchInput.current?.select(); });
+    };
+    window.addEventListener('keydown', find);
+    return () => window.removeEventListener('keydown', find);
+  }, [dialog, custom, libraryOpen]);
   useEffect(() => {
     const warn = (event: BeforeUnloadEvent) => {
       if (current.current && (storageError || draftBlocked || contentKey(current.current) !== savedKey.current)) { event.preventDefault(); event.returnValue = ''; }
@@ -152,7 +167,7 @@ export default function VerteilerDispo({ onHome, onOpenTool }: ToolProps) {
     try {
       const snapshot = withProfileSnapshot(document, profile, catalog?.sources ?? []), base = snapshot.document;
       const placement = newPlacement(base, snapshot.profile, crypto.randomUUID(), x, y);
-      commit({ ...base, cabinet: { ...base.cabinet, placements: [...base.cabinet.placements, placement] } }); setSelected([placement.id]); setTab('properties');
+      commit({ ...base, cabinet: { ...base.cabinet, placements: [...base.cabinet.placements, placement] } }); setSelected([placement.id]); setTab('properties'); setInspectorVisible(true);
     } catch (caught) { setError(message(caught)); }
   }
   function move(ids: string[], dx: number, dy: number) {
@@ -184,8 +199,8 @@ export default function VerteilerDispo({ onHome, onOpenTool }: ToolProps) {
   }
   function visitIssue(issue: Issue) {
     const placement = document?.cabinet.placements.find(p => p.id === issue.target_id);
-    setSelected(placement ? [placement.id] : []); setFocusTarget(issue.target_id); setFocusId(placement?.id ?? null); setFocusField(`${issue.field}#${Date.now()}`); setTab('properties');
-    if (placement) setView('internal');
+    setSelected(placement ? [placement.id] : []); setFocusTarget(issue.target_id); setFocusId(placement?.id ?? null); setFocusField(`${issue.field}#${Date.now()}`); setTab('properties'); setInspectorVisible(true);
+    if (placement && view !== 'both') setView('internal');
     if (issue.field === 'vnb_id' || issue.field === 'cabinet.vnb_id') window.document.querySelector<HTMLSelectElement>('select[aria-label="Netzbetreiber"]')?.focus();
   }
   async function newDocument() {
@@ -243,7 +258,7 @@ export default function VerteilerDispo({ onHome, onOpenTool }: ToolProps) {
     <ToolHeader title="Verteiler-Dispo" currentToolId="verteiler-dispo" onHome={() => void leave(onHome)} onOpenTool={id => void leave(() => onOpenTool?.(id))} disabled={Boolean(busy)} />
     <input ref={input} type="file" accept=".json,application/json" aria-label="Verteiler-JSON importieren" hidden onChange={event => { const file = event.target.files?.[0]; event.target.value = ''; if (file) void importFile(file); }} />
     <main className="vd-main">
-      <header className="vd-toolbar"><div><span className="vd-eyebrow">ELEKTROPLANUNG</span><h1>Verteiler-Dispo</h1><p>{document?.name ?? 'Lokalen Plan laden'}{document ? ` · ${document.cabinet.kind} · ${document.cabinet.width_mm} × ${document.cabinet.height_mm} × ${document.cabinet.depth_mm} mm` : ''}</p></div>
+      <header className="vd-toolbar"><div className="vd-document-heading"><h1>Verteiler-Dispo</h1><p>{document?.name ?? 'Lokalen Plan laden'}{document ? ` · ${document.cabinet.kind} · ${document.cabinet.width_mm} × ${document.cabinet.height_mm} × ${document.cabinet.depth_mm} mm` : ''}</p><span role="status" className={`vd-save-status ${saveStatus.startsWith('Nicht') ? 'vd-error' : ''}`}>{saveStatus}</span></div>
         <div className="vd-actions"><button className="btn" type="button" disabled={!loaded || Boolean(busy)} onClick={() => setDialog('new')}><Plus size={16} /> Neu</button>
           <button className="btn" type="button" disabled={!document || Boolean(busy)} onClick={() => setLibraryOpen(true)}><Database size={16} /> Firmenvorlagen</button>
           <button className="btn" type="button" disabled={!loaded || Boolean(busy)} onClick={() => { setDialog('open'); void listDocuments().then(setSavedDocuments).catch(e => setError(message(e))); }}>Öffnen</button>
@@ -258,28 +273,28 @@ export default function VerteilerDispo({ onHome, onOpenTool }: ToolProps) {
       {notice && <div className="vd-banner vd-banner-notice" role="status"><span>{notice}</span><button type="button" aria-label="Mitteilung schliessen" onClick={() => setNotice('')}><X size={19} /></button></div>}
       {busy && <div className="vd-busy" role="status"><LoaderCircle size={17} className="vd-spin" /> {busy}</div>}
       {!document || !catalog ? <div className="vd-loading"><LoaderCircle className="vd-spin" size={26} /><p>{error ? 'Die Verteiler-Dispo konnte nicht vollständig geladen werden.' : 'Vorlagen und lokalen Entwurf laden …'}</p></div> : <>
-        <section className="vd-viewbar"><div className="vd-segment" role="group" aria-label="Darstellung"><button type="button" aria-pressed={view === 'front'} onClick={() => setView('front')}>Mit Abdeckungen</button><button type="button" aria-pressed={view === 'internal'} onClick={() => setView('internal')}>Einbauansicht</button></div>
+        <section className="vd-viewbar"><div className="vd-segment" role="group" aria-label="Darstellung"><button type="button" aria-pressed={view === 'front'} onClick={() => setView('front')}>Mit Abdeckungen</button><button type="button" aria-pressed={view === 'internal'} onClick={() => setView('internal')}>Einbauansicht</button><button type="button" aria-pressed={view === 'both'} onClick={() => setView('both')}>Beide</button></div>
           <label>Netzbetreiber <select aria-label="Netzbetreiber" data-field="vnb_id" value={document.vnb_id} onChange={event => adoptVnb(event.target.value)}><option value="none">Ohne VNB-Zuordnung</option>{catalog.vnb_profiles.map(v => <option key={v.id} value={v.id}>{v.name} · {v.edition}</option>)}</select></label>
           <button className="btn vd-project" type="button" disabled={!active} onClick={() => { if (active) { commit({ ...document, project_id: active.id, project_number: active.number, project_name: active.name }); setNotice('Aktives Projekt ausdrücklich übernommen.'); } }} title={active ? `${active.number} · ${active.name}` : 'Kein aktives Projekt ausgewählt'}>{active ? `Projekt ${active.number} übernehmen` : 'Kein aktives Projekt'}</button>
-          <button className="btn vd-expand" type="button" aria-pressed={expanded} onClick={() => setExpanded(!expanded)}><Maximize2 size={16} />{expanded ? 'Normalansicht' : 'Arbeitsfläche gross'}</button>
+          <div className="vd-panel-actions"><button className="btn" type="button" aria-expanded={libraryVisible} aria-controls="vd-library" title={libraryVisible ? 'Bauteile ausblenden' : 'Bauteile einblenden'} onClick={() => setLibraryVisible(!libraryVisible)}>{libraryVisible ? <PanelLeftClose size={16} /> : <PanelLeftOpen size={16} />} Bauteile</button><button className="btn" type="button" aria-expanded={inspectorVisible} aria-controls="vd-properties" title={inspectorVisible ? 'Details ausblenden' : 'Details einblenden'} onClick={() => setInspectorVisible(!inspectorVisible)}>{inspectorVisible ? <PanelRightClose size={16} /> : <PanelRightOpen size={16} />} Details</button><button className="btn vd-expand" type="button" aria-pressed={expanded} onClick={() => setExpanded(!expanded)}><Maximize2 size={16} />{expanded ? 'Normalansicht' : 'Arbeitsfläche gross'}</button></div>
         </section>
-        <div className="vd-workspace"><aside className="vd-library" aria-label="Bauteilbibliothek"><header><h2>Bauteile</h2><button className="btn" type="button" aria-label="Freies Bauteil anlegen" onClick={() => setCustom(true)}><Plus size={17} /></button></header>
-          <label className="vd-search"><Search size={15} /><input placeholder="Artikel oder Bauteil suchen …" aria-label="Bauteil suchen" value={search} onChange={event => setSearch(event.target.value)} /></label>
+        <div className={`vd-workspace ${!libraryVisible ? 'vd-library-hidden' : ''} ${!inspectorVisible ? 'vd-inspector-hidden' : ''}`}><aside id="vd-library" className="vd-library" aria-label="Bauteilbibliothek" hidden={!libraryVisible}><header><h2>Bauteile</h2><button className="btn" type="button" aria-label="Freies Bauteil anlegen" onClick={() => setCustom(true)}><Plus size={17} /></button></header>
+          <label className="vd-search"><Search size={15} /><input ref={searchInput} placeholder="Artikel oder Bauteil suchen …" aria-label="Bauteil suchen" aria-keyshortcuts="Control+f Meta+f" value={search} onChange={event => setSearch(event.target.value)} /><kbd>Ctrl+F</kbd></label>
           <div className="vd-library-list">{(Object.keys(KIND_LABELS) as DeviceKind[]).map(kind => {
             const entries = profiles.filter(p => p.kind === kind), PartIcon = KIND_ICONS[kind]; return entries.length ? <section key={kind}><h3>{KIND_LABELS[kind]}</h3>{entries.map(profile => <button type="button" className="vd-library-part" key={profile.id} aria-label={`${profile.name} hinzufügen`} draggable disabled={Boolean(busy)} onDragStart={event => { setDragProfile(profile.id); event.dataTransfer.setData(DRAG_TYPE, profile.id); event.dataTransfer.setData('text/plain', profile.id); event.dataTransfer.effectAllowed = 'copy'; }} onDragEnd={() => setDragProfile(null)} onClick={() => add(profile.id)}>
               <span className={`vd-device-icon vd-kind-${profile.kind}`} aria-hidden="true"><PartIcon size={17} /></span><span><strong>{profile.name}</strong><small>{profile.manufacturer}{profile.article ? ` · ${profile.article}` : ''}</small><small>{profile.te !== null ? `${profile.te} TE · ` : ''}{profile.width_mm} × {profile.height_mm} mm{profile.geometry_status === 'generic' ? ' · eigene Geometrie' : ''}</small></span><Plus size={13} /></button>)}</section> : null;
           })}{!profiles.length && <p className="vd-muted">Keine Bauteile zur Suche.</p>}</div>
           <details className="vd-library-help"><summary><Info size={14} /> Bedienung</summary><p>Klicken oder in den Plan ziehen. Pfeiltasten verschieben; oben/unten wählt die benachbarte Schiene. Strg+D kopiert. Herstellerdaten und Nachweise im Prüfbericht prüfen.</p></details>
         </aside>
-          <section className="vd-drawing"><div className="vd-drawing-heading"><strong>{view === 'front' ? 'Frontansicht · mit Abdeckungen' : 'Einbauansicht · ohne Abdeckungen'}</strong><small>{document.cabinet.placements.filter(p => p.status !== 'removed').length} Apparate · CAD in mm</small></div>
-            <VerteilerCanvas document={document} availableProfiles={profiles} svg={svg} selected={selected} issues={analysis?.issues ?? []} focusId={focusId} focusToken={focusField} dragProfile={dragProfile} busy={Boolean(busy)} onSelect={select} onPlace={add} onMove={move} onDelete={remove} onCopy={copy} />
+          <section className="vd-drawing" aria-label="Verteileransichten"><div className="vd-drawing-heading"><strong>{document.name}</strong><small>{document.cabinet.placements.filter(p => p.status !== 'removed').length} Apparate · {rendering ? 'Ansichten aktualisieren …' : 'CAD in mm'}</small></div>
+            <div className={`vd-canvases ${view === 'both' ? 'vd-canvases-both' : ''}`}>{(view === 'both' ? ['front', 'internal'] as const : [view]).map(mode => <section className="vd-view-panel" key={mode} aria-label={mode === 'front' ? 'Front mit Abdeckungen' : 'Einbau ohne Abdeckungen'}><h2>{mode === 'front' ? 'Front · mit Abdeckungen' : 'Einbau · ohne Abdeckungen'}</h2><VerteilerCanvas document={document} availableProfiles={profiles} svg={previews[mode] ?? ''} selected={selected} issues={analysis?.issues ?? []} focusId={focusId} focusToken={focusField} dragProfile={dragProfile} busy={Boolean(busy) || rendering} viewLabel={mode === 'front' ? 'Front' : 'Einbau'} onSelect={select} onPlace={add} onMove={move} onDelete={remove} onCopy={copy} /></section>)}</div>
             <div className="vd-object-select"><label>Bauteil auswählen<select aria-label="Platziertes Bauteil auswählen" value={selected[0] ?? ''} onChange={event => { setSelected(event.target.value ? [event.target.value] : []); setTab('properties'); }}><option value="">Plan und Gehäuse</option>{document.cabinet.placements.map(p => <option key={p.id} value={p.id}>{p.label}{p.status === 'removed' ? ' · entfallen' : ''}</option>)}</select></label><button className="btn" type="button" disabled={!selected.length} onClick={() => setSelected([])}><ArrowLeft size={14} /> Gehäuse</button></div>
           </section>
-          <aside className="vd-properties" aria-label="Eigenschaften und Prüfbericht"><nav className="vd-tabs"><button type="button" aria-pressed={tab === 'properties'} onClick={() => setTab('properties')}>Eigenschaften</button><button type="button" aria-pressed={tab === 'checks'} onClick={() => setTab('checks')}>Prüfbericht <span>{analysis?.issues.length ?? '…'}</span></button></nav>
+          <aside id="vd-properties" className="vd-properties" aria-label="Eigenschaften und Prüfbericht" hidden={!inspectorVisible}><nav className="vd-tabs"><button type="button" aria-pressed={tab === 'properties'} onClick={() => setTab('properties')}>Details</button><button type="button" aria-pressed={tab === 'checks'} onClick={() => setTab('checks')}>Prüfbericht <span>{analysis?.issues.length ?? '…'}</span></button></nav>
             {tab === 'properties' ? <fieldset className="vd-inspector-lock" disabled={Boolean(busy)}><VerteilerInspector document={document} selectedId={selected[0] ?? null} focusField={focusField} focusTarget={focusTarget} commit={commit} updatePlacement={updatePlacement} updateProfile={updateProfile} onCopy={copy} onDelete={remove} /></fieldset> : <VerteilerChecks analysis={analysis} sources={document.sources} selectedId={selected[0] ?? null} onVisit={visitIssue} />}
           </aside>
         </div>
-        <footer className="vd-status"><span role="status" className={saveStatus.startsWith('Nicht') ? 'vd-error' : ''}>{saveStatus}</span><span>{rendering ? 'Prüfung aktualisiert …' : `${errors} Konflikte · ${open} Nachweise/Hinweise`}</span><span>{analysis ? `${analysis.occupied_te.toLocaleString('de-CH')} TE belegt · ${analysis.free_te.toLocaleString('de-CH')} TE frei` : ''}</span><span>{analysis ? `${analysis.known_loss_w.toLocaleString('de-CH')} W bekannte Verluste${analysis.missing_loss_count ? ` · ${analysis.missing_loss_count} Angaben offen` : ''}` : ''}</span></footer>
+        <footer className="vd-status"><span>{rendering ? 'Prüfung aktualisiert …' : `${errors} Konflikte · ${open} Nachweise/Hinweise`}</span><span>{analysis ? `${analysis.occupied_te.toLocaleString('de-CH')} TE belegt · ${analysis.free_te.toLocaleString('de-CH')} TE frei` : ''}</span><span>{analysis ? `${analysis.known_loss_w.toLocaleString('de-CH')} W bekannte Verluste${analysis.missing_loss_count ? ` · ${analysis.missing_loss_count} Angaben offen` : ''}` : ''}</span></footer>
       </>}
     </main>
     {libraryOpen && document && <LibrarySettings document={document} onClose={() => setLibraryOpen(false)} onChanged={async () => { setCatalog(await getCatalog()); setNotice('Firmenbibliothek aktualisiert. Der offene Verteiler behält seinen bisherigen Vorlagenstand.'); }} />}

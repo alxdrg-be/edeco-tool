@@ -61,7 +61,10 @@ def test_network_flow_requires_valid_nonzero_branch_current(editor):
     page.get_by_role("button", name="Netzplaner (Beta) öffnen", exact=True).click()
     playwright.expect(page.get_by_label("Name des Netzplans", exact=True)).to_be_enabled()
     playwright.expect(page.locator(".np-edge .lab-current-flow")).to_have_count(3)
-    page.locator('[data-edge-id="line-3"] .np-edge-hit').click(force=True)
+    # Fit the full network before pointer selection in the narrower V10 workspace.
+    # A forced click on a clipped SVG path can hit the inspector instead.
+    page.get_by_role("button", name="Netzplan vollständig einpassen", exact=True).click()
+    page.locator('[data-edge-id="line-3"] .np-edge-label').click()
     length = page.locator('[data-network-field="length"]')
     length.fill("")
     playwright.expect(page.locator(".np-edge .lab-current-flow")).to_have_count(0)

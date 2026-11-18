@@ -47,7 +47,7 @@ export function DemoBadge() {
   return policy?.demo_enabled ? <span className="toolhub-demo-badge" title="Die Präsentationsauswahl wird in den Toolhub-Einstellungen verwaltet.">Demo-Modus</span> : null;
 }
 
-function SettingsDialog({ onClose, onSaved }: { onClose: () => void; onSaved?: () => void }) {
+export function ToolhubSettingsDialog({ onClose, onSaved }: { onClose: () => void; onSaved?: () => void }) {
   const { policy, save } = usePresentation();
   const [demo, setDemo] = useState(policy?.demo_enabled ?? false);
   const [tools, setTools] = useState(policy?.demo_tools ?? DEFAULT_DEMO_TOOLS);
@@ -111,5 +111,5 @@ export default function PresentationSettings({ onSaved }: { onSaved?: () => void
   return <>{policy?.demo_enabled && policy.can_manage && <button className="btn" disabled={busy} onClick={() => void endDemo()}>{busy ? "Demo wird beendet …" : "Demo beenden"}</button>}
     <button className="btn toolhub-settings-button" aria-label="Toolhub-Einstellungen" title="Toolhub-Einstellungen" disabled={!policy} onClick={() => setOpen(true)}><Settings size={16} /><span>Einstellungen</span></button>
     {error && <small role="alert">{error}</small>}
-    {open && <SettingsDialog onClose={() => setOpen(false)} onSaved={onSaved} />}</>;
+    {open && <ToolhubSettingsDialog onClose={() => setOpen(false)} onSaved={onSaved} />}</>;
 }

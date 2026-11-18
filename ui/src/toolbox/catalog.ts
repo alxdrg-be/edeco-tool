@@ -25,7 +25,7 @@ const TOOL_CATALOG: readonly ToolInfo[] = [
     description: "Pläne importieren, Symbole zuordnen und elektrische Legenden erstellen.", status: "available", developmentStatus: "in-progress" },
   { id: "rack-dispo", title: "Rack-Dispo", category: "Elektroplanung", symbol: "HE", color: "steel",
     description: "19-Zoll-Racks mit HE-Raster planen, Geräte einrasten, Tiefen prüfen und Portlisten sowie Ansichten exportieren.", status: "available", developmentStatus: "in-progress" },
-  { id: "verteiler-dispo", title: "Verteiler-Dispo", category: "Elektroplanung", symbol: "UV", color: "coral",
+  { id: "verteiler-dispo", title: "Verteiler-Dispo", category: "Elektroplanung", symbol: "UV", color: "olive",
     description: "UV und HV in Millimetern bestücken, Front und Einbau prüfen und mit dokumentierten Hersteller- und VNB-Quellen exportieren.", status: "available", developmentStatus: "in-progress" },
   { id: "bim2steiger", title: "BIM2STEIGER", category: "BIM", symbol: "B2S", color: "blue",
     description: "Steiger-Katalog durchsuchen, BIM-Objekte zuordnen und Ausschreibungen erstellen.", status: "available", developmentStatus: "in-progress" },

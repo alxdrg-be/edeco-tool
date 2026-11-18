@@ -21,6 +21,7 @@ export default function PdfTask({ tool, sessionKey, incomingFiles, onDirty, onWo
   const [orientation, setOrientation] = useState("PORTRAIT");
   const [scale, setScale] = useState("100");
   const [zoom, setZoom] = useState(1);
+  const [fitMode, setFitMode] = useState<"page" | "width">("page");
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
   const [result, setResult] = useState<Result | null>(null);
@@ -66,7 +67,7 @@ export default function PdfTask({ tool, sessionKey, incomingFiles, onDirty, onWo
         if (!response.ok) throw new Error(typeof value.detail === "string" ? value.detail : "Das PDF konnte nicht geöffnet werden.");
         nextPreview = value as Preview;
       }
-      clearResult(); setPreview(nextPreview); setPageIndex(0); showImage(imageTool ? next[0] : undefined);
+      clearResult(); setPreview(nextPreview); setPageIndex(0); setZoom(1); setFitMode("page"); showImage(imageTool ? next[0] : undefined);
       setFiles(next); setPages("all"); setCutsText(""); setEach(true); onDirty();
     } catch (e) { setError((e as Error).message); }
     finally { setBusy(""); if (picker.current) picker.current.value = ""; }
@@ -76,7 +77,7 @@ export default function PdfTask({ tool, sessionKey, incomingFiles, onDirty, onWo
   function closeDocument() {
     if (busy) return;
     setFiles([]); setPreview(null); setPageIndex(0); setPages("all"); setCutsText(""); setEach(true);
-    setZoom(1); setError(""); clearResult(); showImage(); incoming.current = null;
+    setZoom(1); setFitMode("page"); setError(""); clearResult(); showImage(); incoming.current = null;
   }
   function moveImage(index: number, direction: number) {
     const next = [...files]; [next[index], next[index + direction]] = [next[index + direction], next[index]];
@@ -120,8 +121,8 @@ export default function PdfTask({ tool, sessionKey, incomingFiles, onDirty, onWo
       <input ref={picker} type="file" hidden multiple={imageTool} accept={imageTool ? "image/png,image/jpeg,.png,.jpg,.jpeg" : "application/pdf,.pdf"} aria-label={imageTool ? "Bilder hinzufügen" : "PDF hinzufügen"} onChange={event => void choose([...event.target.files || []])} />
       <div className="pdf-panel-heading"><strong>{files.length ? files.map(file => file.name).join(", ") : imageTool ? "Deine Bilder" : "Dein PDF"}</strong><button className="btn" disabled={Boolean(busy)} onClick={() => picker.current?.click()}><Upload size={15} />{files.length ? "Datei wechseln" : "Datei öffnen"}</button>{files.length > 0 && <button className="btn pdf-clear-button" aria-label="Dokument schliessen" disabled={Boolean(busy)} onClick={closeDocument}><X size={19} /></button>}</div>
       {!files.length && !busy && <div className="pdf-empty-drop"><h2>{imageTool ? "Bilder hier ablegen" : "PDF hier ablegen"}</h2><button className="btn primary" onClick={() => picker.current?.click()}>Dateien auswählen</button></div>}
-      {first && tool !== "split" && <><div className="pdf-preview-controls"><button className="btn" aria-label="Vorschau verkleinern" onClick={() => setZoom(value => Math.max(.5, value / 1.2))}><Minus size={15} /></button><span>{Math.round(zoom * 100)}%</span><button className="btn" aria-label="Vorschau vergrössern" onClick={() => setZoom(value => Math.min(4, value * 1.2))}><Plus size={15} /></button><button className="btn" onClick={() => setZoom(1)}>Ganze Seite</button></div>
-        <NativePdfPreview file={files[0]} page={first.number} thumbnail={first.thumbnail} sessionKey={sessionKey} zoom={zoom} width={first.width} height={first.height} onZoom={setZoom} /></>}
+      {first && tool !== "split" && <><div className="pdf-preview-controls" aria-label="PDF-Ansichtszoom"><button className="btn" aria-label="Vorschau verkleinern" onClick={() => setZoom(value => Math.max(.5, value / 1.2))}><Minus size={15} /></button><span title="Vergrösserung gegenüber der eingepassten Ansicht">{Math.round(zoom * 100)}%</span><button className="btn" aria-label="Vorschau vergrössern" onClick={() => setZoom(value => Math.min(4, value * 1.2))}><Plus size={15} /></button><button className="btn" aria-pressed={fitMode === "width" && zoom === 1} onClick={() => { setFitMode("width"); setZoom(1); }}>Breite</button><button className="btn" aria-pressed={fitMode === "page" && zoom === 1} onClick={() => { setFitMode("page"); setZoom(1); }}>Ganzes Blatt</button></div>
+        <NativePdfPreview file={files[0]} page={first.number} thumbnail={first.thumbnail} sessionKey={sessionKey} zoom={zoom} width={first.width} height={first.height} onZoom={setZoom} fitMode={fitMode} /></>}
       {imagePreview && <><div className="pdf-native-preview"><img src={imagePreview} alt="Bildvorschau" /></div><ol className="pdf-image-order">{files.map((file, index) => <li key={`${file.name}-${index}`}><span>{file.name}</span><button className="btn" aria-label={`${file.name}: Nach oben`} disabled={!index || Boolean(busy)} onClick={() => moveImage(index, -1)}>↑</button><button className="btn" aria-label={`${file.name}: Nach unten`} disabled={index === files.length - 1 || Boolean(busy)} onClick={() => moveImage(index, 1)}>↓</button></li>)}</ol></>}
       {preview && <div className="pdf-visual-pages" aria-label={tool === "split" ? "Trennstellen wählen" : "Seitenvorschauen"}>{preview.pages.map(page => <div className="pdf-visual-page" key={page.number}>
         <button className={`pdf-mini-page${pageIndex === page.number - 1 ? " is-current" : ""}`} aria-label={`Seite ${page.number} ansehen`} aria-pressed={pageIndex === page.number - 1} onClick={() => setPageIndex(page.number - 1)}><img src={page.thumbnail} alt="" /><span>Seite {page.number}</span>{tool === "split" && <small>PDF {(cuts || []).filter(cut => cut < page.number).length + 1}</small>}</button>

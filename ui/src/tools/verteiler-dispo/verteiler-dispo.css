@@ -49,9 +49,9 @@
 .vd-server-svg>svg { display: block; width: 100%; height: 100%; }
 .vd-server-svg [data-placement-id] { cursor: move; }
 .vd-canvas-overlay { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
-.vd-selected-rect { fill: transparent; stroke: #00879a; stroke-width: 2.5px; }
+.vd-selected-rect { fill: transparent; stroke: var(--accent); stroke-width: 2.5px; }
 .vd-error-rect { fill: transparent; stroke: #cc344a; stroke-width: 2.5px; }
-.vd-ghost-rect { fill: #00a5ba26; stroke: #00869c; stroke-width: 2px; stroke-dasharray: 6 4; }
+.vd-ghost-rect { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 2px; stroke-dasharray: 6 4; }
 .vd-hand,.vd-hand [data-placement-id] { cursor: grab; }
 .vd-canvas-controls { position: absolute; bottom: 10px; left: 10px; z-index: 3; display: flex; align-items: center; gap: 3px; padding: 4px; border: 1px solid var(--line-strong); background: var(--panel); border-radius: 9px; box-shadow: var(--shadow); }
 .vd-canvas-controls button { display: flex; align-items: center; gap: 5px; padding: 6px; border: 0; background: transparent; color: var(--fg); border-radius: 5px; font-size: 10px; }
@@ -146,3 +146,51 @@
 @media (max-width:980px) { .vd-workspace,.vd-expanded .vd-workspace { grid-template-columns: 155px minmax(300px,1fr); height: auto; }.vd-properties { grid-column: 1/-1; max-height: 450px; }.vd-drawing { min-height: 650px; }.vd-library { max-height: 650px; }.vd-inspector-content { column-count: 2; column-gap: 25px; }.vd-inspector-content>* { break-inside: avoid; }.vd-toolbar { flex-direction: column; align-items: stretch; }.vd-actions { justify-content: start; max-width: none; }.vd-drawing-heading small { display: none; } }
 @media (max-width:640px) { .vd-main { padding: 12px 8px; }.vd-workspace,.vd-expanded .vd-workspace { display: flex; flex-direction: column; }.vd-library { max-height: 200px; }.vd-library-list { display: flex; gap: 12px; }.vd-library-list section { min-width: 190px; }.vd-library-help { display: none; }.vd-drawing { min-height: 560px; }.vd-inspector-content { column-count: 1; }.vd-viewbar>label { width: 100%; }.vd-viewbar select { max-width: 100%; flex: 1; }.vd-viewbar .vd-expand { margin-left: 0; }.vd-actions { gap: 5px; }.vd-actions .btn { padding: 6px 8px; font-size: 11px; }.vd-export-grid { grid-template-columns: 1fr; }.vd-canvas-controls { gap: 0; left: 5px; }.vd-canvas-controls button { padding: 5px; }.vd-canvas-controls span { min-width: 30px; } }
 @media (prefers-reduced-motion:reduce) { .vd-spin { animation: none; } }
+
+/* Compact workspace. CAD colours continue to come from the document. */
+.vd-main { padding: 14px 18px 8px; }
+.vd-toolbar { gap: 14px; margin-bottom: 12px; }
+.vd-document-heading { min-width: 0; }
+.vd-toolbar h1 { font-size: 18px; line-height: 1.3; letter-spacing: -.02em; margin: 0; }
+.vd-toolbar p { margin: 4px 0; overflow-wrap: anywhere; }
+.vd-save-status { color: var(--muted); font-size: 11px; }
+.vd-save-status.vd-error { color: var(--danger); }
+.vd-panel-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-left: auto; }
+.vd-workspace { --vd-library-width: 200px; --vd-inspector-width: 280px; grid-template-columns: var(--vd-library-width) minmax(300px,1fr) var(--vd-inspector-width); height: max(540px,calc(100dvh - 240px)); }
+.vd-workspace.vd-library-hidden { grid-template-columns: minmax(300px,1fr) var(--vd-inspector-width); }
+.vd-workspace.vd-inspector-hidden { grid-template-columns: var(--vd-library-width) minmax(300px,1fr); }
+.vd-workspace.vd-library-hidden.vd-inspector-hidden { grid-template-columns: minmax(300px,1fr); }
+.vd-library[hidden],.vd-properties[hidden] { display: none; }
+.vd-search kbd { flex-shrink: 0; color: var(--muted); font-size: 9px; }
+.vd-canvases { display: grid; grid-template-columns: minmax(0,1fr); flex: 1; min-height: 0; overflow: auto; }
+.vd-canvases-both { grid-template-columns: repeat(2,minmax(0,1fr)); }
+.vd-view-panel { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.vd-view-panel + .vd-view-panel { border-left: 1px solid var(--line-strong); }
+.vd-view-panel>h2 { margin: 0; padding: 9px 12px; font-size: 11px; font-weight: 600; border-bottom: 1px solid var(--line); color: var(--muted); }
+.vd-canvas-controls { flex-wrap: wrap; max-width: calc(100% - 20px); }
+.vd-canvases-both .vd-canvas-controls { gap: 1px; }
+.vd-canvases-both .vd-canvas-controls button { padding: 5px; }
+.vd-expanded .vd-workspace { height: max(540px,calc(100dvh - 220px)); }
+.vd-expanded .vd-toolbar p { display: block; }
+@media (max-width:1200px) {
+  .vd-workspace { --vd-library-width: 170px; --vd-inspector-width: 255px; }
+  .vd-viewbar { gap: 8px; }
+  .vd-panel-actions { margin-left: 0; }
+}
+@media (max-width:980px) {
+  .vd-workspace,.vd-expanded .vd-workspace { grid-template-columns: var(--vd-library-width) minmax(300px,1fr); height: auto; }
+  .vd-workspace.vd-library-hidden { grid-template-columns: minmax(300px,1fr); }
+  .vd-workspace .vd-properties { grid-column: 1/-1; }
+  .vd-drawing { min-height: 600px; }
+  .vd-canvases-both { grid-template-columns: minmax(0,1fr); }
+  .vd-canvases-both .vd-view-panel { min-height: 400px; }
+  .vd-view-panel + .vd-view-panel { border-left: 0; border-top: 1px solid var(--line-strong); }
+}
+@media (max-width:640px) {
+  .vd-main { padding: 10px 8px; }
+  .vd-workspace,.vd-expanded .vd-workspace { display: flex; flex-direction: column; }
+  .vd-canvases { min-height: 480px; }
+  .vd-canvases-both { min-height: 800px; }
+  .vd-panel-actions { width: 100%; }
+  .vd-segment button { padding: 9px; }
+}

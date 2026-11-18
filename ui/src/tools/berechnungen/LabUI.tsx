@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
-import { Check, ChevronDown, Download, FolderOpen, Info, Moon, MoreHorizontal, Printer, Save, Search, Sun, X } from "lucide-react";
+import { ArrowLeft, Check, ChevronDown, Download, FolderOpen, Info, Moon, MoreHorizontal, Printer, Save, Search, Sun, X } from "lucide-react";
 import { calculatorPurpose } from "./purpose";
 import type { ToolProps } from "../../toolbox/modules";
 import { useDialogFocus } from "../../shared/useDialogFocus";
@@ -12,6 +12,7 @@ import "@fontsource-variable/inter";
 import ToolhubHeader from "../../toolbox/ToolhubHeader";
 import { useToolhubLocation } from "../../toolbox/ToolhubNavigation";
 import { useToolhubTheme } from "../../toolbox/useToolhubTheme";
+import CalculatorReference from "./CalculatorReference";
 
 export interface Help { title: string; content: ReactNode }
 export function InfoButton({ title, onClick }: { title: string; onClick: () => void }) {
@@ -130,9 +131,11 @@ export function LabShell({ title, subtitle, children, help, setHelp, onHome, onO
           {exportData && <><button className="lab-icon" disabled={!canExport} aria-label="Ergebnis als JSON sichern" title="JSON sichern" onClick={exportData}><Download size={18} /></button><button className="lab-icon" disabled={!canExport} aria-label="Drucken / als PDF speichern" title="Drucken / PDF" onClick={() => window.print()}><Printer size={18} /></button></>}
         </CalculatorActions>
       </ToolhubHeader>
-      <main className="lab-main"><div className="lab-heading"><div><h1>{title}</h1><span className="lab-subtitle">{subtitle}</span>{purpose && <div className="lab-purpose"><p><strong>Wofür?</strong> {purpose.use}</p><p><strong>Du brauchst:</strong> {purpose.needs}</p></div>}</div>{!["berechnungen", "wissens-hub", "berechnungsablage"].includes(active ?? "") && reviewLabel && <span className="lab-review">{reviewLabel}</span>}</div>
+      <main className="lab-main"><div className="lab-heading"><div className="lab-heading-content"><div className="lab-title-row">{onOpenTool && active !== "berechnungen" && active !== "wissens-hub" && <button type="button" className="lab-all-calculators calc-no-print" onClick={() => onOpenTool("berechnungen")}><ArrowLeft size={15} aria-hidden="true" />Alle Rechner</button>}<h1>{title}</h1></div><span className="lab-subtitle">{subtitle}</span></div>{!["berechnungen", "wissens-hub", "berechnungsablage"].includes(active ?? "") && reviewLabel && <span className="lab-review">{reviewLabel}</span>}</div>
+        {purpose && <details className="lab-purpose calc-no-print"><summary><Info size={16} aria-hidden="true" /><span>Anwendung und benötigte Angaben</span><ChevronDown size={15} aria-hidden="true" /></summary><div><p><strong>Wofür?</strong> {purpose.use}</p><p><strong>Du brauchst:</strong> {purpose.needs}</p></div></details>}
         {pdfError && <p className="lab-error" role="alert">{pdfError}</p>}
         {children}
+        {knowledgeId && <CalculatorReference calculatorId={knowledgeId} />}
         <div className="lab-print-only lab-prose">{report}</div>
       </main>
     </div>

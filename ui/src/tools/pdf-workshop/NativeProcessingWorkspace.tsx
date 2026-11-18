@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, ChevronLeft, ChevronRight, Download, FileSearch, LoaderCircle, Minus, Plus, Search, Upload, X } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronRight, Download, FileSearch, LoaderCircle, Minus, PanelRightClose, PanelRightOpen, Plus, Search, Upload, X } from "lucide-react";
 import "./pdf-processing-workspace.css";
 
 const API = "/api/tools/pdf-werkstatt";
@@ -13,7 +13,7 @@ interface Props { mode: Mode; sessionKey: string; incomingFiles?: File[]; onDirt
 
 const bytes = (value: number) => value < 1024 ? `${value} B` : new Intl.NumberFormat("de-CH", { maximumFractionDigits: value < 1024 * 1024 ? 1 : 2 }).format(value / (value < 1024 * 1024 ? 1024 : 1024 * 1024)) + (value < 1024 * 1024 ? " KB" : " MB");
 
-function ProcessingPreview({ file, page, sessionKey, zoom, onZoom, marks }: { file: File; page: Page; sessionKey: string; zoom: number; onZoom: (value: number) => void; marks: { rect: number[]; current: boolean }[] }) {
+function ProcessingPreview({ file, page, sessionKey, zoom, onZoom, marks, fitMode }: { file: File; page: Page; sessionKey: string; zoom: number; onZoom: (value: number) => void; marks: { rect: number[]; current: boolean }[]; fitMode: "page" | "width" }) {
   const viewport = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ width: 0, height: 0 });
   const [documentId, setDocumentId] = useState("");
@@ -58,7 +58,8 @@ function ProcessingPreview({ file, page, sessionKey, zoom, onZoom, marks }: { fi
     })();
     return () => { controller.abort(); if (url) URL.revokeObjectURL(url); };
   }, [documentId, page.number, sessionKey]);
-  const fit = Math.min(Math.max(1, size.width - 32) / page.width, Math.max(1, size.height - 32) / page.height);
+  const fitWidth = Math.max(1, size.width - 32) / page.width;
+  const fit = fitMode === "width" ? fitWidth : Math.min(fitWidth, Math.max(1, size.height - 32) / page.height);
   return <div ref={viewport} className="pdf-processing-preview" tabIndex={0} aria-label="PDF mit Dokumentzoom und Suchtreffern" data-document-zoom={zoom} onKeyDown={event => {
     if (!(event.ctrlKey || event.metaKey) || !["0", "+", "=", "-"].includes(event.key)) return;
     event.preventDefault(); onZoom(event.key === "0" ? 1 : Math.max(.5, Math.min(4, zoom * (event.key === "-" ? 1 / 1.2 : 1.2))));
@@ -75,6 +76,8 @@ export default function NativeProcessingWorkspace({ mode, sessionKey, incomingFi
   const [showResult, setShowResult] = useState(true);
   const [pageIndex, setPageIndex] = useState(0);
   const [zoom, setZoom] = useState(1);
+  const [fitMode, setFitMode] = useState<"page" | "width">("page");
+  const [settingsOpen, setSettingsOpen] = useState(true);
   const [languages, setLanguages] = useState(["deu", "eng"]);
   const [force, setForce] = useState(false);
   const [quality, setQuality] = useState(5);
@@ -105,7 +108,10 @@ export default function NativeProcessingWorkspace({ mode, sessionKey, incomingFi
   useEffect(() => () => { generation.current++; if (resultUrl.current) URL.revokeObjectURL(resultUrl.current); }, []);
   useEffect(() => {
     const handle = (event: KeyboardEvent) => {
-      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "f" && main.current && main.current.offsetParent !== null && file) { event.preventDefault(); search.current?.focus(); search.current?.select(); }
+      if (event.defaultPrevented || event.altKey || !(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== "f" || !main.current || main.current.offsetParent === null || !file) return;
+      const modalOpen = [...document.querySelectorAll('dialog[open], [aria-modal="true"]')].some(element => element.getClientRects().length > 0);
+      if (modalOpen) return;
+      event.preventDefault(); search.current?.focus(); search.current?.select();
     };
     document.addEventListener("keydown", handle); return () => document.removeEventListener("keydown", handle);
   }, [file]);
@@ -130,7 +136,7 @@ export default function NativeProcessingWorkspace({ mode, sessionKey, incomingFi
   function invalidateResult() { if (resultUrl.current) URL.revokeObjectURL(resultUrl.current); resultUrl.current = ""; setResult(null); setShowResult(true); }
   function closeDocument() {
     if (busy) return;
-    generation.current++; setFile(null); setInspection(null); invalidateResult(); setError(""); setQuery(""); setMatches([]); setPageIndex(0); setZoom(1);
+    generation.current++; setFile(null); setInspection(null); invalidateResult(); setError(""); setQuery(""); setMatches([]); setPageIndex(0); setZoom(1); setFitMode("page"); setSettingsOpen(true);
   }
   async function inspect(source: File): Promise<Inspection> {
     const body = new FormData(); body.append("file", source);
@@ -146,7 +152,7 @@ export default function NativeProcessingWorkspace({ mode, sessionKey, incomingFi
     setBusy("open"); setError("");
     try {
       const value = await inspect(files[0]);
-      if (run === generation.current) { invalidateResult(); setQuery(""); setFile(files[0]); setInspection(value); setPageIndex(0); setZoom(1); onDirty(); }
+      if (run === generation.current) { invalidateResult(); setQuery(""); setFile(files[0]); setInspection(value); setPageIndex(0); setZoom(1); setFitMode("page"); onDirty(); }
     } catch (e) { if (run === generation.current) setError((e as Error).message); }
     finally { if (run === generation.current) setBusy(""); if (picker.current) picker.current.value = ""; }
   }
@@ -180,21 +186,22 @@ export default function NativeProcessingWorkspace({ mode, sessionKey, incomingFi
     setMatchIndex(index); setPageIndex(matches[index].page - 1);
   }
   const marks = matches.flatMap((match, index) => match.page === currentPage?.number ? match.rects.map(rect => ({ rect, current: index === matchIndex })) : []);
-  return <main ref={main} className="pdf-processing-workspace" onDragOver={event => event.preventDefault()} onDrop={event => { event.preventDefault(); event.stopPropagation(); void choose([...event.dataTransfer.files]); }}>
+  return <main ref={main} className={`pdf-processing-workspace${settingsOpen ? "" : " is-inspector-collapsed"}`} onDragOver={event => event.preventDefault()} onDrop={event => { event.preventDefault(); event.stopPropagation(); void choose([...event.dataTransfer.files]); }}>
     <input ref={picker} type="file" hidden accept="application/pdf,.pdf" aria-label="PDF für Texterkennung oder Komprimierung öffnen" onChange={event => void choose([...event.target.files || []])} />
     <section className="pdf-processing-document" aria-label="PDF und Dokumentsuche">
-      <div className="pdf-processing-file"><strong>{file?.name || "Dein PDF"}</strong><button className="btn" disabled={Boolean(busy)} onClick={() => picker.current?.click()}><Upload size={16} />{file ? "Datei wechseln" : "PDF öffnen"}</button>{file && <button className="btn pdf-processing-close" aria-label="PDF schliessen" title="PDF schliessen" disabled={Boolean(busy)} onClick={closeDocument}><X size={20} /></button>}</div>
+      <div className="pdf-processing-file"><strong>{file?.name || "Dein PDF"}</strong><button className="btn" disabled={Boolean(busy)} onClick={() => picker.current?.click()}><Upload size={16} />{file ? "Datei wechseln" : "PDF öffnen"}</button><button className="btn" aria-expanded={settingsOpen} aria-controls={`pdf-processing-settings-${mode}`} onClick={() => setSettingsOpen(value => !value)}>{settingsOpen ? <PanelRightClose size={16} /> : <PanelRightOpen size={16} />}Einstellungen</button>{file && <button className="btn pdf-processing-close" aria-label="PDF schliessen" title="PDF schliessen" disabled={Boolean(busy)} onClick={closeDocument}><X size={20} /></button>}</div>
+      {!settingsOpen && (busy || error || result) && <p className="pdf-processing-inline-state" role={error ? "alert" : "status"}>{error || (busy ? busy === "open" ? "PDF wird geöffnet …" : "PDF wird verarbeitet …" : "Ergebnis bereit · Download gestartet")}</p>}
       {!file && <div className="pdf-processing-empty"><FileSearch size={42} /><h1>{isOcr ? "Texterkennung (OCR)" : "PDF komprimieren"}</h1><p>PDF hier ablegen oder öffnen.</p><button className="btn primary" disabled={Boolean(busy)} onClick={() => picker.current?.click()}>PDF auswählen</button></div>}
       {file && <><div className="pdf-processing-search"><Search size={17} /><input ref={search} aria-label="Im PDF suchen" placeholder="Im PDF suchen …" value={query} maxLength={200} onChange={event => setQuery(event.target.value)} /><span role="status">{searching ? "Suche …" : query ? `${matches.length ? matchIndex + 1 : 0} / ${matches.length}${truncated ? "+" : ""}` : "Strg + F"}</span><button className="btn icon" aria-label="Vorheriger Suchtreffer" disabled={!matches.length || searching} onClick={() => nextMatch(-1)}><ChevronLeft size={17} /></button><button className="btn icon" aria-label="Nächster Suchtreffer" disabled={!matches.length || searching} onClick={() => nextMatch(1)}><ChevronRight size={17} /></button>{query && <button className="btn icon pdf-processing-close" aria-label="PDF-Suche leeren" onClick={() => setQuery("")}><X size={17} /></button>}</div>
         {searchError && <p role="alert">{searchError}</p>}
         {truncated && <p role="status" className="pdf-processing-note">Die Suche ist begrenzt. Verwende einen genaueren Suchbegriff, um weitere Treffer zu finden.</p>}
         {query && !searching && !matches.length && !searchError && !truncated && <p className="pdf-processing-note">Keine Treffer in der Textschicht.{!inspection?.pages_with_text && isOcr ? " Zuerst die Texterkennung ausführen." : ""}</p>}
-        <div className="pdf-processing-view-controls">{result && <div className="pdf-processing-view-toggle" role="group" aria-label="PDF-Ansicht"><button className="btn" aria-pressed={!showResult} onClick={() => setShowResult(false)}>Original</button><button className="btn" disabled={!result.inspection} aria-pressed={showResult} onClick={() => setShowResult(true)}>Ergebnis</button></div>}<button className="btn icon" aria-label="PDF verkleinern" onClick={() => setZoom(value => Math.max(.5, value / 1.2))}><Minus size={16} /></button><span>{Math.round(zoom * 100)}%</span><button className="btn icon" aria-label="PDF vergrössern" onClick={() => setZoom(value => Math.min(4, value * 1.2))}><Plus size={16} /></button><button className="btn" onClick={() => setZoom(1)}>Ganze Seite</button><span className="pdf-processing-pager"><button className="btn icon" aria-label="Vorherige PDF-Seite" disabled={!pageIndex} onClick={() => setPageIndex(value => value - 1)}><ChevronLeft size={16} /></button>{pageIndex + 1} / {displayed?.pages.length || 0}<button className="btn icon" aria-label="Nächste PDF-Seite" disabled={pageIndex + 1 >= (displayed?.pages.length || 0)} onClick={() => setPageIndex(value => value + 1)}><ChevronRight size={16} /></button></span></div>
-        {currentPage && displayFile && <ProcessingPreview file={displayFile} page={currentPage} sessionKey={sessionKey} zoom={zoom} onZoom={setZoom} marks={marks} />}
+        <div className="pdf-processing-view-controls">{result && <div className="pdf-processing-view-toggle" role="group" aria-label="PDF-Ansicht"><button className="btn" aria-pressed={!showResult} onClick={() => setShowResult(false)}>Original</button><button className="btn" disabled={!result.inspection} aria-pressed={showResult} onClick={() => setShowResult(true)}>Ergebnis</button></div>}<button className="btn icon" aria-label="PDF verkleinern" onClick={() => setZoom(value => Math.max(.5, value / 1.2))}><Minus size={16} /></button><span>{Math.round(zoom * 100)}%</span><button className="btn icon" aria-label="PDF vergrössern" onClick={() => setZoom(value => Math.min(4, value * 1.2))}><Plus size={16} /></button><button className="btn" aria-pressed={fitMode === "width" && zoom === 1} onClick={() => { setFitMode("width"); setZoom(1); }}>Breite</button><button className="btn" aria-pressed={fitMode === "page" && zoom === 1} onClick={() => { setFitMode("page"); setZoom(1); }}>Ganzes Blatt</button><span className="pdf-processing-pager"><button className="btn icon" aria-label="Vorherige PDF-Seite" disabled={!pageIndex} onClick={() => setPageIndex(value => value - 1)}><ChevronLeft size={16} /></button>{pageIndex + 1} / {displayed?.pages.length || 0}<button className="btn icon" aria-label="Nächste PDF-Seite" disabled={pageIndex + 1 >= (displayed?.pages.length || 0)} onClick={() => setPageIndex(value => value + 1)}><ChevronRight size={16} /></button></span></div>
+        {currentPage && displayFile && <ProcessingPreview file={displayFile} page={currentPage} sessionKey={sessionKey} zoom={zoom} onZoom={setZoom} marks={marks} fitMode={fitMode} />}
         {displayed && displayed.pages.length > 1 && <div className="pdf-processing-thumbnails" aria-label="PDF-Seiten">{displayed.pages.map(page => <button className="btn" key={page.number} aria-label={`PDF-Seite ${page.number} ansehen`} aria-pressed={page.number === pageIndex + 1} onClick={() => setPageIndex(page.number - 1)}><img src={page.thumbnail} alt="" loading="lazy" /><span>{page.number}</span></button>)}</div>}
       </>}
     </section>
-    <aside className="pdf-processing-settings" aria-label="Verarbeitung und Ergebnis"><h2>{isOcr ? "Texterkennung" : "Komprimieren"}</h2>
+    <aside className="pdf-processing-settings" id={`pdf-processing-settings-${mode}`} hidden={!settingsOpen} aria-label="Verarbeitung und Ergebnis"><h2>{isOcr ? "Texterkennung" : "Komprimieren"}</h2>
       {!file ? <p>Öffne ein PDF, um die Einstellungen zu verwenden.</p> : <><fieldset disabled={Boolean(busy)}><details open className="pdf-processing-options"><summary>Einstellungen<ChevronDown size={16} /></summary>{isOcr ? <div className="pdf-processing-languages"><span>Sprachen</span>{[["deu", "Deutsch"], ["eng", "Englisch"]].map(([id, title]) => <label key={id}><input type="checkbox" checked={languages.includes(id)} onChange={event => { setLanguages(old => event.target.checked ? [...old, id] : old.filter(value => value !== id)); invalidateResult(); }} />{title}</label>)}</div> : <label>Komprimierungsstufe<select aria-label="Komprimierungsstufe" value={quality} onChange={event => { setQuality(Number(event.target.value)); invalidateResult(); }}><option value={3}>Schonend · hohe Bildqualität</option><option value={5}>Ausgewogen</option><option value={8}>Stark · kleinere Bilder</option></select></label>}</details>
         <details className="pdf-processing-options"><summary>Erweitert<ChevronDown size={16} /></summary>{isOcr ? <><label className="pdf-processing-check"><input type="checkbox" checked={force} onChange={event => { setForce(event.target.checked); invalidateResult(); }} />Vorhandene Textschicht neu erkennen</label><p>Ohne diese Option bleiben bereits durchsuchbare Seiten erhalten. Deutsch und Englisch stehen in dieser Ansicht zur Verfügung; weitere Optionen findest du unter „Erweiterte Funktionen“.</p></> : <p>Die Komprimierung kann Bilddetails reduzieren. Prüfe das Ergebnis bei Plänen mit dünnen Linien und kleiner Beschriftung.</p>}</details></fieldset>
         {Boolean(inspection?.signatures) && <p className="pdf-processing-note">Das PDF enthält {inspection?.signatures} digitale Signatur(en). Die Verarbeitung verändert die Datei und kann diese Signaturen ungültig machen. Das Original bleibt erhalten.</p>}

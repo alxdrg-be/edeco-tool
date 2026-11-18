@@ -5,7 +5,7 @@ import InfoTip from "../../../shared/InfoTip";
 import { addBlock, addItem, blockForCategory, commit, combineItems, coveredRows, describe, entryText, duplicateItems, hideCovered, History, historyOf, inLegend, insertItem, LegendBlock, LegendDoc, LegendItem, missingRows, moveBlockInOrder, moveItemInOrder, moveItemTo, moveItemToBlock, companyKey, makeItem, placeInCell, push, redo, removeBlock, removeItem, replace, rotateItem, Selection, staleItems, symbolRequestKey, undo, updateItem } from "../legend";
 import { Icon } from "./Icons";
 import { SaveSession } from "../saveSession";
-import { ArrowLeft, ChevronDown, Hand, Maximize2, Minimize2, Minus, Plus, SlidersHorizontal } from "lucide-react";
+import { ArrowLeft, ChevronDown, Hand, Maximize2, Minimize2, Minus, Plus, Search, SlidersHorizontal, X } from "lucide-react";
 import { a4CompactLegendDocument, alignLegendSectionColors, compactLegendDocument, legendItemColors, legendVisibleItemColors, legendVisibleLayerColors } from "../legendViewport";
 import { useLegendViewport } from "../useLegendViewport";
 import LegendScopePanel from "./LegendScopePanel";
@@ -31,6 +31,7 @@ import { useFamilySearch } from "./legend-editor/useFamilySearch.ts";
 import { useLegendSave } from "./legend-editor/useLegendSave.ts";
 import { useLegendLayout } from "./legend-editor/useLegendLayout.ts";
 import { LegendToolbar } from "./legend-editor/LegendToolbar";
+import { findLegendEntries } from "../legendDocumentSearch";
 import "./LegendSection.css";
 import "./LegendEditor.css";
 
@@ -74,6 +75,9 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
   const [detached, setDetached] = useState(false);
   const [windowed, setWindowed] = useState(false);
   const [outlineOpen, setOutlineOpen] = useState(true);
+  const [propertiesOpen, setPropertiesOpen] = useState(true);
+  const [documentQuery, setDocumentQuery] = useState("");
+  const documentSearchRef = useRef<HTMLInputElement>(null);
   const [grayscale, setGrayscale] = useState(false);
   const [originalEdit, setOriginalEdit] = useState("");
   // sections opened in the list on the left (one line per section until opened)
@@ -528,9 +532,24 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      const tag = (e.target as HTMLElement)?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+      if (e.defaultPrevented) return;
+      // Modal search, imports and confirmations own their keyboard. The enlarged
+      // editor is itself a dialog and must retain its normal editing shortcuts.
+      const foreignDialog = [...document.querySelectorAll<HTMLElement>('[role="dialog"], [aria-modal="true"], dialog[open]')]
+        .some(dialog => dialog !== editorRef.current && dialog.getClientRects().length > 0 && getComputedStyle(dialog).visibility !== "hidden");
+      if (foreignDialog) return;
       const mod = e.ctrlKey || e.metaKey;
+      if (mod && e.key.toLowerCase() === "f" && !e.altKey) {
+        e.preventDefault();
+        setOutlineOpen(true);
+        requestAnimationFrame(() => {
+          documentSearchRef.current?.focus();
+          documentSearchRef.current?.select();
+        });
+        return;
+      }
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || (e.target as HTMLElement)?.isContentEditable) return;
       if (mod && e.key.toLowerCase() === "z" && !e.shiftKey) {
         e.preventDefault();
         setHist((h) => (h ? undo(h) : h));
@@ -616,6 +635,22 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
   const paperSelection = selectedGroup && sel?.type === "item" ? { ...sel, item: selectedGroup.item } : sel;
   const W = shown?.width ?? 200;
   const H = shown?.height ?? 100;
+  const visibleItemIds = shown ? new Set(groupByEntry(shown.prims).flatMap(group => group.item ? [group.item] : [])) : undefined;
+  for (const group of shown?.variant_info?.groups ?? []) {
+    if (visibleItemIds?.has(group.item)) for (const id of group.source_ids) visibleItemIds.add(id);
+  }
+  const documentMatches = findLegendEntries(doc, documentQuery, general?.rows ?? [], visibleItemIds);
+  const revealMatch = (selection: NonNullable<Selection>) => {
+    setSel(selection);
+    setPropertiesOpen(true);
+    if (selection.type === "item") setOpenBlocks(current => new Set([...current, selection.block]));
+    requestAnimationFrame(() => {
+      const visibleItem = selection.type === "item" ? shown?.variant_info?.groups.find(group => group.source_ids.includes(selection.item))?.item ?? selection.item : "";
+      const selector = selection.type === "item" ? `[data-entry="${CSS.escape(visibleItem)}"]`
+        : selection.type === "general-row" ? `[data-hit="general-row"][data-id="${CSS.escape(selection.id)}"]` : "[data-hit=title]";
+      paperRef.current?.querySelector(selector)?.scrollIntoView({ block: "nearest", inline: "nearest", behavior: "smooth" });
+    });
+  };
   const setStyle = (patch: Partial<LegendDoc["style"]>) => change({ ...doc, style: { ...style, ...patch } });
   const applyCompact = () => change(compactLegendDocument(doc));
   const alignSectionColors = () => {
@@ -631,10 +666,10 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
     {windowed && (
       <button type="button" className="legend-window-back" aria-label="Grossansicht beenden" title="Grossansicht beenden" onClick={() => setWindowed(false)} />
     )}
-    <div ref={editorRef} className={`legend-editor ${windowed ? "windowed" : ""} ${grayscale ? "preview-grayscale" : ""}`} role={windowed ? "dialog" : undefined} aria-modal={windowed || undefined} aria-label={windowed ? "Legendeneditor" : undefined} tabIndex={-1}>
+    <div ref={editorRef} className={`legend-editor ${windowed ? "windowed" : ""} ${grayscale ? "preview-grayscale" : ""}`} role={windowed ? "dialog" : undefined} aria-modal={windowed || undefined} aria-label={windowed ? "Legendeneditor" : undefined} data-toolhub-workspace-dialog={windowed ? "true" : undefined} tabIndex={-1}>
       <div className="legend-editor-heading">
         <div className="legend-editor-heading-main">
-          {onProjects && <button type="button" className="btn primary legend-projects-back" aria-label="Zurück zu Projekten" onClick={onProjects}><ArrowLeft size={15} /> Projekte</button>}
+          {onProjects && <button type="button" className="btn primary legend-projects-back" aria-label="Zurück zu Projekten" onClick={onProjects}><ArrowLeft size={15} /> Zu Projekten</button>}
           <div><strong>{info.legend?.name || "Legende"}</strong><span className="hint legend-sheet-size">PDF {Math.round((W + 10) * 10) / 10} × {Math.round((H + 10) * 10) / 10} mm</span>
             {H + 10 > 297.1 && <span className="legend-paper-warning" title="Die Ausgabe ist höher als A4. Das Layout folgt dem Inhalt und schneidet keine Zeilen ab.">Höher als A4</span>}</div>
           <InfoTip text="Die Blatthöhe folgt dem Inhalt. Änderungen werden automatisch gespeichert. Der Ansichtzoom verändert weder die Zeichnungsmasse noch den Export." />
@@ -652,6 +687,7 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
       {generalBox}
       <LegendToolbar bar={bar} toggleBar={toggleBar} saveBar={saveBar} showGrid={showGrid} toggleGrid={toggleGrid}
         outlineOpen={outlineOpen} onToggleOutline={() => setOutlineOpen(value => !value)}
+        propertiesOpen={propertiesOpen} onToggleProperties={() => setPropertiesOpen(value => !value)}
         busy={busy} exporting={exporting} exportBlock={exportBlock}
         canUndo={Boolean(hist?.past.length)} canRedo={Boolean(hist?.future.length)}
         onUndo={() => setHist((h) => (h ? undo(h) : h))} onRedo={() => setHist((h) => (h ? redo(h) : h))} onProposal={proposal}
@@ -663,25 +699,41 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
         style={style} grids={info.grids} setStyle={setStyle}
         generalKind={general?.kind} exportGeneral={exportGeneral} setExportGeneral={setExportGeneral}
         applyCompact={applyCompact} applyA4={applyA4} alignSectionColors={alignSectionColors}
-        detached={detached} onToggleDetached={() => setDetached((v) => !v)}
+        detached={detached} onToggleDetached={() => { setDetached((v) => !v); setPropertiesOpen(true); }}
         saveState={saveState} savedInfo={savedInfo}
+        onSave={() => { void saveLegend(); }}
         onExportDxf={() => exportFile("dxf", exportBlock, exportGeneral && Boolean(general?.kind))}
+        onExportPdf={() => exportFile("pdf", exportBlock, exportGeneral && Boolean(general?.kind))}
         menuContainer={() => editorRef.current} />
 
-      <div className={`legend-body ${detached ? "detached" : ""} ${outlineOpen ? "" : "outline-hidden"}`}
+      <div className={`legend-body ${detached ? "detached" : ""} ${outlineOpen ? "" : "outline-hidden"} ${propertiesOpen ? "" : "properties-hidden"}`}
         style={{ ["--outline-w" as string]: `${panes.outline}px`, ["--props-w" as string]: `${panes.props}px` }}>
         <div hidden={!outlineOpen} className="pane-handle outline" role="separator" aria-orientation="vertical" aria-label="Breite der Liste links ändern"
           title="Ziehen ändert die Breite. Doppelklick: Standardbreite." onPointerDown={(e) => startPaneDrag(e, "outline")}
           onDoubleClick={() => resetPane("outline")} />
-        {!detached && (
+        {!detached && propertiesOpen && (
           <div className="pane-handle props" role="separator" aria-orientation="vertical" aria-label="Breite der Einstellungen ändern"
             title="Ziehen ändert die Breite. Doppelklick: Standardbreite." onPointerDown={(e) => startPaneDrag(e, "props")}
             onDoubleClick={() => resetPane("props")} />
         )}
         <aside id="legend-sections-outline" hidden={!outlineOpen} className="legend-outline">
-          <div className="section" style={{ marginTop: 0 }}>
-            Abschnitte
+          <div className="legend-pane-heading">
+            <strong>Abschnitte</strong>
+            <button type="button" className="btn small icon-btn" aria-label="Abschnitte ausblenden" title="Abschnitte ausblenden" onClick={() => setOutlineOpen(false)}><X size={14} /></button>
           </div>
+          <label className="legend-document-search">
+            <Search size={14} aria-hidden="true" />
+            <input ref={documentSearchRef} type="search" value={documentQuery} onChange={event => setDocumentQuery(event.target.value)} placeholder="Symbol oder Text suchen …" aria-label="In dieser Legende suchen" aria-keyshortcuts="Control+F Meta+F" onKeyDown={event => {
+              if (event.key === "Escape") { event.stopPropagation(); setDocumentQuery(""); documentSearchRef.current?.blur(); }
+              if (event.key === "Enter" && documentMatches.length) { event.preventDefault(); revealMatch(documentMatches[0].selection); }
+            }} />
+            <kbd>Ctrl+F</kbd>
+          </label>
+          {documentQuery.trim() && <div className="legend-document-results" aria-label="Treffer in dieser Legende">
+            <span className="hint" role="status">{documentMatches.length} Treffer in dieser Legende</span>
+            {documentMatches.map(match => <button type="button" key={match.id} onClick={() => revealMatch(match.selection)}><span>{match.label}</span><small>{match.section}</small></button>)}
+            {!documentMatches.length && <p className="hint">Kein passender Eintrag. Die Bibliothekssuche unten findet zusätzliche Symbole.</p>}
+          </div>}
           {general?.kind && doc.general_on !== false && (
             <div className="outline-block">
               <div className={`outline-row ${sel?.type === "general" ? "active" : ""}`}>
@@ -938,6 +990,7 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
         </div>
         <div className="legend-preview-heading"><strong>Vorschau</strong><span className="hint">{Math.round((H + 10) / 297 * 100)} % A4-Höhe · {Math.round((H + 10) / 420 * 100)} % A3-Höhe</span><span role="status" className="hint">{layoutBusy ? "Aktualisiert …" : "Gleiche Zeichnung wie im Export"}</span></div>
         {!!shown?.warnings?.length && <div className="legend-layout-warnings" aria-label="Texthinweise"><strong>{shown.warnings.length} Texte prüfen</strong>{shown.warnings.map(warning => <button type="button" key={warning.id} onClick={() => {
+          setPropertiesOpen(true);
           setSel({ type: "item", block: warning.block, item: warning.item });
           setOpenBlocks(current => new Set([...current, warning.block]));
           requestAnimationFrame(() => {
@@ -951,7 +1004,8 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
         }}><span>{warning.text}</span><small>{warning.width_mm.toFixed(1)} / {warning.available_mm.toFixed(1)} mm{warning.suggestion ? ` · Vorschlag: ${warning.suggestion}` : " · Text oder Spaltenbreite prüfen"}</small></button>)}</div>}
         </div>
 
-        <aside className={`legend-props ${detached ? "floating" : ""}`}>
+        <aside id="legend-properties" hidden={!propertiesOpen} className={`legend-props ${detached ? "floating" : ""}`}>
+        <div className="legend-pane-heading"><strong>{sel && sel.type !== "legend" ? "Eigenschaften" : "Legende"}</strong><button type="button" className="btn small icon-btn" aria-label="Eigenschaften ausblenden" title="Eigenschaften ausblenden" onClick={() => setPropertiesOpen(false)}><X size={14} /></button></div>
         <div className="props-export">
         <button className="btn small" disabled={busy || saveState === "saving"} onClick={() => { void saveLegend(); }}
           title="Die Legende jetzt speichern. Änderungen werden sonst kurz danach von selbst gespeichert.">
@@ -971,13 +1025,6 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
           </button>
         )}
         </div>
-          <LegendScopePanel key={legendId ?? "first"} value={doc.scope} info={shown?.scope_info ?? info.scope_info} disabled={busy} onChange={scope => change({ ...doc, scope })} onShowItem={(block, item) => setSel({ type: "item", block, item })} />
-          <LegendPresentationPanel style={style} onChange={setStyle} />
-          <LegendTextPanel value={doc.text_rules} categories={categories} disabled={busy} onChange={text_rules => change({ ...doc, text_rules })} />
-          <LegendVariantPanel value={doc.variant_rules} info={shown?.variant_info ?? info.variant_info} onChange={variant_rules => change({ ...doc, variant_rules })} />
-          <LegendPalettePanel entries={doc.blocks.map(block => ({ id: block.id, title: block.title, color: block.style.header }))} threshold={doc.color_review?.threshold ?? 10} onThreshold={threshold => change({ ...doc, color_review: { threshold } })} onSelect={id => setSel({ type: "block", block: id })} grayscale={grayscale} onGrayscale={setGrayscale} />
-          <LegendDefaultsPanel projectId={projectId} doc={doc} onApply={defaults => change({ ...doc, ...defaults })} />
-          {onOpenTool && <button type="button" className="btn small" disabled={busy || exporting || layoutBusy} onClick={() => void exportFile("pdf", exportBlock, exportGeneral && Boolean(general?.kind), true)}>An PDF-Werkstatt übergeben</button>}
           <details className="legend-section legend-selection-details" open><summary><SlidersHorizontal size={15} aria-hidden="true" className="legend-section-icon" /><span className="legend-section-heading"><span className="legend-section-title">{sel && sel.type !== "legend" ? "Ausgewähltes Element" : "Weitere Einstellungen"}</span></span><ChevronDown size={15} aria-hidden="true" className="legend-section-chevron" /></summary>
           {selectedGroup && selectedGroup.source_ids.length > 1 && <div className="legend-source-context"><strong>Gemeinsame Ausgabe · Originaleintrag wählen</strong>{selectedGroup.source_ids.map(id => {
             const source = selBlock?.items.find(item => item.id === id);
@@ -1068,6 +1115,13 @@ export default function LegendEditor({ projectId, data, categories, notify, lege
             />
           )}
           </details>
+          <LegendScopePanel key={legendId ?? "first"} value={doc.scope} info={shown?.scope_info ?? info.scope_info} disabled={busy} onChange={scope => change({ ...doc, scope })} onShowItem={(block, item) => setSel({ type: "item", block, item })} />
+          <LegendPresentationPanel style={style} onChange={setStyle} />
+          <LegendTextPanel value={doc.text_rules} categories={categories} disabled={busy} onChange={text_rules => change({ ...doc, text_rules })} />
+          <LegendVariantPanel value={doc.variant_rules} info={shown?.variant_info ?? info.variant_info} onChange={variant_rules => change({ ...doc, variant_rules })} />
+          <LegendPalettePanel entries={doc.blocks.map(block => ({ id: block.id, title: block.title, color: block.style.header }))} threshold={doc.color_review?.threshold ?? 10} onThreshold={threshold => change({ ...doc, color_review: { threshold } })} onSelect={id => setSel({ type: "block", block: id })} grayscale={grayscale} onGrayscale={setGrayscale} />
+          <LegendDefaultsPanel projectId={projectId} doc={doc} onApply={defaults => change({ ...doc, ...defaults })} />
+          {onOpenTool && <button type="button" className="btn small" disabled={busy || exporting || layoutBusy} onClick={() => void exportFile("pdf", exportBlock, exportGeneral && Boolean(general?.kind), true)}>An PDF-Werkstatt übergeben</button>}
         </aside>
       </div>
     </div>

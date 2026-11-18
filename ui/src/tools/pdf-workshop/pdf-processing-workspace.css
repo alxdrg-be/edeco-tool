@@ -1,6 +1,11 @@
 .pdf-processing-workspace { flex: 1; width: 100%; min-width: 0; box-sizing: border-box; display: grid; grid-template-columns: minmax(0, 1fr) 310px; gap: 18px; padding: 18px; min-height: calc(100vh - 155px); color: var(--fg); }
+.pdf-processing-workspace.is-inspector-collapsed { grid-template-columns: minmax(0, 1fr); }
+.pdf-processing-settings[hidden] { display: none; }
+.pdf-processing-inline-state { margin: 0; padding: 10px 14px; font-size: 12px; border-bottom: 1px solid var(--line); color: var(--muted); }
+.pdf-processing-inline-state[role="alert"] { color: var(--danger); }
 .pdf-processing-document, .pdf-processing-settings { min-width: 0; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); }
 .pdf-processing-file { display: flex; align-items: center; gap: 8px; padding: 12px; border-bottom: 1px solid var(--line); }
+.pdf-processing-file > .btn { flex: none; }
 .pdf-processing-file > strong { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pdf-processing-close.btn { min-width: 36px; min-height: 36px; color: var(--fg); border: 1px solid var(--line); background: var(--panel-sunken); }
 .pdf-processing-close.btn:hover { color: var(--fg); border-color: #c26279; background: #c2627925; }

@@ -13,7 +13,8 @@ def document_from_download(page):
 
 
 def open_line_variant(page):
-    page.locator('[data-edge-id="line-3"] .np-edge-hit').click(force=True)
+    page.get_by_role("button", name="Netzplan vollständig einpassen", exact=True).click()
+    page.locator('[data-edge-id="line-3"] .np-edge-label').click()
     panel = page.locator('[data-network-variant="edge:line-3"]')
     panel.locator(":scope > summary").click()
     return panel

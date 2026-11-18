@@ -142,6 +142,33 @@ def test_device_edit_view_switch_and_saved_reload_keep_the_same_assembly(verteil
     assert restored["cabinet"]["placements"] == saved["cabinet"]["placements"]
 
 
+def test_both_views_share_selection_and_editing_while_panels_can_collapse(verteiler_ui):
+    page = verteiler_ui
+    add_ls(page)
+    saved = persisted_document(page)
+    placement = saved["cabinet"]["placements"][-1]
+    page.get_by_role("button", name="Beide", exact=True).click()
+    front = page.locator('svg[data-view="front"]')
+    internal = page.locator('svg[data-view="internal"]')
+    playwright.expect(front).to_be_visible()
+    playwright.expect(internal).to_be_visible()
+    assert front.locator('[data-placement-id]').count() == internal.locator('[data-placement-id]').count()
+    page.get_by_label("Bezeichnung / BMK", exact=True).fill("Q-BEIDE")
+    page.get_by_label("Bezeichnung / BMK", exact=True).press("Tab")
+    updated = persisted_document(page, lambda doc: any(item["label"] == "Q-BEIDE" for item in doc["cabinet"]["placements"]))
+    assert next(item for item in updated["cabinet"]["placements"] if item["id"] == placement["id"])["label"] == "Q-BEIDE"
+    page.get_by_role("button", name="Details", exact=True).first.click()
+    playwright.expect(page.get_by_label("Eigenschaften und Prüfbericht", exact=True)).to_be_hidden()
+    page.get_by_role("button", name="Bauteile", exact=True).click()
+    playwright.expect(page.get_by_label("Bauteilbibliothek", exact=True)).to_be_hidden()
+    page.keyboard.press("Control+f")
+    playwright.expect(page.get_by_label("Bauteilbibliothek", exact=True)).to_be_visible()
+    playwright.expect(page.get_by_label("Bauteil suchen", exact=True)).to_be_focused()
+    page.get_by_label("Bauteil suchen", exact=True).fill("Hauptschalter")
+    playwright.expect(page.get_by_role("button", name=re.compile("^Hauptschalter.*hinzufügen$"))).to_be_visible()
+    assert persisted_document(page)["cabinet"]["placements"] == updated["cabinet"]["placements"]
+
+
 def test_operator_selection_saves_each_actual_source_profile(verteiler_ui):
     page = verteiler_ui
     catalog = page.request.get(PREFIX + "/catalog").json()
@@ -153,6 +180,26 @@ def test_operator_selection_saves_each_actual_source_profile(verteiler_ui):
         assert set(expected["source_ids"]) <= {source["id"] for source in saved["sources"]}
     page.reload()
     playwright.expect(page.get_by_label("Netzbetreiber", exact=True)).to_have_value("ebl")
+
+
+def test_document_search_does_not_steal_focus_from_global_search(verteiler_ui):
+    page = verteiler_ui
+    page.get_by_role("button", name="Bauteile", exact=True).click()
+    library = page.get_by_label("Bauteilbibliothek", exact=True)
+    playwright.expect(library).to_be_hidden()
+    page.keyboard.press("Control+k")
+    palette = page.get_by_role("dialog", name="Im Toolhub finden")
+    playwright.expect(palette).to_be_visible()
+    search = palette.get_by_role("searchbox")
+    playwright.expect(search).to_be_focused()
+    page.keyboard.press("Control+f")
+    playwright.expect(search).to_be_focused()
+    playwright.expect(library).to_be_hidden()
+    page.keyboard.press("Escape")
+    playwright.expect(palette).to_be_hidden()
+    page.keyboard.press("Control+f")
+    playwright.expect(library).to_be_visible()
+    playwright.expect(page.get_by_label("Bauteil suchen", exact=True)).to_be_focused()
 
 
 def test_future_import_preserves_draft_and_issue_opens_the_actual_wrong_field(verteiler_ui):
@@ -183,7 +230,7 @@ def test_responsive_workspace_keeps_the_drawing_and_controls_reachable(verteiler
     page = verteiler_ui
     for width, height in ((1440, 1000), (1100, 900), (820, 900)):
         page.set_viewport_size({"width": width, "height": height})
-        canvas = page.get_by_label("Verteiler-Zeichenfläche", exact=True)
+        canvas = page.get_by_label("Verteiler-Zeichenfläche · Front", exact=True)
         playwright.expect(canvas).to_be_visible()
         for name in ("Mit Abdeckungen", "Einbauansicht", "Speichern"):
             control = page.get_by_role("button", name=name, exact=True)
@@ -202,7 +249,7 @@ def test_responsive_workspace_keeps_the_drawing_and_controls_reachable(verteiler
 
 def test_ctrl_wheel_zooms_only_the_drawing_not_the_application(verteiler_ui):
     page = verteiler_ui
-    canvas = page.get_by_label("Verteiler-Zeichenfläche", exact=True)
+    canvas = page.get_by_label("Verteiler-Zeichenfläche · Front", exact=True)
     indicator = canvas.locator(".vd-canvas-controls span")
     before = indicator.inner_text()
     window_width = page.evaluate("innerWidth")
@@ -244,7 +291,7 @@ def test_reloaded_company_profile_can_be_dragged_without_mutating_the_old_snapsh
     assert unchanged["sources"] == before["sources"]
     assert unchanged["profiles"] == before["profiles"]
     assert not any(item["id"] == profile["id"] for item in unchanged["profiles"])
-    button.drag_to(page.get_by_label("Verteiler-Zeichenfläche", exact=True), target_position={"x": 180, "y": 190})
+    button.drag_to(page.get_by_label("Verteiler-Zeichenfläche · Front", exact=True), target_position={"x": 180, "y": 190})
     playwright.expect(page.get_by_label("Bezeichnung / BMK", exact=True)).to_have_value(profile["name"])
     saved = persisted_document(page, lambda doc: any(item["profile_id"] == profile["id"] for item in doc["cabinet"]["placements"]))
     assert saved["sources"][:len(before["sources"])] == before["sources"]

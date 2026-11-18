@@ -19,6 +19,15 @@ def open_crop(page):
     crop.click()
 
 
+def wait_for_centred_crop(page):
+    # ResizeObserver updates the fitted sheet after the inspector changes width.
+    page.wait_for_function("""() => {
+      const view = document.querySelector('.pdf-crop-viewport').getBoundingClientRect();
+      const paper = document.querySelector('.pdf-crop-page').getBoundingClientRect();
+      return Math.abs((paper.left + paper.right) / 2 - (view.left + view.right) / 2) < 2;
+    }""")
+
+
 def test_native_crop_large_selection_document_zoom_and_vector_export(editor, tmp_path):
     import pypdfium2 as pdfium
 
@@ -34,6 +43,17 @@ def test_native_crop_large_selection_document_zoom_and_vector_export(editor, tmp
     viewport = page.locator(".pdf-crop-viewport")
     sheet = page.locator(".pdf-crop-page")
     selection = page.get_by_role("group", name="Zuschneidebereich", exact=True)
+    inspector = page.locator(".pdf-crop-settings")
+    inspector_toggle = page.get_by_role("button", name="Ausschnitt", exact=True)
+    original_width = viewport.bounding_box()["width"]
+    inspector_toggle.click()
+    playwright.expect(inspector).to_be_hidden()
+    playwright.expect(inspector_toggle).to_have_attribute("aria-expanded", "false")
+    page.wait_for_function("width => document.querySelector('.pdf-crop-viewport').getBoundingClientRect().width > width + 100", arg=original_width)
+    playwright.expect(page.get_by_role("button", name="Zuschnitt speichern", exact=True)).to_be_enabled()
+    inspector_toggle.click()
+    playwright.expect(inspector).to_be_visible()
+    wait_for_centred_crop(page)
     bounds = sheet.bounding_box()
     page.mouse.move(bounds["x"] + bounds["width"] * .1, bounds["y"] + bounds["height"] * .1)
     page.mouse.down()
@@ -75,7 +95,7 @@ def test_native_crop_large_selection_document_zoom_and_vector_export(editor, tmp
     viewport.focus()
     page.keyboard.press("Control+0")
     playwright.expect(viewport).to_have_attribute("data-crop-zoom", "1")
-    page.get_by_role("button", name="Ganze Seite", exact=True).click()
+    page.get_by_role("button", name="Ganzes Blatt", exact=True).click()
     page.wait_for_function("""() => {
       const view = document.querySelector('.pdf-crop-viewport').getBoundingClientRect();
       const paper = document.querySelector('.pdf-crop-page').getBoundingClientRect();
@@ -88,10 +108,13 @@ def test_native_crop_large_selection_document_zoom_and_vector_export(editor, tmp
     playwright.expect(page.get_by_label("Rand links (mm)", exact=True)).to_have_value("10")
     page.get_by_label("Anwenden auf", exact=True).select_option("range")
     page.get_by_label("Seitenbereich", exact=True).fill("3")
-    playwright.expect(page.get_by_role("button", name="Zuschneiden & speichern", exact=True)).to_be_disabled()
+    playwright.expect(page.get_by_role("button", name="Zuschnitt speichern", exact=True)).to_be_disabled()
     page.get_by_label("Anwenden auf", exact=True).select_option("all")
+    # Export remains available when the inspector is collapsed for the large canvas.
+    inspector_toggle.click()
+    playwright.expect(inspector).to_be_hidden()
     with page.expect_download() as saved:
-        page.get_by_role("button", name="Zuschneiden & speichern", exact=True).click()
+        page.get_by_role("button", name="Zuschnitt speichern", exact=True).click()
     path = tmp_path / saved.value.suggested_filename
     saved.value.save_as(path)
     with PDF_LOCK, pdfium.PdfDocument(path) as result:
@@ -101,15 +124,19 @@ def test_native_crop_large_selection_document_zoom_and_vector_export(editor, tmp
                 assert pdf_page.get_size()[0] == pytest.approx(595 - 10 * 72 / 25.4, abs=.01)
                 assert pdf_page.get_size()[1] == pytest.approx(842)
                 assert "VECTOR PAGE" in text.get_text_range()
+    playwright.expect(page.locator(".pdf-crop-progress")).to_contain_text("Download gestartet")
+    inspector_toggle.click()
+    playwright.expect(page.get_by_label("Rand links (mm)", exact=True)).to_have_value("10")
+    wait_for_centred_crop(page)
     page.screenshot(path=str(tmp_path / "crop-desktop.png"), full_page=True)
     # Both the original PDF and crop survive a visit to the tool palette.
-    page.get_by_role("button", name="Werkzeugauswahl", exact=True).click()
+    page.get_by_role("button", name="Alle PDF-Werkzeuge", exact=True).click()
     page.locator('[data-pdf-tool="crop"]').click()
     playwright.expect(page.get_by_label("Rand links (mm)", exact=True)).to_have_value("10")
     page.set_viewport_size({"width": 390, "height": 844})
     assert page.locator(".pdf-crop-editor").evaluate("el => el.scrollWidth <= el.clientWidth")
-    page.get_by_role("button", name="Zuschneiden & speichern", exact=True).scroll_into_view_if_needed()
-    playwright.expect(page.get_by_role("button", name="Zuschneiden & speichern", exact=True)).to_be_visible()
+    page.get_by_role("button", name="Zuschnitt speichern", exact=True).scroll_into_view_if_needed()
+    playwright.expect(page.get_by_role("button", name="Zuschnitt speichern", exact=True)).to_be_visible()
     page.screenshot(path=str(tmp_path / "crop-mobile.png"), full_page=True)
 
 
@@ -138,7 +165,7 @@ def test_rotated_userunit_page_uses_physical_millimetres(editor, tmp_path):
     page.get_by_label("Rand links (mm)", exact=True).blur()
     assert page.get_by_role("group", name="Zuschneidebereich", exact=True).evaluate("el => parseFloat(el.style.left)") == pytest.approx(10 / (842 * 2 * 25.4 / 72) * 100, abs=.01)
     with page.expect_download() as saved:
-        page.get_by_role("button", name="Zuschneiden & speichern", exact=True).click()
+        page.get_by_role("button", name="Zuschnitt speichern", exact=True).click()
     path = tmp_path / "physical.pdf"
     saved.value.save_as(path)
     with PDF_LOCK, pdfium.PdfDocument(path) as result, closing(result[0]) as pdf_page:
