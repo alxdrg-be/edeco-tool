@@ -17,6 +17,7 @@ export default function BimTool({ onHome, onOpenTool }: ToolProps) {
       const child = frame.current?.contentWindow;
       if (!child || child.location.origin !== window.location.origin) return;
       const forward = (event: KeyboardEvent) => {
+        if (document.documentElement.dataset.designBeta !== "true") return;
         if (!(event.ctrlKey || event.metaKey) || event.altKey || event.key.toLowerCase() !== "k" || child.document.querySelector("[aria-modal=\"true\"]")) return;
         event.preventDefault(); event.stopImmediatePropagation();
         window.dispatchEvent(new Event("edeco-command-search"));

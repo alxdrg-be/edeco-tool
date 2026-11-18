@@ -10,7 +10,7 @@ import ToolhubHeader from "./ToolhubHeader";
 import { ToolhubLocation } from "./ToolhubNavigation";
 import { useToolhubTheme } from "./useToolhubTheme";
 import PresentationSettings, { PresentationProvider, ToolhubSettingsDialog, usePresentation } from "./PresentationSettings";
-import { allowedToolId, toolAllowed } from "./presentationPolicy";
+import { allowedToolId, designBetaEnabled, toolAllowed } from "./presentationPolicy";
 import "./toolbox.css";
 import "./toolhub-redesign.css";
 import { toolAppearance } from "./toolAppearance";
@@ -40,6 +40,7 @@ class ToolBoundary extends Component<{ children: ReactNode; onHome: () => void }
 
 function ToolboxContents() {
   const { policy, error: policyError, refresh } = usePresentation();
+  const beta = designBetaEnabled(policy);
   const [active, setActive] = useState<string | null>(() => {
     const linked = toolFromHash();
     if (linked !== undefined) return linked;
@@ -116,18 +117,22 @@ function ToolboxContents() {
       else sessionStorage.removeItem("edeco-toolbox-active");
     } catch { /* The toolbox also works when browser storage is disabled. */ }
     const tool = TOOLS.find(item => item.id === effectiveActive);
-    const appearance = toolAppearance(effectiveActive);
     const style = document.documentElement.style;
-    style.setProperty("--toolhub-header-bg", appearance.header);
-    style.setProperty("--toolhub-accent", `light-dark(${appearance.accent}, ${appearance.lightAccent})`);
-    style.setProperty("--toolhub-accent-soft", `light-dark(${appearance.tint}, color-mix(in srgb, ${appearance.lightAccent} 15%, #16232b))`);
-    if (effectiveActive) recordToolVisit(effectiveActive);
+    if (beta) {
+      const appearance = toolAppearance(effectiveActive);
+      style.setProperty("--toolhub-header-bg", appearance.header);
+      style.setProperty("--toolhub-accent", `light-dark(${appearance.accent}, ${appearance.lightAccent})`);
+      style.setProperty("--toolhub-accent-soft", `light-dark(${appearance.tint}, color-mix(in srgb, ${appearance.lightAccent} 15%, #16232b))`);
+      if (effectiveActive) recordToolVisit(effectiveActive);
+    } else {
+      for (const name of ["--toolhub-header-bg", "--toolhub-accent", "--toolhub-accent-soft"]) style.removeProperty(name);
+    }
     if (tool) document.documentElement.dataset.toolColor = tool.color;
     else delete document.documentElement.dataset.toolColor;
     document.title = tool ? `${tool.title} · edeco Toolhub` : "edeco Toolhub";
     if (!effectiveActive && active && /^#(?:wissen|memory|rechner)(?:\/|$)/.test(window.location.hash)) history.replaceState(null, "", `${window.location.pathname}${window.location.search}#toolhub`);
     if (!effectiveActive && returning.current) heading.current?.focus();
-  }, [active, effectiveActive, policy]);
+  }, [active, effectiveActive, policy, beta]);
 
   const goHome = () => {
     returning.current = true;
@@ -151,19 +156,20 @@ function ToolboxContents() {
 
   return <div className="toolbox" data-toolhub-mode={policy.demo_enabled ? "demo" : "normal"} data-toolhub-admin={policy.is_admin ? "true" : "false"} data-toolhub-count={visibleRoot.length}>
     <ToolhubHeader className="toolbox-header" title="Übersicht" currentToolId={null} onHome={() => { setQuery(""); setCategory("Alle"); heading.current?.focus(); }} onOpenTool={openTool}>
+      {!beta && !policy.demo_enabled && <ProjectPicker />}
       <ToolboxUpdates />
-      <PresentationSettings onSaved={() => { setQuery(""); setCategory("Alle"); }} />
+      <PresentationSettings onOpen={() => setSettingsOpen(true)} onSaved={() => { setQuery(""); setCategory("Alle"); }} />
       <button className="btn toolhub-theme" aria-label={dark ? "Heller Modus" : "Dunkler Modus"} onClick={toggle}>
         {dark ? <Sun size={16} aria-hidden="true" /> : <Moon size={16} aria-hidden="true" />}<span>{dark ? "Hell" : "Dunkel"}</span></button>
     </ToolhubHeader>
     <main className="toolbox-main">
       <section className="toolbox-intro" aria-labelledby="toolbox-title">
-        <div><p className="toolbox-eyebrow">{policy.demo_enabled ? "PRÄSENTATION" : "DEIN ARBEITSPLATZ"}</p>
+        <div><p className="toolbox-eyebrow">{policy.demo_enabled ? "PRÄSENTATION" : beta ? "DEIN ARBEITSPLATZ" : "PLANEN. VEREINFACHEN. WEITERDENKEN."}</p>
         <h1 id="toolbox-title" ref={heading} tabIndex={-1}>Ein Ort. Deine Werkzeuge.</h1>
-        <p>{policy.demo_enabled ? "Die ausgewählten Werkzeuge für deine Präsentation." : "Pläne bearbeiten, berechnen und Wissen nachschlagen."}</p></div>
-        {!policy.demo_enabled && <div className="hub-home-project"><span>Aktives Projekt für neue Arbeiten</span><ProjectPicker /></div>}
+        <p>{policy.demo_enabled ? "Die ausgewählten Werkzeuge für deine Präsentation." : beta ? "Pläne bearbeiten, berechnen und Wissen nachschlagen." : "Alles für deine Elektroplanung – übersichtlich an einem Ort."}</p></div>
+        {beta && !policy.demo_enabled && <div className="hub-home-project"><span>Aktives Projekt für neue Arbeiten</span><ProjectPicker /></div>}
       </section>
-      <ToolhubRecent policy={policy} onOpenTool={openTool} />
+      {beta && <ToolhubRecent policy={policy} onOpenTool={openTool} />}
       <div className="toolbox-filters">
         <label className="toolbox-search"><span className="sr-only">Werkzeug suchen</span>
           <input type="search" placeholder="Name oder Aufgabe …" value={query} onChange={e => setQuery(e.target.value)} />
@@ -198,12 +204,23 @@ function ToolboxContents() {
         <p>Versuche einen anderen Suchbegriff oder wähle eine andere Kategorie.</p>
         <button className="btn" onClick={() => { setQuery(""); setCategory("Alle"); }}>Filter zurücksetzen</button>
       </div>}
-      {settingsOpen && <ToolhubSettingsDialog onClose={() => setSettingsOpen(false)} />}
+      {settingsOpen && <ToolhubSettingsDialog onClose={() => {
+        setSettingsOpen(false);
+        // A design switch replaces the original header button, so restore focus
+        // to its current counterpart after the dialog has closed.
+        requestAnimationFrame(() => document.querySelector<HTMLButtonElement>(".toolhub-settings-button")?.focus());
+      }} onSaved={() => { setQuery(""); setCategory("Alle"); }} />}
       <footer className="toolbox-footer"><span>edeco Toolhub</span><span>Eine gemeinsame Oberfläche für deine Elektroplanung.</span></footer>
     </main>
   </div>;
 }
 
+function ToolhubFrame() {
+  const { policy } = usePresentation();
+  // Stable wrapper: switching appearance must not remount editors or their data.
+  return <div className={designBetaEnabled(policy) ? "toolhub-frame" : "toolhub-classic-frame"}><ToolboxContents /></div>;
+}
+
 export default function Toolbox() {
-  return <PresentationProvider><div className="toolhub-frame"><ToolboxContents /></div></PresentationProvider>;
+  return <PresentationProvider><ToolhubFrame /></PresentationProvider>;
 }

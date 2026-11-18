@@ -1,6 +1,7 @@
 .document-assistant { height: 100%; display: flex; flex-direction: column; background: var(--bg); }
 .doc-workspace { flex: 1; min-height: 0; display: grid; grid-template-columns: 240px minmax(300px, 1fr) minmax(350px, 1.1fr); }
-.doc-library, .doc-conversation, .doc-preview { min-width: 0; overflow: auto; padding: 18px; }
+.doc-library, .doc-conversation, .doc-preview { min-width: 0; overflow: auto; padding: 24px; }
+:where(:root[data-design-beta="true"]) .doc-library, :where(:root[data-design-beta="true"]) .doc-conversation, :where(:root[data-design-beta="true"]) .doc-preview { min-width: 0; overflow: auto; padding: 18px; }
 .doc-library { background: var(--panel); border-right: 1px solid var(--line); padding: 24px 18px; }
 .doc-section-title { display: flex; gap: 12px; align-items: center; justify-content: space-between; }
 .doc-section-title h1 { font-size: 17px; margin: 0; }
@@ -22,11 +23,14 @@
 .doc-document-actions .btn { padding: 5px 9px; font-size: 10px; }
 .doc-delete { margin-top: 12px; border: 1px solid var(--line-strong); padding: 10px; border-radius: 8px; font-size: 11px; }
 .doc-delete .btn { margin: 4px; font-size: 10px; }
-.doc-conversation { padding: 18px clamp(16px, 1.6vw, 24px); }
-.doc-conversation > .toolbox-eyebrow { display: none; }
-.doc-conversation > h2 { font-size: 23px; letter-spacing: -.5px; line-height: 1.25; margin: 0 0 8px; }
+.doc-conversation { padding: 32px clamp(20px, 2.5vw, 38px); }
+:where(:root[data-design-beta="true"]) .doc-conversation { padding: 18px clamp(16px, 1.6vw, 24px); }
+:where(:root[data-design-beta="true"]) .doc-conversation > .toolbox-eyebrow { display: none; }
+.doc-conversation > h2 { font-size: 27px; letter-spacing: -.8px; line-height: 1.25; margin: 12px 0; }
+:where(:root[data-design-beta="true"]) .doc-conversation > h2 { font-size: 23px; letter-spacing: -.5px; line-height: 1.25; margin: 0 0 8px; }
 .doc-intro { color: var(--muted); font-size: 13px; line-height: 1.7; }
-.doc-question-form { display: flex; flex-direction: column; gap: 10px; margin-top: 18px; }
+.doc-question-form { display: flex; flex-direction: column; gap: 10px; margin-top: 28px; }
+:where(:root[data-design-beta="true"]) .doc-question-form { display: flex; flex-direction: column; gap: 10px; margin-top: 18px; }
 .doc-question-form > label { font-weight: 600; font-size: 12px; }
 .doc-question-form textarea { width: 100%; resize: vertical; min-height: 110px; padding: 14px; line-height: 1.6; border: 1px solid var(--line-strong); border-radius: 12px; background: var(--panel); color: var(--fg); }
 .doc-text-button { background: none; border: 0; padding: 0; color: var(--accent); text-decoration: underline; font: inherit; cursor: pointer; }

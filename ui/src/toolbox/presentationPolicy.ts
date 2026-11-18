@@ -10,6 +10,13 @@ export interface PresentationPolicy {
   is_admin: boolean;
   can_manage: boolean;
   windows_roles: boolean;
+  design_beta_enabled: boolean;
+  design_beta_error: string;
+}
+
+/** A missing policy or an ordinary user's preference must never activate beta. */
+export function designBetaEnabled(policy: PresentationPolicy | null): boolean {
+  return policy?.is_admin === true && policy.design_beta_enabled === true;
 }
 
 export const DEFAULT_DEMO_TOOLS = DEMO_DEFAULT_IDS;

@@ -5,7 +5,8 @@ import ToolhubBrand from './ToolhubBrand';
 import ToolhubNavigation, { useToolhubLocation } from './ToolhubNavigation';
 import { TOOLS } from './catalog';
 import { DemoBadge, usePresentation } from './PresentationSettings';
-import { allowedToolId } from './presentationPolicy';
+import { allowedToolId, designBetaEnabled } from './presentationPolicy';
+import ClassicToolhubHeader from './ClassicToolhubHeader';
 import { useToolhubTheme } from './useToolhubTheme';
 import { useProjectHub } from '../tools/projektzentrale/projectHubState';
 import ToolhubCommandPalette from './ToolhubCommandPalette';
@@ -25,13 +26,20 @@ function ProjectContext({ open, disabled }: { open?: () => void; disabled?: bool
   </button>;
 }
 
-/** Rail and search use the current editor's guarded navigation callbacks. */
-export default function ToolhubHeader({ title, onHome, onOpenTool, currentToolId, disabled,
-  className = '', children, knowledge, parent }: {
+export interface ToolhubHeaderProps {
   title: string; onHome: () => void; onOpenTool?: (id: string) => void; currentToolId?: string | null;
   disabled?: boolean; className?: string; children?: ReactNode;
   knowledge?: ReactNode; parent?: { label: string; onClick: () => void };
-}) {
+}
+
+export default function ToolhubHeader(props: ToolhubHeaderProps) {
+  const { policy } = usePresentation();
+  return designBetaEnabled(policy) ? <BetaToolhubHeader {...props} /> : <ClassicToolhubHeader {...props} />;
+}
+
+/** Both layouts receive the same editor-owned guarded navigation callbacks. */
+function BetaToolhubHeader({ title, onHome, onOpenTool, currentToolId, disabled,
+  className = '', children, knowledge, parent }: ToolhubHeaderProps) {
   const location = useToolhubLocation(), id = currentToolId ?? location;
   const { policy } = usePresentation();
   const [searchOpen, setSearchOpen] = useState(false);
@@ -73,6 +81,7 @@ export default function ToolhubHeader({ title, onHome, onOpenTool, currentToolId
           <Search size={16} aria-hidden="true" /><span>Werkzeuge, Projekte, Memory und Befehle …</span><kbd>Ctrl+K</kbd>
         </button>
         {!policy?.demo_enabled && <ProjectContext disabled={disabled} open={allowed('projektzentrale') && onOpenTool ? () => onOpenTool('projektzentrale') : undefined} />}
+        <button type="button" className="hub-design-beta-badge" disabled={disabled} onClick={openSettings} aria-label="Design-Beta: Einstellungen öffnen" title="Neues Design · nur für deine Admin-Anmeldung. In den Einstellungen zur bisherigen Oberfläche zurückwechseln.">Beta</button>
         <DemoBadge />
       </div>
       <div className="hub-header-toolbar">

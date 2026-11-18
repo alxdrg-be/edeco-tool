@@ -1,10 +1,13 @@
 .rename-tool { height: 100%; overflow: auto; background: var(--bg); color: var(--fg); }
-.rename-main { max-width: 1600px; margin: auto; padding: 18px clamp(16px, 2vw, 28px) 32px; }
-.rename-main h1 { font-size: 23px; letter-spacing: -.5px; margin: 0; }
+.rename-main { max-width: 1440px; margin: auto; padding: 24px clamp(16px, 3vw, 44px) 48px; }
+:where(:root[data-design-beta="true"]) .rename-main { max-width: 1600px; margin: auto; padding: 18px clamp(16px, 2vw, 28px) 32px; }
+.rename-main h1 { font-size: 30px; letter-spacing: -.8px; margin: 8px 0; }
+:where(:root[data-design-beta="true"]) .rename-main h1 { font-size: 23px; letter-spacing: -.5px; margin: 0; }
 .rename-main h2 { font-size: 18px; margin: 0; }
 .rename-main p { font-size: 13px; line-height: 1.65; }
 .rename-main small { color: var(--muted); font-size: 12px; line-height: 1.5; }
-.rename-template, .rename-preview { padding: 16px; margin-top: 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); min-width: 0; }
+.rename-template, .rename-preview { padding: 22px; margin-top: 22px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); min-width: 0; }
+:where(:root[data-design-beta="true"]) .rename-template, :where(:root[data-design-beta="true"]) .rename-preview { padding: 16px; margin-top: 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); min-width: 0; }
 .rename-parts { display: grid; grid-template-columns: repeat(auto-fit, minmax(195px, 1fr)); padding: 0; border: 0; gap: 12px; min-width: 0; }
 .rename-parts legend { font-size: 12px; margin-bottom: 12px; color: var(--muted); }
 .rename-part { border: 1px solid var(--line); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
@@ -30,7 +33,7 @@
 .rename-table-wrap { overflow-x: auto; }
 .rename-tool table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .rename-tool th, .rename-tool td { padding: 12px 8px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
-.rename-tool th { background: var(--panel-2); font-size: 12px; font-weight: 650; }
+:where(:root[data-design-beta="true"]) .rename-tool th { background: var(--panel-2); font-size: 12px; font-weight: 650; }
 .rename-tool th.rename-floor { min-width: 110px; }
 .rename-tool th.rename-name { min-width: 300px; }
 .rename-tool th.delivery-short { min-width: 85px; }

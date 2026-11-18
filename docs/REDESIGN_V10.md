@@ -5,6 +5,32 @@ Präsentation «edeco Toolhub Redesign» und die anschliessende Korrektur:
 Das vorhandene edeco-e bleibt das Logo; die Startseite verwendet dessen
 Petrol `#017c92`.
 
+## Design-Beta nur für Admins
+
+Die bisherige Oberfläche bleibt standardmässig aktiv. Unter **Toolhub →
+Einstellungen → Neues Design testen (Beta)** können die hinterlegten Admins
+(`aduerger`, `nstrauss`) die neue Hülle und die kompakten Arbeitsflächen persönlich
+einschalten. Der Schalter wirkt sofort, bleibt pro OS-Anmeldung auf diesem
+Computer gespeichert und lässt sich an derselben Stelle wieder ausschalten.
+Die Beta-Markierung in der neuen Kopfzeile führt ebenfalls zu den Einstellungen.
+
+Andere Benutzer erhalten die bisherige Navigation und Darstellung. Die
+Berechtigung kommt aus der OS-Anmeldung im Backend; ein Browserparameter oder
+der allgemeine Demo-Modus aktiviert die Design-Beta nicht. Ein fehlender oder
+nicht lesbarer Beta-Status aktiviert sie ebenfalls nicht. Der Demo-Modus bleibt
+die davon unabhängige Werkzeugauswahl für Präsentationen.
+
+Beide Oberflächen verwenden dieselben Werkzeuge, Berechnungen, Daten und
+Speicherprüfungen. Fachliche Korrekturen, Quellenabbildungen und ergänzte
+Werkzeugfunktionen bleiben gemeinsam; die bisherige Ansicht ist kein zweiter
+älterer Programmstand. Es gibt keine getrennten Beta-Projektkopien.
+
+Technisch: `presentation.json` bleibt unverändert im bisherigen Schema.
+`design-beta.json` enthält die persönlichen Opt-ins. Das Backend liefert nur
+für tatsächliche Admins einen aktiven `design_beta_enabled`-Status;
+`PUT /api/toolbox/presentation/design-beta` prüft die Rolle erneut. Die
+Entwicklungsfreigabe allgemeiner Einstellungen gilt nicht für diesen Endpunkt.
+
 ## Gemeinsame Bedienung
 
 - Kopfzeile und Navigation verwenden die Werkzeugfarbe. CAD-Layer,

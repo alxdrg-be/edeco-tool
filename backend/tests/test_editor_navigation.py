@@ -17,6 +17,7 @@ import uvicorn
 playwright = pytest.importorskip("playwright.sync_api")
 
 from edeco_toolbox.app import create_app
+from edeco_toolbox.presentation import DesignBetaBody
 from test_phase2 import import_dxf, nova_like_dxf
 from test_phase3 import env  # noqa: F401 - isolated settings and catalogue
 
@@ -98,7 +99,7 @@ def named_cards(page, label):
 
 
 @pytest.fixture()
-def editor(env):
+def editor(env, request):
     client, tmp = env
     ui = Path(os.environ["NOVA_TEST_UI_DIR"]) if os.environ.get("NOVA_TEST_UI_DIR") else Path(__file__).resolve().parents[2] / "ui" / "dist"
     if not (ui / "index.html").is_file():
@@ -117,6 +118,12 @@ def editor(env):
     served_app = create_app(client.app.state.nova, ui_dir=ui)
     # Browser role tests replace the OS identity on this isolated server only.
     client.app.state.toolhub_presentation = served_app.state.presentation
+    # The existing workspace/navigation suite exercises the V10 beta explicitly.
+    # Production defaults remain classic; indirect editor=False tests that path.
+    served_app.state.presentation.identity = "EDECO\\aduerger"
+    served_app.state.presentation.windows = True
+    if getattr(request, "param", True):
+        served_app.state.presentation.save_design_beta(DesignBetaBody(enabled=True))
     server = uvicorn.Server(uvicorn.Config(served_app, log_level="error"))
     thread = threading.Thread(target=server.run, kwargs={"sockets": [sock]}, daemon=True)
     thread.start()

@@ -49,9 +49,11 @@
 .vd-server-svg>svg { display: block; width: 100%; height: 100%; }
 .vd-server-svg [data-placement-id] { cursor: move; }
 .vd-canvas-overlay { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
-.vd-selected-rect { fill: transparent; stroke: var(--accent); stroke-width: 2.5px; }
+.vd-selected-rect { fill: transparent; stroke: #00879a; stroke-width: 2.5px; }
+:where(:root[data-design-beta="true"]) .vd-selected-rect { fill: transparent; stroke: var(--accent); stroke-width: 2.5px; }
 .vd-error-rect { fill: transparent; stroke: #cc344a; stroke-width: 2.5px; }
-.vd-ghost-rect { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 2px; stroke-dasharray: 6 4; }
+.vd-ghost-rect { fill: #00a5ba26; stroke: #00869c; stroke-width: 2px; stroke-dasharray: 6 4; }
+:where(:root[data-design-beta="true"]) .vd-ghost-rect { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 2px; stroke-dasharray: 6 4; }
 .vd-hand,.vd-hand [data-placement-id] { cursor: grab; }
 .vd-canvas-controls { position: absolute; bottom: 10px; left: 10px; z-index: 3; display: flex; align-items: center; gap: 3px; padding: 4px; border: 1px solid var(--line-strong); background: var(--panel); border-radius: 9px; box-shadow: var(--shadow); }
 .vd-canvas-controls button { display: flex; align-items: center; gap: 5px; padding: 6px; border: 0; background: transparent; color: var(--fg); border-radius: 5px; font-size: 10px; }
@@ -148,15 +150,16 @@
 @media (prefers-reduced-motion:reduce) { .vd-spin { animation: none; } }
 
 /* Compact workspace. CAD colours continue to come from the document. */
-.vd-main { padding: 14px 18px 8px; }
-.vd-toolbar { gap: 14px; margin-bottom: 12px; }
+:where(:root[data-design-beta="true"]) .vd-main { padding: 14px 18px 8px; }
+:where(:root[data-design-beta="true"]) .vd-toolbar { gap: 14px; margin-bottom: 12px; }
 .vd-document-heading { min-width: 0; }
-.vd-toolbar h1 { font-size: 18px; line-height: 1.3; letter-spacing: -.02em; margin: 0; }
-.vd-toolbar p { margin: 4px 0; overflow-wrap: anywhere; }
+:where(:root[data-design-beta="true"]) .vd-toolbar h1 { font-size: 18px; line-height: 1.3; letter-spacing: -.02em; margin: 0; }
+:where(:root[data-design-beta="true"]) .vd-toolbar p { margin: 4px 0; overflow-wrap: anywhere; }
 .vd-save-status { color: var(--muted); font-size: 11px; }
 .vd-save-status.vd-error { color: var(--danger); }
 .vd-panel-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-left: auto; }
-.vd-workspace { --vd-library-width: 200px; --vd-inspector-width: 280px; grid-template-columns: var(--vd-library-width) minmax(300px,1fr) var(--vd-inspector-width); height: max(540px,calc(100dvh - 240px)); }
+.vd-workspace { --vd-library-width: minmax(180px,220px); --vd-inspector-width: minmax(255px,310px); }
+:where(:root[data-design-beta="true"]) .vd-workspace { --vd-library-width: 200px; --vd-inspector-width: 280px; grid-template-columns: var(--vd-library-width) minmax(300px,1fr) var(--vd-inspector-width); height: max(540px,calc(100dvh - 240px)); }
 .vd-workspace.vd-library-hidden { grid-template-columns: minmax(300px,1fr) var(--vd-inspector-width); }
 .vd-workspace.vd-inspector-hidden { grid-template-columns: var(--vd-library-width) minmax(300px,1fr); }
 .vd-workspace.vd-library-hidden.vd-inspector-hidden { grid-template-columns: minmax(300px,1fr); }
@@ -170,27 +173,31 @@
 .vd-canvas-controls { flex-wrap: wrap; max-width: calc(100% - 20px); }
 .vd-canvases-both .vd-canvas-controls { gap: 1px; }
 .vd-canvases-both .vd-canvas-controls button { padding: 5px; }
-.vd-expanded .vd-workspace { height: max(540px,calc(100dvh - 220px)); }
-.vd-expanded .vd-toolbar p { display: block; }
+:where(:root[data-design-beta="true"]) .vd-expanded .vd-workspace { height: max(540px,calc(100dvh - 220px)); }
+:where(:root[data-design-beta="true"]) .vd-expanded .vd-toolbar p { display: block; }
 @media (max-width:1200px) {
-  .vd-workspace { --vd-library-width: 170px; --vd-inspector-width: 255px; }
-  .vd-viewbar { gap: 8px; }
+  :where(:root[data-design-beta="true"]) .vd-workspace { --vd-library-width: 170px; --vd-inspector-width: 255px; }
+  :where(:root[data-design-beta="true"]) .vd-viewbar { gap: 8px; }
   .vd-panel-actions { margin-left: 0; }
 }
 @media (max-width:980px) {
-  .vd-workspace,.vd-expanded .vd-workspace { grid-template-columns: var(--vd-library-width) minmax(300px,1fr); height: auto; }
+  :where(:root[data-design-beta="true"]) .vd-workspace,:where(:root[data-design-beta="true"]) .vd-expanded .vd-workspace { grid-template-columns: var(--vd-library-width) minmax(300px,1fr); height: auto; }
   .vd-workspace.vd-library-hidden { grid-template-columns: minmax(300px,1fr); }
   .vd-workspace .vd-properties { grid-column: 1/-1; }
-  .vd-drawing { min-height: 600px; }
+  :where(:root[data-design-beta="true"]) .vd-drawing { min-height: 600px; }
   .vd-canvases-both { grid-template-columns: minmax(0,1fr); }
   .vd-canvases-both .vd-view-panel { min-height: 400px; }
   .vd-view-panel + .vd-view-panel { border-left: 0; border-top: 1px solid var(--line-strong); }
 }
 @media (max-width:640px) {
-  .vd-main { padding: 10px 8px; }
+  :where(:root[data-design-beta="true"]) .vd-main { padding: 10px 8px; }
   .vd-workspace,.vd-expanded .vd-workspace { display: flex; flex-direction: column; }
   .vd-canvases { min-height: 480px; }
   .vd-canvases-both { min-height: 800px; }
   .vd-panel-actions { width: 100%; }
   .vd-segment button { padding: 9px; }
 }
+
+/* Collapsing a pane also works with the established classic column sizes. */
+@media (max-width:1200px) { :where(:root:not([data-design-beta="true"])) .vd-workspace { --vd-library-width:175px; --vd-inspector-width:260px; } }
+@media (max-width:980px) { :where(:root:not([data-design-beta="true"])) .vd-workspace { --vd-library-width:155px; } }

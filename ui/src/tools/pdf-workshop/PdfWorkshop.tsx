@@ -174,6 +174,7 @@ export default function PdfWorkshop({ onHome, onOpenTool }: ToolProps) {
     if (!element) return;
     let child: Window | null = null;
     const relayToolhubSearch = (event: KeyboardEvent) => {
+      if (document.documentElement.dataset.designBeta !== "true") return;
       if (event.altKey || !(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== "k") return;
       const hasModal = child && [...child.document.querySelectorAll('[aria-modal="true"], dialog[open]')].some(node => node.getClientRects().length > 0);
       if (hasModal) return;

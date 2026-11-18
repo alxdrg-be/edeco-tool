@@ -38,9 +38,15 @@ class PresentationBody(BaseModel):
     admins: list[str] = Field(max_length=64)
 
 
+class DesignBetaBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    enabled: bool = Field(strict=True)
+
+
 class PresentationStore:
     def __init__(self, home: Path, identity: tuple[str, bool] | None = None):
         self.path = home / "presentation.json"
+        self.design_beta_path = home / "design-beta.json"
         self.identity, self.windows = identity if identity is not None else windows_identity()
         self.lock = threading.RLock()
 
@@ -84,9 +90,59 @@ class PresentationStore:
         with self.lock:
             data = self.read()
             admin = is_admin(self.identity, data["admins"])
+            design_enabled, design_error = False, ""
+            if admin:
+                try:
+                    design_enabled = self.read_design_beta().get(self.identity.strip().casefold(), False)
+                except HTTPException as failure:
+                    # A broken preview preference must not prevent use of the
+                    # established interface or silently replace its source file.
+                    design_error = failure.detail
             return {**data, "identity": self.identity, "is_admin": admin,
                     "can_manage": admin or not data["admins"] or not self.windows,
-                    "windows_roles": self.windows}
+                    "windows_roles": self.windows,
+                    "design_beta_enabled": design_enabled,
+                    "design_beta_error": design_error}
+
+    def read_design_beta(self) -> dict[str, bool]:
+        try:
+            if not self.design_beta_path.exists():
+                return {}
+            if self.design_beta_path.stat().st_size > 20000:
+                raise ValueError()
+            raw = json.loads(self.design_beta_path.read_text(encoding="utf-8"))
+            if not isinstance(raw, dict) or set(raw) != {"schema_version", "identities"}:
+                raise ValueError()
+            if type(raw["schema_version"]) is not int or raw["schema_version"] != 1:
+                raise ValueError()
+            values = raw["identities"]
+            if not isinstance(values, dict) or any(
+                not name or len(name) > 160 or name != name.strip().casefold()
+                or any(ord(char) < 32 or ord(char) == 127 for char in name)
+                or type(enabled) is not bool
+                for name, enabled in values.items()
+            ):
+                raise ValueError()
+            return values
+        except (ValueError, OSError, TypeError):
+            raise HTTPException(500, "Die persönliche Design-Beta-Einstellung konnte nicht gelesen werden. Die bisherige Oberfläche bleibt aktiv; die vorhandene Datei wurde nicht verändert.") from None
+
+    def save_design_beta(self, body: DesignBetaBody):
+        with self.lock:
+            # Unlike general development settings, the preview has no Linux or
+            # empty-admin-list bypass: only an explicitly listed OS account opts in.
+            if not is_admin(self.identity, self.read()["admins"]):
+                raise HTTPException(403, "Das neue Design können nur die hinterlegten Administratoren testen.")
+            values = self.read_design_beta()
+            values[self.identity.strip().casefold()] = body.enabled
+            self.design_beta_path.parent.mkdir(parents=True, exist_ok=True)
+            temporary = self.design_beta_path.with_name(f".design-beta-{uuid.uuid4()}.tmp")
+            try:
+                temporary.write_text(json.dumps({"schema_version": 1, "identities": values}, ensure_ascii=False, indent=2), encoding="utf-8")
+                os.replace(temporary, self.design_beta_path)
+            finally:
+                temporary.unlink(missing_ok=True)
+            return self.snapshot()
 
     def save(self, body: PresentationBody):
         with self.lock:
@@ -123,3 +179,7 @@ def register(app):
         # The global loopback/session middleware protects this mutation before it
         # reaches the route; role checks happen in the store, on the server.
         return JSONResponse(store.save(body), headers={"Cache-Control": "no-store"})
+
+    @app.put(f"{PREFIX}/design-beta")
+    def put_design_beta(body: DesignBetaBody):
+        return JSONResponse(store.save_design_beta(body), headers={"Cache-Control": "no-store"})
