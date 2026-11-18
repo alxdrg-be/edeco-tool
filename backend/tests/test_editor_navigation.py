@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from ui_helpers import wait_for_toolhub
+
 import os
 import re
 import socket
@@ -15,6 +17,7 @@ import uvicorn
 playwright = pytest.importorskip("playwright.sync_api")
 
 from edeco_toolbox.app import create_app
+from edeco_toolbox.presentation import DesignBetaBody
 from test_phase2 import import_dxf, nova_like_dxf
 from test_phase3 import env  # noqa: F401 - isolated settings and catalogue
 
@@ -96,7 +99,7 @@ def named_cards(page, label):
 
 
 @pytest.fixture()
-def editor(env):
+def editor(env, request):
     client, tmp = env
     ui = Path(os.environ["NOVA_TEST_UI_DIR"]) if os.environ.get("NOVA_TEST_UI_DIR") else Path(__file__).resolve().parents[2] / "ui" / "dist"
     if not (ui / "index.html").is_file():
@@ -115,6 +118,12 @@ def editor(env):
     served_app = create_app(client.app.state.nova, ui_dir=ui)
     # Browser role tests replace the OS identity on this isolated server only.
     client.app.state.toolhub_presentation = served_app.state.presentation
+    # The existing workspace/navigation suite exercises the V10 beta explicitly.
+    # Production defaults remain classic; indirect editor=False tests that path.
+    served_app.state.presentation.identity = "EDECO\\aduerger"
+    served_app.state.presentation.windows = True
+    if getattr(request, "param", True):
+        served_app.state.presentation.save_design_beta(DesignBetaBody(enabled=True))
     server = uvicorn.Server(uvicorn.Config(served_app, log_level="error"))
     thread = threading.Thread(target=server.run, kwargs={"sockets": [sock]}, daemon=True)
     thread.start()
@@ -290,7 +299,7 @@ def test_toolbox_shows_core_tiles_without_scroll_and_hides_removed_extras(editor
         page.evaluate("font => document.documentElement.style.setProperty('--font-ui', font)", font_family)
     page.set_viewport_size({"width": 1400, "height": 900})
     page.get_by_role("button", name="Zum Toolhub", exact=True).click()
-    playwright.expect(page.locator(".toolbox-card")).to_have_count(9)
+    wait_for_toolhub(page)
     assert page.locator(".toolbox").evaluate("el => el.scrollHeight <= el.clientHeight")
     # A 900px native window also needs space for its Windows title bar.
     page.set_viewport_size({"width": 1400, "height": 860})
@@ -300,6 +309,7 @@ def test_toolbox_shows_core_tiles_without_scroll_and_hides_removed_extras(editor
     playwright.expect(page.get_by_role("heading", name="Blitzschutz", exact=True)).to_have_count(0)
     playwright.expect(page.locator(".toolbox-card:not(.is-available)")).to_have_count(0)
     playwright.expect(page.get_by_role("button", name="NOVA-Legenden öffnen", exact=True)).to_be_enabled()
+    playwright.expect(page.get_by_role("button", name="Verteiler-Dispo öffnen", exact=True)).to_be_enabled()
     playwright.expect(page.get_by_role("button", name="BIM2STEIGER öffnen", exact=True)).to_be_enabled()
     playwright.expect(page.get_by_role("button", name="Dokumenten-Assistent öffnen", exact=True)).to_be_enabled()
     playwright.expect(page.get_by_role("button", name="PDF-Werkstatt öffnen", exact=True)).to_be_enabled()
@@ -325,8 +335,8 @@ def test_plan_delivery_downloads_manifest_and_records_only_explicitly_confirmed_
     project = page.request.post(prefix + "/projects", headers={"X-Edeco-Projects": state["session_key"]}, data={"number": "1498", "name": "Planlieferung Test"}).json()
     page.get_by_role("button", name="Zum Toolhub", exact=True).click()
     page.get_by_role("button", name="Werkzeuge", exact=True).click()
-    menu = page.get_by_role("dialog", name="Werkzeug wechseln", exact=True)
-    menu.get_by_role("searchbox", name="Werkzeug suchen", exact=True).fill("Planlieferungs-Assistent")
+    menu = page.get_by_role("dialog", name="Im Toolhub finden", exact=True)
+    menu.get_by_role("searchbox", name="Werkzeuge, Projekte, Memory und Befehle suchen", exact=True).fill("Planlieferungs-Assistent")
     menu.get_by_role("button", name="Planlieferungs-Assistent", exact=True).click()
     playwright.expect(page.get_by_label("Lieferprojekt", exact=True)).to_have_value(project["id"])
     page.get_by_label("Lieferempfänger", exact=True).fill("Bauleitung Test")
@@ -774,6 +784,10 @@ def test_file_rename_template_detects_floors_blocks_duplicates_and_downloads_ori
     page, _, _, _ = editor
     page.get_by_role("button", name="Zum Toolhub", exact=True).click()
     page.get_by_role("button", name="Dateien umbenennen öffnen", exact=True).click()
+    # First setup exposes the missing project number; configured templates are
+    # collapsed on return so the file table remains the main working area.
+    template = page.locator(".rename-naming")
+    playwright.expect(template).to_have_attribute("open", "")
     page.get_by_role("textbox", name="Projektnummer", exact=True).fill("1498")
     page.get_by_label("PDFs hinzufügen", exact=True).set_input_files([
         {"name": "Grundriss 2og.pdf", "mimeType": "application/pdf", "buffer": sample_pdf([["2. Obergeschoss"]])},
@@ -784,8 +798,10 @@ def test_file_rename_template_detects_floors_blocks_duplicates_and_downloads_ori
     playwright.expect(first).to_have_value("1498_E-G-APP-OG02-C-50.pdf")
     playwright.expect(second).to_have_value("1498_E-G-APP-EG00-C-50.pdf")
     download = page.get_by_role("button", name="Benannte Kopien als ZIP herunterladen")
+    top_download = page.get_by_role("button", name="Kopien als ZIP", exact=True)
     page.get_by_label("Geschoss verwenden", exact=True).uncheck()
     playwright.expect(download).to_be_disabled()
+    playwright.expect(top_download).to_be_disabled()
     playwright.expect(page.get_by_text("Namenskonflikt: bitte eindeutig benennen.", exact=True)).to_have_count(2)
     page.get_by_label("Geschoss verwenden", exact=True).check()
     page.get_by_label("Index verwenden", exact=True).uncheck()
@@ -805,6 +821,8 @@ def test_file_rename_template_detects_floors_blocks_duplicates_and_downloads_ori
         assert archive.read(archive.namelist()[0]) == sample_pdf([["2. Obergeschoss"]])
     page.get_by_role("button", name="Zum Toolhub", exact=True).click()
     page.get_by_role("button", name="Dateien umbenennen öffnen", exact=True).click()
+    playwright.expect(template).not_to_have_attribute("open", "")
+    template.locator(":scope > summary").click()
     playwright.expect(page.get_by_role("textbox", name="Projektnummer", exact=True)).to_have_value("1498")
     playwright.expect(page.get_by_role("button", name="PDFs hinzufügen", exact=True)).to_be_enabled()
     page.get_by_label("PDFs hinzufügen", exact=True).set_input_files({

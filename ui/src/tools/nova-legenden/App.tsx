@@ -12,6 +12,7 @@ import Menu from "./components/Menu";
 import edecoLogo from "../../assets/edeco-logo.svg?raw";
 import ToolHeader from "../../toolbox/ToolHeader";
 import UpdateDialog, { type UpdatePhase } from "./components/UpdateDialog";
+import "./nova-workspace.css";
 
 type Tab = "projects" | "library" | "categories" | "settings" | "help";
 

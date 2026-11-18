@@ -1,6 +1,8 @@
-"""Memory and its shared formula shortcut remain reachable in the five-tool demo."""
+"""Memory and its shared formula shortcut remain reachable in the configured demo."""
 
 from __future__ import annotations
+
+from ui_helpers import wait_for_toolhub
 
 import re
 
@@ -12,17 +14,18 @@ def test_memory_tile_formula_shortcut_and_browser_back_share_the_real_module(edi
     page, _, _, _ = editor
     page.set_viewport_size({"width": 1600, "height": 1000})
     page.get_by_role("button", name="Zum Toolhub", exact=True).click()
-    playwright.expect(page.locator(".toolbox-card")).to_have_count(9)
+    wait_for_toolhub(page)
     memory = page.get_by_role("button", name="Elektro-Memory öffnen", exact=True)
     playwright.expect(memory).to_be_enabled()
-    assert page.locator(".toolbox-grid").evaluate("el => getComputedStyle(el).gridTemplateColumns.split(' ').length") == 5
+    # The V10 hub uses four columns at desktop width; every tool stays reachable.
+    assert page.locator(".toolbox-grid").evaluate("el => getComputedStyle(el).gridTemplateColumns.split(' ').length") == 4
     memory.click()
     playwright.expect(page).to_have_url(re.compile(r"#memory$"))
     playwright.expect(page.get_by_role("heading", name="Elektro-Memory", exact=True)).to_be_visible()
     playwright.expect(page.get_by_role("tab", name="Nachschlagen", exact=True)).to_have_attribute("aria-selected", "true")
     playwright.expect(page.locator("html")).to_have_attribute("data-tool-color", "indigo")
     page.get_by_role("button", name="Zum Toolhub", exact=True).click()
-    playwright.expect(page.locator(".toolbox-card")).to_have_count(9)
+    wait_for_toolhub(page)
     page.go_back()
     playwright.expect(page).to_have_url(re.compile(r"#memory$"))
     playwright.expect(page.get_by_role("heading", name="Elektro-Memory", exact=True)).to_be_visible()

@@ -36,8 +36,3 @@ export function unitRangesOverlap(aStart: number, aUnits: number, bStart: number
   const epsilon = 0.000001;
   return aUnits > 0 && bUnits > 0 && aStart < bStart + bUnits - epsilon && bStart < aStart + aUnits - epsilon;
 }
-export function portGrid(portCount: number): { columns: number; rows: number } {
-  if (portCount <= 0) return { columns: 0, rows: 0 };
-  const columns = Math.min(24, portCount);
-  return { columns, rows: Math.ceil(portCount / columns) };
-}

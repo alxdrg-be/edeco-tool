@@ -1,11 +1,19 @@
 .pdf-crop-editor { display:flex; flex-direction:column; flex:1; min-height:0; min-width:0; background:var(--bg); color:var(--fg); }
 .pdf-crop-file { display:none; }
-.pdf-crop-toolbar { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:14px 20px; border-bottom:1px solid var(--line); background:var(--panel); flex:none; }
+.pdf-crop-toolbar { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px; padding:14px 20px; border-bottom:1px solid var(--line); background:var(--panel); flex:none; }
+:where(:root[data-design-beta="true"]) .pdf-crop-toolbar { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; padding:10px 16px; border-bottom:1px solid var(--line); background:var(--panel); flex:none; }
 .pdf-crop-toolbar > div { display:flex; align-items:center; gap:14px; min-width:0; }
 .pdf-crop-toolbar > div > span { display:grid; gap:5px; min-width:0; }
 .pdf-crop-toolbar strong { font-size:16px; font-weight:650; }
 .pdf-crop-toolbar small { font-size:11px; color:var(--muted); white-space:nowrap; text-overflow:ellipsis; overflow:hidden; max-width:460px; }
 .pdf-crop-toolbar .btn { display:inline-flex; gap:7px; align-items:center; white-space:nowrap; }
+.pdf-crop-actions { margin-left:auto; }
+.pdf-crop-progress { display:flex; align-items:center; flex-wrap:wrap; justify-content:space-between; gap:8px 18px; padding:7px 16px; background:var(--panel); border-bottom:1px solid var(--line); font-size:11px; color:var(--muted); }
+.pdf-crop-progress ol { display:flex; flex-wrap:wrap; align-items:center; gap:8px; list-style:none; padding:0; margin:0; }
+.pdf-crop-progress li { padding:4px 8px; border-radius:5px; }
+.pdf-crop-progress li.is-current { background:var(--accent-soft); color:var(--fg); font-weight:650; }
+.pdf-crop-progress li.is-done { color:var(--fg); }
+.pdf-crop-collapsed-message { flex:none; margin:0; padding:8px 16px; border-bottom:1px solid var(--line); background:var(--panel); }
 .pdf-crop-page-navigation { display:flex; align-items:center; gap:5px; font-size:11px; }
 .pdf-crop-page-navigation label { display:flex; align-items:center; gap:7px; color:var(--muted); }
 .pdf-crop-page-navigation select { padding:7px 9px; border:1px solid var(--line); border-radius:7px; background:var(--bg); color:var(--fg); max-width:90px; }
@@ -17,6 +25,8 @@
 .pdf-crop-import p { font-size:13px; color:var(--muted); margin:0 0 8px; }
 .pdf-crop-import .pdf-error { color:var(--danger); max-width:620px; }
 .pdf-crop-workspace { display:grid; grid-template-columns:minmax(0,1fr) 275px; grid-template-rows:minmax(0,1fr) auto; gap:14px; padding:16px; flex:1; min-height:0; min-width:0; }
+.pdf-crop-workspace.is-inspector-collapsed { grid-template-columns:minmax(0,1fr); }
+.pdf-crop-settings[hidden] { display:none; }
 .pdf-crop-viewport { overflow:auto; position:relative; min-height:260px; min-width:0; background:var(--panel-2); border:1px solid var(--line); border-radius:11px; touch-action:none; overscroll-behavior:contain; outline:none; scrollbar-color:var(--line-strong) var(--panel-2); }
 .pdf-crop-viewport:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
 .pdf-crop-surface { position:relative; min-width:100%; min-height:100%; cursor:grab; }
@@ -61,6 +71,9 @@
 .pdf-crop-percent { min-width:60px; font-variant-numeric:tabular-nums!important; }
 .pdf-crop-zoom-divider { width:1px; height:18px; background:var(--line); margin:0 3px; }
 .pdf-crop-zoom button:focus-visible { outline:2px solid var(--accent); outline-offset:1px; }
+.pdf-workspace-spinner { animation:pdf-workspace-spin 1s linear infinite; }
+@keyframes pdf-workspace-spin { to { transform:rotate(360deg); } }
+@media(prefers-reduced-motion:reduce) { .pdf-workspace-spinner { animation:none; } }
 @media(max-width:1050px) {
   .pdf-crop-workspace { grid-template-columns:minmax(0,1fr) 240px; gap:10px; padding:12px; }
   .pdf-crop-settings { padding:14px; }
@@ -77,6 +90,7 @@
   .pdf-crop-toolbar .btn { font-size:11px; padding:8px; }
   .pdf-crop-toolbar > div + div { width:100%; justify-content:space-between; }
   .pdf-crop-workspace { flex:none; grid-template-columns:minmax(0,1fr); grid-template-rows:480px auto auto; gap:10px; padding:10px; }
+  .pdf-crop-workspace.is-inspector-collapsed { grid-template-rows:480px auto; }
   .pdf-crop-settings { grid-column:1; grid-row:3; overflow:visible; }
   .pdf-crop-zoom { grid-row:2; position:sticky; top:0; z-index:4; gap:1px; }
   .pdf-crop-zoom > button { font-size:10px; padding:7px 6px; }

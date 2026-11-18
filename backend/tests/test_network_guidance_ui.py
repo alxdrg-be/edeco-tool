@@ -64,7 +64,8 @@ def test_report_explains_incompatible_limits_and_focuses_exact_same_named_device
 def test_live_invalid_input_routes_to_the_actual_field_without_substituting_values(editor):
     page, _, _, _ = editor
     open_network(page)
-    page.locator('[data-edge-id="line-3"] .np-edge-hit').click(force=True)
+    page.get_by_role("button", name="Netzplan vollständig einpassen", exact=True).click()
+    page.locator('[data-edge-id="line-3"] .np-edge-label').click()
     field = page.locator('[data-network-field="length"]')
     field.fill("")
     page.get_by_role("button", name="Fehler anzeigen", exact=True).click()

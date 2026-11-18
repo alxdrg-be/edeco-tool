@@ -81,14 +81,14 @@ def test_project_api_authorization_validation_and_folder_open_only_uses_saved_pa
 
 
 def test_open_folder_checks_reachability_before_launching(tmp_path, monkeypatch):
-    from edeco_toolbox.tools.projects import api as hub_api
+    from edeco_toolbox import folders
     launches = []
-    monkeypatch.setattr(hub_api.sys, "platform", "linux")
-    monkeypatch.setattr(hub_api.subprocess, "Popen", lambda command, **kwargs: launches.append(command))
-    hub_api.open_folder(str(tmp_path))
+    monkeypatch.setattr(folders.sys, "platform", "linux")
+    monkeypatch.setattr(folders.subprocess, "Popen", lambda command, **kwargs: launches.append(command))
+    folders.open_folder(str(tmp_path))
     assert launches == [["xdg-open", str(tmp_path)]]
     with pytest.raises(ValueError, match="nicht erreichbar"):
-        hub_api.open_folder(str(tmp_path / "missing"))
+        folders.open_folder(str(tmp_path / "missing"))
     with pytest.raises(ValueError):
-        hub_api.open_folder("relative")
+        folders.open_folder("relative")
     assert len(launches) == 1

@@ -14,7 +14,7 @@ from fastapi import File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import Response
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
-from ..file_rename.api import MAX_FILE, MAX_TOTAL, validate_names
+from ..file_rename.validation import MAX_FILE, MAX_TOTAL, validate_names
 
 PREFIX = "/api/tools/planlieferung"
 

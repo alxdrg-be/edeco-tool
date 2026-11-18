@@ -6,6 +6,7 @@ import { NumberInput } from "./SymbolBits";
 import { FREE_TEXT_HINT } from "./editorShared.ts";
 import { TOOLBAR_DEFAULT, TOOLBAR_ITEMS } from "./editorPrefs.ts";
 import type { SaveState } from "./useLegendSave.ts";
+import { PanelLeft, PanelRight, Save } from "lucide-react";
 
 type Style = LegendDoc["style"];
 
@@ -13,6 +14,7 @@ export interface LegendToolbarProps {
   bar: Set<string>; toggleBar: (id: string) => void; saveBar: (next: Set<string>) => void;
   showGrid: boolean; toggleGrid: () => void;
   outlineOpen: boolean; onToggleOutline: () => void;
+  propertiesOpen: boolean; onToggleProperties: () => void;
   busy: boolean; exporting: boolean; exportBlock: string;
   canUndo: boolean; canRedo: boolean; onUndo: () => void; onRedo: () => void; onProposal: () => void;
   onAddKind: (kind: "line" | "note" | "text") => void; onAddBlock: () => void;
@@ -20,17 +22,18 @@ export interface LegendToolbarProps {
   generalKind: string | null | undefined; exportGeneral: boolean; setExportGeneral: (on: boolean) => void;
   applyCompact: () => void; applyA4: () => void; alignSectionColors: () => void;
   detached: boolean; onToggleDetached: () => void;
-  saveState: SaveState; savedInfo: string; onExportDxf: () => void;
+  saveState: SaveState; savedInfo: string; onSave: () => void; onExportDxf: () => void; onExportPdf: () => void;
   menuContainer: () => HTMLElement | null;
 }
 
 /** Toolbar of the legend editor; each computer chooses the visible groups (Ansicht). */
-export function LegendToolbar({ bar, toggleBar, saveBar, showGrid, toggleGrid, outlineOpen, onToggleOutline, busy, exporting, exportBlock,
+export function LegendToolbar({ bar, toggleBar, saveBar, showGrid, toggleGrid, outlineOpen, onToggleOutline, propertiesOpen, onToggleProperties, busy, exporting, exportBlock,
   canUndo, canRedo, onUndo, onRedo, onProposal, onAddKind, onAddBlock, style, grids, setStyle, generalKind, exportGeneral, setExportGeneral,
-  applyCompact, applyA4, alignSectionColors, detached, onToggleDetached, saveState, savedInfo, onExportDxf, menuContainer }: LegendToolbarProps) {
+  applyCompact, applyA4, alignSectionColors, detached, onToggleDetached, saveState, savedInfo, onSave, onExportDxf, onExportPdf, menuContainer }: LegendToolbarProps) {
   return (
       <div className="legend-toolbar">
-        <button type="button" className="btn small" aria-expanded={outlineOpen} aria-controls="legend-sections-outline" onClick={onToggleOutline}>Abschnitte {outlineOpen ? "ausblenden" : "einblenden"}</button>
+        <button type="button" className="btn small legend-pane-toggle" aria-expanded={outlineOpen} aria-controls="legend-sections-outline" title={outlineOpen ? "Abschnitte ausblenden" : "Abschnitte einblenden"} onClick={onToggleOutline}><PanelLeft size={14} /> Abschnitte</button>
+        <button type="button" className="btn small legend-pane-toggle" aria-expanded={propertiesOpen} aria-controls="legend-properties" title={propertiesOpen ? "Eigenschaften ausblenden" : "Eigenschaften einblenden"} onClick={onToggleProperties}><PanelRight size={14} /> Eigenschaften</button>
         {bar.has("history") && (
           <div className="tool-group" role="group" aria-label="Verlauf">
             <button className="btn small" disabled={busy} onClick={onProposal} title="Legende aus den aktuellen Projektzahlen neu vorschlagen">
@@ -198,12 +201,15 @@ export function LegendToolbar({ bar, toggleBar, saveBar, showGrid, toggleGrid, o
           title={savedInfo ? `Zuletzt gespeichert ${savedInfo}` : undefined}>
           {saveState === "saving" ? "Speichert …" : saveState === "error" ? "Nicht gespeichert" : savedInfo ? "Gespeichert" : ""}
         </span>
+        <button type="button" className="btn small icon-btn" aria-label="Legende jetzt speichern" title="Legende jetzt speichern" disabled={busy || saveState === "saving"} onClick={onSave}><Save size={15} /></button>
         {bar.has("export") && (
-          <button className="btn small primary" disabled={busy || exporting}
+          <><button className="btn small" disabled={busy || exporting}
             onClick={onExportDxf}
+            aria-label="DXF herunterladen"
             title={exportBlock ? "Den gewählten Abschnitt als DXF herunterladen" : "Die ganze Legende als DXF herunterladen"}>
-            <Icon name="download" size={16} /> {exporting ? "Exportiert …" : "DXF herunterladen"}
+            <Icon name="download" size={16} /> DXF
           </button>
+          <button type="button" className="btn small primary" disabled={busy || exporting} onClick={onExportPdf} aria-label="PDF herunterladen" title={exportBlock ? "Den gewählten Abschnitt als PDF herunterladen" : "Die ganze Legende als PDF herunterladen"}>{exporting ? "Exportiert …" : "PDF"}</button></>
         )}
       </div>
   );

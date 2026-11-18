@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from ui_helpers import wait_for_toolhub
+
 from pathlib import Path
 
 from test_editor_navigation import editor, env, playwright  # noqa: F401
@@ -13,7 +15,7 @@ def admin_hub(editor):
     store.identity, store.windows = "EDECO\\aduerger", True
     page.reload()
     page.get_by_role("button", name="Zum Toolhub", exact=True).click()
-    playwright.expect(page.locator(".toolbox-card")).to_have_count(9)
+    wait_for_toolhub(page)
     return page, store
 
 
@@ -40,9 +42,17 @@ def test_demo_six_tools_persist_and_hidden_restore_cannot_bypass_scope(editor, t
     playwright.expect(page.get_by_role("combobox", name="Aktives Projekt", exact=True)).to_have_count(0)
     playwright.expect(page.locator(".toolbox-badge")).to_have_count(0)
     page.get_by_role("button", name="Werkzeuge", exact=True).click()
-    menu = page.get_by_role("dialog", name="Werkzeug wechseln", exact=True)
-    playwright.expect(menu.locator(".toolhub-nav-option")).to_have_count(6)
-    playwright.expect(menu.get_by_role("button", name="BIM2STEIGER", exact=True)).to_have_count(0)
+    menu = page.get_by_role("dialog", name="Im Toolhub finden", exact=True)
+    tool_results = menu.locator("section").filter(has=page.get_by_role("heading", name="Werkzeuge", exact=True))
+    for title in ("NOVA-Legenden", "Dateien umbenennen", "PDF-Werkstatt", "Berechnungen", "Elektro-Memory", "Rack-Dispo"):
+        playwright.expect(tool_results.get_by_role("button", name=title, exact=True)).to_be_enabled()
+    # The global palette also contains the permitted calculation subtools.
+    playwright.expect(tool_results.get_by_role("button", name="LS-Schalter", exact=True)).to_be_enabled()
+    for title in ("BIM2STEIGER", "Projektzentrale", "Dokumenten-Assistent", "Planlieferungs-Assistent", "Verteiler-Dispo"):
+        playwright.expect(tool_results.get_by_role("button", name=title, exact=True)).to_have_count(0)
+    playwright.expect(menu.get_by_role("heading", name="Projekte", exact=True)).to_have_count(0)
+    rail = page.get_by_role("navigation", name="Toolhub-Navigation", exact=True)
+    playwright.expect(rail.get_by_role("button", name="Projektzentrale", exact=True)).to_have_count(0)
     page.keyboard.press("Escape")
     page.evaluate("""() => {
       sessionStorage.setItem('edeco-toolbox-active', 'bim2steiger');
@@ -58,7 +68,7 @@ def test_demo_six_tools_persist_and_hidden_restore_cannot_bypass_scope(editor, t
     screenshot = Path(tmp_path) / "demo-sechs-werkzeuge.png"
     page.screenshot(path=str(screenshot), full_page=True)
     page.get_by_role("button", name="Demo beenden", exact=True).click()
-    playwright.expect(page.locator(".toolbox-card")).to_have_count(9)
+    wait_for_toolhub(page)
     assert not store.snapshot()["demo_enabled"]
 
 
@@ -67,6 +77,15 @@ def test_demo_only_nova_hides_knowledge_and_calculator_deep_links(editor):
     set_demo(page, only_nova=True)
     playwright.expect(page.locator(".toolbox-card")).to_have_count(1)
     playwright.expect(page.get_by_role("button", name="Wissens-Hub", exact=True)).to_have_count(0)
+    page.keyboard.press("Control+k")
+    menu = page.get_by_role("dialog", name="Im Toolhub finden", exact=True)
+    playwright.expect(menu).to_be_visible()
+    tool_results = menu.locator("section").filter(has=page.get_by_role("heading", name="Werkzeuge", exact=True))
+    playwright.expect(tool_results.get_by_role("button")).to_have_count(1)
+    playwright.expect(tool_results.get_by_role("button", name="NOVA-Legenden", exact=True)).to_be_enabled()
+    playwright.expect(menu.get_by_role("heading", name="Elektro-Memory", exact=True)).to_have_count(0)
+    playwright.expect(page.get_by_role("navigation", name="Toolhub-Navigation", exact=True).get_by_role("button", name="Wissen", exact=True)).to_have_count(0)
+    page.keyboard.press("Escape")
     page.evaluate("location.hash = 'rechner/ls-schalter'")
     playwright.expect(page.locator(".toolbox-card")).to_have_count(1)
     page.wait_for_function("location.hash === '#toolhub'")
@@ -82,7 +101,7 @@ def test_non_admin_settings_are_read_only_and_delivery_is_hidden(editor):
     client.app.state.toolhub_presentation.windows = True
     page.reload()
     page.get_by_role("button", name="Zum Toolhub", exact=True).click()
-    playwright.expect(page.locator(".toolbox-card")).to_have_count(9)
+    wait_for_toolhub(page)
     playwright.expect(page.get_by_role("button", name="Planlieferungs-Assistent öffnen", exact=True)).to_have_count(0)
     page.get_by_role("button", name="Toolhub-Einstellungen", exact=True).click()
     dialog = page.get_by_role("dialog", name="Toolhub-Einstellungen", exact=True)

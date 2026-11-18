@@ -15,10 +15,9 @@ from fastapi.responses import Response
 from starlette.concurrency import run_in_threadpool
 
 from ...documents.extract import PDF_LOCK
+from .validation import MAX_FILE, MAX_TOTAL, validate_names
 
 PREFIX = "/api/tools/dateien-umbenennen"
-MAX_FILE = 30 * 1024 * 1024
-MAX_TOTAL = 150 * 1024 * 1024
 
 
 def floors(text: str) -> list[str]:
@@ -57,19 +56,6 @@ def inspect_pdf(name: str, data: bytes) -> dict:
         note = "Kein Geschoss erkannt. Bitte eintragen."
     return {"floor": candidates[0] if len(candidates) == 1 else "", "candidates": candidates,
             "source": source, "note": note}
-
-
-def validate_names(names: list[str]):
-    seen = set()
-    for name in names:
-        if (not name or len(name) > 180 or not name.lower().endswith(".pdf")
-                or re.search(r'[<>:"/\\|?*\x00-\x1f]', name) or name.endswith((" ", "."))
-                or re.match(r"^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(?:\.|$)", name, re.I)):
-            raise ValueError("Bitte gültige PDF-Dateinamen mit höchstens 180 Zeichen verwenden.")
-        key = name.casefold()
-        if key in seen:
-            raise ValueError("Mehrere Dateien haben denselben neuen Namen. Bitte die Vorschau korrigieren.")
-        seen.add(key)
 
 
 def register(app):

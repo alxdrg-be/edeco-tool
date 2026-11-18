@@ -174,7 +174,7 @@ export const MEMORY_CONTENT: Record<string, MemoryContent> = {
   "em-p12-bath-zones": {
     groups: [
       { title: "Bereich 0", items: ["Das Innere der Bade- oder Duschwanne"] },
-      { title: "Bereich 1", items: ["Über der Wanne bis 2,25 m ab Boden oder bis zum Wasserauslass", "Dusche: 1,2 m rechtwinklig ab Wasseraustritt bis zur festen Abtrennung"] },
+      { title: "Bereich 1", items: ["Unter und über der Badewanne bis 2,25 m ab Boden oder bis zum Wasserauslass", "Dusche: 1,2 m rechtwinklig ab Wasseraustritt bis zur festen Abtrennung"] },
       { title: "Bereich 2", items: ["Erweiterung von Bereich 1 um 0,6 m (Fadenmass beachten)", "Dusche: ab fester Abtrennung 0,6 m ab Seite oder Abtrennung", "Dusche ohne Wanne: Bereiche 1 und 2 werden zu Bereich 1 bis 1,2 m ab Wasserauslass"] },
     ],
   },

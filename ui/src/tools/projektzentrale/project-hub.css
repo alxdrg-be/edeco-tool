@@ -1,11 +1,15 @@
 .project-hub { height: 100%; overflow: auto; background: var(--bg); color: var(--fg); }
 .project-main { max-width: 1450px; margin: auto; padding: 24px clamp(16px, 3vw, 44px) 48px; }
+:where(:root[data-design-beta="true"]) .project-main { max-width: 1600px; margin: auto; padding: 18px clamp(16px, 2vw, 28px) 32px; }
 .project-heading, .project-editor-heading { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
 .project-main h1 { font-size: 30px; letter-spacing: -.8px; margin: 8px 0; }
+:where(:root[data-design-beta="true"]) .project-hub .project-main .project-heading h1 { font-size: 23px; letter-spacing: -.5px; margin: 0; }
 .project-main h2 { font-size: 19px; margin: 0 0 8px; overflow-wrap: anywhere; }
 .project-main p { font-size: 13px; line-height: 1.65; }
 .project-layout { display: grid; grid-template-columns: minmax(230px, 300px) minmax(0, 1fr); gap: 22px; align-items: start; }
+:where(:root[data-design-beta="true"]) .project-layout { display: grid; grid-template-columns: minmax(210px, 260px) minmax(0, 1fr); gap: 16px; align-items: start; }
 .hub-project-list, .project-editor { border: 1px solid var(--line); background: var(--panel); border-radius: 14px; padding: 22px; min-width: 0; }
+:where(:root[data-design-beta="true"]) .hub-project-list, :where(:root[data-design-beta="true"]) .project-editor { border: 1px solid var(--line); background: var(--panel); border-radius: 10px; padding: 16px; min-width: 0; }
 .hub-project-list { display: flex; flex-direction: column; gap: 14px; }
 .project-hub label { display: flex; flex-direction: column; gap: 7px; font-size: 12px; font-weight: 600; margin-bottom: 12px; }
 .project-hub input:not([type=checkbox]), .project-hub textarea { width: 100%; min-width: 0; box-sizing: border-box; padding: 11px; border: 1px solid var(--line-strong); border-radius: 8px; color: var(--fg); background: var(--panel); font: inherit; font-size: 13px; }
@@ -26,6 +30,11 @@
 .project-contact, .project-document { background: var(--panel-2); border: 1px solid var(--line); border-radius: 9px; padding: 16px; margin-bottom: 14px; }
 .project-error, .project-picker [role=alert] { color: var(--danger); font-size: 13px; }
 .project-notice { color: var(--ok); }
+:where(:root[data-design-beta="true"]) .project-heading { margin-bottom: 8px; }
+.project-heading p { margin: 5px 0; color: var(--muted); }
+.project-assignment-note { margin: 0 0 16px; color: var(--muted); }
+:where(:root[data-design-beta="true"]) .project-editor-heading { padding-bottom: 12px; border-bottom: 1px solid var(--line); margin-bottom: 16px; }
+:where(:root[data-design-beta="true"]) .project-editor-heading h2 { font-size: 17px; margin-bottom: 3px; }
 .project-welcome { padding: 40px 28px; }
 .project-picker { max-width: 280px; min-width: 0; }
 .project-picker label { display: flex; min-width: 0; }

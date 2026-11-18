@@ -30,7 +30,7 @@ export default function FileRename({ onHome, onOpenTool, deliveryMode = false }:
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [exported, setExported] = useState(false);
-  const [templateOpen, setTemplateOpen] = useState(!deliveryMode);
+  const [templateOpen, setTemplateOpen] = useState(() => !deliveryMode && !settings.values.project);
   const { hub: projects, active: activeProject, error: projectError } = useProjectHub();
   const initialProjectApplied = useRef(false);
   const projectTouched = useRef(false);
@@ -150,8 +150,12 @@ export default function FileRename({ onHome, onOpenTool, deliveryMode = false }:
     <ToolHeader title={deliveryMode ? "Planlieferungs-Assistent" : "Dateien umbenennen"} onHome={() => leave()} onOpenTool={onOpenTool ? id => leave(() => onOpenTool(id)) : undefined} disabled={Boolean(busy)} />
     {!deliveryMode && <IncomingToolFiles target="dateien-umbenennen" currentProjectId={activeProject?.id} disabled={!session || Boolean(busy)} onReceive={addFiles} />}
     <main className="rename-main">
-      <h1>{deliveryMode ? "Planlieferung vorbereiten" : "Dateien umbenennen"}</h1>
-      <p>{deliveryMode ? "Projekt wählen, PDFs prüfen und ein Lieferpaket mit Planliste erstellen." : "PDFs hinzufügen, Dateinamen prüfen und benannte Kopien herunterladen."}</p>
+      <div className="rename-workspace-heading"><div><h1>{deliveryMode ? "Planlieferung vorbereiten" : "Dateien umbenennen"}</h1>
+        <p>{deliveryMode ? "Projekt wählen, PDFs prüfen und ein Lieferpaket mit Planliste erstellen." : "Dateinamen prüfen und benannte Kopien herunterladen."}</p></div>
+        <div className="rename-workspace-actions"><span role="status">{busy || (rows.length ? exported ? "ZIP-Download gestartet" : `${rows.length} ${rows.length === 1 ? "Datei" : "Dateien"} · noch nicht exportiert` : "Keine Dateien geöffnet")}</span>
+          {!deliveryMode && <button className="btn primary" disabled={!session || !rows.length || Boolean(busy) || issues.some(Boolean)} onClick={() => void download()}>Kopien als ZIP</button>}
+        </div>
+      </div>
       {deliveryMode && <ol className="tool-workflow" aria-label="Ablauf"><li>Lieferangaben</li><li>PDFs & Dateinamen</li><li>Lieferpaket erstellen</li></ol>}
       {deliveryMode && <section className="rename-template" aria-label="Lieferangaben"><h2>Lieferangaben</h2><div className="delivery-fields">
         <label>Projekt<select aria-label="Lieferprojekt" disabled={Boolean(busy) || !projects} value={deliveryProject?.id ?? ""} onChange={event => {
@@ -173,7 +177,7 @@ export default function FileRename({ onHome, onOpenTool, deliveryMode = false }:
       {projectError && <p role="alert" className="rename-error">Projektzentrale nicht erreichbar: {projectError} Die Projektnummer kann manuell eingegeben werden.</p>}
       <details className="rename-template rename-naming" aria-label="Namensvorlage" open={templateOpen} onToggle={event => setTemplateOpen(event.currentTarget.open)}>
         <summary><span><strong>Namensvorlage</strong><small>{example}</small></span><ChevronDown size={18} aria-hidden="true" /></summary>
-        <div className="rename-naming-fields"><p>Bausteine auswählen und ihre Reihenfolge festlegen. Die Auswahllisten folgen der Dokumentenbezeichnung edeco AG: Fachbereich A, E, KO, L, H, S, K; Planart G oder P; Gewerk zum Beispiel SUS, UKV oder RTV; Geschoss UG, EG, OG, DG; Massstab 1, 5, 50, 100, 1000; Index a–c und Planungsphase 31, 32, 41, 51, 53. APP bleibt für den bisherigen Apparatenplan wählbar. Eigene Kürzel sind möglich.</p>
+        <div className="rename-naming-fields"><details className="rename-help"><summary>Hinweise zu Namensbausteinen</summary><p>Bausteine auswählen und ihre Reihenfolge festlegen. Die Auswahllisten folgen der Dokumentenbezeichnung edeco AG: Fachbereich A, E, KO, L, H, S, K; Planart G oder P; Gewerk zum Beispiel SUS, UKV oder RTV; Geschoss UG, EG, OG, DG; Massstab 1, 5, 50, 100, 1000; Index a–c und Planungsphase 31, 32, 41, 51, 53. APP bleibt für den bisherigen Apparatenplan wählbar. Eigene Kürzel sind möglich.</p></details>
         <fieldset disabled={Boolean(busy)} className="rename-parts"><legend>Namensbausteine und Reihenfolge</legend>
           {settings.order.map((key, position) => {
             const part = PARTS.find(p => p.key === key)!;
@@ -200,13 +204,13 @@ export default function FileRename({ onHome, onOpenTool, deliveryMode = false }:
         <p>Geschosse werden im Dateinamen und im Text der ersten fünf PDF-Seiten gesucht. Scans benötigen eine manuelle Angabe. Alle Vorschläge vor dem Download prüfen.</p>
         <datalist id="rename-floors">{PARTS.find(p => p.key === "floor")!.options.map(value => <option key={value} value={value} />)}</datalist>
         {!rows.length && <div className="rename-empty">PDFs hinzufügen – zum Beispiel „Grundriss 2og.pdf“. Daraus wird mit eurer Vorlage „1498_E-G-APP-OG02-C-50.pdf“.</div>}
-        {rows.length > 0 && <div className="rename-table-wrap"><table><thead><tr><th>Original / Erkennung</th><th>Geschoss</th>{deliveryMode && <><th className="delivery-short">Planart</th><th className="delivery-short">Index</th><th className="delivery-short">Massstab 1:</th></>}<th className="rename-name">Neuer Dateiname</th><th>Aktion</th></tr></thead><tbody>
+        {rows.length > 0 && <div className="rename-table-wrap"><table><thead><tr><th>Original / Erkennung</th><th className="rename-name">Neuer Dateiname</th><th className="rename-floor">Geschoss</th>{deliveryMode && <><th className="delivery-short">Planart</th><th className="delivery-short">Index</th><th className="delivery-short">Massstab 1:</th></>}<th>Aktion</th></tr></thead><tbody>
           {rows.map((row, index) => <tr key={row.id}><td><strong>{row.file.name}</strong><small>{row.source}{row.candidates.length ? `: ${row.candidates.join(", ")}` : ""}</small>{row.note && <small>{row.note}</small>}</td>
-            <td><input aria-label={`Geschoss für ${row.file.name}`} list="rename-floors" value={row.floor} maxLength={40} disabled={Boolean(busy)} placeholder="Bitte prüfen" onChange={event => changeRow(row.id, { floor: event.target.value.toUpperCase() })} /></td>
-            {deliveryMode && ([ ["plan", "Planart"], ["index", "Index"], ["scale", "Massstab"] ] as const).map(([key, label]) => <td key={key}><input aria-label={`${label} für ${row.file.name}`} value={row[key] ?? settings.values[key]} maxLength={80} disabled={Boolean(busy)} onChange={event => changeRow(row.id, { [key]: event.target.value })} /></td>)}
             <td><input aria-label={`Neuer Name für ${row.file.name}`} value={names[index]} disabled={Boolean(busy)} onChange={event => changeRow(row.id, { customName: event.target.value })} />
               {row.customName !== null && <button className="rename-link" disabled={Boolean(busy)} onClick={() => changeRow(row.id, { customName: null })}>Wieder aus Vorlage bilden</button>}
               {issues[index] && <small className="rename-error">{issues[index]}</small>}</td>
+            <td><input aria-label={`Geschoss für ${row.file.name}`} list="rename-floors" value={row.floor} maxLength={40} disabled={Boolean(busy)} placeholder="Bitte prüfen" onChange={event => changeRow(row.id, { floor: event.target.value.toUpperCase() })} /></td>
+            {deliveryMode && ([ ["plan", "Planart"], ["index", "Index"], ["scale", "Massstab"] ] as const).map(([key, label]) => <td key={key}><input aria-label={`${label} für ${row.file.name}`} value={row[key] ?? settings.values[key]} maxLength={80} disabled={Boolean(busy)} onChange={event => changeRow(row.id, { [key]: event.target.value })} /></td>)}
             <td><button className="btn" disabled={Boolean(busy)} aria-label={`${row.file.name} entfernen`} onClick={() => { setRows(old => old.filter(item => item.id !== row.id)); setExported(false); setNotice(""); requestId.current = crypto.randomUUID(); }}>Entfernen</button></td></tr>)}
         </tbody></table></div>}
         <div className="rename-actions"><button className="btn primary" disabled={!session || !rows.length || Boolean(busy) || issues.some(Boolean) || (deliveryMode && !deliveryReady)} onClick={() => void download()}>{deliveryMode ? "Lieferpaket mit Planliste erstellen" : "Benannte Kopien als ZIP herunterladen"}</button><small>Originale werden nicht umbenannt oder überschrieben.</small></div>

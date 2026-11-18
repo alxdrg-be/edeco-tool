@@ -31,6 +31,7 @@ a = Analysis(
     pathex=[str(root / "backend")],
     binaries=collect_dynamic_libs("pypdfium2_raw"),
     datas=[(str(root / "ui" / "dist"), "ui/dist"),
+           (str(root / "backend" / "edeco_toolbox" / "resources"), "edeco_toolbox/resources"),
            (str(root / "backend" / "nova_legend" / "legend" / "template_texts.json"), "nova_legend/legend"),
            (str(root / "backend" / "nova_legend" / "legend" / "resources"), "nova_legend/legend/resources"),
            *bim_datas,

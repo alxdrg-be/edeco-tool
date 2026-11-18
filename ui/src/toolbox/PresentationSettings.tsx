@@ -1,9 +1,10 @@
-import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { Settings, X } from "lucide-react";
 import { createPortal } from "react-dom";
 import { useDialogFocus } from "../shared/useDialogFocus";
 import { TOOLS } from "./catalog";
-import { DEFAULT_DEMO_TOOLS, type PresentationPolicy } from "./presentationPolicy";
+import { DEFAULT_DEMO_TOOLS, designBetaEnabled, type PresentationPolicy } from "./presentationPolicy";
+import { DEMO_CHOICE_IDS } from './toolContract.ts';
 import "./presentation.css";
 import { readJson } from "../shared/http";
 
@@ -13,8 +14,9 @@ interface ContextValue {
   error: string;
   refresh: () => Promise<void>;
   save: (value: Pick<PresentationPolicy, "demo_enabled" | "demo_tools" | "admins">) => Promise<void>;
+  setDesignBeta: (enabled: boolean) => Promise<void>;
 }
-const PresentationContext = createContext<ContextValue>({ policy: null, error: "", refresh: async () => {}, save: async () => {} });
+const PresentationContext = createContext<ContextValue>({ policy: null, error: "", refresh: async () => {}, save: async () => {}, setDesignBeta: async () => {} });
 export const usePresentation = () => useContext(PresentationContext);
 
 async function readResponse(response: Response): Promise<PresentationPolicy> {
@@ -33,12 +35,24 @@ export function PresentationProvider({ children }: { children: ReactNode }) {
     catch (failure) { setError((failure as Error).message); }
   }, []);
   useEffect(() => { void refresh(); }, [refresh]);
+  const beta = designBetaEnabled(policy);
+  useLayoutEffect(() => {
+    document.documentElement.dataset.designBeta = String(beta);
+    return () => { delete document.documentElement.dataset.designBeta; };
+  }, [beta]);
   const save = useCallback(async (value: Pick<PresentationPolicy, "demo_enabled" | "demo_tools" | "admins">) => {
     if (!policy) throw new Error("Die Einstellungen werden noch geladen.");
     const updated = await readResponse(await fetch(API, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...value, revision: policy.revision }) }));
     setPolicy(updated); setError("");
   }, [policy]);
-  return <PresentationContext.Provider value={{ policy, error, refresh, save }}>{children}</PresentationContext.Provider>;
+  const setDesignBeta = useCallback(async (enabled: boolean) => {
+    if (!policy?.is_admin) throw new Error("Die Design-Beta ist nur für Administratoren verfügbar.");
+    const updated = await readResponse(await fetch(`${API}/design-beta`, {
+      method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ enabled }),
+    }));
+    setPolicy(updated); setError("");
+  }, [policy]);
+  return <PresentationContext.Provider value={{ policy, error, refresh, save, setDesignBeta }}>{children}</PresentationContext.Provider>;
 }
 
 export function DemoBadge() {
@@ -46,20 +60,30 @@ export function DemoBadge() {
   return policy?.demo_enabled ? <span className="toolhub-demo-badge" title="Die Präsentationsauswahl wird in den Toolhub-Einstellungen verwaltet.">Demo-Modus</span> : null;
 }
 
-function SettingsDialog({ onClose, onSaved }: { onClose: () => void; onSaved?: () => void }) {
-  const { policy, save } = usePresentation();
+export function ToolhubSettingsDialog({ onClose, onSaved }: { onClose: () => void; onSaved?: () => void }) {
+  const { policy, save, setDesignBeta } = usePresentation();
   const [demo, setDemo] = useState(policy?.demo_enabled ?? false);
   const [tools, setTools] = useState(policy?.demo_tools ?? DEFAULT_DEMO_TOOLS);
   const [admins, setAdmins] = useState(policy?.admins.join("\n") ?? "");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(false);
+  const [betaMessage, setBetaMessage] = useState("");
   const ref = useRef<HTMLDivElement>(null);
   useDialogFocus(ref, onClose, busy);
   if (!policy) return null;
+  async function changeDesign(enabled: boolean) {
+    if (busy) return;
+    setBusy(true); setError(""); setBetaMessage(""); setSaved(false);
+    try {
+      await setDesignBeta(enabled);
+      setBetaMessage(enabled ? "Design-Beta aktiviert. Nur für deine Anmeldung auf diesem Computer." : "Bisherige Oberfläche aktiviert.");
+    } catch (failure) { setError((failure as Error).message); }
+    finally { setBusy(false); }
+  }
   async function submit() {
     if (!policy?.can_manage || busy) return;
-    setBusy(true); setError(""); setSaved(false);
+    setBusy(true); setError(""); setSaved(false); setBetaMessage("");
     try {
       await save({ demo_enabled: demo, demo_tools: tools,
         admins: admins.split(/[\n;,]+/).map(name => name.trim()).filter(Boolean) });
@@ -70,10 +94,18 @@ function SettingsDialog({ onClose, onSaved }: { onClose: () => void; onSaved?: (
   return createPortal(<div className="modal-back" onMouseDown={event => { if (!busy && event.target === event.currentTarget) onClose(); }}>
     <div ref={ref} className="modal toolhub-presentation-dialog" role="dialog" aria-modal="true" aria-labelledby="toolhub-settings-title" tabIndex={-1}>
       <div className="toolhub-settings-heading"><h2 id="toolhub-settings-title">Toolhub-Einstellungen</h2><button className="btn icon" aria-label="Einstellungen schliessen" disabled={busy} onClick={onClose}><X size={18} /></button></div>
+      {policy.is_admin && <section className="toolhub-design-beta" aria-label="Design-Beta für Administratoren">
+        <label className="toolhub-demo-switch"><input type="checkbox" checked={designBetaEnabled(policy)} disabled={busy} onChange={event => void changeDesign(event.target.checked)} />
+          <span><strong>Neues Design testen (Beta)</strong><small>Nur für deine Admin-Anmeldung auf diesem Computer. Alle anderen behalten die bisherige Oberfläche.</small></span>
+        </label>
+        <p className="toolhub-settings-note">Wirkt sofort und lässt sich hier wieder ausschalten. Berechnungen, Projekte und Dateien bleiben dieselben.</p>
+        {policy.design_beta_error && <p role="alert" className="error">{policy.design_beta_error}</p>}
+        {betaMessage && <p role="status" className="toolhub-settings-saved">{betaMessage}</p>}
+      </section>}
       <form onSubmit={event => { event.preventDefault(); void submit(); }}>
         <fieldset disabled={!policy.can_manage || busy}>
           <label className="toolhub-demo-switch"><input type="checkbox" checked={demo} onChange={event => { setDemo(event.target.checked); setSaved(false); }} /><span><strong>Demo-Modus</strong><small>Nur die gewählten Werkzeuge zeigen.</small></span></label>
-          <div className="toolhub-demo-tools" role="group" aria-label="Werkzeuge im Demo-Modus">{DEFAULT_DEMO_TOOLS.map(id => <label key={id}>
+          <div className="toolhub-demo-tools" role="group" aria-label="Werkzeuge im Demo-Modus">{DEMO_CHOICE_IDS.map(id => <label key={id}>
             <input type="checkbox" checked={tools.includes(id)} disabled={id === "nova-legenden"} onChange={event => { setTools(old => event.target.checked ? [...old, id] : old.filter(value => value !== id)); setSaved(false); }} />
             <span>{TOOLS.find(tool => tool.id === id)?.title}</span>
           </label>)}</div>
@@ -95,9 +127,8 @@ function SettingsDialog({ onClose, onSaved }: { onClose: () => void; onSaved?: (
   </div>, document.body);
 }
 
-export default function PresentationSettings({ onSaved }: { onSaved?: () => void }) {
+export default function PresentationSettings({ onOpen, onSaved }: { onOpen: () => void; onSaved?: () => void }) {
   const { policy, save } = usePresentation();
-  const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   async function endDemo() {
@@ -108,7 +139,6 @@ export default function PresentationSettings({ onSaved }: { onSaved?: () => void
     finally { setBusy(false); }
   }
   return <>{policy?.demo_enabled && policy.can_manage && <button className="btn" disabled={busy} onClick={() => void endDemo()}>{busy ? "Demo wird beendet …" : "Demo beenden"}</button>}
-    <button className="btn toolhub-settings-button" aria-label="Toolhub-Einstellungen" title="Toolhub-Einstellungen" disabled={!policy} onClick={() => setOpen(true)}><Settings size={16} /><span>Einstellungen</span></button>
-    {error && <small role="alert">{error}</small>}
-    {open && <SettingsDialog onClose={() => setOpen(false)} onSaved={onSaved} />}</>;
+    <button className="btn toolhub-settings-button" aria-label="Toolhub-Einstellungen" title="Toolhub-Einstellungen" disabled={!policy} onClick={onOpen}><Settings size={16} /><span>Einstellungen</span></button>
+    {error && <small role="alert">{error}</small>}</>;
 }

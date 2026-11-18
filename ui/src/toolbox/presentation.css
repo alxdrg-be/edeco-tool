@@ -17,6 +17,8 @@
 .toolhub-settings-note { color:var(--muted); font-size:12px; line-height:1.6; }
 .toolhub-settings-saved { color:var(--ok); font-size:13px; }
 .toolhub-settings-actions { display:flex; justify-content:flex-end; flex-wrap:wrap; gap:8px; margin-top:22px; }
+.toolhub-design-beta { margin-top:22px; padding-bottom:8px; border-bottom:1px solid var(--line); }
+.toolhub-classic-frame { height:100%; min-width:0; }
 .toolhub-policy-error { max-width:640px; margin:60px auto; padding:24px; }
 .toolbox[data-toolhub-mode="demo"] .toolbox-grid { grid-template-columns:repeat(auto-fit,minmax(180px,260px)); justify-content:center; }
 .toolbox[data-toolhub-mode="demo"] .toolbox-tile { padding-top:25px; }

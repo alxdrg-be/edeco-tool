@@ -3,6 +3,12 @@ import type { ReactNode } from "react";
 import { Info, Plug, ShieldCheck, X } from "lucide-react";
 import { IP_ADDITIONAL, IP_FIRST, IP_SECOND, IP_SUPPLEMENTARY, SWISS_SOCKETS, parseIpCode, socketContactPoints } from "./memoryReference";
 import type { IpFirstDigit, IpSecondDigit, SwissSocket } from "./memoryReference";
+import socket13 from "./reference-figures/socket-13.png";
+import socket15 from "./reference-figures/socket-15.png";
+import socket23 from "./reference-figures/socket-23.png";
+import socket25 from "./reference-figures/socket-25.png";
+
+const SOCKET_SOURCE_PHOTOS: Record<SwissSocket["type"], string> = { 13: socket13, 15: socket15, 23: socket23, 25: socket25 };
 
 function InfoButton({ label, onClick }: { label: string; onClick: () => void }) {
   return <button type="button" className="memory-info-button" aria-label={label} onClick={onClick}><Info size={19} aria-hidden="true" /></button>;
@@ -91,13 +97,18 @@ export function SocketFront({ socket }: { socket: SwissSocket }) {
 
 export function SwissSocketGuide() {
   const [selected, setSelected] = useState<(typeof SWISS_SOCKETS)[number]["type"]>(13);
+  const [view, setView] = useState<"original" | "diagram">("original");
   const [info, setInfo] = useState(false);
   const socket = SWISS_SOCKETS.find(value => value.type === selected)!;
   return <section className="memory-reference-tool" aria-label="Schweizer Steckdosen erkennen">
     <header><div><Plug size={20} aria-hidden="true" /><h3>Steckdosen erkennen</h3></div><InfoButton label="Steckdosentypen erklären" onClick={() => setInfo(true)} /></header>
-    <div className="memory-socket-grid" role="group" aria-label="Steckdosentyp wählen">{SWISS_SOCKETS.map(value => <button type="button" key={value.type} aria-pressed={selected === value.type} onClick={() => setSelected(value.type)}><SocketFront socket={value} /><strong>Typ {value.type}</strong><span>{value.current} A · {value.contacts} Kontakte</span></button>)}</div>
+    <div className="memory-reference-tabs memory-socket-view" role="group" aria-label="Steckdosendarstellung">
+      <button type="button" aria-pressed={view === "original"} onClick={() => setView("original")}>Originalbilder</button>
+      <button type="button" aria-pressed={view === "diagram"} onClick={() => setView("diagram")}>Kontaktbilder</button>
+    </div>
+    <div className="memory-socket-grid" role="group" aria-label="Steckdosentyp wählen">{SWISS_SOCKETS.map(value => <button type="button" key={value.type} aria-pressed={selected === value.type} onClick={() => setSelected(value.type)}>{view === "original" ? <img className="memory-socket-original" src={SOCKET_SOURCE_PHOTOS[value.type]} alt={`Originalfoto Steckdose Typ ${value.type} aus E-Memory Seite 15`} /> : <SocketFront socket={value} />}<strong>Typ {value.type}</strong><span>{value.current} A · {value.contacts} Kontakte</span></button>)}</div>
     <div className="memory-socket-result" aria-live="polite"><strong>Typ {socket.type}</strong><span>{socket.conductors} · {socket.current} A / {socket.voltage}</span><span>{socket.contactShape === "round" ? "Runde Kontaktöffnungen" : "Rechteckige Kontaktprofile"}</span></div>
-    <p className="memory-small">Gleiche Vorderansicht · schematische Kontaktbilder, keine Masszeichnungen. Mechanische Steckbarkeit und Einbaubedingungen separat prüfen.</p>
+    <p className="memory-small">{view === "original" ? "Originalausschnitte: E-Memory S. 15 · EIT.swiss ©2025 / ESTI · Bildschärfe der Vorlage." : "Gleiche Vorderansicht · schematische Kontaktbilder, keine Masszeichnungen."} Mechanische Steckbarkeit und Einbaubedingungen separat prüfen.</p>
     {info && <ReferenceDrawer title="Schweizer Steckdosentypen" onClose={() => setInfo(false)}><p>Die Kontaktbilder unterscheiden die vier gezeigten Steckdosentypen. Sie zeigen keine genormten Abmessungen und sind keine Auswahlfreigabe.</p><div className="memory-table-wrap"><table><thead><tr><th>Typ</th><th>Kontakte</th><th>Bemessung</th></tr></thead><tbody>{SWISS_SOCKETS.map(value => <tr key={value.type}><th scope="row">{value.type}</th><td>{value.conductors}</td><td>{value.current} A / {value.voltage}</td></tr>)}</tbody></table></div><p>10-A-Ausführungen haben runde Kontaktöffnungen, 16-A-Ausführungen rechteckige Kontaktprofile. Die Normabmessungen und das Kontaktbild bestimmen gemeinsam die mechanische Steckbarkeit. Diese Übersicht ersetzt keine vollständige Kompatibilitätsmatrix.</p><details className="memory-reference-detail"><summary>Quelle und Stand</summary><p>E-Memory_DE_PNG.pdf, Seite 15: ESTI-Übersicht «CH-Stecker-System SN 441011 IP20». Der Quellenfuss nennt SN 441011-1_2019 und den Dokumentstand 28.09.2025. IP20-Darstellungen nicht auf IP55- oder Feuchtraumausführungen übertragen.</p></details></ReferenceDrawer>}
   </section>;
 }
