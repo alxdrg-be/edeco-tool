@@ -1,3 +1,10 @@
+## Persönliche Design-Beta für Admins · 18. November 2026
+
+- Die bisherige Oberfläche bleibt standardmässig aktiv. Hinterlegte Admins (`aduerger`, `nstrauss`) können unter Toolhub-Einstellungen «Neues Design testen (Beta)» persönlich ein- und ausschalten; die Auswahl bleibt pro Anmeldung auf diesem Computer erhalten.
+- Gemeinsame Kopfzeile mit edeco-e, Werkzeugfarben, Suche und Seitenleiste; die petrolfarbene Logo-Ecke endet bündig mit der oberen Leiste. Kompakte Arbeitsflächen sind Teil der Design-Beta.
+- Demo-Werkzeugauswahl und Design-Beta bleiben unabhängig. Andere Benutzer sehen die bisherige Oberfläche. Berechnungen, Projekte und Dateien werden von beiden Ansichten gemeinsam verwendet.
+- Separate Beta-Downloads aus dem Testzweig werden als Vorabversion veröffentlicht und vom regulären Updatekanal ausgeschlossen.
+
 ## Verteiler-Dispo und CAD-Allgemeinteil · 15. November 2026
 
 - UV-Front mit durchgehenden Reihenausschnitten und separat bearbeitbaren Blindabdeckungen. Freie Öffnungen zeigen den dahinterliegenden Raum und die Schiene; verdeckte Klemmenreihen bekommen keine Frontbeschriftung. Bestehende gespeicherte Ausschnitte werden nicht umgestellt.

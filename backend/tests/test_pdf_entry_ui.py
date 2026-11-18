@@ -13,6 +13,7 @@ import uvicorn
 
 from edeco_toolbox.app import create_app
 from edeco_toolbox.documents.extract import PDF_LOCK
+from edeco_toolbox.presentation import DesignBetaBody
 from test_documents import sample_pdf
 from test_editor_navigation import launch_chromium, playwright
 from test_phase3 import env  # noqa: F401
@@ -27,7 +28,12 @@ def pdf_entry(env):
         pytest.skip("Build the UI before browser tests")
     sock = socket.socket()
     sock.bind(("127.0.0.1", 0))
-    server = uvicorn.Server(uvicorn.Config(create_app(client.app.state.nova, ui_dir=ui), log_level="error"))
+    app = create_app(client.app.state.nova, ui_dir=ui)
+    # This isolated workbench suite includes V10 global-search interactions.
+    # Packaged-EXE tests keep the actual OS identity and classic default.
+    app.state.presentation.identity, app.state.presentation.windows = "EDECO\\aduerger", True
+    app.state.presentation.save_design_beta(DesignBetaBody(enabled=True))
+    server = uvicorn.Server(uvicorn.Config(app, log_level="error"))
     thread = threading.Thread(target=server.run, kwargs={"sockets": [sock]}, daemon=True)
     thread.start()
     deadline = time.monotonic() + 10

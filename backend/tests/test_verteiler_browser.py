@@ -16,7 +16,7 @@ import uvicorn
 
 from edeco_toolbox import APP_NAME, APP_VERSION, BUILD, COMMIT
 from edeco_toolbox.local_security import register as register_security
-from edeco_toolbox.presentation import register as register_presentation
+from edeco_toolbox.presentation import DesignBetaBody, register as register_presentation
 from edeco_toolbox.tools.projects.api import register as register_projects
 from edeco_toolbox.tools.verteiler_dispo.api import PREFIX, register as register_verteiler
 from edeco_toolbox.ui_cache import CurrentUIFiles
@@ -35,6 +35,10 @@ def verteiler_ui(tmp_path, monkeypatch):
     app = FastAPI()
     register_security(app)
     register_presentation(app)
+    # These workspace tests exercise the optional V10 shell, including Ctrl+K.
+    # Production still starts in classic mode and checks the real OS identity.
+    app.state.presentation.identity, app.state.presentation.windows = "EDECO\\aduerger", True
+    app.state.presentation.save_design_beta(DesignBetaBody(enabled=True))
     register_projects(app)
     register_verteiler(app)
     register_updates(app)

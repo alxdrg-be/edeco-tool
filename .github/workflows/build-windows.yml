@@ -234,6 +234,22 @@ jobs:
           Compress-Archive -Path 'packaging/ki-server/*' -DestinationPath 'dist-installer/edeco-KI-Server-Einrichtung-${{ steps.version.outputs.version }}.zip' -CompressionLevel Optimal
           Copy-Item TOOLBOX_NEUIGKEITEN.md release-body.md
           Add-Content release-body.md "`n`nBuild $env:GITHUB_RUN_NUMBER · Commit $env:GITHUB_SHA"
+          if ($env:GITHUB_REF -ne 'refs/heads/main') {
+            $betaNote = @'
+          ## Beta-Testversion
+
+          Diese Version stammt aus dem Testzweig und wird nicht als reguläres Update angeboten.
+          Das neue Design ist standardmässig aus. Hinterlegte Admins können es unter
+          **Toolhub → Einstellungen → Neues Design testen (Beta)** persönlich aktivieren.
+
+          Das Setup ersetzt eine vorhandene Toolhub-Installation. Die portable ZIP kann
+          separat entpackt werden; sie nutzt ohne eigene Datenpfade weiterhin dieselben
+          lokalen Projektdaten. Zum Ausprobieren bitte Projektkopien verwenden.
+
+          '@
+            $notes = Get-Content release-body.md -Raw
+            Set-Content release-body.md ($betaNote + "`n`n" + $notes) -Encoding utf8
+          }
       - uses: actions/upload-artifact@v4
         if: always()
         # Diagnostics are useful but an account storage quota must not turn a
@@ -265,3 +281,15 @@ jobs:
           fail_on_unmatched_files: true
           prerelease: false
           make_latest: true
+      - name: Beta-Testversion unter Releases bereitstellen
+        if: github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}-beta-build.${{ github.run_number }}
+          name: edeco Toolhub ${{ steps.version.outputs.version }} Beta (Build ${{ github.run_number }})
+          target_commitish: ${{ github.sha }}
+          body_path: release-body.md
+          files: dist-installer/*
+          fail_on_unmatched_files: true
+          prerelease: true
+          make_latest: false
