@@ -1,5 +1,5 @@
 /* V10 shared chrome. Drawing, layer and electrical status colours stay in each tool. */
-:root { --hub-rail-width:84px; --hub-header-height:108px; --toolhub-header-bg:#017c92; --toolhub-accent:light-dark(#017c92,#7cd3dd); --toolhub-accent-soft:light-dark(#e8f5f7,#243943); }
+:root { --hub-rail-width:84px; --hub-top-height:60px; --hub-header-height:108px; --toolhub-header-bg:#017c92; --toolhub-accent:light-dark(#017c92,#7cd3dd); --toolhub-accent-soft:light-dark(#e8f5f7,#243943); }
 .toolhub-frame { height:100%; min-width:0; padding-left:var(--hub-rail-width); --accent:var(--toolhub-accent); --accent-soft:var(--toolhub-accent-soft); --cta:var(--toolhub-accent); }
 .toolhub-frame .toolhub-header[class] { display:block; padding:0; min-height:0; width:100%; max-width:none; margin-left:0; border-bottom:1px solid var(--line); background:var(--panel); box-shadow:none; z-index:40; }
 .hub-header-top { display:flex; gap:14px; align-items:center; min-height:60px; padding:10px 18px; background:var(--toolhub-header-bg); color:#fff; }
@@ -22,7 +22,7 @@
 .hub-header-toolbar .toolhub-header-actions>.btn,.hub-header-toolbar .toolhub-header-actions>.toolhub-nav-trigger,.hub-header-toolbar .toolhub-header-actions>.toolhub-knowledge,.hub-header-toolbar .toolhub-header-actions>.lab-icon,.hub-header-toolbar .toolhub-header-actions>.lab-knowledge-link { height:34px; min-height:34px; border-radius:6px; padding:6px 10px; }
 .hub-header-toolbar .toolhub-header-actions>.toolhub-theme { display:none; }
 .hub-mobile-theme{display:none}
-.hub-rail { position:fixed; left:0; top:var(--hub-header-height); bottom:0; width:var(--hub-rail-width); z-index:35; display:flex; flex-direction:column; gap:5px; padding:12px 6px; overflow:auto; background:light-dark(#e9edee,#16232b); border-right:1px solid var(--line); color:var(--fg); font-family:var(--font-ui); }
+.hub-rail { position:fixed; left:0; top:var(--hub-top-height); bottom:0; width:var(--hub-rail-width); z-index:35; display:flex; flex-direction:column; gap:5px; padding:12px 6px; overflow:auto; background:light-dark(#e9edee,#16232b); border-right:1px solid var(--line); color:var(--fg); font-family:var(--font-ui); }
 .hub-rail>button { width:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px; min-height:58px; padding:7px 3px; border:1px solid transparent; border-left:3px solid transparent; border-radius:7px; color:var(--muted); background:transparent; font:500 11px/1.3 var(--font-ui); cursor:pointer; }
 .hub-rail>button[aria-current=page] { color:var(--toolhub-accent); background:var(--panel); border-left-color:var(--toolhub-accent); font-weight:650; }
 .hub-rail>button:hover:not(:disabled) { background:var(--panel); color:var(--toolhub-accent); }
@@ -105,11 +105,11 @@
   .toolhub-frame .toolbox-grid { grid-template-columns:repeat(5,minmax(0,1fr)); }
 }
 
-.hub-chrome-corner {position:fixed;top:0;left:0;width:var(--hub-rail-width);height:var(--hub-header-height);z-index:41;display:flex;align-items:flex-start;justify-content:center;padding:12px 0;background:var(--toolhub-header-bg)}
+.hub-chrome-corner {position:fixed;top:0;left:0;width:var(--hub-rail-width);height:var(--hub-top-height);z-index:41;display:flex;align-items:flex-start;justify-content:center;padding:12px 0;background:var(--toolhub-header-bg)}
 .hub-corner-home{border:0;background:transparent;color:#fff;cursor:pointer;padding:0}
 .hub-corner-home .toolhub-brand-mark{width:34px;height:34px}
 @media(max-width:600px){
-  .hub-chrome-corner{width:50px;height:54px;padding-top:10px}
+  .hub-chrome-corner{width:50px;padding-top:10px}
   .hub-header-top{padding-left:56px}
   .hub-header-title{display:none}
   .hub-global-search{flex:none;min-width:36px;max-width:36px;width:36px;justify-content:center;padding:8px}

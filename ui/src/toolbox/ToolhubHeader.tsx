@@ -36,16 +36,20 @@ export default function ToolhubHeader({ title, onHome, onOpenTool, currentToolId
   const { policy } = usePresentation();
   const [searchOpen, setSearchOpen] = useState(false);
   const header = useRef<HTMLElement>(null);
+  const topRow = useRef<HTMLDivElement>(null);
   const { dark, toggle } = useToolhubTheme();
   const allowed = (tool: string) => Boolean(policy && allowedToolId(tool, TOOLS, policy));
   const calculator = TOOLS.some(tool => tool.id === id && tool.category === 'Berechnungen');
   const memoryId = allowed('elektro-memory') ? 'elektro-memory' : 'wissens-hub';
   const openSettings = () => { if (onOpenTool) onOpenTool('toolhub-options'); else onHome(); };
   useLayoutEffect(() => {
-    if (!header.current) return;
-    const measure = () => document.documentElement.style.setProperty('--hub-header-height', `${header.current?.getBoundingClientRect().height ?? 64}px`);
+    if (!header.current || !topRow.current) return;
+    const measure = () => {
+      document.documentElement.style.setProperty('--hub-header-height', `${header.current?.getBoundingClientRect().height ?? 108}px`);
+      document.documentElement.style.setProperty('--hub-top-height', `${topRow.current?.getBoundingClientRect().height ?? 60}px`);
+    };
     measure();
-    const observer = new ResizeObserver(measure); observer.observe(header.current);
+    const observer = new ResizeObserver(measure); observer.observe(header.current); observer.observe(topRow.current);
     return () => observer.disconnect();
   }, []);
   useEffect(() => {
@@ -61,7 +65,7 @@ export default function ToolhubHeader({ title, onHome, onOpenTool, currentToolId
   }, [disabled]);
   return <>
     <header ref={header} className={`toolhub-header ${className}`} aria-label={`${title} · Werkzeugleiste`}>
-      <div className="hub-header-top">
+      <div ref={topRow} className="hub-header-top">
         {id ? <button type="button" className="toolhub-back" aria-label="Zum Toolhub" disabled={disabled} onClick={onHome}><ArrowLeft size={16} /><span>Zum Toolhub</span></button>
           : <button type="button" className="toolhub-home" aria-label="Startseite öffnen" disabled={disabled} onClick={onHome}><span className="hub-wordmark"><strong>edeco</strong> Toolhub</span></button>}
         {id && <strong className="hub-header-title" title={title}>{title}</strong>}
