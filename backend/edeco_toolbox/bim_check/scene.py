@@ -25,6 +25,19 @@ MAX_GEOMETRY_SECONDS = 100
 _GEOMETRY_ERRORS = (RuntimeError, ValueError, TypeError, AttributeError, IndexError, ifcopenshell.Error)
 
 
+def _dimension(context):
+    # On a sub-context CoordinateSpaceDimension is a derived attribute. IfcOpenShell
+    # evaluates it with its EXPRESS parser, which the Windows EXE does not ship.
+    # Read the explicit value of the parent context instead.
+    seen = set()
+    while context is not None and context.is_a("IfcGeometricRepresentationSubContext") and context.id() not in seen:
+        seen.add(context.id())
+        context = context.ParentContext
+    if context is None or not context.is_a("IfcGeometricRepresentationContext"):
+        return None
+    return context.CoordinateSpaceDimension
+
+
 def _representations(product):
     shape = product.Representation
     if not shape:
@@ -34,8 +47,7 @@ def _representations(product):
         name = (rep.RepresentationIdentifier or "").casefold()
         if not rep.is_a("IfcShapeRepresentation") or (rep.RepresentationType or "").casefold() == "boundingbox":
             continue
-        context = rep.ContextOfItems
-        if context is None or context.CoordinateSpaceDimension != 3:
+        if _dimension(rep.ContextOfItems) != 3:
             continue
         if name in {"body", "facetation"}:
             bodies.append(rep)

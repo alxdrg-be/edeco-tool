@@ -110,3 +110,15 @@ def test_room_is_kept_before_structural_mesh_when_budget_is_reached(tmp_path, mo
     limited = read_scene(path)
     assert limited["meshes"] == [meshes[0]]
     assert any("Darstellungsgrenze" in w for w in limited["warnings"])
+
+
+def test_scene_reads_sub_contexts_without_the_express_parser(tmp_path, monkeypatch):
+    # The Windows EXE ships no ifcopenshell.express. Derived attributes such as
+    # CoordinateSpaceDimension on a sub-context would need it (build 70 and 72).
+    import sys
+    path = tmp_path / "Unterkontext.ifc"
+    write_example(path)
+    monkeypatch.setitem(sys.modules, "ifcopenshell.express", None)
+    scene.write_scene(path, tmp_path / "scene.json")
+    meshes = json.loads((tmp_path / "scene.json").read_text(encoding="utf-8"))["meshes"]
+    assert any(mesh["kind"] == "room" for mesh in meshes)
