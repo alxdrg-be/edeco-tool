@@ -173,7 +173,8 @@ def test_returning_to_toolbox_saves_the_open_legend_and_filters_tools(editor):
     search.fill("unbekanntes-tool")
     page.get_by_role("button", name="Filter zurücksetzen").click()
     page.get_by_role("button", name="BIM", exact=True).click()
-    playwright.expect(page.locator(".toolbox-card")).to_have_count(1)
+    # BIM2STEIGER and BIM-Check
+    playwright.expect(page.locator(".toolbox-card")).to_have_count(2)
     page.get_by_role("button", name="Alle", exact=True).click()
     page.get_by_role("button", name="NOVA-Legenden öffnen", exact=True).click()
     playwright.expect(page.get_by_role("button", name="Projekte", exact=True)).to_be_visible()
