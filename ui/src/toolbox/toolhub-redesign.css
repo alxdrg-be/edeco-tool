@@ -180,8 +180,15 @@
 @keyframes toolbox-update-spin { to { transform:rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .toolbox-update-spin { animation:none; } }
 /* Every control on the right looks the same: 32 px, thin line, neutral fill, 16 px icon. */
-:where(:root[data-design-beta="true"]) .hub-head-right :is(button, a, summary):not(.hub-project-context) { box-sizing:border-box; height:32px; min-height:32px; display:inline-flex; align-items:center; justify-content:center; gap:6px; padding:0 10px; border:1px solid var(--line-strong)!important; border-radius:6px!important; background:var(--panel)!important; color:var(--fg)!important; font:500 13px/1.4 var(--font-ui)!important; box-shadow:none!important; }
+:where(:root[data-design-beta="true"]) .hub-head-right :is(button, a, summary):not(.hub-project-context) { box-sizing:border-box; height:32px; min-height:32px; align-items:center; justify-content:center; gap:6px; padding:0 10px; border:1px solid var(--line-strong)!important; border-radius:6px!important; background:var(--panel)!important; color:var(--fg)!important; font:500 13px/1.4 var(--font-ui)!important; box-shadow:none!important; }
 :where(:root[data-design-beta="true"]) .hub-head-right :is(.lab-icon, .toolhub-knowledge, .lab-knowledge-link, .toolbox-update-button, .toolhub-settings-button, .toolhub-nav-trigger, .hub-mobile-theme):not(.lab-pdf) { width:32px; padding:0!important; }
 :where(:root[data-design-beta="true"]) .hub-head-right :is(button, a, summary) svg { width:16px; height:16px; flex:none; }
 :where(:root[data-design-beta="true"]) .hub-head-right :is(button, a, summary):hover:not(:disabled) { background:var(--panel-2)!important; }
 :where(:root[data-design-beta="true"]) .hub-head-right .toolbox-update-available { color:var(--toolhub-accent)!important; border-color:var(--toolhub-accent)!important; background:var(--toolhub-accent-soft)!important; }
+/* The theme switch lives in the left rail on wide screens. */
+@media(min-width:601px){ :where(:root[data-design-beta="true"]) .hub-head-right .hub-mobile-theme, :where(:root[data-design-beta="true"]) .hub-head-right .toolhub-theme { display:none!important; } }
+@media(max-width:600px){
+  :where(:root[data-design-beta="true"]) .hub-head-right { overflow-x:auto; scrollbar-width:none; max-width:62vw; }
+  :where(:root[data-design-beta="true"]) .hub-head-right .hub-mobile-theme span { display:none; }
+}
+@media(min-width:761px){ :where(:root[data-design-beta="true"]) .hub-head-right .lab-extra-panel { display:flex; align-items:center; gap:6px; } }
