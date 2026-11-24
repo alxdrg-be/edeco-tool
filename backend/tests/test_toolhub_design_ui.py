@@ -24,20 +24,22 @@ def test_toolhub_header_alignment_palette_and_shared_theme(editor):
         .map(node => { const r=node.getBoundingClientRect(); return {top:r.top,height:r.height}; })
     """)
     assert max(item["top"] for item in geometry) - min(item["top"] for item in geometry) <= 1
-    # V10 separates the coloured navigation row from compact tool actions.
-    assert all(abs(item["height"] - 34) <= 1 for item in geometry)
+    # One compact header row: every action has the same height.
+    assert all(abs(item["height"] - 32) <= 1 for item in geometry)
     search = page.locator(".toolbox-search").bounding_box()
     categories = page.locator(".toolbox-categories").bounding_box()
     assert 0 <= categories["x"] - search["x"] - search["width"] <= 24
-    reference = page.locator(".hub-header-toolbar").evaluate(
-        "el => ({font:getComputedStyle(el).fontFamily,bg:getComputedStyle(el).backgroundColor})")
-    playwright.expect(page.locator(".hub-header-top")).to_have_css("background-color", "rgb(1, 124, 146)")
+    # The header row stays neutral; only the place name and selections carry the tool colour.
+    reference = page.locator(".hub-header-top").evaluate(
+        "el => ({font:getComputedStyle(el).font,bg:getComputedStyle(el).backgroundColor,height:el.getBoundingClientRect().height})")
+    assert reference["bg"] != "rgb(1, 124, 146)" and reference["height"] <= 49
+    brand = page.locator(".hub-chrome-corner").bounding_box()
     header_edge = page.locator(".toolhub-header").bounding_box()["x"]
     for tool, colour in (
-        ("Berechnungen", "rgb(180, 82, 15)"),
+        ("Berechnungen", "rgb(168, 75, 11)"),
         ("Rack-Dispo", "rgb(74, 91, 104)"),
-        ("Dateien umbenennen", "rgb(46, 125, 69)"),
-        ("Projektzentrale", "rgb(138, 101, 8)"),
+        ("Dateien umbenennen", "rgb(43, 115, 63)"),
+        ("Projektzentrale", "rgb(128, 93, 5)"),
         ("Dokumenten-Assistent", "rgb(107, 63, 168)"),
         ("NOVA-Legenden", "rgb(14, 116, 128)"),
     ):
@@ -45,8 +47,11 @@ def test_toolhub_header_alignment_palette_and_shared_theme(editor):
         # The single edeco mark sits in the shared corner outside the tool header.
         playwright.expect(page.get_by_role("img", name="edeco Toolhub", exact=True)).to_have_count(1)
         playwright.expect(page.locator(".hub-chrome-corner .toolhub-brand-mark")).to_be_visible()
-        playwright.expect(page.locator(".hub-header-top")).to_have_css("background-color", colour)
-        assert page.locator(".hub-header-toolbar").evaluate("el => ({font:getComputedStyle(el).fontFamily,bg:getComputedStyle(el).backgroundColor})") == reference
+        playwright.expect(page.locator(".hub-header-title")).to_have_css("color", colour)
+        assert page.locator(".hub-header-top").evaluate("el => ({font:getComputedStyle(el).font,bg:getComputedStyle(el).backgroundColor,height:el.getBoundingClientRect().height})") == reference
+        # The logo keeps the same place and colour on the start page and in every tool.
+        assert page.locator(".hub-chrome-corner").bounding_box() == brand
+        playwright.expect(page.locator(".hub-chrome-corner")).to_have_css("background-color", "rgb(1, 124, 146)")
         playwright.expect(page.locator("body")).not_to_contain_text("EDECO ENGINEERING")
         # The shared shell aligns; each workspace retains its own canvas/form padding.
         assert abs(page.locator(".toolhub-header").bounding_box()["x"] - header_edge) <= 1

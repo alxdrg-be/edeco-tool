@@ -1,30 +1,31 @@
 /* V10 shared chrome. Drawing, layer and electrical status colours stay in each tool. */
-:root[data-design-beta="true"] { --hub-rail-width:84px; --hub-top-height:60px; --hub-header-height:108px; --toolhub-header-bg:#017c92; --toolhub-accent:light-dark(#017c92,#7cd3dd); --toolhub-accent-soft:light-dark(#e8f5f7,#243943); }
+:root[data-design-beta="true"] { --hub-rail-width:84px; --hub-top-height:48px; --hub-header-height:48px; --hub-brand:#017c92; --toolhub-header-bg:#017c92; --toolhub-accent:light-dark(#017c92,#7cd3dd); --toolhub-accent-soft:light-dark(#e8f5f7,#243943); }
 :where(:root[data-design-beta="true"]) .toolhub-frame { height:100%; min-width:0; padding-left:var(--hub-rail-width); --accent:var(--toolhub-accent); --accent-soft:var(--toolhub-accent-soft); --cta:var(--toolhub-accent); }
 :where(:root[data-design-beta="true"]) .toolhub-frame .toolhub-header[class] { display:block; padding:0; min-height:0; width:100%; max-width:none; margin-left:0; border-bottom:1px solid var(--line); background:var(--panel); box-shadow:none; z-index:40; }
-:where(:root[data-design-beta="true"]) .hub-header-top { display:flex; gap:14px; align-items:center; min-height:60px; padding:10px 18px; background:var(--toolhub-header-bg); color:#fff; }
-:where(:root[data-design-beta="true"]) .hub-header-top button { font:500 12px/1.4 var(--font-ui); }
-:where(:root[data-design-beta="true"]) .hub-header-top .toolhub-back { display:inline-flex; align-items:center; gap:7px; flex:none; border:1px solid #ffffff70; border-radius:6px; padding:8px 10px; min-height:36px; color:#fff; background:transparent; cursor:pointer; }
-:where(:root[data-design-beta="true"]) .hub-header-top .toolhub-home { color:#fff; min-height:36px; }
+:where(:root[data-design-beta="true"]) .hub-header-top { display:flex; gap:10px; align-items:center; height:48px; min-height:48px; padding:0 14px; background:var(--panel); color:var(--fg); border-bottom:1px solid var(--line); font:500 13px/1.4 var(--font-ui); }
+:where(:root[data-design-beta="true"]) .hub-header-top button, :where(:root[data-design-beta="true"]) .hub-header-top kbd, :where(:root[data-design-beta="true"]) .hub-header-top .project-picker select { font:500 13px/1.4 var(--font-ui); }
+:where(:root[data-design-beta="true"]) .hub-header-top .toolhub-back { display:inline-flex; align-items:center; gap:6px; flex:none; height:32px; padding:0 10px; border:1px solid var(--line-strong); border-radius:6px; color:var(--fg); background:var(--panel); cursor:pointer; }
+:where(:root[data-design-beta="true"]) .hub-header-top .toolhub-home { flex:none; height:32px; padding:0 2px; border:0; background:transparent; color:var(--fg); cursor:pointer; }
 :where(:root[data-design-beta="true"]) .hub-header-top .toolhub-brand { color:#fff; }
 :where(:root[data-design-beta="true"]) .hub-header-top .toolhub-brand-wordmark { display:block; color:#fff; }
-:where(:root[data-design-beta="true"]) .hub-header-title { font-size:14px; max-width:250px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; flex-shrink:1; }
-:where(:root[data-design-beta="true"]) .hub-global-search { min-width:150px; display:flex; gap:9px; align-items:center; flex:1; max-width:620px; margin-left:auto; padding:8px 10px; border:1px solid #dae2e5; border-radius:6px; background:#fff; color:#3f4c53; text-align:left; cursor:pointer; min-height:36px; }
+:where(:root[data-design-beta="true"]) .hub-header-title { font:700 14px/1.4 var(--font-ui); color:var(--toolhub-accent); max-width:260px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+:where(:root[data-design-beta="true"]) .hub-global-search { min-width:120px; display:flex; gap:8px; align-items:center; flex:1; max-width:420px; margin-left:auto; height:32px; padding:0 8px 0 10px; border:1px solid var(--line-strong); border-radius:6px; background:var(--bg); color:var(--muted); text-align:left; cursor:pointer; }
 :where(:root[data-design-beta="true"]) .hub-global-search span { flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-:where(:root[data-design-beta="true"]) .hub-global-search kbd { color:#3f4c53; background:#e3e8ea; border-radius:3px; padding:1px 5px; font:600 11px/1.5 var(--font-ui); white-space:nowrap; }
-:where(:root[data-design-beta="true"]) .hub-project-context { max-width:270px; display:flex; gap:7px; align-items:center; padding:8px 11px; min-height:36px; border:0; border-radius:18px; background:#fff; color:var(--toolhub-header-bg); font-weight:650!important; cursor:pointer; }
+:where(:root[data-design-beta="true"]) .hub-global-search kbd { color:var(--fg); background:var(--panel-2); border-radius:3px; padding:1px 5px; font-size:11px!important; font-weight:600!important; white-space:nowrap; }
+:where(:root[data-design-beta="true"]) .hub-project-context { max-width:240px; display:flex; gap:7px; align-items:center; height:32px; padding:0 11px; border:1px solid var(--line-strong); border-radius:16px; background:var(--panel); color:var(--fg); font-weight:600!important; cursor:pointer; }
 :where(:root[data-design-beta="true"]) .hub-project-context span { overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
 :where(:root[data-design-beta="true"]) .hub-project-context svg { flex:none; }
-:where(:root[data-design-beta="true"]) .hub-header-top .toolhub-demo-badge { color:#fff; border-color:#ffffff80; background:#ffffff15; }
-:where(:root[data-design-beta="true"]) .hub-header-toolbar { display:flex; gap:12px; align-items:center; min-height:46px; padding:5px 18px; background:var(--panel); }
-:where(:root[data-design-beta="true"]) .hub-header-toolbar .toolhub-breadcrumbs { padding-left:0; border:0; flex-shrink:1; }
-:where(:root[data-design-beta="true"]) .hub-header-toolbar .toolhub-header-actions { flex:1; width:auto; gap:6px; margin-left:auto; justify-content:flex-end; flex-wrap:wrap; }
-:where(:root[data-design-beta="true"]) .hub-header-toolbar .toolhub-header-actions>.btn,:where(:root[data-design-beta="true"]) .hub-header-toolbar .toolhub-header-actions>.toolhub-nav-trigger,:where(:root[data-design-beta="true"]) .hub-header-toolbar .toolhub-header-actions>.toolhub-knowledge,:where(:root[data-design-beta="true"]) .hub-header-toolbar .toolhub-header-actions>.lab-icon,:where(:root[data-design-beta="true"]) .hub-header-toolbar .toolhub-header-actions>.lab-knowledge-link { height:34px; min-height:34px; border-radius:6px; padding:6px 10px; }
-:where(:root[data-design-beta="true"]) .hub-header-toolbar .toolhub-header-actions>.toolhub-theme { display:none; }
+:where(:root[data-design-beta="true"]) .hub-header-top .toolhub-demo-badge { color:var(--fg); border-color:var(--line-strong); background:var(--panel-2); }
+:where(:root[data-design-beta="true"]) .hub-header-top .toolhub-breadcrumbs { display:flex; align-items:center; gap:6px; min-width:0; padding:0; border:0; flex-shrink:1; }
+:where(:root[data-design-beta="true"]) .hub-header-top .toolhub-breadcrumbs>button { height:28px; padding:0 6px; border:0; border-radius:5px; background:transparent; color:var(--muted); cursor:pointer; }
+:where(:root[data-design-beta="true"]) .hub-header-sep { color:var(--line-strong); flex:none; }
+:where(:root[data-design-beta="true"]) .hub-header-top .toolhub-header-actions { flex:none; width:auto; gap:6px; display:flex; align-items:center; justify-content:flex-end; }
+:where(:root[data-design-beta="true"]) .hub-header-top .toolhub-header-actions>.btn,:where(:root[data-design-beta="true"]) .hub-header-top .toolhub-header-actions>.toolhub-nav-trigger,:where(:root[data-design-beta="true"]) .hub-header-top .toolhub-header-actions>.toolhub-knowledge,:where(:root[data-design-beta="true"]) .hub-header-top .toolhub-header-actions>.lab-icon,:where(:root[data-design-beta="true"]) .hub-header-top .toolhub-header-actions>.lab-knowledge-link { height:32px; min-height:32px; border-radius:6px; padding:0 10px; font-size:13px; }
+:where(:root[data-design-beta="true"]) .hub-header-top .toolhub-header-actions>.toolhub-theme { display:none; }
 :where(:root[data-design-beta="true"]) .hub-mobile-theme{display:none}
 :where(:root[data-design-beta="true"]) .hub-rail { position:fixed; left:0; top:var(--hub-top-height); bottom:0; width:var(--hub-rail-width); z-index:35; display:flex; flex-direction:column; gap:5px; padding:12px 6px; overflow:auto; background:light-dark(#e9edee,#16232b); border-right:1px solid var(--line); color:var(--fg); font-family:var(--font-ui); }
-:where(:root[data-design-beta="true"]) .hub-rail>button { width:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px; min-height:58px; padding:7px 3px; border:1px solid transparent; border-left:3px solid transparent; border-radius:7px; color:var(--muted); background:transparent; font:500 11px/1.3 var(--font-ui); cursor:pointer; }
-:where(:root[data-design-beta="true"]) .hub-rail>button[aria-current=page] { color:var(--toolhub-accent); background:var(--panel); border-left-color:var(--toolhub-accent); font-weight:650; }
+:where(:root[data-design-beta="true"]) .hub-rail>button { width:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px; min-height:58px; padding:7px 3px; border:1px solid transparent; border-radius:7px; color:var(--muted); background:transparent; font:500 11px/1.3 var(--font-ui); cursor:pointer; }
+:where(:root[data-design-beta="true"]) .hub-rail>button[aria-current=page] { color:var(--toolhub-accent); background:var(--toolhub-accent-soft); font-weight:650; }
 :where(:root[data-design-beta="true"]) .hub-rail>button:hover:not(:disabled) { background:var(--panel); color:var(--toolhub-accent); }
 :where(:root[data-design-beta="true"]) .hub-rail>button:disabled { opacity:.45; cursor:default; }
 :where(:root[data-design-beta="true"]) .hub-rail .hub-rail-theme { margin-top:auto; }
@@ -85,8 +86,8 @@
 :where(:root[data-design-beta="true"]) .tool-color-violet { --tool:#6b3fa8; --tool-deep:#59338d; }
 :where(:root[data-design-beta="true"]) .tool-color-olive { --tool:#626f15; --tool-deep:#505b0f; --tool-tint:#f0f3e2; }
 @media(max-width:1100px) { :where(:root[data-design-beta="true"]) .hub-header-top { gap:9px; } :where(:root[data-design-beta="true"]) .hub-header-title { max-width:180px; font-size:13px; } :where(:root[data-design-beta="true"]) .hub-project-context { max-width:200px; } :where(:root[data-design-beta="true"]) .toolhub-frame .toolbox-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } :where(:root[data-design-beta="true"]) .toolhub-frame .toolbox-main { padding:22px; } }
-@media(max-width:760px) { :where(:root[data-design-beta="true"]) .hub-project-context { max-width:150px; } :where(:root[data-design-beta="true"]) .hub-global-search span { display:none; } :where(:root[data-design-beta="true"]) .hub-global-search { flex:1; min-width:85px; max-width:150px; } :where(:root[data-design-beta="true"]) .hub-header-title { max-width:160px; } :where(:root[data-design-beta="true"]) .hub-header-toolbar { align-items:flex-start; flex-wrap:wrap; } :where(:root[data-design-beta="true"]) .hub-header-toolbar .toolhub-header-actions { flex-wrap:wrap; } :where(:root[data-design-beta="true"]) .toolhub-frame .toolbox-intro { align-items:flex-start; flex-direction:column; } :where(:root[data-design-beta="true"]) .toolhub-frame .toolbox-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
-@media(max-width:600px) { :root[data-design-beta="true"] { --hub-rail-width:0px; } :where(:root[data-design-beta="true"]) .hub-rail { display:none; } :where(:root[data-design-beta="true"]) .hub-header-top { flex-wrap:wrap; gap:8px; padding:9px 12px; } :where(:root[data-design-beta="true"]) .hub-header-toolbar { padding:7px 12px; } :where(:root[data-design-beta="true"]) .hub-global-search { max-width:none; } :where(:root[data-design-beta="true"]) .hub-project-context { max-width:170px; } :where(:root[data-design-beta="true"]) .hub-header-top .toolhub-brand { font-size:15px; } :where(:root[data-design-beta="true"]) .hub-header-title { flex:1; } :where(:root[data-design-beta="true"]) .toolhub-frame .toolbox-main { padding:18px 12px; } :where(:root[data-design-beta="true"]) .toolhub-frame .toolbox-tile { grid-template-columns:1fr; gap:8px; padding:25px 12px 12px; } :where(:root[data-design-beta="true"]) .toolhub-frame .toolbox-symbol { grid-row:auto; } :where(:root[data-design-beta="true"]) .hub-command-backdrop { padding:12px; } :where(:root[data-design-beta="true"]) .hub-command-dialog { max-height:calc(100dvh - 24px); } }
+@media(max-width:760px) { :where(:root[data-design-beta="true"]) .hub-project-context { max-width:150px; } :where(:root[data-design-beta="true"]) .hub-global-search span { display:none; } :where(:root[data-design-beta="true"]) .hub-global-search { flex:1; min-width:85px; max-width:150px; } :where(:root[data-design-beta="true"]) .hub-header-title { max-width:160px; } :where(:root[data-design-beta="true"]) .hub-header-top { height:auto; flex-wrap:wrap; padding-block:6px; } :where(:root[data-design-beta="true"]) .hub-header-top .toolhub-header-actions { flex-wrap:wrap; } :where(:root[data-design-beta="true"]) .toolhub-frame .toolbox-intro { align-items:flex-start; flex-direction:column; } :where(:root[data-design-beta="true"]) .toolhub-frame .toolbox-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:600px) { :root[data-design-beta="true"] { --hub-rail-width:0px; } :where(:root[data-design-beta="true"]) .hub-rail { display:none; } :where(:root[data-design-beta="true"]) .hub-header-top { flex-wrap:wrap; gap:8px; padding:6px 12px; } :where(:root[data-design-beta="true"]) .hub-global-search { max-width:none; } :where(:root[data-design-beta="true"]) .hub-project-context { max-width:170px; } :where(:root[data-design-beta="true"]) .hub-header-top .toolhub-brand { font-size:15px; } :where(:root[data-design-beta="true"]) .hub-header-title { flex:1; } :where(:root[data-design-beta="true"]) .toolhub-frame .toolbox-main { padding:18px 12px; } :where(:root[data-design-beta="true"]) .toolhub-frame .toolbox-tile { grid-template-columns:1fr; gap:8px; padding:25px 12px 12px; } :where(:root[data-design-beta="true"]) .toolhub-frame .toolbox-symbol { grid-row:auto; } :where(:root[data-design-beta="true"]) .hub-command-backdrop { padding:12px; } :where(:root[data-design-beta="true"]) .hub-command-dialog { max-height:calc(100dvh - 24px); } }
 @media print { :where(:root[data-design-beta="true"]) .toolhub-frame { padding-left:0; } :where(:root[data-design-beta="true"]) .hub-rail,:where(:root[data-design-beta="true"]) .hub-command-backdrop { display:none!important; } }
 
 /* Keep the full desktop tool overview visible in a normal Windows window. */
@@ -105,26 +106,33 @@
   :where(:root[data-design-beta="true"]) .toolhub-frame .toolbox-grid { grid-template-columns:repeat(5,minmax(0,1fr)); }
 }
 
-:where(:root[data-design-beta="true"]) .hub-chrome-corner {position:fixed;top:0;left:0;width:var(--hub-rail-width);height:var(--hub-top-height);z-index:41;display:flex;align-items:flex-start;justify-content:center;padding:12px 0;background:var(--toolhub-header-bg)}
+:where(:root[data-design-beta="true"]) .hub-chrome-corner {position:fixed;top:0;left:0;width:var(--hub-rail-width);height:var(--hub-top-height);z-index:41;display:flex;align-items:center;justify-content:center;padding:0;background:var(--hub-brand);border-bottom:1px solid var(--hub-brand)}
 :where(:root[data-design-beta="true"]) .hub-corner-home{border:0;background:transparent;color:#fff;cursor:pointer;padding:0}
-:where(:root[data-design-beta="true"]) .hub-corner-home .toolhub-brand-mark{width:34px;height:34px}
+:where(:root[data-design-beta="true"]) .hub-corner-home .toolhub-brand-mark{width:30px;height:30px}
 @media(max-width:600px){
   :where(:root[data-design-beta="true"]) .hub-chrome-corner{width:50px;padding-top:10px}
   :where(:root[data-design-beta="true"]) .hub-header-top{padding-left:56px}
-  :where(:root[data-design-beta="true"]) .hub-header-title{display:none}
+  :where(:root[data-design-beta="true"]) .hub-header-sep{display:none}
   :where(:root[data-design-beta="true"]) .hub-global-search{flex:none;min-width:36px;max-width:36px;width:36px;justify-content:center;padding:8px}
   :where(:root[data-design-beta="true"]) .hub-global-search kbd{display:none}
   :where(:root[data-design-beta="true"]) .hub-project-context{flex:none;min-width:36px;max-width:36px;width:36px;justify-content:center;padding:8px}
   :where(:root[data-design-beta="true"]) .hub-project-context span{display:none}
-  :where(:root[data-design-beta="true"]) .hub-header-toolbar{position:relative;gap:6px;padding:6px 12px}
-  :where(:root[data-design-beta="true"]) .hub-header-toolbar .toolhub-breadcrumbs{max-width:100%;flex-basis:100%}
-  :where(:root[data-design-beta="true"]) .hub-header-toolbar .toolhub-breadcrumbs>button{padding-block:4px}
-  :where(:root[data-design-beta="true"]) .hub-header-toolbar .lab-export-actions{position:static}
-  :where(:root[data-design-beta="true"]) .hub-header-toolbar .lab-extra-panel{right:12px;top:calc(100% + 6px);width:min(270px,calc(100vw - 24px));max-height:calc(100dvh - var(--hub-header-height) - 12px)}
+  :where(:root[data-design-beta="true"]) .hub-header-top .toolhub-breadcrumbs{max-width:100%}
+  :where(:root[data-design-beta="true"]) .hub-header-top .toolhub-breadcrumbs>button{padding-block:4px}
+  :where(:root[data-design-beta="true"]) .hub-header-top .lab-export-actions{position:static}
+  :where(:root[data-design-beta="true"]) .hub-header-top .lab-extra-panel{right:12px;top:calc(100% + 6px);width:min(270px,calc(100vw - 24px));max-height:calc(100dvh - var(--hub-header-height) - 12px)}
   :where(:root[data-design-beta="true"]) .hub-mobile-theme{display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--fg);font:500 12px/1.4 var(--font-ui);cursor:pointer}
 }
 @media print{:where(:root[data-design-beta="true"]) .hub-chrome-corner{display:none}}
 
-:where(:root[data-design-beta="true"]) .hub-wordmark {font:500 17px/1.4 var(--font-ui);white-space:nowrap;letter-spacing:-.4px}
+:where(:root[data-design-beta="true"]) .hub-wordmark {font:500 15px/1.4 var(--font-ui);white-space:nowrap;letter-spacing:-.3px;color:var(--fg)}
 
-:where(:root[data-design-beta="true"]) .hub-design-beta-badge { flex:none; padding:4px 7px; border:1px solid #ffffff90; border-radius:5px; color:#fff; background:#ffffff18; font-size:10px; cursor:pointer; }
+:where(:root[data-design-beta="true"]) .hub-design-beta-badge { flex:none; padding:2px 7px; border:1px solid var(--line-strong); border-radius:5px; color:var(--muted); background:var(--panel); font-size:11px!important; cursor:pointer; }
+@media(max-width:600px){
+  :where(:root[data-design-beta="true"]) .hub-header-top[data-place="tool"] .toolhub-home,
+  :where(:root[data-design-beta="true"]) .hub-header-top[data-place="tool"] .hub-header-sep{display:none}
+  :where(:root[data-design-beta="true"]) .hub-header-top .toolhub-back span,
+  :where(:root[data-design-beta="true"]) .hub-header-top .toolhub-knowledge span{display:none}
+  :where(:root[data-design-beta="true"]) .hub-header-top .toolhub-back{padding:0 8px}
+  :where(:root[data-design-beta="true"]) .hub-header-top .toolhub-breadcrumbs{flex:1;min-width:0}
+}

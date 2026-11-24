@@ -29,7 +29,8 @@ def test_global_palette_and_options_respect_unsaved_project(editor):
 def test_palette_memory_route_and_header_stay_visible(editor):
     page, _, _, _ = editor
     page.get_by_role('button', name='Zum Toolhub', exact=True).click()
-    playwright.expect(page.locator('.hub-header-top')).to_have_css('background-color', 'rgb(1, 124, 146)')
+    playwright.expect(page.locator('.hub-chrome-corner')).to_have_css('background-color', 'rgb(1, 124, 146)')
+    assert page.locator('.hub-header-top').bounding_box()['height'] <= 49
     for width in (1440, 1024, 760, 390):
         page.set_viewport_size({'width': width, 'height': 900})
         mark = page.locator('.toolhub-brand-mark')
