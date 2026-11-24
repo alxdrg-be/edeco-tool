@@ -106,7 +106,6 @@ function BetaToolhubHeader({ title, onHome, onOpenTool, currentToolId, disabled,
       </div>}
     </header>
     {createPortal(<><div className="hub-chrome-corner"><button className="hub-corner-home" disabled={disabled} onClick={onHome} aria-label="edeco Toolhub – Startseite"><ToolhubBrand compact /></button></div><nav className="hub-rail" aria-label="Toolhub-Navigation">
-      {allowed('projektzentrale') && <button type="button" aria-label="Projektzentrale" disabled={disabled || !onOpenTool} aria-current={id === 'projektzentrale' ? 'page' : undefined} onClick={() => onOpenTool?.('projektzentrale')}><Folder size={20} /><span>Projekte</span></button>}
       <button type="button" disabled={disabled} aria-current={id && !['projektzentrale', 'elektro-memory', 'wissens-hub'].includes(id) ? 'page' : undefined} onClick={() => setSearchOpen(true)}><Shapes size={20} /><span>Werkzeuge</span></button>
       {allowed(memoryId) && <button type="button" disabled={disabled || !onOpenTool} aria-current={id === 'elektro-memory' || id === 'wissens-hub' ? 'page' : undefined} onClick={() => onOpenTool?.(memoryId)}><BookOpen size={20} /><span>Wissen</span></button>}
       <button type="button" disabled={disabled} onClick={openSettings}><Settings size={20} /><span>Optionen</span></button>
