@@ -7,9 +7,9 @@ from test_editor_navigation import editor, env, playwright, edit_category, expan
 
 
 def switch_tool(page, title):
-    page.get_by_role("button", name="Werkzeuge", exact=True).click()
-    menu = page.get_by_role("dialog", name="Werkzeug wechseln", exact=True)
-    menu.get_by_role("searchbox", name="Werkzeug suchen", exact=True).fill(title)
+    page.get_by_role("navigation", name="Toolhub-Navigation", exact=True).get_by_role("button", name="Werkzeuge", exact=True).click()
+    menu = page.get_by_role("dialog", name="Im Toolhub finden", exact=True)
+    menu.get_by_role("searchbox", name="Werkzeuge, Projekte, Memory und Befehle suchen", exact=True).fill(title)
     menu.get_by_role("button", name=title, exact=True).click()
     playwright.expect(menu).not_to_be_visible()
     # Closing the chooser commits the location before the lazy workspace is
@@ -26,18 +26,29 @@ def switch_calculator(page, title, query=None):
     playwright.expect(page.locator(".toolhub-loading")).to_have_count(0)
 
 
-def test_loading_workspace_does_not_offer_a_disappearing_switcher(editor):
+def test_loading_workspace_keeps_rail_but_cannot_dispatch_another_tool(editor):
     page, _, _, _ = editor
     pending = []
     page.route("**/Calculations-*.js", lambda route: pending.append(route))
     # Inspect the loading state deliberately; switch_tool waits for completion.
     page.get_by_role("button", name="Werkzeuge", exact=True).click()
-    menu = page.get_by_role("dialog", name="Werkzeug wechseln", exact=True)
+    menu = page.get_by_role("dialog", name="Im Toolhub finden", exact=True)
     menu.get_by_role("button", name="Berechnungen", exact=True).click()
     playwright.expect(menu).not_to_be_visible()
     playwright.expect(page.get_by_text("Werkzeug wird geladen …", exact=True)).to_be_visible()
     playwright.expect(page.get_by_role("button", name="Rechner wechseln", exact=True)).to_have_count(0)
-    playwright.expect(page.get_by_role("button", name="Werkzeuge", exact=True)).to_have_count(0)
+    # V10 keeps the shared rail during loading. Its palette may be inspected,
+    # but tool actions cannot navigate until the lazy workspace is mounted.
+    rail = page.get_by_role("navigation", name="Toolhub-Navigation", exact=True)
+    playwright.expect(rail).to_be_visible()
+    rail.get_by_role("button", name="Werkzeuge", exact=True).click()
+    playwright.expect(menu).to_be_visible()
+    tool_results = menu.locator("section").filter(has=page.get_by_role("heading", name="Werkzeuge", exact=True))
+    playwright.expect(tool_results.get_by_role("button", name="Berechnungen", exact=True)).to_be_disabled()
+    assert tool_results.get_by_role("button").count() > 0
+    assert tool_results.locator("button:enabled").count() == 0
+    page.keyboard.press("Escape")
+    playwright.expect(menu).not_to_be_visible()
     playwright.expect(page.get_by_role("button", name="Zum Toolhub", exact=True)).to_be_enabled()
     assert pending, "The lazy module must remain pending while its fallback is inspected."
     for route in pending:

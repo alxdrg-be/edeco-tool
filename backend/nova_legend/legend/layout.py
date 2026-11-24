@@ -851,8 +851,9 @@ def layout(doc: dict, sizes: dict | None = None, general: dict | None = None,
         y = _general_rows(general_body, prims, margin, y, inner, 2, style, section, padding=pad)
     elif general_body and include_general and general_body.get("h") and not footer:
         # no readable text column: the drawing stays whole, under the category bar
-        y = _general_header(prims, margin, y, inner, ts, section, style.get("symbol_fit") == "corridor",
-                            style.get("font") or "Arial")
+        if general_body.get("mode") != "cad":
+            y = _general_header(prims, margin, y, inner, ts, section, style.get("symbol_fit") == "corridor",
+                                style.get("font") or "Arial")
         fit = min(1.0, inner / general["w"]) if general.get("w") else 1.0
         gw, gh = general["w"] * fit, general["h"] * fit
         prims.append({"t": "rect", "x": margin, "y": y, "w": gw, "h": gh, "fill": None, "stroke": None,

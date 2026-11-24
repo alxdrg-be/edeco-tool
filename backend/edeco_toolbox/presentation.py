@@ -6,11 +6,8 @@ replacement for Windows file permissions or a separate network authentication.
 
 from __future__ import annotations
 
-import ctypes
-import getpass
 import json
 import os
-import sys
 import threading
 import uuid
 from pathlib import Path
@@ -20,55 +17,36 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field
 
 from .paths import local_home
+from .identity import windows_identity as windows_identity, is_admin as is_admin
+from .tool_contract import DEMO_CHOICES, DEMO_DEFAULTS
 
 DEFAULT_ADMINS = ["aduerger", "nstrauss"]
 LEGACY_DEMO_TOOLS = ["nova-legenden", "berechnungen", "dateien-umbenennen", "pdf-werkzeuge"]
 V2_DEMO_TOOLS = [*LEGACY_DEMO_TOOLS, "elektro-memory"]
-DEMO_TOOLS = [*V2_DEMO_TOOLS, "rack-dispo"]
+DEMO_TOOLS = DEMO_DEFAULTS
 SCHEMA_VERSION = 3
 # Each schema step extends the previous *default* selection only.
 _DEFAULT_SETS = {1: set(LEGACY_DEMO_TOOLS), 2: set(V2_DEMO_TOOLS)}
 PREFIX = "/api/toolbox/presentation"
 
 
-def windows_identity() -> tuple[str, bool]:
-    """Read the account from Windows, never from a browser-supplied user name."""
-    if sys.platform != "win32":
-        return getpass.getuser(), False
-    try:
-        size = ctypes.c_ulong(512)
-        value = ctypes.create_unicode_buffer(size.value)
-        if ctypes.windll.secur32.GetUserNameExW(2, value, ctypes.byref(size)):
-            return value.value, True
-        size = ctypes.c_ulong(512)
-        value = ctypes.create_unicode_buffer(size.value)
-        if ctypes.windll.advapi32.GetUserNameW(value, ctypes.byref(size)):
-            return value.value, True
-    except (AttributeError, OSError):
-        pass
-    # Fail closed for configured Windows roles if the OS identity is unavailable.
-    return "", True
-
-
-def is_admin(identity: str, admins: list[str]) -> bool:
-    account = identity.strip().casefold()
-    short = account.rsplit("\\", 1)[-1]
-    return any(name.strip().casefold() == account or
-               "\\" not in name and name.strip().casefold() == short
-               for name in admins) if account else False
-
-
 class PresentationBody(BaseModel):
     model_config = ConfigDict(extra="forbid")
     revision: str = Field(min_length=1, max_length=64)
     demo_enabled: bool
-    demo_tools: list[str] = Field(min_length=1, max_length=len(DEMO_TOOLS))
+    demo_tools: list[str] = Field(min_length=1, max_length=len(DEMO_CHOICES))
     admins: list[str] = Field(max_length=64)
+
+
+class DesignBetaBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    enabled: bool = Field(strict=True)
 
 
 class PresentationStore:
     def __init__(self, home: Path, identity: tuple[str, bool] | None = None):
         self.path = home / "presentation.json"
+        self.design_beta_path = home / "design-beta.json"
         self.identity, self.windows = identity if identity is not None else windows_identity()
         self.lock = threading.RLock()
 
@@ -103,18 +81,68 @@ class PresentationStore:
         names = list(dict.fromkeys(name.strip() for name in body.admins))
         if any(not name or len(name) > 160 or any(ord(char) < 32 or ord(char) == 127 for char in name) for name in names):
             raise HTTPException(400, "Bitte gültige Windows-Anmeldenamen eintragen.")
-        if set(body.demo_tools) - set(DEMO_TOOLS) or "nova-legenden" not in body.demo_tools:
+        if set(body.demo_tools) - set(DEMO_CHOICES) or "nova-legenden" not in body.demo_tools:
             raise HTTPException(400, "Im Demo-Modus bleibt NOVA-Legenden sichtbar; weitere Demo-Werkzeuge bitte aus der Auswahl wählen.")
         return {"revision": body.revision, "demo_enabled": body.demo_enabled,
-                "demo_tools": [tool for tool in DEMO_TOOLS if tool in body.demo_tools], "admins": names}
+                "demo_tools": [tool for tool in [*DEMO_TOOLS, *[choice for choice in DEMO_CHOICES if choice not in DEMO_TOOLS]] if tool in body.demo_tools], "admins": names}
 
     def snapshot(self):
         with self.lock:
             data = self.read()
             admin = is_admin(self.identity, data["admins"])
+            design_enabled, design_error = False, ""
+            if admin:
+                try:
+                    design_enabled = self.read_design_beta().get(self.identity.strip().casefold(), False)
+                except HTTPException as failure:
+                    # A broken preview preference must not prevent use of the
+                    # established interface or silently replace its source file.
+                    design_error = failure.detail
             return {**data, "identity": self.identity, "is_admin": admin,
                     "can_manage": admin or not data["admins"] or not self.windows,
-                    "windows_roles": self.windows}
+                    "windows_roles": self.windows,
+                    "design_beta_enabled": design_enabled,
+                    "design_beta_error": design_error}
+
+    def read_design_beta(self) -> dict[str, bool]:
+        try:
+            if not self.design_beta_path.exists():
+                return {}
+            if self.design_beta_path.stat().st_size > 20000:
+                raise ValueError()
+            raw = json.loads(self.design_beta_path.read_text(encoding="utf-8"))
+            if not isinstance(raw, dict) or set(raw) != {"schema_version", "identities"}:
+                raise ValueError()
+            if type(raw["schema_version"]) is not int or raw["schema_version"] != 1:
+                raise ValueError()
+            values = raw["identities"]
+            if not isinstance(values, dict) or any(
+                not name or len(name) > 160 or name != name.strip().casefold()
+                or any(ord(char) < 32 or ord(char) == 127 for char in name)
+                or type(enabled) is not bool
+                for name, enabled in values.items()
+            ):
+                raise ValueError()
+            return values
+        except (ValueError, OSError, TypeError):
+            raise HTTPException(500, "Die persönliche Design-Beta-Einstellung konnte nicht gelesen werden. Die bisherige Oberfläche bleibt aktiv; die vorhandene Datei wurde nicht verändert.") from None
+
+    def save_design_beta(self, body: DesignBetaBody):
+        with self.lock:
+            # Unlike general development settings, the preview has no Linux or
+            # empty-admin-list bypass: only an explicitly listed OS account opts in.
+            if not is_admin(self.identity, self.read()["admins"]):
+                raise HTTPException(403, "Das neue Design können nur die hinterlegten Administratoren testen.")
+            values = self.read_design_beta()
+            values[self.identity.strip().casefold()] = body.enabled
+            self.design_beta_path.parent.mkdir(parents=True, exist_ok=True)
+            temporary = self.design_beta_path.with_name(f".design-beta-{uuid.uuid4()}.tmp")
+            try:
+                temporary.write_text(json.dumps({"schema_version": 1, "identities": values}, ensure_ascii=False, indent=2), encoding="utf-8")
+                os.replace(temporary, self.design_beta_path)
+            finally:
+                temporary.unlink(missing_ok=True)
+            return self.snapshot()
 
     def save(self, body: PresentationBody):
         with self.lock:
@@ -151,3 +179,7 @@ def register(app):
         # The global loopback/session middleware protects this mutation before it
         # reaches the route; role checks happen in the store, on the server.
         return JSONResponse(store.save(body), headers={"Cache-Control": "no-store"})
+
+    @app.put(f"{PREFIX}/design-beta")
+    def put_design_beta(body: DesignBetaBody):
+        return JSONResponse(store.save_design_beta(body), headers={"Cache-Control": "no-store"})

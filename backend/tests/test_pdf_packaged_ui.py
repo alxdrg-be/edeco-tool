@@ -133,7 +133,7 @@ def exercise_tool_first_drop_and_native_crop(page):
     import pypdfium2 as pdfium
     frame = page.frame_locator("iframe[title='Stirling-PDF · edeco PDF-Werkstatt']")
     Path('output').mkdir(exist_ok=True)
-    page.get_by_role('button', name='Werkzeugauswahl', exact=True).click()
+    page.get_by_role('button', name='Alle PDF-Werkzeuge', exact=True).click()
     # A real drag into the catalogue must wait for a tool and hand the file
     # into Core without browser navigation or resetting the open library.
     transfer = page.evaluate_handle('''bytes => {
@@ -153,14 +153,14 @@ def exercise_tool_first_drop_and_native_crop(page):
     expect(frame.locator('.edeco-settings-control')).to_be_hidden()
     # The inner Core crop action must open the same full-size native editor,
     # carrying the single imported PDF instead of showing Core's old modal.
-    page.get_by_role('button', name='Werkzeugauswahl', exact=True).click()
+    page.get_by_role('button', name='Alle PDF-Werkzeuge', exact=True).click()
     page.get_by_role('button', name='Alle Funktionen', exact=True).click()
     frame.locator('[data-tour="tool-button-crop"]').click()
     expect(page.locator('.pdf-embedded-workspace')).to_be_hidden()
     expect(page.get_by_role('img', name='PDF-Seite 1 von Abgelegter Plan.pdf', exact=True)).to_be_visible(timeout=30000)
     page.get_by_label('Rand links (mm)', exact=True).fill('5')
     with page.expect_download() as cropped:
-        page.get_by_role('button', name='Zuschneiden & speichern', exact=True).click()
+        page.get_by_role('button', name='Zuschnitt speichern', exact=True).click()
     cropped.value.save_as('output/pdf-packaged-native-crop.pdf')
     with PDF_LOCK, pdfium.PdfDocument('output/pdf-packaged-native-crop.pdf') as result:
         assert len(result) == 1
@@ -212,7 +212,8 @@ def test_packaged_workshop_preview_merge_branding_and_licenses():
                 expect(page.get_by_role('button', name=title + ' öffnen', exact=True)).to_be_visible()
             page.get_by_role('button', name='PDF-Werkstatt öffnen', exact=True).click()
             expect(page.get_by_role('heading', name='Was möchtest du mit deinem PDF tun?', exact=True)).to_be_visible()
-            expect(page.get_by_text('Offline bereit · auf diesem Computer')).to_be_visible(timeout=180000)
+            expect(page.locator('.pdf-data-route')).to_have_attribute('data-pdf-mode', 'local')
+            expect(page.locator('.pdf-data-route')).to_have_attribute('data-pdf-engine-ready', 'true', timeout=180000)
             expect(page.locator('[data-pdf-tool="merge"]')).to_have_attribute("aria-disabled", "false")
             expect(page.locator('.pdf-embedded-workspace')).to_be_hidden()
             page.locator('[data-pdf-tool="merge"]').click()

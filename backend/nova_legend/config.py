@@ -13,7 +13,6 @@ The environment variable NOVA_LEGENDEN_HOME overrides the local folder
 
 from __future__ import annotations
 
-import getpass
 import json
 import os
 import sys
@@ -64,10 +63,6 @@ def dataset_summary(path: Path) -> tuple[str, int] | None:
     return attrs.get("ID", path.stem), count
 
 
-def is_electrical_dataset(path: Path) -> bool:
-    return dataset_summary(path) is not None
-
-
 def local_home() -> Path:
     env = os.environ.get("NOVA_LEGENDEN_HOME")
     if env:
@@ -81,10 +76,8 @@ def local_home() -> Path:
 
 
 def current_user() -> str:
-    try:
-        return getpass.getuser()
-    except Exception:  # noqa: BLE001 - getuser can fail in odd environments
-        return "unbekannt"
+    from edeco_toolbox.identity import current_user as shared_current_user
+    return shared_current_user()
 
 
 def resource_dir() -> Path:

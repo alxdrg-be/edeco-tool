@@ -10,8 +10,8 @@ from starlette.concurrency import run_in_threadpool
 
 from ... import APP_VERSION
 from ...paths import local_home
-from ..projects.api import ProjectData
-from ..projects.api import open_folder
+from ...folders import open_folder
+from ..projects.models import valid_project_number
 from .store import ArchiveStore, TOOLS, confined
 
 PREFIX = "/api/tools/berechnungsablage"
@@ -32,7 +32,7 @@ class Project(BaseModel):
     @field_validator("number")
     @classmethod
     def number_valid(cls, value):
-        return ProjectData.valid_number(value)
+        return valid_project_number(value)
 
 
 class Snapshot(BaseModel):

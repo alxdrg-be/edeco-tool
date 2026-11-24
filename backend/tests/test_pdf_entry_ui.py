@@ -13,6 +13,7 @@ import uvicorn
 
 from edeco_toolbox.app import create_app
 from edeco_toolbox.documents.extract import PDF_LOCK
+from edeco_toolbox.presentation import DesignBetaBody
 from test_documents import sample_pdf
 from test_editor_navigation import launch_chromium, playwright
 from test_phase3 import env  # noqa: F401
@@ -27,7 +28,12 @@ def pdf_entry(env):
         pytest.skip("Build the UI before browser tests")
     sock = socket.socket()
     sock.bind(("127.0.0.1", 0))
-    server = uvicorn.Server(uvicorn.Config(create_app(client.app.state.nova, ui_dir=ui), log_level="error"))
+    app = create_app(client.app.state.nova, ui_dir=ui)
+    # This isolated workbench suite includes V10 global-search interactions.
+    # Packaged-EXE tests keep the actual OS identity and classic default.
+    app.state.presentation.identity, app.state.presentation.windows = "EDECO\\aduerger", True
+    app.state.presentation.save_design_beta(DesignBetaBody(enabled=True))
+    server = uvicorn.Server(uvicorn.Config(app, log_level="error"))
     thread = threading.Thread(target=server.run, kwargs={"sockets": [sock]}, daemon=True)
     thread.start()
     deadline = time.monotonic() + 10
@@ -82,7 +88,7 @@ def test_catalog_drop_waits_for_tool_then_opens_large_native_crop(pdf_entry, tmp
     playwright.expect(page.locator(".pdf-native-crop")).to_be_visible()
     page.get_by_label("Rand links (mm)", exact=True).fill("10")
     with page.expect_download() as saved:
-        page.get_by_role("button", name="Zuschneiden & speichern", exact=True).click()
+        page.get_by_role("button", name="Zuschnitt speichern", exact=True).click()
     output = tmp_path / saved.value.suggested_filename
     saved.value.save_as(output)
     with PDF_LOCK, pdfium.PdfDocument(output) as document:
@@ -111,6 +117,6 @@ def test_catalog_rejects_other_files_and_chooses_one_pdf_without_losing_the_othe
     playwright.expect(choice).to_be_visible()
     choice.get_by_role("button", name="Erster Plan.pdf", exact=False).click()
     playwright.expect(page.get_by_role("img", name="PDF-Seite 1 von Erster Plan.pdf", exact=True)).to_be_visible()
-    page.get_by_role("button", name="Werkzeugauswahl", exact=True).click()
+    page.get_by_role("button", name="Alle PDF-Werkzeuge", exact=True).click()
     playwright.expect(page.locator(".pdf-pending-files li")).to_have_count(1)
     playwright.expect(page.locator(".pdf-pending-files li")).to_contain_text("Zweiter Plan.pdf")

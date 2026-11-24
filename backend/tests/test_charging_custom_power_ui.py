@@ -1,6 +1,8 @@
 """Own charging powers remain editable, persisted and validated in the actual UI."""
 from __future__ import annotations
 
+from ui_helpers import wait_for_toolhub
+
 import re
 
 from test_editor_navigation import choose_card, editor, env, playwright  # noqa: F401 - shared isolated fixtures
@@ -9,7 +11,7 @@ from test_editor_navigation import choose_card, editor, env, playwright  # noqa:
 def open_calculator(page, calculator_id):
     # Leave NOVA through its save/navigation contract before using calculator routes.
     page.get_by_role("button", name="Zum Toolhub", exact=True).click()
-    playwright.expect(page.locator(".toolbox-card")).to_have_count(10)
+    wait_for_toolhub(page)
     page.evaluate("id => { location.hash = 'rechner/' + id; }", calculator_id)
     page.wait_for_function("""prefix => Object.keys(localStorage).some(key => key.startsWith(prefix))""",
                            arg="edeco.workbench.v1." + calculator_id + ".")

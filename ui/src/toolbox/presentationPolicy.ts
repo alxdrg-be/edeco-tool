@@ -1,4 +1,5 @@
 import type { ToolInfo } from "./catalog";
+import { DEMO_DEFAULT_IDS } from './toolContract.ts';
 
 export interface PresentationPolicy {
   revision: string;
@@ -9,9 +10,16 @@ export interface PresentationPolicy {
   is_admin: boolean;
   can_manage: boolean;
   windows_roles: boolean;
+  design_beta_enabled: boolean;
+  design_beta_error: string;
 }
 
-export const DEFAULT_DEMO_TOOLS = ["nova-legenden", "berechnungen", "dateien-umbenennen", "pdf-werkzeuge", "elektro-memory", "rack-dispo"];
+/** A missing policy or an ordinary user's preference must never activate beta. */
+export function designBetaEnabled(policy: PresentationPolicy | null): boolean {
+  return policy?.is_admin === true && policy.design_beta_enabled === true;
+}
+
+export const DEFAULT_DEMO_TOOLS = DEMO_DEFAULT_IDS;
 
 export function toolAllowed(tool: ToolInfo, policy: PresentationPolicy): boolean {
   if (tool.hiddenFromHub && !policy.is_admin) return false;

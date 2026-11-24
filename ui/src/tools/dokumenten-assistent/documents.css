@@ -1,6 +1,7 @@
 .document-assistant { height: 100%; display: flex; flex-direction: column; background: var(--bg); }
 .doc-workspace { flex: 1; min-height: 0; display: grid; grid-template-columns: 240px minmax(300px, 1fr) minmax(350px, 1.1fr); }
 .doc-library, .doc-conversation, .doc-preview { min-width: 0; overflow: auto; padding: 24px; }
+:where(:root[data-design-beta="true"]) .doc-library, :where(:root[data-design-beta="true"]) .doc-conversation, :where(:root[data-design-beta="true"]) .doc-preview { min-width: 0; overflow: auto; padding: 18px; }
 .doc-library { background: var(--panel); border-right: 1px solid var(--line); padding: 24px 18px; }
 .doc-section-title { display: flex; gap: 12px; align-items: center; justify-content: space-between; }
 .doc-section-title h1 { font-size: 17px; margin: 0; }
@@ -23,9 +24,13 @@
 .doc-delete { margin-top: 12px; border: 1px solid var(--line-strong); padding: 10px; border-radius: 8px; font-size: 11px; }
 .doc-delete .btn { margin: 4px; font-size: 10px; }
 .doc-conversation { padding: 32px clamp(20px, 2.5vw, 38px); }
+:where(:root[data-design-beta="true"]) .doc-conversation { padding: 18px clamp(16px, 1.6vw, 24px); }
+:where(:root[data-design-beta="true"]) .doc-conversation > .toolbox-eyebrow { display: none; }
 .doc-conversation > h2 { font-size: 27px; letter-spacing: -.8px; line-height: 1.25; margin: 12px 0; }
+:where(:root[data-design-beta="true"]) .doc-conversation > h2 { font-size: 23px; letter-spacing: -.5px; line-height: 1.25; margin: 0 0 8px; }
 .doc-intro { color: var(--muted); font-size: 13px; line-height: 1.7; }
 .doc-question-form { display: flex; flex-direction: column; gap: 10px; margin-top: 28px; }
+:where(:root[data-design-beta="true"]) .doc-question-form { display: flex; flex-direction: column; gap: 10px; margin-top: 18px; }
 .doc-question-form > label { font-weight: 600; font-size: 12px; }
 .doc-question-form textarea { width: 100%; resize: vertical; min-height: 110px; padding: 14px; line-height: 1.6; border: 1px solid var(--line-strong); border-radius: 12px; background: var(--panel); color: var(--fg); }
 .doc-text-button { background: none; border: 0; padding: 0; color: var(--accent); text-decoration: underline; font: inherit; cursor: pointer; }
@@ -88,6 +93,16 @@
 .doc-guide-more>summary { cursor:pointer; font-weight:600; }
 .doc-data-guide { margin:20px 0; }
 .doc-data-route{margin:12px 0}.doc-data-route dl{margin:0}.doc-data-route dt{font-weight:650;margin-top:10px}.doc-data-route dd{margin:4px 0 0;color:var(--muted);font-size:12px;line-height:1.55}.doc-data-route code{overflow-wrap:anywhere;white-space:normal}.doc-data-route p{margin:5px 0}.doc-data-route>summary span{flex:1}
+.doc-route-panel { margin: 14px 0; }
+.doc-route-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.doc-route-steps > div { padding: 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); overflow-wrap: anywhere; }
+.doc-route-steps span, .doc-route-steps strong, .doc-route-steps small { display: block; }
+.doc-route-steps span { font-size: 11px; color: var(--muted); }
+.doc-route-steps strong { margin: 3px 0; font-size: 12px; }
+.doc-route-steps small { font-size: 10px; color: var(--muted); line-height: 1.5; }
+.doc-route-panel > .doc-data-route { margin: 6px 0 0; }
+.doc-data-route > summary { padding: 9px 10px; font-size: 12px; }
+@media (max-width: 420px) { .doc-route-steps { grid-template-columns: minmax(0, 1fr); } }
 .doc-folder-path { display:flex; gap:8px; min-width:0; }
 .doc-folder-path input { min-width:0; flex:1; }
 .doc-folder-path .btn { display:inline-flex; align-items:center; gap:6px; flex:none; }

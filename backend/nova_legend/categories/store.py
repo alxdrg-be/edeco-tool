@@ -57,6 +57,7 @@ DEFAULT_OPTIONS = {
 # Legend settings of the company (Allgemeinteil, admins, standard for new projects).
 LEGEND_DEFAULTS = {
     "legend_general_path": "",     # DXF, DWG or template project folder on the server
+    "legend_general_mode": "flow", # flow: editable rows; cad: drawing as supplied
     "legend_admins": [],           # Windows user names allowed to change these settings
     "legend_text_size": 2.8,       # mm, one size for all legend texts
     "legend_symbol_scale": 1.0,    # one scale for all symbols
@@ -254,13 +255,16 @@ class CompanyStore:
                 if current != source or not previous:
                     raise ValueError("Es gibt keine vorherige Allgemeinvorlage zum Wiederherstellen.")
                 values = {key: previous.get(key, LEGEND_DEFAULTS[key]) for key in fields}
+                values["legend_general_mode"] = previous.get("legend_general_mode", "flow")
                 values["legend_general_previous"] = {}
             elif current == source:
                 return
             else:
                 values = {"legend_general_previous": {key: stored.get(key, LEGEND_DEFAULTS[key]) for key in fields},
                           "legend_general_path": source, "legend_general_rows": {},
-                          "legend_general_extra": [], "legend_general_order": []}
+                          "legend_general_extra": [], "legend_general_order": [], "legend_general_mode": "flow"}
+                if stored.get("legend_general_mode") == "cad":
+                    values["legend_general_previous"]["legend_general_mode"] = "cad"
             for key, value in values.items():
                 con.execute("INSERT OR REPLACE INTO options VALUES (?,?)", (key, json.dumps(value)))
             self._log(con, "general_template_restore" if restore else "general_template_apply", source)

@@ -1,6 +1,8 @@
 """Check the reported floating header/filter controls across real workspaces."""
 from __future__ import annotations
 
+from ui_helpers import wait_for_toolhub
+
 import pytest
 
 from test_editor_navigation import editor, env, playwright  # noqa: F401
@@ -11,40 +13,47 @@ def test_toolhub_header_alignment_palette_and_shared_theme(editor):
     page, _, _, _ = editor
     page.set_viewport_size({"width": 1600, "height": 1000})
     page.get_by_role("button", name="Zum Toolhub", exact=True).click()
-    playwright.expect(page.locator(".toolbox-card")).to_have_count(10)
+    wait_for_toolhub(page)
     palette = page.locator(".toolbox-card.is-available .toolbox-symbol").evaluate_all(
         "nodes => nodes.map(node => getComputedStyle(node).backgroundImage)")
-    assert len(set(palette)) == len(palette) == 10
+    assert len(palette) == int(page.locator('.toolbox').get_attribute('data-toolhub-count'))
+    assert len(set(palette)) == len(palette)
     geometry = page.locator(".toolhub-header-actions").evaluate("""el =>
       [...el.querySelectorAll(':scope > button, :scope > a, .project-picker select')]
         .filter(node => node.getClientRects().length)
         .map(node => { const r=node.getBoundingClientRect(); return {top:r.top,height:r.height}; })
     """)
     assert max(item["top"] for item in geometry) - min(item["top"] for item in geometry) <= 1
-    assert all(abs(item["height"] - 42) <= 1 for item in geometry)
+    # V10 separates the coloured navigation row from compact tool actions.
+    assert all(abs(item["height"] - 34) <= 1 for item in geometry)
     search = page.locator(".toolbox-search").bounding_box()
     categories = page.locator(".toolbox-categories").bounding_box()
     assert 0 <= categories["x"] - search["x"] - search["width"] <= 24
-    reference = page.locator(".toolhub-header").evaluate(
+    reference = page.locator(".hub-header-toolbar").evaluate(
         "el => ({font:getComputedStyle(el).fontFamily,bg:getComputedStyle(el).backgroundColor})")
-    content_edge = None
-    for tool in ("Berechnungen", "Rack-Dispo", "Dateien umbenennen", "Projektzentrale", "Dokumenten-Assistent", "NOVA-Legenden"):
+    playwright.expect(page.locator(".hub-header-top")).to_have_css("background-color", "rgb(1, 124, 146)")
+    header_edge = page.locator(".toolhub-header").bounding_box()["x"]
+    for tool, colour in (
+        ("Berechnungen", "rgb(180, 82, 15)"),
+        ("Rack-Dispo", "rgb(74, 91, 104)"),
+        ("Dateien umbenennen", "rgb(46, 125, 69)"),
+        ("Projektzentrale", "rgb(138, 101, 8)"),
+        ("Dokumenten-Assistent", "rgb(107, 63, 168)"),
+        ("NOVA-Legenden", "rgb(14, 116, 128)"),
+    ):
         switch_tool(page, tool)
-        header = page.locator(".toolhub-header")
-        playwright.expect(header.get_by_role("img", name="edeco Toolhub", exact=True)).to_have_count(1)
-        assert header.evaluate("el => ({font:getComputedStyle(el).fontFamily,bg:getComputedStyle(el).backgroundColor})") == reference
+        # The single edeco mark sits in the shared corner outside the tool header.
+        playwright.expect(page.get_by_role("img", name="edeco Toolhub", exact=True)).to_have_count(1)
+        playwright.expect(page.locator(".hub-chrome-corner .toolhub-brand-mark")).to_be_visible()
+        playwright.expect(page.locator(".hub-header-top")).to_have_css("background-color", colour)
+        assert page.locator(".hub-header-toolbar").evaluate("el => ({font:getComputedStyle(el).fontFamily,bg:getComputedStyle(el).backgroundColor})") == reference
         playwright.expect(page.locator("body")).not_to_contain_text("EDECO ENGINEERING")
-        if tool in {"Berechnungen", "Planlieferungs-Assistent", "Dateien umbenennen", "Projektzentrale"}:
-            edge = page.get_by_role("heading", level=1).bounding_box()["x"]
-            if content_edge is None:
-                content_edge = edge
-            assert abs(edge - content_edge) <= 1
-        if tool == "Planlieferungs-Assistent":
-            naming = page.locator("details.rename-naming")
-            assert naming.get_attribute("open") is None
-            playwright.expect(page.get_by_role("button", name="PDFs hinzufügen", exact=True)).to_be_in_viewport()
-            naming.locator("summary").click()
-            playwright.expect(page.get_by_label("Fachbereich", exact=True)).to_be_visible()
+        # The shared shell aligns; each workspace retains its own canvas/form padding.
+        assert abs(page.locator(".toolhub-header").bounding_box()["x"] - header_edge) <= 1
+        if tool in {"Berechnungen", "Dateien umbenennen", "Projektzentrale"}:
+            title = page.get_by_role("heading", level=1).bounding_box()
+            assert title["x"] >= header_edge
+            assert title["x"] + title["width"] <= page.viewport_size["width"]
 
 
 @pytest.mark.parametrize("width", [360, 375, 390])
@@ -59,8 +68,13 @@ def test_mobile_calculator_actions_are_compact_and_remain_available(editor, widt
     playwright.expect(actions).not_to_have_attribute("open", "")
     assert page.locator(".toolhub-header").bounding_box()["height"] <= 150
     rows = page.locator(".toolhub-header-actions").evaluate(
-        "el => [...el.children].map(node => node.getBoundingClientRect().top)")
+        "el => [...el.children].filter(node => node.getClientRects().length).map(node => node.getBoundingClientRect().top)")
     assert max(rows) - min(rows) <= 1
+    playwright.expect(page.locator(".hub-mobile-theme")).to_be_visible()
+    playwright.expect(page.locator(".hub-chrome-corner .toolhub-brand-mark")).to_be_visible()
+    assert page.locator(".toolhub-header-actions").evaluate("""el => [...el.children]
+        .filter(node => node.getClientRects().length)
+        .every(node => { const r=node.getBoundingClientRect(); return r.left>=0 && r.right<=innerWidth; })""")
     actions.locator("summary").click()
     export = page.get_by_role("button", name="Ergebnis als JSON sichern", exact=True)
     playwright.expect(export).to_be_visible()

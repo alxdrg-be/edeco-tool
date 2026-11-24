@@ -119,7 +119,7 @@ def test_ocr_independent_options_real_word_count_search_download_and_close(pdf_e
     source = scanned_report()
     page.get_by_label("PDF für Texterkennung oder Komprimierung öffnen", exact=True).set_input_files({"name": "Pruefbericht-Scan.pdf", "mimeType": "application/pdf", "buffer": source})
     playwright.expect(page.get_by_role("img", name="PDF-Seite 1 von Pruefbericht-Scan.pdf", exact=True)).to_be_visible()
-    assert page.locator(".pdf-processing-workspace").bounding_box()["width"] >= page.viewport_size["width"] * .95
+    assert page.locator(".pdf-processing-workspace").bounding_box()["width"] >= page.locator(".pdf-workshop").bounding_box()["width"] * .95
     advanced = page.locator(".pdf-processing-options").filter(has=page.locator("summary", has_text="Erweitert"))
     advanced.locator("summary").click()
     playwright.expect(advanced).to_have_attribute("open", "")
@@ -165,6 +165,22 @@ def test_pdf_search_changes_page_and_document_zoom_not_application(pdf_entry, tm
     viewport.focus(); page.keyboard.press("Control++")
     playwright.expect(viewport).not_to_have_attribute("data-document-zoom", "1")
     assert page.locator(".tool-header").bounding_box()["width"] == width
+    page.keyboard.press("Control+f")
+    playwright.expect(page.get_by_label("Im PDF suchen", exact=True)).to_be_focused()
+    # Global palette owns keyboard focus; document search must not escape it.
+    page.keyboard.press("Control+k")
+    palette = page.get_by_role("dialog", name="Im Toolhub finden", exact=True)
+    playwright.expect(palette).to_be_visible()
+    result = palette.get_by_role("button", name="NOVA-Legenden", exact=True)
+    result.focus()
+    page.keyboard.press("Control+f")
+    assert palette.evaluate("node => node.contains(document.activeElement)")
+    playwright.expect(page.get_by_label("Im PDF suchen", exact=True)).not_to_be_focused()
+    page.keyboard.press("Escape")
+    playwright.expect(palette).to_be_hidden()
+    viewport.focus()
+    page.keyboard.press("Control+Alt+f")
+    playwright.expect(viewport).to_be_focused()
     page.keyboard.press("Control+f")
     playwright.expect(page.get_by_label("Im PDF suchen", exact=True)).to_be_focused()
     page.set_viewport_size({"width": 390, "height": 844})

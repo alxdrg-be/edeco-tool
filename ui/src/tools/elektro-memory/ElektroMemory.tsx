@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowUpRight, Bath, BookOpen, Cable, Calculator, Earth, HardHat, HeartPulse, Info, Layers, Moon, Printer, ScanLine, Search, ShieldCheck, Sigma, Sun, X, Zap } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ArrowLeft, ArrowUpRight, Bath, BookOpen, Cable, Calculator, Earth, HardHat, HeartPulse, Info, Layers, Moon, Printer, ScanLine, Search, ShieldCheck, Sigma, Sun, X, Zap } from "lucide-react";
 import type { ToolProps } from "../../toolbox/modules";
 import ToolhubHeader from "../../toolbox/ToolhubHeader";
 import { useToolhubLocation } from "../../toolbox/ToolhubNavigation";
@@ -89,8 +89,10 @@ export default function ElektroMemory({ onHome, onOpenTool, initialTab = "refere
   const [tab, setTab] = useState<"reference" | "calculator">(initialTab);
   const [formula, setFormula] = useState<FormulaId | undefined>(() => initialFormulaId && isFormulaId(initialFormulaId) ? initialFormulaId : undefined);
   const [chapterId, setChapterId] = useState(readChapter);
+  const [overview, setOverview] = useState(false);
   const [query, setQuery] = useState("");
   const pageTop = useRef<HTMLDivElement>(null);
+  const searchInput = useRef<HTMLInputElement>(null);
   const location = useToolhubLocation();
   const theme = useToolhubTheme();
   const chapter = MEMORY_CHAPTERS.find(item => item.id === chapterId) ?? MEMORY_CHAPTERS[0];
@@ -103,10 +105,35 @@ export default function ElektroMemory({ onHome, onOpenTool, initialTab = "refere
   useEffect(() => { if (initialFormulaId && isFormulaId(initialFormulaId)) setFormula(initialFormulaId); }, [initialFormulaId]);
   useEffect(() => { try { localStorage.setItem(CHAPTER_KEY, chapterId); } catch { /* the chapter is only a convenience */ } }, [chapterId]);
   function calculate(id: FormulaId) { setFormula(id); setTab("calculator"); window.scrollTo({ top: 0, behavior: "smooth" }); }
-  function openChapter(id: string) {
-    setChapterId(id); setQuery(""); setTab("reference");
+  const openChapter = useCallback((id: string) => {
+    if (!MEMORY_CHAPTERS.some(item => item.id === id)) return;
+    setChapterId(id); setQuery(""); setTab("reference"); setOverview(false);
     requestAnimationFrame(() => pageTop.current?.scrollIntoView({ block: "start", behavior: "instant" }));
-  }
+  }, []);
+
+  useEffect(() => {
+    try {
+      const pending = sessionStorage.getItem("edeco-memory-focus");
+      if (pending) { sessionStorage.removeItem("edeco-memory-focus"); openChapter(pending); }
+    } catch { /* Deep links also work without browser storage. */ }
+    const focusChapter = (event: Event) => {
+      const id: unknown = (event as CustomEvent<unknown>).detail;
+      if (typeof id === "string") openChapter(id);
+    };
+    window.addEventListener("edeco-memory-focus", focusChapter);
+    return () => window.removeEventListener("edeco-memory-focus", focusChapter);
+  }, [openChapter]);
+
+  useEffect(() => {
+    const find = (event: KeyboardEvent) => {
+      if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== "f" || event.altKey || tab !== "reference") return;
+      const modalOpen = Array.from(document.querySelectorAll<HTMLElement>('dialog[open], [aria-modal="true"]')).some(element => element.getClientRects().length > 0);
+      if (modalOpen) return;
+      event.preventDefault(); searchInput.current?.focus(); searchInput.current?.select();
+    };
+    window.addEventListener("keydown", find);
+    return () => window.removeEventListener("keydown", find);
+  }, [tab]);
 
   return <div className="electro-memory">
     <ToolhubHeader title="Elektro-Memory" onHome={onHome} onOpenTool={onOpenTool}
@@ -115,7 +142,7 @@ export default function ElektroMemory({ onHome, onOpenTool, initialTab = "refere
     </ToolhubHeader>
     <main className="memory-main">
       <header className="memory-topbar">
-        <h1>Elektro-Memory</h1>
+        <h1 className="sr-only">Elektro-Memory</h1>
         <div className="memory-tabs" role="tablist" aria-label="Elektro-Memory Bereiche">
           <button type="button" id="memory-reference-tab" role="tab" aria-selected={tab === "reference"} aria-controls="memory-reference-panel" onClick={() => setTab("reference")}><BookOpen size={17} />Nachschlagen</button>
           <button type="button" id="memory-calculator-tab" role="tab" aria-selected={tab === "calculator"} aria-controls="memory-calculator-panel" onClick={() => setTab("calculator")}><Calculator size={17} />Formelrechner</button>
@@ -125,13 +152,13 @@ export default function ElektroMemory({ onHome, onOpenTool, initialTab = "refere
       </header>
       <section id="memory-reference-panel" className="memory-reference-layout" role="tabpanel" aria-labelledby="memory-reference-tab" hidden={tab !== "reference"}>
         <aside className="memory-sidebar" aria-label="Kapitel">
-          <label className="memory-search"><Search size={17} aria-hidden="true" /><input type="search" aria-label="Elektro-Memory durchsuchen" placeholder="Suchen, z. B. RCD, IPX4, Riso" value={query} onChange={event => setQuery(event.target.value)} />{searching && <button type="button" aria-label="Suche leeren" onClick={() => setQuery("")}><X size={15} /></button>}</label>
+          <label className="memory-search"><Search size={17} aria-hidden="true" /><input ref={searchInput} type="search" aria-label="Elektro-Memory durchsuchen" aria-keyshortcuts="Control+F Meta+F" placeholder="Memory durchsuchen …" value={query} onChange={event => setQuery(event.target.value)} />{searching ? <button type="button" aria-label="Suche leeren" onClick={() => setQuery("")}><X size={15} /></button> : <kbd>Ctrl+F</kbd>}</label>
           <nav aria-label="Kapitel des Elektro-Memory">
             {[["E-Memory", MEMORY_CHAPTERS.filter(item => item.number)], ["Weitere Themen", MEMORY_CHAPTERS.filter(item => !item.number)]].map(([label, items]) => <div className="memory-chapter-group" key={label as string}>
               <span>{label as string}</span>
               <ol>{(items as MemoryChapter[]).map(item => {
                 const count = hits.find(hit => hit.chapter.id === item.id)?.entries.length ?? 0;
-                return <li key={item.id}><button type="button" aria-current={!searching && item.id === chapter.id ? "page" : undefined} className={searching && !count ? "is-empty" : undefined} onClick={() => openChapter(item.id)}>
+                return <li key={item.id}><button type="button" aria-current={!searching && !overview && item.id === chapter.id ? "page" : undefined} className={searching && !count ? "is-empty" : undefined} onClick={() => openChapter(item.id)}>
                   <span className="memory-chapter-icon">{item.number ?? <ChapterIcon chapter={item} size={15} />}</span><span>{item.title}</span>{searching && <em>{count}</em>}
                 </button></li>;
               })}</ol>
@@ -139,9 +166,16 @@ export default function ElektroMemory({ onHome, onOpenTool, initialTab = "refere
           </nav>
         </aside>
         <div className="memory-page" ref={pageTop}>
+          {(!overview || searching) && <div className="memory-workspace-nav"><button type="button" className="memory-back" onClick={() => { setOverview(true); setQuery(""); }}><ArrowLeft size={16} aria-hidden="true" />Alle Themen</button></div>}
           {searching ? <>
             <header className="memory-page-head"><h2>{hitCount ? `${hitCount} Treffer für «${query.trim()}»` : `Kein Treffer für «${query.trim()}»`}</h2><p>{hitCount ? "Alle Kapitel durchsucht. Kapitel links öffnet die ganze Seite." : "Anderen Begriff, eine Einheit oder eine Zahl versuchen, zum Beispiel «Riso», «IPX4» oder «M20»."}</p></header>
             <div className="memory-cards">{hits.flatMap(hit => hit.entries.map(entry => <MemoryCard key={entry.id} entry={entry} chapterTitle={hit.chapter.title} onCalculate={calculate} />))}</div>
+          </> : overview ? <>
+            <header className="memory-page-head"><div><h2>Alle Themen</h2><p>Ein Kapitel öffnen oder das ganze Memory durchsuchen.</p></div></header>
+            <div className="memory-topic-grid">{MEMORY_CHAPTERS.map(item => <button type="button" key={item.id} className="memory-topic-card" onClick={() => openChapter(item.id)}>
+              <div><span className="memory-topic-icon"><ChapterIcon chapter={item} /></span><ArrowUpRight size={16} aria-hidden="true" /></div>
+              <h3>{item.title}</h3><p>{item.short}</p><footer><span>{item.number ? `Kapitel ${item.number}` : "Weitere Themen"}</span><span>{item.entries.length} Einträge</span></footer>
+            </button>)}</div>
           </> : <>
             <header className="memory-page-head"><span className="memory-page-icon"><ChapterIcon chapter={chapter} size={24} /></span><div><span className="memory-page-number">{chapter.number ? `Kapitel ${chapter.number}` : "Weitere Themen"}</span><h2>{chapter.title}</h2><p>{chapter.short}</p></div>
               <button type="button" className="memory-print" onClick={() => window.print()}><Printer size={16} aria-hidden="true" />Kapitel drucken</button></header>

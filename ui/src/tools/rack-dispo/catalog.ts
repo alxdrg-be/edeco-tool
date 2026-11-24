@@ -23,7 +23,3 @@ export const DEFAULT_PROFILES: readonly DeviceProfile[] = [
   generic('generic-reserve', 'Freihaltereserve · 1 HE', 'reserve', 1),
 ];
 export function createDefaultProfiles(): DeviceProfile[] { return DEFAULT_PROFILES.map(profile => ({ ...profile })); }
-export const PROFILE_KIND_LABELS: Record<DeviceProfile['kind'], string> = {
-  patch: 'Patchpanels', switch: 'Switches', fiber: 'LWL', manager: 'Kabelführung', shelf: 'Fachböden',
-  blank: 'Blindplatten', ups: 'USV', pdu: 'Strom', earth: 'Potenzialausgleich', reserve: 'Reserve', custom: 'Eigene Geräte',
-};

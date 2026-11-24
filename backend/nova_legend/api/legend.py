@@ -10,6 +10,7 @@ import tempfile
 from contextlib import closing
 from urllib.parse import quote
 from pathlib import Path
+from typing import Literal
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.responses import FileResponse, Response
@@ -128,6 +129,7 @@ class DescriptionIn(BaseModel):
 
 class CompanyLegendIn(BaseModel):
     general_path: str | None = None
+    general_mode: Literal["flow", "cad"] | None = None
     admins: list[str] | None = None
     text_size: float | None = None
     symbol_scale: float | None = None
@@ -214,7 +216,7 @@ def register(app: FastAPI, st, project, evaluator, category_colors) -> None:
         s = st.company.legend_settings()
         admins = s["legend_admins"]
         user = config.current_user()
-        return {"general_path": s["legend_general_path"], "admins": admins,
+        return {"general_path": s["legend_general_path"], "general_mode": s.get("legend_general_mode", "flow"), "admins": admins,
                 "text_size": s["legend_text_size"], "symbol_scale": s["legend_symbol_scale"],
                 "hatch_off": bool(s["legend_hatch_off"]), "fill_off": bool(s["legend_fill_off"]),
                 "user": user, "is_admin": st.company.is_legend_admin(user),
@@ -286,6 +288,8 @@ def register(app: FastAPI, st, project, evaluator, category_colors) -> None:
         values: dict = {}
         if body.general_path is not None:
             values["legend_general_path"] = body.general_path.strip().strip('"')
+        if body.general_mode is not None:
+            values["legend_general_mode"] = body.general_mode
         if body.admins is not None:
             admins = [a.strip() for a in body.admins if a.strip()]
             user = config.current_user()
@@ -354,7 +358,10 @@ def register(app: FastAPI, st, project, evaluator, category_colors) -> None:
     def load_general(raw: bool = False) -> general_part.GeneralPart:
         settings = st.company.legend_settings()
         part = general_part.load(settings["legend_general_path"], MAX_SHEET_WIDTH - 2 * MARGIN,
-                                 config.resolve_oda_converter(st.settings.oda_path), project_layout=template_layout)
+                                 config.resolve_oda_converter(st.settings.oda_path), project_layout=template_layout,
+                                 mode=settings.get("legend_general_mode", "flow"))
+        if settings.get("legend_general_mode") == "cad":
+            return part
         if raw:
             return part
         part = general_part.apply_overrides(part, settings.get("legend_general_rows") or {},
@@ -367,6 +374,12 @@ def register(app: FastAPI, st, project, evaluator, category_colors) -> None:
                     x0, y0, x1, y1 = geometry_bounds(geo)
                     r["size"] = [x0 * 1000, y0 * 1000, x1 * 1000, y1 * 1000, engine]
         return part
+
+    @app.get("/api/company/general/preview")
+    def company_general_preview() -> dict:
+        """The selected company drawing; no editing of its server file."""
+        gen = load_general()
+        return {**gen.info(), "svg": gen.svg}
 
     system_cache: dict[tuple, dict[str, str]] = {}
 
@@ -585,14 +598,14 @@ def register(app: FastAPI, st, project, evaluator, category_colors) -> None:
         """The general part alone, arranged in 2 or 3 columns, as DXF or PDF: for use outside
         the program (a Nova macro, a plan). The server drawing stays as it is."""
         gen = load_general()
-        if gen.kind != "dxf" or not gen.rows:
+        if gen.kind != "dxf" or (not gen.rows and gen.mode != "cad"):
             raise HTTPException(400, "Der Allgemeinteil ist keine DXF/DWG mit Textspalte. Nichts zu exportieren.")
         cols = 3 if cols >= 3 else 2
         doc = normalize({"style": {**project_style_default(), "columns": cols}, "title": {"text": ""}, "blocks": []})
         lay = place(doc, {}, gen.info())
         lay["prims"] = [p for p in lay["prims"] if p.get("t") != "hit"]
         dxf = build_dxf(lay, gen, lambda prim: geometry(prim["key"])[0], doc["style"]["font"])
-        stem = safe_folder_name(f"edeco ag-Allgemeinteil-{cols}-spaltig")
+        stem = safe_folder_name("edeco ag-Allgemeinteil-CAD" if gen.mode == "cad" else f"edeco ag-Allgemeinteil-{cols}-spaltig")
         if format.lower() == "pdf":
             data = build_pdf(dxf, lay["width"], lay["height"], stem)
             return Response(data, media_type="application/pdf",

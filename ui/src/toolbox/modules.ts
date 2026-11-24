@@ -8,6 +8,7 @@ export interface ToolProps { onHome: () => void; onOpenTool?: (toolId: string) =
 export const MODULES: Readonly<Record<string, LazyExoticComponent<ComponentType<ToolProps>> | undefined>> = {
   "nova-legenden": lazy(() => import("../tools/nova-legenden/App")),
   "rack-dispo": lazy(() => import("../tools/rack-dispo/RackPlanner")),
+  "verteiler-dispo": lazy(() => import("../tools/verteiler-dispo/VerteilerDispo")),
   "bim2steiger": lazy(() => import("./BimTool")),
   "bim-check": lazy(() => import("../tools/bim-check/BimCheck")),
   "dokumenten-assistent": lazy(() => import("../tools/dokumenten-assistent/DocumentAssistant")),

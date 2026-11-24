@@ -9,6 +9,7 @@ No package beyond ezdxf is needed.
 
 from __future__ import annotations
 
+from copy import deepcopy
 from io import BytesIO
 import math
 import zlib
@@ -33,7 +34,12 @@ def build_pdf(doc, width_mm: float, height_mm: float, title: str = "", lines: st
     from ezdxf.addons.drawing.config import (BackgroundPolicy, ColorPolicy, Configuration,
                                              LineweightPolicy)
     from ezdxf.addons.drawing.recorder import Recorder
+    from .linetypes import simplify_linetypes
 
+    # Empty shape flags from DWG conversions otherwise make dashed lines solid.
+    # Keep the original CAD document and its line-type definitions unchanged.
+    doc = deepcopy(doc)
+    simplify_linetypes(doc)
     recorder = Recorder()
     config = Configuration(background_policy=BackgroundPolicy.WHITE, color_policy=ColorPolicy.COLOR,
                            lineweight_policy=LineweightPolicy.ABSOLUTE)

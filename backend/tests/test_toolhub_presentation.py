@@ -9,7 +9,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.testclient import TestClient
 
 from edeco_toolbox.local_security import register as register_security
-from edeco_toolbox.presentation import DEMO_TOOLS, LEGACY_DEMO_TOOLS, V2_DEMO_TOOLS, PREFIX, PresentationBody, PresentationStore, is_admin
+from edeco_toolbox.presentation import DEMO_TOOLS, LEGACY_DEMO_TOOLS, V2_DEMO_TOOLS, PREFIX, DesignBetaBody, PresentationBody, PresentationStore, is_admin
 
 
 def body(snapshot, **changes):
@@ -160,3 +160,98 @@ def test_v2_default_adds_rack_dispo_but_keeps_a_reduced_selection(tmp_path):
     reduced = {**v2, "demo_tools": ["nova-legenden", "elektro-memory"]}
     store.path.write_text(json.dumps(reduced), encoding="utf-8")
     assert store.snapshot()["demo_tools"] == ["nova-legenden", "elektro-memory"]
+
+
+@pytest.mark.parametrize("identity,windows", [("EDECO\\aduerger", True), ("EDECO\\nstrauss", True), ("EDECO\\someone", True), ("agent", False)])
+def test_design_beta_is_opt_in_and_get_does_not_create_preferences(tmp_path, identity, windows):
+    snapshot = PresentationStore(tmp_path, (identity, windows)).snapshot()
+    assert snapshot["design_beta_enabled"] is False
+    assert snapshot["design_beta_error"] == ""
+    assert not list(tmp_path.iterdir())
+
+
+def test_design_beta_is_personal_case_insensitive_and_survives_settings_saves(tmp_path):
+    store = PresentationStore(tmp_path, ("EDECO\\aduerger", True))
+    enabled = store.save_design_beta(DesignBetaBody(enabled=True))
+    assert enabled["design_beta_enabled"] is True
+    assert enabled["revision"] == "0"
+    assert not store.path.exists()
+    assert PresentationStore(tmp_path, ("edeco\\ADUERGER", True)).snapshot()["design_beta_enabled"] is True
+    assert PresentationStore(tmp_path, ("OTHER\\aduerger", True)).snapshot()["design_beta_enabled"] is False
+    colleague = PresentationStore(tmp_path, ("EDECO\\nstrauss", True))
+    assert colleague.snapshot()["design_beta_enabled"] is False
+    colleague.save_design_beta(DesignBetaBody(enabled=True))
+    store.save(body(store.snapshot(), demo_enabled=True))
+    store.save(body(store.snapshot(), demo_enabled=False))
+    assert store.snapshot()["design_beta_enabled"] is True
+    assert store.save_design_beta(DesignBetaBody(enabled=False))["design_beta_enabled"] is False
+    assert colleague.snapshot()["design_beta_enabled"] is True
+    assert not list(tmp_path.glob(".*.tmp"))
+
+
+@pytest.mark.parametrize("identity,windows", [("EDECO\\someone", True), ("", True), ("agent", False)])
+def test_design_beta_cannot_use_general_settings_permission_bypass(tmp_path, identity, windows):
+    store = PresentationStore(tmp_path, (identity, windows))
+    with pytest.raises(HTTPException) as failure:
+        store.save_design_beta(DesignBetaBody(enabled=True))
+    assert failure.value.status_code == 403
+    assert not store.design_beta_path.exists()
+    raw = {**body(store.snapshot()).model_dump(), "admins": [], "schema_version": 3}
+    store.path.write_text(json.dumps(raw), encoding="utf-8")
+    assert store.snapshot()["can_manage"] is True
+    with pytest.raises(HTTPException) as failure:
+        store.save_design_beta(DesignBetaBody(enabled=True))
+    assert failure.value.status_code == 403
+    assert store.snapshot()["design_beta_enabled"] is False
+
+
+def test_design_beta_stored_preference_does_not_outlive_admin_permission(tmp_path):
+    store = PresentationStore(tmp_path, ("EDECO\\aduerger", True))
+    store.save_design_beta(DesignBetaBody(enabled=True))
+    colleague = PresentationStore(tmp_path, ("EDECO\\nstrauss", True))
+    colleague.save(body(colleague.snapshot(), admins=["nstrauss"]))
+    assert store.snapshot()["design_beta_enabled"] is False
+    assert store.snapshot()["is_admin"] is False
+    with pytest.raises(HTTPException) as failure:
+        store.save_design_beta(DesignBetaBody(enabled=True))
+    assert failure.value.status_code == 403
+
+
+@pytest.mark.parametrize("text", ["{broken", '{"schema_version":2,"identities":{}}', '{"schema_version":1,"identities":{"edeco\\\\aduerger":"true"}}'])
+def test_invalid_design_preferences_fall_back_without_overwriting(tmp_path, text):
+    store = PresentationStore(tmp_path, ("EDECO\\aduerger", True))
+    store.design_beta_path.write_text(text, encoding="utf-8")
+    snapshot = store.snapshot()
+    assert snapshot["design_beta_enabled"] is False
+    assert "bisherige Oberfläche" in snapshot["design_beta_error"]
+    with pytest.raises(HTTPException) as failure:
+        store.save_design_beta(DesignBetaBody(enabled=True))
+    assert failure.value.status_code == 500
+    store.save(body(snapshot, demo_enabled=True))
+    assert store.design_beta_path.read_text(encoding="utf-8") == text
+
+
+def test_design_beta_api_checks_session_identity_and_strict_payload(tmp_path, monkeypatch):
+    from edeco_toolbox import presentation
+    monkeypatch.setenv("EDECO_TOOLBOX_HOME", str(tmp_path))
+    monkeypatch.setattr(presentation, "windows_identity", lambda: ("EDECO\\someone", True))
+    app = FastAPI()
+    register_security(app)
+    presentation.register(app)
+    endpoint = f"{PREFIX}/design-beta"
+    with TestClient(app, base_url="http://127.0.0.1:8765") as client:
+        assert client.get(PREFIX).json()["design_beta_enabled"] is False
+        assert client.put(endpoint, json={"enabled": True}).status_code == 403
+        app.state.presentation.identity = "EDECO\\aduerger"
+        client.cookies.clear()
+        assert client.put(endpoint, json={"enabled": True}).status_code == 403
+        client.get(PREFIX)
+        assert client.put(endpoint, headers={"Origin": "https://evil.example"}, json={"enabled": True}).status_code == 403
+        for payload in ({"enabled": True, "identity": "EDECO\\aduerger"}, {"enabled": True, "is_admin": True}, {"enabled": "true"}):
+            assert client.put(endpoint, json=payload).status_code == 422
+        response = client.put(endpoint, json={"enabled": True})
+        assert response.status_code == 200 and response.json()["design_beta_enabled"] is True
+        assert response.headers["Cache-Control"] == "no-store"
+        app.state.presentation.identity, app.state.presentation.windows = "agent", False
+        assert client.get(PREFIX).json()["design_beta_enabled"] is False
+        assert client.put(endpoint, json={"enabled": True}).status_code == 403

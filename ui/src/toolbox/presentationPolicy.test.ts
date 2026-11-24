@@ -1,8 +1,15 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { allowedToolId, DEFAULT_DEMO_TOOLS, toolAllowed, type PresentationPolicy } from "./presentationPolicy.ts";
+import { allowedToolId, DEFAULT_DEMO_TOOLS, designBetaEnabled, toolAllowed, type PresentationPolicy } from "./presentationPolicy.ts";
 
-const normal: PresentationPolicy = { revision: "0", demo_enabled: false, demo_tools: [...DEFAULT_DEMO_TOOLS], admins: ["aduerger", "nstrauss"], identity: "someone", is_admin: false, can_manage: false, windows_roles: true };
+const normal: PresentationPolicy = { revision: "0", demo_enabled: false, demo_tools: [...DEFAULT_DEMO_TOOLS], admins: ["aduerger", "nstrauss"], identity: "someone", is_admin: false, can_manage: false, windows_roles: true, design_beta_enabled: false, design_beta_error: "" };
+
+test("design beta requires both a real admin role and explicit opt-in", () => {
+  assert.equal(designBetaEnabled(null), false);
+  assert.equal(designBetaEnabled({ ...normal, can_manage: true, design_beta_enabled: true }), false);
+  assert.equal(designBetaEnabled({ ...normal, is_admin: true }), false);
+  assert.equal(designBetaEnabled({ ...normal, is_admin: true, design_beta_enabled: true }), true);
+});
 const tools = [
   { id: "nova-legenden", title: "NOVA", description: "", category: "Elektro", color: "petrol", symbol: "NL", status: "available" as const },
   { id: "berechnungen", title: "Rechner", description: "", category: "Berechnungen", color: "blue", symbol: "=", status: "available" as const },

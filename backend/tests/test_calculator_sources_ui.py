@@ -1,4 +1,4 @@
-"""Keep source provenance accessible without repeating provider links in calculators."""
+"""Keep provenance folded by default and available in calculator guidance and knowledge."""
 from __future__ import annotations
 
 import re
@@ -22,8 +22,21 @@ def test_calculator_sources_are_in_collapsed_knowledge_section(editor, tool_id, 
     page.get_by_role("button", name="Zum Toolhub", exact=True).click()
     page.evaluate("tool => { location.hash = `rechner/${tool}`; }", tool_id)
     playwright.expect(page.get_by_role("button", name="Ergebnis als JSON sichern", exact=True)).to_be_enabled()
-    playwright.expect(page.locator('a[href*="elektro-rechner.ch"]')).to_have_count(0)
-    playwright.expect(page.locator(".lab-main")).not_to_contain_text("elektro-rechner.ch")
+    # V10 shares the source catalogue with an inline, initially collapsed guide.
+    # Its DOM links are intentional; the normal input/result view stays compact.
+    guide = page.locator(".lab-reference")
+    playwright.expect(guide).to_be_visible()
+    assert guide.get_attribute("open") is None
+    playwright.expect(page.locator('a[href*="elektro-rechner.ch"]:visible')).to_have_count(0)
+    inline_reference = guide.locator(f'a[href="{reference}"]')
+    playwright.expect(inline_reference).to_have_count(1)
+    playwright.expect(inline_reference).not_to_be_visible()
+    guide.locator(":scope > summary").click()
+    playwright.expect(inline_reference).to_be_visible()
+    playwright.expect(guide.get_by_role("heading", name="Vergleichsquellen", exact=True)).to_be_visible()
+    playwright.expect(guide).to_contain_text("sie ersetzen keine Norm oder Herstellerfreigabe")
+    guide.locator(":scope > summary").click()
+    playwright.expect(inline_reference).not_to_be_visible()
 
     page.get_by_role("button", name=re.compile(r"^Info: ")).first.click()
     dialog = page.get_by_role("dialog")

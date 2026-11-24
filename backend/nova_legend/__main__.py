@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import argparse
 import logging
-import socket
 import sys
 import threading
 import time
@@ -21,17 +20,7 @@ import urllib.request
 import webbrowser
 
 from . import config
-
-
-def free_port(preferred: int = 8765) -> int:
-    for port in (preferred, 0):
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            try:
-                s.bind(("127.0.0.1", port))
-                return s.getsockname()[1]
-            except OSError:
-                continue
-    raise RuntimeError("Kein freier Port gefunden")
+from edeco_toolbox.desktop_support import free_port
 
 
 def wait_until_up(url: str, timeout: float = 60.0) -> bool:

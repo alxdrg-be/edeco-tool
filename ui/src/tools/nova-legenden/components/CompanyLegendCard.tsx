@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { api, CompanyLegend, GeneralInfo } from "../api";
 import GeneralPartEditor from "./GeneralPartEditor";
 import Desc from "./Desc";
+import { downloadBlob } from '../../../shared/download';
 
 /** Legende Allgemein (the drawing) and, separate from it, everything an admin sets. */
 export default function CompanyLegendCard({
@@ -15,6 +16,8 @@ export default function CompanyLegendCard({
 }) {
   const [info, setInfo] = useState<(CompanyLegend & { general: GeneralInfo }) | null>(null);
   const [path, setPath] = useState("");
+  const [generalMode, setGeneralMode] = useState<"flow" | "cad">("flow");
+  const [cadPreview, setCadPreview] = useState<(GeneralInfo & { svg: string }) | null>(null);
   const [admins, setAdmins] = useState("");
   const [textSize, setTextSize] = useState("");
   const [scale, setScale] = useState("");
@@ -24,6 +27,7 @@ export default function CompanyLegendCard({
   function apply(r: CompanyLegend & { general: GeneralInfo }) {
     setInfo(r);
     setPath(r.general_path);
+    setGeneralMode(r.general_mode ?? "flow");
     setAdmins(r.admins.join(", "));
     setTextSize(String(r.text_size));
     setScale(String(r.symbol_scale));
@@ -33,6 +37,14 @@ export default function CompanyLegendCard({
     api.companyLegend().then(apply).catch((e) => notify((e as Error).message, true));
   }, [notify]);
 
+  useEffect(() => {
+    if (info?.general_mode !== "cad") return;
+    let current = true;
+    api.companyGeneralPreview().then(result => { if (current) setCadPreview(result); })
+      .catch(e => { if (current) notify((e as Error).message, true); });
+    return () => { current = false; };
+  }, [info?.general_mode, generalRev, notify]);
+
   if (!info) return null;
   const locked = !info.is_admin;
 
@@ -40,7 +52,7 @@ export default function CompanyLegendCard({
     setBusy(true);
     try {
       apply(await api.saveCompanyLegend(values));
-      if ("general_path" in values) setGeneralRev((n) => n + 1);
+      if ("general_path" in values || "general_mode" in values) setGeneralRev((n) => n + 1);
       notify(ok);
     } catch (e) {
       notify((e as Error).message, true);
@@ -51,12 +63,28 @@ export default function CompanyLegendCard({
 
   const num = (v: string) => Number(v.replace(",", "."));
 
+  async function downloadCad(format: "dxf" | "pdf") {
+    setBusy(true);
+    try {
+      const name = `edeco-Allgemeinteil-CAD.${format}`;
+      downloadBlob(await api.legendExportFile(`/api/company/general/export/${name}?format=${format}`), name);
+    } catch (e) { notify((e as Error).message, true); }
+    finally { setBusy(false); }
+  }
+
   const me = info.user.toLocaleLowerCase("de-CH");
   return (
     <>
       <div className="card">
         <h3>Legende Allgemein</h3>
-        <Desc short="Steht unter dem Titel, im selben Raster wie die Legende." more="Dieselbe Schriftgrösse, dieselbe Symbolgrösse, dieselben Abstände und dieselbe Spaltenzahl. Die stellst du im Legendeneditor ein. Den Pfad trägt die Firma selbst ein. Nur Admins ändern Pfad und Zeilen." />
+        <Desc short="Gemeinsame CAD-Vorlage oder automatisch angeordnete Zeilen." more="Im CAD-Modus bleiben Anordnung, Schrift, Symbole und Farben der Vorlagendatei erhalten. Im Zeilenmodus gelten das Raster und die Zeileneinstellungen des Legendeneditors. Nur Firmen-Admins ändern Quelle und Übernahmemodus." />
+
+        <label className="field"><span>Übernahme der Vorlage</span>
+          <select className="input" value={generalMode} disabled={locked || busy} onChange={e => setGeneralMode(e.target.value as "flow" | "cad")}>
+            <option value="flow">Zeilen automatisch anordnen</option>
+            <option value="cad">CAD-Vorlage wie gezeichnet übernehmen</option>
+          </select>
+        </label>
 
         <label className="field">
           <span>Datei oder Ordner (DXF, DWG oder Ordner eines Vorlagen-Projekts)</span>
@@ -83,14 +111,21 @@ export default function CompanyLegendCard({
             >
               Ordner wählen …
             </button>
-            <button className="btn primary" disabled={locked || busy || path === info.general_path} onClick={() => save({ general_path: path }, "Legende Allgemein gespeichert")}>
+            <button className="btn primary" disabled={locked || busy || (path === info.general_path && generalMode === (info.general_mode ?? "flow"))} onClick={() => save({ general_path: path, general_mode: generalMode }, "Legende Allgemein gespeichert")}>
               Speichern
             </button>
+            <button className="btn" disabled={busy || path !== info.general_path || generalMode !== (info.general_mode ?? "flow")} title="Gespeicherte Vorlage neu laden; Änderungen zuerst speichern." onClick={async () => {
+              setBusy(true);
+              try { await api.reloadGeneral(); apply(await api.companyLegend()); setGeneralRev(n => n + 1); }
+              catch (e) { notify((e as Error).message, true); }
+              finally { setBusy(false); }
+            }}>Neu laden</button>
           </div>
         </label>
         <details className="help-inline"><summary>Eigene Vorlagendatei verwenden</summary><p className="hint">
           Empfehlung: die einspaltige Legende einmal als DXF direkt aus Nova speichern und hier eintragen. Eine DXF braucht keinen
-          ODA File Converter, eine DWG schon (auf jedem Arbeitsplatz). Das Programm ordnet sie selbst in 2 oder 3 Spalten. Änderst du
+          ODA File Converter, eine DWG schon (auf jedem Arbeitsplatz). Im CAD-Modus zeichnest du die komplette Anordnung selbst;
+          im Zeilenmodus ordnet das Programm sie in Spalten. Änderst du
           die lokale Datei oder gemeinsame Netzwerkdatei, liest das Programm sie beim nächsten Öffnen der Legende neu. Liegt die Zeichnung im
           Ordner oder heisst sie wie der Ordner mit Endung .dxf oder .dwg, reicht der Ordnerpfad.
         </p></details>
@@ -99,7 +134,7 @@ export default function CompanyLegendCard({
             Gelesen: {info.general.kind === "dxf" ? "DXF/DWG" : "Vorlagen-Projekt"}, {info.general.w} × {info.general.h} mm.
             {info.general.file ? <><br />Datei: {info.general.file}</> : null}
             <br />Steht in jeder Legende zuoberst.
-            <br />Nur die Blattbreite skaliert die Datei. Kachelgrösse, Schrift und Abstand gelten für die erzeugte Legende.
+            <br />{info.general_mode === "cad" ? "Die vollständige CAD-Zeichnung bleibt zusammen; es werden keine Titel oder Projektfarben ergänzt." : "Kachelgrösse, Schrift und Abstand gelten für die erzeugte Legende."}
             <br />Einträge darin lassen sich nicht ziehen.
           </p>
         ) : info.general.error ? (
@@ -113,9 +148,15 @@ export default function CompanyLegendCard({
           </p>
         )}
 
-        <GeneralPartEditor notify={notify} reloadKey={generalRev} onSourceChanged={() => {
+        {info.general_mode === "cad" ? <section aria-label="CAD-Allgemeinvorlage Vorschau">
+          <p className="hint">Standard-A4: 190 mm Nutzbreite. Breitere Vorlagen werden proportional auf die gewählte Blattbreite verkleinert. Höhe und Seitenverhältnis bleiben zusammengehörig.</p>
+          {cadPreview?.error && <p className="warn-text">{cadPreview.error}</p>}
+          {cadPreview?.svg && <div role="img" aria-label="Vorschau der vollständigen CAD-Allgemeinvorlage" style={{ background: "#fff", color: "#000", maxHeight: 360, overflow: "auto", border: "1px solid #cbd5e1", padding: 12 }} dangerouslySetInnerHTML={{ __html: cadPreview.svg }} />}
+          {cadPreview?.source_hash && <details className="help-inline"><summary>Vorlagenstand</summary><p className="hint">SHA-256: {cadPreview.source_hash}<br />Zeichnungsbreite: {cadPreview.source_width_mm} mm. Die Serverdatei wird nicht verändert.</p></details>}
+          <div className="row"><button className="btn" disabled={busy || !cadPreview?.svg} onClick={() => void downloadCad("dxf")}>CAD als DXF herunterladen</button><button className="btn" disabled={busy || !cadPreview?.svg} onClick={() => void downloadCad("pdf")}>CAD als PDF herunterladen</button></div>
+        </section> : <GeneralPartEditor notify={notify} reloadKey={generalRev} onSourceChanged={() => {
           api.companyLegend().then(apply).catch(e => notify((e as Error).message, true));
-        }} />
+        }} />}
       </div>
 
       <section className="card admin-box" aria-label="Admin">

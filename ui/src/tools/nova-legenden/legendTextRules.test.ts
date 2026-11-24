@@ -7,6 +7,16 @@ test("CSV round trip preserves explicit scope, Unicode, punctuation and disabled
   assert.deepEqual(parseLegendAbbreviationsCsv(legendAbbreviationsCsv(rules)), rules.map(({ id: _id, ...rule }) => rule));
 });
 
+test("CSV exchange keeps leading hyphens and literal apostrophes in matching rules", () => {
+  const rules = [
+    { id: "hyphen", long: "-Verteilung", short: "-Vert.", scope: "all", active: true },
+    { id: "apostrophe", long: "'Beleuchtung", short: "'Bel.", scope: "licht", active: false },
+  ];
+  const csv = legendAbbreviationsCsv(rules);
+  assert.equal(csv, '\uFEFFLangform;Kurzform;Geltungsbereich;Aktiv\r\n"-Verteilung";"-Vert.";"all";"ja"\r\n"\'Beleuchtung";"\'Bel.";"licht";"nein"');
+  assert.deepEqual(parseLegendAbbreviationsCsv(csv), rules.map(({ id: _id, ...rule }) => rule));
+});
+
 test("CSV rejects damaged headers, ambiguous activation and unsafe technical abbreviations", () => {
   assert.throws(() => parseLegendAbbreviationsCsv("Langform;Kurzform\nGruppe;Gr."), /CSV-Kopf/);
   assert.throws(() => parseLegendAbbreviationsCsv("Langform;Kurzform;Geltungsbereich;Aktiv\nGruppe;Gr.;all;maybe"), /Aktiv/);

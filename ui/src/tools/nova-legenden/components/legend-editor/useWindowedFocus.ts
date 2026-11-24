@@ -22,7 +22,11 @@ export function useWindowedFocus(editorRef: RefObject<HTMLDivElement | null>, wi
     const controls = () => [...editor.querySelectorAll<HTMLElement>("button:not(:disabled),input:not(:disabled),select:not(:disabled),textarea:not(:disabled),[tabindex='0']")].filter(node => node.getClientRects().length > 0);
     (controls()[0] ?? editor).focus();
     const trap = (event: KeyboardEvent) => {
-      if (event.key !== "Tab") return;
+      if (event.defaultPrevented || event.key !== "Tab") return;
+      // A modal opened above this workspace owns focus until it closes.
+      const foreignDialog = [...document.querySelectorAll<HTMLElement>('[role="dialog"], [aria-modal="true"], dialog[open]')]
+        .some(dialog => dialog !== editor && dialog.getClientRects().length > 0 && getComputedStyle(dialog).visibility !== "hidden");
+      if (foreignDialog) return;
       const nodes = controls(), first = nodes[0] ?? editor, last = nodes[nodes.length - 1] ?? editor;
       if (!editor.contains(document.activeElement) || (event.shiftKey ? document.activeElement === first : document.activeElement === last)) {
         event.preventDefault(); (event.shiftKey ? last : first).focus();

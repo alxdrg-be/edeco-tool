@@ -54,13 +54,13 @@ def test_document_rows_move_rotate_and_export_real_pages_without_core(pdf_entry,
     assert [p.rotation for p in result.pages] == [0, 0, 90]
     assert hashlib.sha256(first).hexdigest() == digest
     # The documentwise editing remains present when visiting the tool catalog.
-    page.get_by_role("button", name="Werkzeugauswahl", exact=True).click()
+    page.get_by_role("button", name="Alle PDF-Werkzeuge", exact=True).click()
     page.locator('[data-pdf-tool="crop"]').click()
     chooser = page.get_by_role("dialog", name="Welches PDF möchtest du bearbeiten?", exact=True)
     playwright.expect(chooser).to_be_visible()
     chooser.get_by_role("button", name=re.compile("Alpha.pdf")).click()
     playwright.expect(page.locator(".pdf-crop-editor")).to_be_visible()
-    page.get_by_role("button", name="Werkzeugauswahl", exact=True).click()
+    page.get_by_role("button", name="Alle PDF-Werkzeuge", exact=True).click()
     page.locator('[data-pdf-tool="multiTool"]').click()
     playwright.expect(rows.nth(1).locator(".pdf-page-card")).to_have_count(2)
     page.locator(".pdf-output-panel").evaluate("node => { node.scrollTop = 0; }")
@@ -185,13 +185,13 @@ def test_page_tools_have_clear_actions_and_extract_without_removing_original_pag
     output = save_workbench(page, tmp_path, page.get_by_role("button", name="Auswahl extrahieren", exact=True))
     assert len(output.pages) == 1 and "EXTRACT SECOND" in output.pages[0].extract_text()
     playwright.expect(cards).to_have_count(2)
-    page.get_by_role("button", name="Werkzeugauswahl", exact=True).click()
+    page.get_by_role("button", name="Alle PDF-Werkzeuge", exact=True).click()
     page.locator('[data-pdf-tool="rotate"]').click()
     playwright.expect(page.get_by_role("heading", name="Seiten drehen", exact=True)).to_be_visible()
     page.get_by_role("button", name="↻ Auswahl drehen", exact=True).click()
     output = save_workbench(page, tmp_path, page.get_by_role("button", name="↓ PDF erstellen", exact=True))
     assert [sheet.rotation for sheet in output.pages] == [0, 90]
-    page.get_by_role("button", name="Werkzeugauswahl", exact=True).click()
+    page.get_by_role("button", name="Alle PDF-Werkzeuge", exact=True).click()
     page.locator('[data-pdf-tool="removePages"]').click()
     playwright.expect(page.get_by_role("heading", name="Seiten löschen", exact=True)).to_be_visible()
     page.get_by_role("button", name="Auswahl löschen", exact=True).click()
@@ -252,7 +252,7 @@ def test_native_png_dpi_and_independent_content_resize_from_catalog(pdf_entry, t
     with Image.open(target) as image:
         assert image.format == "PNG"
         assert image.width in (2479, 2480) and image.height in (3508, 3509)
-    page.get_by_role("button", name="Werkzeugauswahl", exact=True).click()
+    page.get_by_role("button", name="Alle PDF-Werkzeuge", exact=True).click()
     page.locator('[data-pdf-tool="scalePages"]').click()
     playwright.expect(page.get_by_role("img", name="Vorschau Seite 1", exact=True)).to_be_visible()
     page.get_by_label("Papierformat", exact=True).select_option("A5")
@@ -269,7 +269,7 @@ def test_native_png_dpi_and_independent_content_resize_from_catalog(pdf_entry, t
     page.screenshot(path=artifact_file(tmp_path, "03-native-resize.png"))
     # Switching tasks keeps each input, output and settings; it does not replace
     # the previous task with an empty remounted editor.
-    page.get_by_role("button", name="Werkzeugauswahl", exact=True).click()
+    page.get_by_role("button", name="Alle PDF-Werkzeuge", exact=True).click()
     page.locator('[data-pdf-tool="convert"]').click()
     page.get_by_role("button", name=re.compile("PDF in PNG")).click()
     playwright.expect(page.get_by_label("Bildauflösung", exact=True)).to_have_value("300")

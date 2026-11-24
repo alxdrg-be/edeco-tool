@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
-import { ArrowDownToLine, ArrowUpFromLine, CheckCircle2, ChevronDown, CircleAlert, CircleHelp, CircleX, GitBranch, LayoutGrid, Link2, MousePointer2, Plus, Redo2, Trash2, Undo2, X } from "lucide-react";
+import { ArrowDownToLine, ArrowUpFromLine, CheckCircle2, ChevronDown, CircleAlert, CircleHelp, CircleX, GitBranch, LayoutGrid, Link2, MousePointer2, PanelLeft, PanelRight, Plus, Redo2, Trash2, Undo2, X } from "lucide-react";
 import type { ToolProps } from "../../toolbox/modules";
 import { useProjectHub } from "../projektzentrale/projectHubState";
 import { downloadBlob } from "../../shared/download";
@@ -103,6 +103,7 @@ export default function NetworkPlanner(props: ToolProps) {
   const docRef = useRef(document); docRef.current = document;
   const [project, setProject] = useState<ArchiveProject | null>(null), [ready, setReady] = useState(false), [help, setHelp] = useState<Help | null>(null);
   const [selection, setSelection] = useState<NetworkSelection>(null), [tab, setTab] = useState<"properties" | "results">("properties");
+  const [paletteVisible, setPaletteVisible] = useState(true), [inspectorVisible, setInspectorVisible] = useState(true);
   const [explainedIssue, setExplainedIssue] = useState<NetworkIssue | null>(null);
   const [fieldRequest, setFieldRequest] = useState<{ target: DiagnosticTarget; token: number } | null>(null);
   const [focusRequest, setFocusRequest] = useState<{ selection: NetworkSelection; token: number } | undefined>();
@@ -185,7 +186,12 @@ export default function NetworkPlanner(props: ToolProps) {
   }, [selection, commit]);
   useEffect(() => {
     const keydown = (event: KeyboardEvent) => {
-      if (help || clearOpen) return;
+      if (event.defaultPrevented || help || clearOpen) return;
+      // Global dialogs can move focus from an input to a result button. Their
+      // shortcuts must never edit the selected network behind the dialog.
+      const dialogOpen = [...window.document.querySelectorAll<HTMLElement>('[aria-modal="true"], [role="dialog"], [role="alertdialog"], dialog[open]')]
+        .some(dialog => dialog.getClientRects().length > 0 && window.getComputedStyle(dialog).visibility === "visible");
+      if (dialogOpen) return;
       const target = event.target;
       if (target instanceof HTMLElement && (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName))) return;
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "z") { event.preventDefault(); dispatch({ type: event.shiftKey ? "redo" : "undo" }); }
@@ -197,7 +203,7 @@ export default function NetworkPlanner(props: ToolProps) {
     window.addEventListener("keydown", keydown); return () => window.removeEventListener("keydown", keydown);
   }, [removeSelected, help, clearOpen]);
 
-  function select(item: NetworkSelection, preserveExplanation = false) { if (!preserveExplanation) setExplainedIssue(null); setSelection(item); if (item) setTab("properties"); }
+  function select(item: NetworkSelection, preserveExplanation = false) { if (!preserveExplanation) setExplainedIssue(null); setSelection(item); if (item) { setTab("properties"); setInspectorVisible(true); } }
   function navigateDiagnostic(target: DiagnosticTarget) {
     const row = target.rowId || "";
     const item: NetworkSelection = row.startsWith("node:") ? { kind: "node", id: row.slice(5) } : row.startsWith("edge:") ? { kind: "edge", id: row.slice(5) } : null;
@@ -214,6 +220,7 @@ export default function NetworkPlanner(props: ToolProps) {
     setFieldRequest({ target: destination, token });
   }
   function explainDiagnostic(diagnostic: NetworkDiagnostic) {
+    setInspectorVisible(true);
     setTab("properties");
     setExplainedIssue(diagnostic.issue);
     const first = diagnostic.targets?.[0];
@@ -304,7 +311,7 @@ export default function NetworkPlanner(props: ToolProps) {
   const checkedPDF = currentReview && review ? networkReviewPDF(review, project) : null;
   const pdfReport = checkedPDF ? {...checkedPDF,notes:[...(checkedPDF.notes??[]),...(notes.trim()?[`Projektnotizen: ${notes.trim()}`]:[])]} : null;
   function loadExample(next:NetworkDocument, message:string) {commit(next);setLoadFailed(false);setRecovery(null);setSelection(null);setConnectFrom(null);setConnectMode(false);setReview(null);setViewToken(value=>value+1);setMessage(message);}
-  function runCheck() { setReview(checkNetwork(document)); setTab("results"); setMessage("Prüfbericht erstellt. Änderungen an Eingaben oder Verbindungen erfordern eine neue Prüfung."); }
+  function runCheck() { setInspectorVisible(true); setReview(checkNetwork(document)); setTab("results"); setMessage("Prüfbericht erstellt. Änderungen an Eingaben oder Verbindungen erfordern eine neue Prüfung."); }
   function issueContext(issue:NetworkIssue, network:NetworkDocument) {
     const edge=network.edges.find(edge=>edge.id===issue.edgeId);
     if(edge)return `${network.nodes.find(node=>node.id===edge.from)?.label??edge.from} → ${network.nodes.find(node=>node.id===edge.to)?.label??edge.to}`;
@@ -321,12 +328,17 @@ export default function NetworkPlanner(props: ToolProps) {
       <div className="np-toolbar-group np-files"><input type="file" ref={importInput} accept="application/json,.json" className="np-file-input" onChange={event => void importFile(event.target.files?.[0])} /><button disabled={!ready} onClick={() => importInput.current?.click()}><ArrowUpFromLine size={16} />JSON laden</button><button disabled={!ready} onClick={exportDraft} aria-label="Netzentwurf als JSON herunterladen"><ArrowDownToLine size={16} />Entwurf sichern</button><button disabled={!ready} onClick={() => loadExample(exampleNetwork(), "Verbundenes Beispielnetz geladen. Werte und offene Nachweise am Projekt prüfen.")}>Beispiel laden</button><button disabled={!ready} onClick={() => loadExample(createFloorDistributionExample(), "Zwei parallele Unterverteilungen geladen. Iz und Geräteeinstellungen sind Beispielwerte; mit Verlegeart, Leitungsdaten und Herstellerangaben des Projekts ersetzen.")}>Beispiel: 2 Unterverteilungen</button><button disabled={!ready} onClick={() => setClearOpen(true)}><Plus size={16} />Neu</button></div>
     </div>
     <div className="np-check-bar" data-network-review-state={reviewState}><div><strong>{currentReview ? "Prüfbericht aktuell" : review ? "Prüfbericht veraltet" : "Noch nicht geprüft"}</strong><span>{review ? `Prüfung ${new Date(review.checkedAt).toLocaleString("de-CH")}${currentReview ? " · aktueller Eingabestand" : " · Eingaben geändert, erneut prüfen"}` : "Live-Vorschau aktiv · Prüfbericht und PDF nach expliziter Prüfung"}</span></div><button disabled={!ready} onClick={runCheck}><CheckCircle2 size={17} />Berechnen &amp; prüfen</button></div>
-    <div className={`np-network-status np-tone-${displayTone}`} role="status">{displayTone === "error" ? <CircleAlert size={18} /> : displayTone === "warning" ? <CircleHelp size={18} /> : <CheckCircle2 size={18} />}<span><small>Live-Vorschau</small>{result.valid && result.tone === "ok" && checkpointSummary.open ? `Rechenwerte berechnet · ${checkpointSummary.open} Prüfpunkte offen.` : result.status}</span><button onClick={() => { const first = diagnostics.find(item => item.tone === "error") ?? diagnostics[0]; if (first) explainDiagnostic(first); else setTab("results"); }}>{result.tone === "error" ? "Fehler anzeigen" : `${result.edges.length} Abschnitte · Details`}</button></div>
+    <div className={`np-network-status np-tone-${displayTone}`} role="status">{displayTone === "error" ? <CircleAlert size={18} /> : displayTone === "warning" ? <CircleHelp size={18} /> : <CheckCircle2 size={18} />}<span><small>Live-Vorschau</small>{result.valid && result.tone === "ok" && checkpointSummary.open ? `Rechenwerte berechnet · ${checkpointSummary.open} Prüfpunkte offen.` : result.status}</span><button onClick={() => { const first = diagnostics.find(item => item.tone === "error") ?? diagnostics[0]; if (first) explainDiagnostic(first); else { setTab("results"); setInspectorVisible(true); } }}>{result.tone === "error" ? "Fehler anzeigen" : `${result.edges.length} Abschnitte · Details`}</button></div>
     <div className="np-network-summary"><div><span>Verbraucherleistung</span><strong>{result.valid ? format(result.totalPowerKW, "kW") : "–"}</strong></div><div><span>Stärkster Aussenleiter</span><strong>{result.valid ? format(result.maxCurrent, "A") : "–"}</strong></div><div><span>Grösster Spannungsfall · ganzer Pfad</span><strong>{result.valid ? format(result.maxDropPercent, "%") : "–"}</strong></div></div>
-    <div className="np-editor-grid" inert={!ready}>
-      <aside className="np-palette" aria-label="Bauteilpalette"><header><h2>Bauteile</h2><span>Klicken oder hineinziehen</span></header>{palette.map(group => <details open key={group.label}><summary>{group.label}</summary><div>{group.items.map(item => <button key={`${item.kind}-${item.device ?? ""}`} type="button" draggable disabled={!ready} aria-label={`${item.label} hinzufügen`} onDragEnd={() => setDragItem(null)} onDragStart={event => { setDragItem(item); event.dataTransfer.setData("application/x-edeco-network-node", JSON.stringify(item)); event.dataTransfer.effectAllowed = "copy"; }} onClick={() => add(item)}><svg viewBox="-42 -40 84 80" aria-hidden="true"><NetworkSymbol kind={item.kind} device={item.device} /></svg><span>{item.label}</span><Plus size={12} /></button>)}</div></details>)}</aside>
+    <div className="np-view-toolbar" aria-label="Netzplanansicht">
+      <button type="button" aria-expanded={paletteVisible} aria-controls="np-palette" onClick={() => setPaletteVisible(value => !value)}><PanelLeft size={16} />Bauteile {paletteVisible ? "einklappen" : "anzeigen"}</button>
+      <span>Arbeitsfläche</span>
+      <button type="button" aria-expanded={inspectorVisible} aria-controls="np-inspector" onClick={() => setInspectorVisible(value => !value)}><PanelRight size={16} />Details {inspectorVisible ? "einklappen" : "anzeigen"}</button>
+    </div>
+    <div className="np-editor-grid" data-palette-visible={paletteVisible} data-inspector-visible={inspectorVisible} inert={!ready}>
+      <aside id="np-palette" hidden={!paletteVisible} className="np-palette" aria-label="Bauteilpalette"><header><h2>Bauteile</h2><span>Klicken oder hineinziehen</span></header>{palette.map(group => <details open key={group.label}><summary>{group.label}</summary><div>{group.items.map(item => <button key={`${item.kind}-${item.device ?? ""}`} type="button" draggable disabled={!ready} aria-label={`${item.label} hinzufügen`} onDragEnd={() => setDragItem(null)} onDragStart={event => { setDragItem(item); event.dataTransfer.setData("application/x-edeco-network-node", JSON.stringify(item)); event.dataTransfer.effectAllowed = "copy"; }} onClick={() => add(item)}><svg viewBox="-42 -40 84 80" aria-hidden="true"><NetworkSymbol kind={item.kind} device={item.device} /></svg><span>{item.label}</span><Plus size={12} /></button>)}</div></details>)}</aside>
       <NetworkCanvas document={document} result={result} selection={selection} connectFrom={connectFrom} connectMode={connectMode} onSelect={select} onPort={onPort} onMove={moveNode} onDrop={(item, x, y) => { setDragItem(null); add(item, { x, y }); }} onConnect={connectNodes} dragItem={dragItem} orientation={orientation} placement={document.placement === "dock" ? "dock" : "free"} resetViewToken={viewToken} focusRequest={focusRequest} />
-      <aside ref={inspectorRef} className="np-inspector" data-network-selection={selection ? `${selection.kind}:${selection.id}` : undefined} aria-label="Netzplan-Eigenschaften und Ergebnisse"><div className="np-inspector-tabs" role="tablist" aria-label="Netzplanbereich"><button role="tab" aria-selected={tab === "properties"} onClick={() => setTab("properties")}>Eigenschaften</button><button role="tab" aria-selected={tab === "results"} onClick={() => setTab("results")}>Prüfbericht</button></div>
+      <aside id="np-inspector" hidden={!inspectorVisible} ref={inspectorRef} className="np-inspector" data-network-selection={selection ? `${selection.kind}:${selection.id}` : undefined} aria-label="Netzplan-Eigenschaften und Ergebnisse"><div className="np-inspector-tabs" role="tablist" aria-label="Netzplanbereich"><button role="tab" aria-selected={tab === "properties"} onClick={() => setTab("properties")}>Eigenschaften</button><button role="tab" aria-selected={tab === "results"} onClick={() => setTab("results")}>Prüfbericht</button></div>
         {tab === "properties" ? <section role="tabpanel" aria-label="Eigenschaften">
           {explainedIssue && <div className="np-active-diagnostic" aria-label="Ausgewählte Fehlerhilfe"><button className="np-close-guidance" aria-label="Fehlerhilfe schliessen" onClick={() => setExplainedIssue(null)}><X size={15} /></button>{activeDiagnostic ? <DiagnosticDetails key={activeDiagnostic.id} diagnostic={activeDiagnostic} onNavigate={navigateDiagnostic} initiallyOpen /> : <p role="status">Dieser Hinweis ist im aktuellen Stand nicht mehr vorhanden. Weitere Fehler und offene Nachweise stehen in der Live-Auswertung; der gesamte Netzplan ist dadurch noch nicht freigegeben.</p>}</div>}
           {selection && <NetworkVariantPanel key={`${selection.kind}:${selection.id}`} document={document} selection={selection} onApply={applyVariant} />}

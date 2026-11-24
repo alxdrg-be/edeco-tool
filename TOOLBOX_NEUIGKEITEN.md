@@ -4,6 +4,30 @@
 - Raumnummern, Flächen, Volumen und IFC-Eigenschaften einsehen. Eigene Excel-Prüfregeln importieren und die Ergebnisse als Excel-Datei ausgeben.
 - Raumlisten aus Trimble Nova lassen sich auch ohne IFC tabellarisch auswerten.
 
+## Persönliche Design-Beta für Admins · 18. November 2026
+
+- Die bisherige Oberfläche bleibt standardmässig aktiv. Hinterlegte Admins (`aduerger`, `nstrauss`) können unter Toolhub-Einstellungen «Neues Design testen (Beta)» persönlich ein- und ausschalten; die Auswahl bleibt pro Anmeldung auf diesem Computer erhalten.
+- Gemeinsame Kopfzeile mit edeco-e, Werkzeugfarben, Suche und Seitenleiste; die petrolfarbene Logo-Ecke endet bündig mit der oberen Leiste. Kompakte Arbeitsflächen sind Teil der Design-Beta.
+- Demo-Werkzeugauswahl und Design-Beta bleiben unabhängig. Andere Benutzer sehen die bisherige Oberfläche. Berechnungen, Projekte und Dateien werden von beiden Ansichten gemeinsam verwendet.
+- Separate Beta-Downloads aus dem Testzweig werden als Vorabversion veröffentlicht und vom regulären Updatekanal ausgeschlossen.
+
+## Verteiler-Dispo und CAD-Allgemeinteil · 15. November 2026
+
+- UV-Front mit durchgehenden Reihenausschnitten und separat bearbeitbaren Blindabdeckungen. Freie Öffnungen zeigen den dahinterliegenden Raum und die Schiene; verdeckte Klemmenreihen bekommen keine Frontbeschriftung. Bestehende gespeicherte Ausschnitte werden nicht umgestellt.
+- Neues UV-/HV-Werkzeug mit gemeinsamem Millimetermodell für Front- und Einbauansicht, DIN-Schienen, TE-Geräte, freie Apparate, Klemmen, Sammelschienen, Abdeckungen und reservierte Felder. Ziehen, Fangvorschau, Mehrfachauswahl, Kopieren und Rückgängig/Wiederholen sind integriert.
+- Prüfbericht mit anklickbaren Geometriekonflikten und getrennten offenen Nachweisen. TE-Plätze, sich überlagernde Schienen, Tiefe und Abdeckungsausschnitte werden geprüft; Quellenlinks bestätigen keine elektrische Freigabe.
+- Versionierte IWB-, Primeo- und EBL-Quellen, belegte Apparateplatz-Geometrien und ausgewählte Phoenix-Klemmen. Vorbereitungen für Pragma Multi, PrismaSeT XL, Hager und Almatec sind editierbar; nicht verifizierte Artikelmasse bleiben sichtbar offen.
+- Lokale SQLite-Revisionen, Wiederherstellungsentwurf und Konfliktschutz. Firmenbibliotheken werden vom Server nur gelesen und als validierter Quellenstand lokal zwischengespeichert; gespeicherte Pläne behalten ihre eigenen Profile und Quellen.
+- PDF mit beiden Ansichten und Nachweisanhang, SVG, DXF, Stück-/Klemmenlisten und JSON. PDF-Übergabe an Werkstatt oder Umbenennen erfolgt ausdrücklich. Verteiler-Dispo lässt sich separat für eine Demo auswählen; bestehende Auswahl bleibt erhalten.
+- NOVA-Allgemeinteil mit zusätzlichem Modus «CAD-Vorlage wie gezeichnet»: Anordnung, Farben und Grössen aus der Firmen-DXF/-DWG bleiben erhalten. Getrennte Vorlagenlayer bewahren Farben und Strichstärken; leere Formdefinitionen von Leitungsmustern werden für Vorschau und PDF aufbereitet. Die Quelldatei bleibt erhalten. Der bisherige Zeilenmodus bleibt Standard.
+- Werkzeug-/Demo-Eigenschaften verwenden eine gemeinsame Definition für Frontend und Backend. Die Windows-Anmeldung kommt aus einem gemeinsamen Helfer; bestehende Rechte und Bearbeiternamen bleiben erhalten.
+
+## Gemeinsame CSV-Ausgabe und interne Bereinigung · 15. November 2026
+
+- Mengen-, Rack- und Lieferlisten verwenden eine gemeinsame CSV-Ausgabe. Texte mit führenden Leerzeichen oder Formelzeichen werden für Excel einheitlich geschützt; echte Zahlen bleiben Zahlen. Das Austauschformat der Abkürzungstabelle bleibt verlustfrei.
+- Projektmodelle, Dateinamenprüfung, Ordneröffnung und lokale Portwahl sind von einzelnen Werkzeug-APIs getrennt. Bestehende Schnittstellen, Datenpfade und Einzelprogrammstarts bleiben kompatibel.
+- Nicht mehr verwendete Hilfsfunktionen entfernt und die Anleitung zur Werkzeug-Integration an den aktuellen Funktionsumfang angepasst.
+
 ## Rack-Dispo mit Portlisten und Vektorexport · 4. November 2026
 
 - Neues eigenständiges Werkzeug für 19-Zoll-Racks. Geräte rasten im von unten nummerierten HE-Raster ein; Vorderseite, Rückseite und 0-HE-Zubehör sind getrennt. Neutrale 24-/48-Port-Panels, Switches, LWL, Rangierpanels und Zubehör lassen sich ergänzen und bearbeiten.

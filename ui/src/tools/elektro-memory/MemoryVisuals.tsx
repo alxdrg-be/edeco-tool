@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from "react";
 import type { MemoryEntry } from "./types";
 import { checkIk } from "./ikCheck";
+import MemorySourceFigure, { BATH_SOURCE_IMAGES, BATH_EQUIPMENT_IMAGE, LOW_OHM_IMAGE, INSULATION_IMAGE } from "./MemorySourceFigure";
 
 /** Own drawings and table views for single reference entries. Values come from the checked catalogue. */
 
@@ -88,30 +89,10 @@ export function RcdOverview() {
   </div>;
 }
 
-const BATH_VIEWS = [["section", "Badewanne · Schnitt"], ["shower", "Dusche ohne Wanne · Grundriss"]] as const;
-
-/** Schematic zone drawing after E-Memory p. 12 / NIN 7.01; not to scale. */
+/** The source's four views stay intact, including the fixed partitions and Fadenmass. */
 export function BathZones() {
-  const [view, setView] = useState<(typeof BATH_VIEWS)[number][0]>("section");
-  return <figure className="memory-bath-zones">
-    <div className="memory-reference-tabs" role="group" aria-label="Ansicht der Badbereiche">{BATH_VIEWS.map(([id, label]) => <button type="button" key={id} aria-pressed={view === id} onClick={() => setView(id)}>{label}</button>)}</div>
-    {view === "section" ? <svg viewBox="0 0 520 300" role="img" aria-label="Schnitt Badewanne: Bereich 0 in der Wanne, Bereich 1 über der Wanne bis 2,25 m, Bereich 2 daneben 0,6 m breit">
-      <rect className="zone-1" x="70" y="40" width="250" height="220" /><rect className="zone-2" x="320" y="40" width="96" height="220" />
-      <path className="zone-0" d="M86 205H304V246C304 252 300 256 294 256H96C90 256 86 252 86 246Z" />
-      <path className="memory-room-wall" d="M70 20V260H480" /><path className="memory-bath-outline" d="M78 196H312V250C312 258 306 264 298 264H92C84 264 78 258 78 250Z" />
-      <path className="memory-dimension" d="M40 40V260M34 40H46M34 260H46M320 280H416M320 274V286M416 274V286" />
-      <text x="16" y="154" transform="rotate(-90 16 154)">2,25 m</text><text x="345" y="296">0,6 m</text>
-      <text className="zone-label" x="186" y="236">0</text><text className="zone-label" x="186" y="130">1</text><text className="zone-label" x="360" y="160">2</text>
-    </svg> : <svg viewBox="0 0 520 300" role="img" aria-label="Grundriss Dusche ohne Wanne: Bereich 1 bis 1,2 m ab Wasserauslass, Bereich 2 als Fadenmass 0,6 m um eine feste Abtrennung">
-      <rect className="zone-1" x="60" y="30" width="240" height="240" /><path className="zone-2" d="M300 150A120 120 0 0 1 420 270H300Z" />
-      <path className="memory-room-wall" d="M60 270V30H480" /><path className="memory-room-partition" d="M300 30V150" />
-      <circle className="memory-drain" cx="72" cy="42" r="7" /><text x="86" y="50">Wasserauslass</text>
-      <path className="memory-dimension" d="M60 290H300M60 284V296M300 284V296M300 150L385 235" />
-      <text x="150" y="288">1,2 m</text><text x="352" y="200">0,6 m</text><text x="306" y="96">feste Abtrennung</text>
-      <text className="zone-label" x="170" y="170">1</text><text className="zone-label" x="330" y="250">2</text>
-    </svg>}
-    <figcaption><span className="memory-zone-key zone-0" />Bereich 0 · <span className="memory-zone-key zone-1" />Bereich 1 · <span className="memory-zone-key zone-2" />Bereich 2. Schematisch, nicht massstäblich. Bei Duschen ohne Wanne ohne feste Abtrennung gilt Bereich 1 bis 1,2 m ab Wasserauslass.</figcaption>
-  </figure>;
+  return <MemorySourceFigure images={BATH_SOURCE_IMAGES} page={12}
+    note="Die Skizzen zeigen unterschiedliche Einbausituationen. Bei Duschen ohne Wanne und bei festen Abtrennungen die zugehörigen Hinweise der Vorlage beachten. Die Quellenabbildung ersetzt keinen Abgleich der konkreten Geometrie mit der zutreffenden Normausgabe." />;
 }
 
 /** Extra visual shown in the card; `replacesTable` hides the plain catalogue table. */
@@ -122,6 +103,10 @@ export function entryVisual(entry: MemoryEntry): { node: ReactNode; replacesTabl
     case "em-p11-conduit-fill": return entry.table ? { node: <LookupTable entry={entry} label="Rohrgrösse wählen" />, replacesTable: true } : null;
     case "em-p07-rcd-types": return { node: <RcdOverview />, replacesTable: false };
     case "em-p12-bath-zones": return { node: <BathZones />, replacesTable: false };
+    case "em-p12-bath-equipment": return { node: <MemorySourceFigure images={BATH_EQUIPMENT_IMAGE} page={12}
+      note="Die Darstellung enthält mehrere gleichzeitig geltende Bedingungen. Aus IP-Klasse oder Spannung allein ergibt sich keine Gerätefreigabe." />, replacesTable: false };
+    case "em-p05-low-ohm": return { node: <MemorySourceFigure images={LOW_OHM_IMAGE} page={5} />, replacesTable: false };
+    case "em-p05-insulation": return { node: <MemorySourceFigure images={INSULATION_IMAGE} page={5} />, replacesTable: false };
     default: return null;
   }
 }

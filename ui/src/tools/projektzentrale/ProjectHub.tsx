@@ -7,6 +7,12 @@ import "./project-hub.css";
 import DeliveryHistory from "../planlieferung/DeliveryHistory";
 import "../dateien-umbenennen/file-rename.css";
 
+const PROJECT_FOCUS = "edeco-project-focus";
+function takeProjectFocus(): string | null {
+  try { const value = sessionStorage.getItem(PROJECT_FOCUS); sessionStorage.removeItem(PROJECT_FOCUS); return value; }
+  catch { return null; }
+}
+
 function LeaveDialog({ busy, error, onCancel, onDiscard, onSave }: { busy: boolean; error: string; onCancel: () => void; onDiscard: () => void; onSave: () => void }) {
   const ref = useRef<HTMLDivElement>(null);
   useDialogFocus(ref, onCancel, busy);
@@ -29,6 +35,7 @@ export default function ProjectHub({ onHome, onOpenTool }: ToolProps) {
   const [pending, setPending] = useState<(() => void) | null>(null);
   const initialized = useRef(false);
   const form = useRef<HTMLFormElement>(null);
+  const focusRequest = useRef<(id: string) => void>(() => {});
   const dirty = Boolean(draft && (!saved || JSON.stringify(draft) !== JSON.stringify(dataOf(saved))));
   function choose(project: Project | null) {
     setSaved(project); setDraft(project ? structuredClone(dataOf(project)) : structuredClone(EMPTY_PROJECT)); setError(""); setNotice("");
@@ -36,8 +43,10 @@ export default function ProjectHub({ onHome, onOpenTool }: ToolProps) {
   useEffect(() => {
     if (!hub || initialized.current) return;
     initialized.current = true;
-    const project = hub.projects.find(item => item.id === hub.active_id) ?? hub.projects.find(item => !item.archived);
-    if (project) choose(project);
+    const requestedId = takeProjectFocus();
+    const project = hub.projects.find(item => item.id === requestedId) ?? hub.projects.find(item => item.id === hub.active_id) ?? hub.projects.find(item => !item.archived);
+    if (project) { choose(project); setArchive(project.archived); }
+    if (requestedId && !hub.projects.some(item => item.id === requestedId)) setNotice("Das gesuchte Projekt ist nicht mehr verfügbar.");
   }, [hub]);
   useEffect(() => {
     if (!dirty) return;
@@ -46,6 +55,23 @@ export default function ProjectHub({ onHome, onOpenTool }: ToolProps) {
     return () => window.removeEventListener("beforeunload", warn);
   }, [dirty]);
   function navigate(action: () => void) { if (dirty) setPending(() => action); else action(); }
+  focusRequest.current = id => {
+    if (!hub) return; // The mount effect consumes the stored request after loading.
+    takeProjectFocus();
+    if (busy) { setNotice("Bitte zuerst die laufende Projektaktion abschliessen."); return; }
+    const project = hub.projects.find(item => item.id === id);
+    if (!project) { setNotice("Das gesuchte Projekt ist nicht mehr verfügbar."); return; }
+    if (saved?.id === id) return;
+    navigate(() => { choose(project); setArchive(project.archived); setQuery(""); });
+  };
+  useEffect(() => {
+    const focus = (event: Event) => {
+      const id = (event as CustomEvent<unknown>).detail;
+      if (typeof id === "string" && id) focusRequest.current(id);
+    };
+    window.addEventListener(PROJECT_FOCUS, focus);
+    return () => window.removeEventListener(PROJECT_FOCUS, focus);
+  }, []);
   function edit<K extends keyof ProjectData>(key: K, value: ProjectData[K]) {
     setDraft(old => old ? { ...old, [key]: value } : old); setNotice("");
   }
@@ -96,7 +122,8 @@ export default function ProjectHub({ onHome, onOpenTool }: ToolProps) {
   return <div className="project-hub">
     <ToolHeader title="Projektzentrale" onHome={() => navigate(onHome)} onOpenTool={onOpenTool ? id => navigate(() => onOpenTool(id)) : undefined} disabled={busy}><span className="tool-header-context" aria-label="Aktives Projekt">{active ? `Aktiv: ${active.number} · ${active.name}` : "Kein aktives Projekt"}</span></ToolHeader>
     <main className="project-main">
-      <div className="project-heading"><div><h1>Deine Projekte im Überblick.</h1><p>Projektdaten, Kontakte und Dokumentverweise an einem Ort.</p></div><button className="btn primary" disabled={!hub || busy} onClick={() => navigate(() => choose(null))}>Neues Projekt</button></div>
+      <div className="project-heading"><div><h1>Projekte</h1><p>Projektdaten, Kontakte und Dokumentverweise.</p></div><button className="btn primary" disabled={!hub || busy} onClick={() => navigate(() => choose(null))}>Neues Projekt</button></div>
+      <p className="project-assignment-note">Offene Pläne behalten ihre Projektzuordnung. Die aktive Projektauswahl gilt als Vorgabe für neue Arbeit.</p>
       {(error || loadError) && <p className="project-error" role="alert">{error || loadError}</p>}
       {notice && <p role="status" className="project-notice">{notice}</p>}
       {!hub && !loadError && <p role="status">Projekte werden geladen …</p>}

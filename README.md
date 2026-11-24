@@ -10,7 +10,6 @@ direkt über die Kopfzeile wechseln; „Zum Toolhub“ führt zur Übersicht zur
 | --- | --- | --- |
 | NOVA-Legenden | Nutzbar, Work in progress | Petrol |
 | BIM2STEIGER | Nutzbar, Work in progress; lokaler Katalog integriert | Blau |
-| [BIM-Check & Raum-Viewer](docs/BIM_CHECK.md) | IFC-Räume im Grundriss und in 3D mit Gebäudestruktur ansehen, Nova-Raumlisten auswerten und Attribute nach Excel-Regelwerk prüfen | Koralle |
 | Dokumenten-Assistent | Lokale Suche; KI mit Ollama auf dem PC oder über einen Firmenserver; optionale Dokumentordner | Violett |
 | Dateien umbenennen | Nutzbar, Work in progress | Grün |
 | PDF-Werkstatt | Stirling Core mit vollständig mitgelieferter Windows-Offline-Laufzeit | Rosé |
@@ -18,6 +17,8 @@ direkt über die Kopfzeile wechseln; „Zum Toolhub“ führt zur Übersicht zur
 | Planlieferungs-Assistent | Aus der Startübersicht ausgeblendet; für Admins über „Werkzeuge“ erreichbar | Koralle |
 | Berechnungen | 26 native Schweizer Rechenhilfen inklusive Netzplaner (Beta) | Orange |
 | Elektro-Memory | 16 Quellseiten als durchsuchbare Themen, Formeln, Tabellen und SVG-Grundlagen; integrierter Formelrechner | Indigo |
+| Rack-Dispo | 19-Zoll-Planung mit 24-/48-Port-Panels, Vorder-/Rückansicht, Portlisten und Vektorexport | Stahlblau |
+| Verteiler-Dispo | UV-/HV-Aufbau, Front-/Einbauansicht, geometrischer Prüfbericht und bearbeitbare Firmenvorlagen | Koralle |
 | ↳ Blitzschutz | Trennungsabstand; fachliche Freigabe offen | Orange |
 | ↳ Leistungsbilanz | Geplant im Bereich Berechnungen | Violett |
 | ↳ Kabelberechnung | Schweizer Spannungsfall-Vorprüfung; fachliche Freigabe offen | Blau |
@@ -27,7 +28,8 @@ Originalbildern, Favoriten, Modellimport und Ausschreibungen. Es läuft unter
 `/tools/bim2steiger/` im selben lokalen Server und Desktopfenster wie Nova.
 Änderungsbericht und Anlagentool erscheinen nicht mehr in der Oberfläche.
 Die geplante Leistungsbilanz liegt weiterhin im Bereich Berechnungen.
-Die Hauptkacheln passen sich der Fensterbreite an. Umfang und Reihenfolge
+Die zehn Hauptkacheln passen sich dem verfügbaren Fenster an;
+kleinere Fenster können scrollen. Umfang und Reihenfolge
 der Erweiterungen stehen im [Ausbauplan](docs/TOOLBOX_AUSBAUPLAN.md).
 
 Der neue Produktname ändert keine bestehenden Datenpfade, AppId oder
@@ -38,7 +40,7 @@ Lieferangaben bleiben dadurch direkt erreichbar.
 ## Vorführung, Memory und bestehende Legenden
 
 Die Einstellungen der Hubübersicht enthalten den Demo-Modus. Voreingestellt sind
-NOVA-Legenden, Berechnungen, Dateien umbenennen, PDF-Werkstatt und Elektro-Memory. Der normale
+NOVA-Legenden, Berechnungen, Dateien umbenennen, PDF-Werkstatt, Elektro-Memory und Rack-Dispo. Verteiler-Dispo lässt sich zusätzlich auswählen. Der normale
 Hub enthält zusätzlich die übrigen verfügbaren Werkzeuge und das Elektro-Memory.
 Die Adminzuordnung verwendet unter Windows die tatsächliche Anmeldung; vorbelegt
 sind `aduerger` und `nstrauss`. Es entsteht kein zusätzliches Benutzerkonto.
@@ -50,6 +52,17 @@ Spalten und proportionale Konturen, ohne die Symbolgeometrie zu verändern. Die
 Seitenhöhe folgt dem Inhalt; nicht jede beliebig lange Legende passt auf A4.
 Farbvarianten lassen sich je logischem Symbol auswählen; die Originalvarianten
 bleiben gespeichert.
+
+Der Allgemeinteil kann eine Firmen-DXF/-DWG als **CAD-Vorlage wie gezeichnet**
+übernehmen. Anordnung, Farben und Grössen bleiben erhalten; Vorschau und Export
+verwenden denselben geladenen Stand. Der bisherige Zeilenmodus bleibt Standard.
+
+Die [Verteiler-Dispo](docs/VERTEILER_DISPO.md) arbeitet in Millimetern mit
+DIN-Schienen, TE-Geräten, Klemmen, Sammelschienen, Feldern und Abdeckungen.
+PDF, SVG und DXF entstehen aus derselben Geometrie. IWB-, Primeo- und EBL-Quellen
+sowie ausgewählte artikelbezogene Herstellerdaten sind dokumentiert. Pragma-,
+PrismaSeT-, Hager- und Almatec-Vorbereitungen bleiben bearbeitbar; unbelegte
+Artikelmasse und elektrische Nachweise sind ausdrücklich offen.
 
 Pro Legende lassen sich ein oder mehrere Geschosse auswählen. Die Ansicht und
 alle Exportformate nutzen dieselbe Auswahl, während die gespeicherten Zeilen

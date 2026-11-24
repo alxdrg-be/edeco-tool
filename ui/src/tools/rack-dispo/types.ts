@@ -1,5 +1,4 @@
 /** Independent rack planning document. Dimensions are millimetres; HE starts at 1 at the bottom. */
-export const RACK_SCHEMA_VERSION = 1 as const;
 export const HE_MM = 44.45;
 export const PANEL_WIDTH_MM = 482.6;
 export const DOCUMENT_LIMITS = { racks: 50, profiles: 300, placements: 2000, ports: 24000, text: 2000 } as const;
