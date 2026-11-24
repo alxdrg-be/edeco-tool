@@ -87,7 +87,9 @@ def _run_worker(operation: str, directory: Path, job: Path, model_id: str, filen
         error = job / "error.json"
         if result.returncode == 2 and error.is_file():
             raise HTTPException(422, json.loads(error.read_text(encoding="utf-8")))
-        log.warning("BIM-Verarbeitung %s beendet mit Code %d", operation, result.returncode)
+        crash = job / "crash.txt"
+        log.warning("BIM-Verarbeitung %s beendet mit Code %d%s", operation, result.returncode,
+                    ":\n" + crash.read_text(encoding="utf-8", errors="replace") if crash.is_file() else "")
         raise HTTPException(422, "Datei konnte nicht vollständig verarbeitet werden. Format und Daten prüfen oder ein Teilmodell importieren.")
 
 

@@ -2,6 +2,7 @@
 
 import json
 import sys
+import traceback
 from dataclasses import asdict
 from pathlib import Path
 
@@ -48,6 +49,11 @@ def main(args: list[str]) -> int:
     except ValueError as exc:
         (job / "error.json").write_text(json.dumps(str(exc)[:1600]), encoding="utf-8")
         return 2
+    except BaseException:
+        # The Windows EXE has no console. An uncaught exception would open a blocking
+        # error dialog and hang the request, so record the cause for the server log.
+        (job / "crash.txt").write_text(traceback.format_exc()[-8000:], encoding="utf-8")
+        return 1
     return 0
 
 
