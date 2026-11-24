@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Check, Download, LoaderCircle, RotateCw, ShieldCheck } from "lucide-react";
+import { RefreshCw, Check, Download, LoaderCircle, RotateCw, ShieldCheck } from "lucide-react";
 import { useDialogFocus } from "../shared/useDialogFocus";
 import { parseReleaseNotes } from "./releaseNotes";
 import "./toolbox-updates.css";
@@ -98,10 +98,11 @@ export default function ToolboxUpdates() {
   }
 
   const updating = busy === "install" || ACTIVE_STATES.has(state?.status ?? "");
+  const label = updating ? "Update läuft …" : busy === "check" ? "Updateprüfung läuft …" : state?.status === "available" ? "Update verfügbar" : "Nach Updates suchen";
   return <>
-    <button className={`btn ${state?.status === "available" ? "toolbox-update-available" : ""}`}
+    <button className={`btn toolbox-update-button ${state?.status === "available" ? "toolbox-update-available" : ""}`} aria-label={label} title={label}
       disabled={Boolean(busy) || updating} onClick={() => { setOpen(true); void run("check"); }}>
-      {updating ? "Update läuft …" : busy === "check" ? "Updateprüfung läuft …" : state?.status === "available" ? "Update verfügbar" : "Nach Updates suchen"}
+      <RefreshCw size={16} aria-hidden="true" className={busy === "check" || updating ? "toolbox-update-spin" : undefined} /><span>{label}</span>
     </button>
     {(open || updating) && <UpdateDialog state={state} busy={busy} error={error} run={run} close={() => setOpen(false)} />}
   </>;

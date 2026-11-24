@@ -136,3 +136,52 @@
   :where(:root[data-design-beta="true"]) .hub-header-top .toolhub-back{padding:0 8px}
   :where(:root[data-design-beta="true"]) .hub-header-top .toolhub-breadcrumbs{flex:1;min-width:0}
 }
+
+/* Search in the middle, place on the left, everything else on the right. */
+:where(:root[data-design-beta="true"]) .hub-header-top { display:grid; grid-template-columns:minmax(0,1fr) minmax(200px,440px) minmax(0,1fr); }
+:where(:root[data-design-beta="true"]) .hub-head-left, :where(:root[data-design-beta="true"]) .hub-head-right { display:flex; align-items:center; gap:10px; min-width:0; }
+:where(:root[data-design-beta="true"]) .hub-head-right { justify-content:flex-end; }
+@media(min-width:761px) { :where(:root[data-design-beta="true"]) .hub-header-top .hub-global-search { max-width:none; width:100%; margin:0; } }
+:where(:root[data-design-beta="true"]) .hub-header-top .toolhub-knowledge, :where(:root[data-design-beta="true"]) .hub-header-top .lab-knowledge-link { width:32px; padding:0!important; justify-content:center; }
+:where(:root[data-design-beta="true"]) .hub-header-top .toolhub-knowledge span, :where(:root[data-design-beta="true"]) .hub-header-top .lab-knowledge-link span, :where(:root[data-design-beta="true"]) .hub-header-top .lab-knowledge-link svg:last-child { display:none; }
+:where(:root[data-design-beta="true"]) .hub-rail .hub-rail-beta { margin-top:auto; min-height:0; padding:4px 3px; }
+:where(:root[data-design-beta="true"]) .hub-rail .hub-rail-beta span { padding:1px 7px; border:1px solid var(--line-strong); border-radius:5px; font-size:10px; }
+:where(:root[data-design-beta="true"]) .hub-rail .hub-rail-beta + .hub-rail-theme { margin-top:0; }
+@media(max-width:760px) { :where(:root[data-design-beta="true"]) .hub-header-top { display:flex; } :where(:root[data-design-beta="true"]) .hub-head-right { margin-left:auto; } }
+:where(:root[data-design-beta="true"]) .hub-header-top .toolhub-home.toolhub-back { gap:6px; padding:0 10px; }
+:where(:root[data-design-beta="true"]) .hub-header-top .toolhub-home.toolhub-back .hub-wordmark { font-size:14px; }
+@media(max-width:600px){ :where(:root[data-design-beta="true"]) .hub-header-top[data-place="tool"] .toolhub-home { display:inline-flex; } :where(:root[data-design-beta="true"]) .hub-header-top[data-place="tool"] .toolhub-home .hub-wordmark { display:none; } }
+/* Same box on the start page and in tools: the wordmark never moves. */
+:where(:root[data-design-beta="true"]) .hub-header-top .toolhub-home { display:inline-flex; align-items:center; gap:6px; padding:0 10px; border:1px solid transparent; border-radius:6px; }
+:where(:root[data-design-beta="true"]) .hub-header-top .toolhub-home.toolhub-back { border-color:var(--line-strong); background:var(--panel); }
+:where(:root[data-design-beta="true"]) .hub-header-top .toolhub-home.toolhub-back:hover:not(:disabled) { background:var(--panel-2); }
+:where(:root[data-design-beta="true"]) .hub-header-top .hub-back-arrow-idle { visibility:hidden; }
+:where(:root[data-design-beta="true"]) .hub-header-top .hub-wordmark { font-size:14px; }
+:where(:root[data-design-beta="true"]) .hub-header-top { grid-template-columns:minmax(max-content,1fr) minmax(200px,440px) minmax(max-content,1fr); }
+:where(:root[data-design-beta="true"]) .hub-header-top .toolhub-home { height:32px; min-height:32px; box-sizing:border-box; }
+:where(:root[data-design-beta="true"]) .hub-head-right .toolhub-header-actions { flex:none; margin-left:0; width:auto; }
+@media(max-width:760px) {
+  :where(:root[data-design-beta="true"]) .hub-header-top { flex-wrap:nowrap; height:48px; padding-block:0; }
+  :where(:root[data-design-beta="true"]) .hub-head-left { flex:1; min-width:0; }
+  :where(:root[data-design-beta="true"]) .hub-head-right { flex:none; gap:6px; }
+  :where(:root[data-design-beta="true"]) .hub-header-top .hub-global-search { flex:none; width:32px; min-width:32px; max-width:32px; padding:0; justify-content:center; }
+  :where(:root[data-design-beta="true"]) .hub-header-top .hub-global-search span, :where(:root[data-design-beta="true"]) .hub-header-top .hub-global-search kbd { display:none; }
+  :where(:root[data-design-beta="true"]) .hub-project-context { width:32px; min-width:32px; max-width:32px; padding:0; justify-content:center; }
+  :where(:root[data-design-beta="true"]) .hub-project-context span { display:none; }
+  :where(:root[data-design-beta="true"]) .hub-header-top .hub-header-sep { display:none; }
+}
+/* Icon-only actions in the header; the name stays as tooltip and accessible label. */
+:where(:root[data-design-beta="true"]) .hub-header-top button.toolhub-home { height:32px!important; min-height:32px!important; padding:0 10px!important; font:500 13px/1.4 var(--font-ui); }
+:where(:root[data-design-beta="true"]) .hub-header-top .toolbox-update-button, :where(:root[data-design-beta="true"]) .hub-header-top .toolhub-settings-button, :where(:root[data-design-beta="true"]) .hub-header-top .toolhub-nav-trigger { width:32px; height:32px; min-height:32px; padding:0!important; justify-content:center; gap:0; }
+:where(:root[data-design-beta="true"]) .hub-header-top .toolbox-update-button span, :where(:root[data-design-beta="true"]) .hub-header-top .toolhub-settings-button span,
+:where(:root[data-design-beta="true"]) .hub-header-top .toolhub-nav-trigger span, :where(:root[data-design-beta="true"]) .hub-header-top .toolhub-nav-trigger svg:last-child { display:none; }
+:where(:root[data-design-beta="true"]) .hub-header-top .toolbox-update-available { color:var(--toolhub-accent); border-color:var(--toolhub-accent); background:var(--toolhub-accent-soft); }
+.toolbox-update-spin { animation:toolbox-update-spin 1s linear infinite; }
+@keyframes toolbox-update-spin { to { transform:rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .toolbox-update-spin { animation:none; } }
+/* Every control on the right looks the same: 32 px, thin line, neutral fill, 16 px icon. */
+:where(:root[data-design-beta="true"]) .hub-head-right :is(button, a, summary):not(.hub-project-context) { box-sizing:border-box; height:32px; min-height:32px; display:inline-flex; align-items:center; justify-content:center; gap:6px; padding:0 10px; border:1px solid var(--line-strong)!important; border-radius:6px!important; background:var(--panel)!important; color:var(--fg)!important; font:500 13px/1.4 var(--font-ui)!important; box-shadow:none!important; }
+:where(:root[data-design-beta="true"]) .hub-head-right :is(.lab-icon, .toolhub-knowledge, .lab-knowledge-link, .toolbox-update-button, .toolhub-settings-button, .toolhub-nav-trigger, .hub-mobile-theme):not(.lab-pdf) { width:32px; padding:0!important; }
+:where(:root[data-design-beta="true"]) .hub-head-right :is(button, a, summary) svg { width:16px; height:16px; flex:none; }
+:where(:root[data-design-beta="true"]) .hub-head-right :is(button, a, summary):hover:not(:disabled) { background:var(--panel-2)!important; }
+:where(:root[data-design-beta="true"]) .hub-head-right .toolbox-update-available { color:var(--toolhub-accent)!important; border-color:var(--toolhub-accent)!important; background:var(--toolhub-accent-soft)!important; }

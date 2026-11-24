@@ -75,27 +75,32 @@ function BetaToolhubHeader({ title, onHome, onOpenTool, currentToolId, disabled,
     <header ref={header} className={`toolhub-header ${className}`} aria-label={`${title} · Werkzeugleiste`}>
       {/* One row on every page: wordmark, place, search, project, tool actions. Colour only marks the place. */}
       <div ref={topRow} className="hub-header-top" data-place={id ? "tool" : "home"}>
-        <button type="button" className="toolhub-home" aria-label="Startseite öffnen" disabled={disabled} onClick={onHome}><span className="hub-wordmark"><strong>edeco</strong> Toolhub</span></button>
+        <div className="hub-head-left">
+        {/* The wordmark is the way back: plain on the start page, a back button inside a tool. */}
+        <button type="button" className={id ? 'toolhub-home toolhub-back' : 'toolhub-home'} aria-label={id ? 'Zum Toolhub' : 'Startseite öffnen'}
+          title={id ? 'Zurück zur Startseite' : undefined} disabled={disabled} onClick={onHome}>
+          <ArrowLeft size={15} aria-hidden="true" className={id ? undefined : 'hub-back-arrow-idle'} /><span className="hub-wordmark"><strong>edeco</strong> Toolhub</span></button>
         <span className="hub-header-sep" aria-hidden="true">/</span>
-        {id && <button type="button" className="toolhub-back" aria-label="Zum Toolhub" disabled={disabled} onClick={onHome}><ArrowLeft size={15} /><span>Toolhub</span></button>}
         <nav className="toolhub-breadcrumbs" aria-label="Aktueller Bereich">
           {parent && <><button type="button" disabled={disabled} onClick={parent.onClick}>{parent.label}</button><ChevronRight size={14} aria-hidden="true" /></>}
           <strong className="hub-header-title tool-header-title" title={title}>{id ? title : 'Übersicht'}</strong>
         </nav>
+        </div>
         <button type="button" className="hub-global-search" aria-label="Toolhub durchsuchen" aria-haspopup="dialog" aria-expanded={searchOpen} disabled={disabled} onClick={() => setSearchOpen(true)}>
           <Search size={15} aria-hidden="true" /><span>Suchen</span><kbd>Ctrl+K</kbd>
         </button>
+        <div className="hub-head-right">
         {!policy?.demo_enabled && <ProjectContext disabled={disabled} open={allowed('projektzentrale') && onOpenTool ? () => onOpenTool('projektzentrale') : undefined} />}
         <div className="toolhub-header-actions">
           {onOpenTool && <>
             {calculator && <ToolhubNavigation kind="calculators" currentToolId={id} onSelect={onOpenTool} disabled={disabled} />}
-            {allowed('wissens-hub') && (knowledge ?? <button type="button" className="toolhub-knowledge" disabled={disabled} onClick={() => onOpenTool('wissens-hub')}><BookOpen size={15} /><span>Wissens-Hub</span></button>)}
+            {allowed('wissens-hub') && (knowledge ?? <button type="button" className="toolhub-knowledge" aria-label="Wissens-Hub" title="Wissens-Hub" disabled={disabled} onClick={() => onOpenTool('wissens-hub')}><BookOpen size={16} aria-hidden="true" /></button>)}
           </>}
           {children}
           <button type="button" className="hub-mobile-theme" aria-label={dark ? 'Heller Modus' : 'Dunkler Modus'} onClick={toggle}>{dark ? <Sun size={15} /> : <Moon size={15} />}<span>{dark ? 'Hell' : 'Dunkel'}</span></button>
         </div>
-        <button type="button" className="hub-design-beta-badge" disabled={disabled} onClick={openSettings} aria-label="Design-Beta: Einstellungen öffnen" title="Neues Design · nur für deine Admin-Anmeldung. In den Einstellungen zur bisherigen Oberfläche zurückwechseln.">Beta</button>
         <DemoBadge />
+        </div>
       </div>
     </header>
     {createPortal(<><div className="hub-chrome-corner"><button className="hub-corner-home" disabled={disabled} onClick={onHome} aria-label="edeco Toolhub – Startseite"><ToolhubBrand compact /></button></div><nav className="hub-rail" aria-label="Toolhub-Navigation">
@@ -104,6 +109,7 @@ function BetaToolhubHeader({ title, onHome, onOpenTool, currentToolId, disabled,
       <button type="button" disabled={disabled} aria-current={id && !['projektzentrale', 'elektro-memory', 'wissens-hub'].includes(id) ? 'page' : undefined} onClick={() => setSearchOpen(true)}><Shapes size={20} /><span>Werkzeuge</span></button>
       {allowed(memoryId) && <button type="button" disabled={disabled || !onOpenTool} aria-current={id === 'elektro-memory' || id === 'wissens-hub' ? 'page' : undefined} onClick={() => onOpenTool?.(memoryId)}><BookOpen size={20} /><span>Wissen</span></button>}
       <button type="button" disabled={disabled} onClick={openSettings}><Settings size={20} /><span>Optionen</span></button>
+      <button type="button" className="hub-rail-beta" disabled={disabled} onClick={openSettings} aria-label="Design-Beta: Einstellungen öffnen" title="Neues Design · nur für deine Admin-Anmeldung. In den Einstellungen zur bisherigen Oberfläche zurückwechseln."><span>Beta</span></button>
       <button type="button" className="hub-rail-theme" aria-label={dark ? 'Heller Modus' : 'Dunkler Modus'} onClick={toggle}>{dark ? <Sun size={20} /> : <Moon size={20} />}<span>{dark ? 'Hell' : 'Dunkel'}</span></button>
     </nav></>, document.body)}
     {searchOpen && <ToolhubCommandPalette close={() => setSearchOpen(false)} onHome={onHome} onOpenTool={onOpenTool} currentToolId={id} onSettings={openSettings} />}
