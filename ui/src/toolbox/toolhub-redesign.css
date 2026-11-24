@@ -192,3 +192,18 @@
   :where(:root[data-design-beta="true"]) .hub-head-right .hub-mobile-theme span { display:none; }
 }
 @media(min-width:761px){ :where(:root[data-design-beta="true"]) .hub-head-right .lab-extra-panel { display:flex; align-items:center; gap:6px; } }
+/* Global actions in the header, tool actions in the row below it. */
+:where(:root[data-design-beta="true"]) .hub-global-actions { display:flex; align-items:center; gap:6px; }
+:where(:root[data-design-beta="true"]) .hub-header-tools { display:flex; align-items:center; justify-content:flex-end; gap:6px; min-height:42px; padding:5px 14px; border-bottom:1px solid var(--line); background:var(--panel); flex-wrap:nowrap; }
+:where(:root[data-design-beta="true"]) .hub-header-tools :is(button, a, summary):not(.hub-project-context) { box-sizing:border-box; height:32px; min-height:32px; align-items:center; justify-content:center; gap:6px; padding:0 10px; border:1px solid var(--line-strong)!important; border-radius:6px!important; background:var(--panel)!important; color:var(--fg)!important; font:500 13px/1.4 var(--font-ui)!important; box-shadow:none!important; }
+:where(:root[data-design-beta="true"]) .hub-header-tools :is(button, a, summary) svg { width:16px; height:16px; flex:none; }
+:where(:root[data-design-beta="true"]) .hub-header-tools :is(button, a, summary):hover:not(:disabled) { background:var(--panel-2)!important; }
+:where(:root[data-design-beta="true"]) .hub-header-tools .lab-icon:not(.lab-pdf), :where(:root[data-design-beta="true"]) .hub-header-tools .toolhub-nav-trigger, :where(:root[data-design-beta="true"]) .hub-header-tools .toolbox-update-button, :where(:root[data-design-beta="true"]) .hub-header-tools .toolhub-settings-button { width:32px; padding:0!important; }
+:where(:root[data-design-beta="true"]) .hub-header-tools .toolhub-nav-trigger span, :where(:root[data-design-beta="true"]) .hub-header-tools .toolhub-nav-trigger svg:last-child, :where(:root[data-design-beta="true"]) .hub-header-tools .toolbox-update-button span, :where(:root[data-design-beta="true"]) .hub-header-tools .toolhub-settings-button span { display:none; }
+:where(:root[data-design-beta="true"]) .hub-header-tools .toolbox-update-available { color:var(--toolhub-accent)!important; border-color:var(--toolhub-accent)!important; background:var(--toolhub-accent-soft)!important; }
+@media(min-width:601px){ :where(:root[data-design-beta="true"]) .hub-header-tools .toolhub-theme { display:none!important; } }
+@media(min-width:761px){ :where(:root[data-design-beta="true"]) .hub-header-tools .lab-extra-panel { display:flex; align-items:center; gap:6px; } }
+/* The theme switch lives in the rail (wide) or the header (narrow), never in the tool row. */
+:where(:root[data-design-beta="true"]) .hub-header-tools .toolhub-theme { display:none!important; }
+/* A row that only carries the hidden theme switch takes no space. */
+:where(:root[data-design-beta="true"]) .hub-header-tools:not(:has(> :not(.toolhub-theme))) { display:none; }

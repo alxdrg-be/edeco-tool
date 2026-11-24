@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import { Children, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { ArrowLeft, BookOpen, ChevronRight, Folder, House, Moon, Search, Settings, Shapes, Sun } from 'lucide-react';
 import ToolhubBrand from './ToolhubBrand';
@@ -48,6 +48,7 @@ function BetaToolhubHeader({ title, onHome, onOpenTool, currentToolId, disabled,
   const { dark, toggle } = useToolhubTheme();
   const allowed = (tool: string) => Boolean(policy && allowedToolId(tool, TOOLS, policy));
   const calculator = TOOLS.some(tool => tool.id === id && tool.category === 'Berechnungen');
+  const hasToolActions = Boolean(onOpenTool && calculator) || Children.toArray(children).length > 0;
   const memoryId = allowed('elektro-memory') ? 'elektro-memory' : 'wissens-hub';
   const openSettings = () => { if (onOpenTool) onOpenTool('toolhub-options'); else onHome(); };
   useLayoutEffect(() => {
@@ -91,17 +92,18 @@ function BetaToolhubHeader({ title, onHome, onOpenTool, currentToolId, disabled,
         </button>
         <div className="hub-head-right">
         {!policy?.demo_enabled && <ProjectContext disabled={disabled} open={allowed('projektzentrale') && onOpenTool ? () => onOpenTool('projektzentrale') : undefined} />}
-        <div className="toolhub-header-actions">
-          {onOpenTool && <>
-            {calculator && <ToolhubNavigation kind="calculators" currentToolId={id} onSelect={onOpenTool} disabled={disabled} />}
-            {allowed('wissens-hub') && (knowledge ?? <button type="button" className="toolhub-knowledge" aria-label="Wissens-Hub" title="Wissens-Hub" disabled={disabled} onClick={() => onOpenTool('wissens-hub')}><BookOpen size={16} aria-hidden="true" /></button>)}
-          </>}
-          {children}
+        <div className="hub-global-actions">
+          {onOpenTool && allowed('wissens-hub') && (knowledge ?? <button type="button" className="toolhub-knowledge" aria-label="Wissens-Hub" title="Wissens-Hub" disabled={disabled} onClick={() => onOpenTool('wissens-hub')}><BookOpen size={16} aria-hidden="true" /></button>)}
           <button type="button" className="hub-mobile-theme" aria-label={dark ? 'Heller Modus' : 'Dunkler Modus'} onClick={toggle}>{dark ? <Sun size={15} /> : <Moon size={15} />}<span>{dark ? 'Hell' : 'Dunkel'}</span></button>
         </div>
         <DemoBadge />
         </div>
       </div>
+      {/* Tool-specific controls sit in their own row, so the header row looks the same everywhere. */}
+      {hasToolActions && <div className="hub-header-tools toolhub-header-actions" role="toolbar" aria-label={`${title} · Aktionen`}>
+        {onOpenTool && calculator && <ToolhubNavigation kind="calculators" currentToolId={id} onSelect={onOpenTool} disabled={disabled} />}
+        {children}
+      </div>}
     </header>
     {createPortal(<><div className="hub-chrome-corner"><button className="hub-corner-home" disabled={disabled} onClick={onHome} aria-label="edeco Toolhub – Startseite"><ToolhubBrand compact /></button></div><nav className="hub-rail" aria-label="Toolhub-Navigation">
       <button type="button" disabled={disabled} aria-current={!id ? 'page' : undefined} onClick={onHome}><House size={20} /><span>Start</span></button>
