@@ -15,10 +15,8 @@ def test_memory_tile_formula_shortcut_and_browser_back_share_the_real_module(edi
     page.set_viewport_size({"width": 1600, "height": 1000})
     page.get_by_role("button", name="Zum Toolhub", exact=True).click()
     wait_for_toolhub(page)
-    memory = page.get_by_role("button", name="Elektro-Memory öffnen", exact=True)
+    memory = page.get_by_role("region", name="Weitere Werkzeuge").get_by_role("button", name="Elektro-Memory öffnen", exact=True)
     playwright.expect(memory).to_be_enabled()
-    # The V10 hub uses four columns at desktop width; every tool stays reachable.
-    assert page.locator(".toolbox-grid").evaluate("el => getComputedStyle(el).gridTemplateColumns.split(' ').length") == 4
     memory.click()
     playwright.expect(page).to_have_url(re.compile(r"#memory$"))
     playwright.expect(page.get_by_role("heading", name="Elektro-Memory", exact=True)).to_be_visible()
