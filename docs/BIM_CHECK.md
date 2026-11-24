@@ -10,6 +10,23 @@ Das Werkzeug öffnest du im **Toolhub → BIM → BIM-Check & Raum-Viewer**. Es 
 4. **Regelwerk öffnen.** Lade die bearbeitete XLSX-Datei über den Regelimport. Filtere die Befunde nach Status, Geschoss, PSet oder Attribut. Ein Klick auf die Elementbezeichnung öffnet den zugehörigen Inspektor mit Istwert und Vorgabe.
 5. **Bericht herunterladen.** Die XLSX-Datei enthält die vollständige Prüfung, unabhängig von den sichtbaren Filtern, mit Modellname, Regeldatei, Einzelbefunden, Vorgaben und vorhandenen Hinweisen. Sichere den Bericht vor dem Schliessen. Die Originaldateien werden ausschliesslich gelesen.
 
+## Geführte Prüfung
+
+Oben im Werkzeug führt eine Leiste in vier Schritten durch die Prüfung: **Modell öffnen**, **Modell ansehen**, **Regeln laden**, **Befunde klären**. Der aktuelle Schritt zeigt einen kurzen Hinweis und die passenden Knöpfe. Erledigte Schritte erhalten einen Haken. Mit **Ausblenden** bleibt nur die Schrittleiste sichtbar. Diese Wahl merkt sich der Browser.
+
+## IFC-Viewer (Probe)
+
+Der **IFC-Viewer · Probe** zeigt das ganze IFC mit allen Bauteilen. Er läuft vollständig lokal mit [That Open Engine](https://github.com/ThatOpen/engine_components) (MIT) und web-ifc (MPL-2.0). Worker und WASM liegen in der Oberfläche, es wird nichts aus dem Internet geladen. Die Lizenztexte liegen unter `packaging/licenses/ifc-viewer`.
+
+- **Gruppen:** Räume, Wände, Decken & Dächer, Türen & Fenster, Stützen & Träger, Treppen & Geländer und Installationen lassen sich einzeln ein- und ausblenden. Alles, was nicht zur Architektur gehört, zählt als Installation. Nova exportiert Elektro-Objekte je nach Einstellung als `IfcBuildingElementProxy` oder `IfcFlow…`.
+- **Auswahl:** Ein Klick auf ein Bauteil oder einen Raum öffnet den Attribut-Inspektor. Die Zuordnung läuft über die GlobalId.
+- **Farben:** «IFC-Farben» zeigt die Farben aus dem Modell, Räume leicht eingefärbt und durchsichtig. «Prüfstatus» färbt nach dem Regelimport jedes Objekt nach seinem schwersten Befund: Fehlt rot, Leer orange, Abweichend gelb, OK grün. Ungeprüfte Objekte bleiben grau.
+- **Schnitt:** horizontaler Schnitt 1,2 m über dem tiefsten Punkt des gewählten Geschosses.
+- **Messen:** zwei Punkte auf Bauteilen anklicken, der Abstand erscheint in Metern.
+- **Isolieren:** zeigt nur das gewählte Objekt und die ihm zugeordneten Bauteile.
+
+Die bisherige **3D**-Ansicht mit Raumkörpern bleibt als Rückfall erhalten.
+
 ## Räume in 3D ansehen
 
 Öffne ein IFC und wähle in der Raumansicht **3D**. Mit **Alle Geschosse** siehst du das Gebäude im Zusammenhang. Für übereinanderliegende Räume lässt sich ein einzelnes Geschoss auswählen. Ein Klick auf einen Raum öffnet denselben Attribut-Inspektor wie im Grundriss, einschliesslich der Ergebnisse eines geladenen Regelwerks.

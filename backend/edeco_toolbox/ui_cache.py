@@ -1,11 +1,17 @@
 """Load the current UI after an in-place update while keeping the browser profile."""
 
+import mimetypes
 from pathlib import Path
 from urllib.parse import urlencode
 
 from fastapi.staticfiles import StaticFiles
 
 from . import APP_VERSION, BUILD, COMMIT
+
+# Windows takes MIME types from the registry. Module workers (.mjs) need a JavaScript
+# type and WebAssembly streams only as application/wasm, independent of the PC setup.
+mimetypes.add_type("text/javascript", ".mjs")
+mimetypes.add_type("application/wasm", ".wasm")
 
 
 def desktop_ui_url(origin: str) -> str:

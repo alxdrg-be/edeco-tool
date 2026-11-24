@@ -1,0 +1,45 @@
+.iv { min-width: 0; }
+.iv-bar {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 7px 10px;
+  padding: 8px 15px; border-bottom: 1px solid var(--line); font-size: 13px;
+}
+.iv-chip {
+  display: inline-flex; align-items: center; gap: 6px; padding: 4px 9px; border-radius: 999px;
+  border: 1px solid var(--line-strong); background: var(--panel); color: var(--fg); cursor: pointer;
+}
+.iv-chip input { margin: 0; width: 15px; height: 15px; accent-color: var(--accent); }
+.iv-chip span { color: var(--muted); font-variant-numeric: tabular-nums; }
+.iv-chip[data-empty="true"] { opacity: .55; cursor: default; }
+.iv-seg { display: inline-flex; }
+.iv-seg button, .iv-tool {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 4px 10px; font-size: 13px;
+  background: var(--panel); border: 1px solid var(--line-strong); color: var(--fg); cursor: pointer;
+}
+.iv-tool { border-radius: 6px; }
+.iv-seg button:first-child { border-radius: 6px 0 0 6px; }
+.iv-seg button:last-child { border-radius: 0 6px 6px 0; margin-left: -1px; }
+.iv-seg button[aria-pressed="true"], .iv-tool[aria-pressed="true"] {
+  background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600;
+}
+.iv-seg button:disabled, .iv-tool:disabled { opacity: .5; cursor: default; }
+.iv-stage { position: relative; isolation: isolate; background: var(--panel-sunken); }
+.iv-canvas { width: 100%; height: clamp(340px, calc(100vh - 360px), 760px); touch-action: none; cursor: grab; }
+.iv-canvas:active { cursor: grabbing; }
+.iv-canvas canvas { display: block; }
+.iv-message {
+  position: absolute; inset: 0; display: flex; flex-direction: column; gap: 10px; align-items: center; justify-content: center;
+  color: var(--muted); font-size: 14px; text-align: center; padding: 20px;
+}
+.iv-camera, .iv-legend, .iv-readout {
+  position: absolute; border: 1px solid var(--line-strong); background: var(--panel); color: var(--fg);
+  box-shadow: var(--shadow); border-radius: 7px;
+}
+.iv-camera { right: 10px; bottom: 10px; padding: 3px; display: flex; gap: 2px; }
+.iv-camera button { padding: 0; width: 32px; height: 32px; display: grid; place-items: center; border: 0; background: none; color: inherit; border-radius: 4px; cursor: pointer; }
+.iv-camera button:hover { background: var(--accent-soft); }
+.iv-legend { left: 10px; bottom: 10px; margin: 0; padding: 7px 10px; list-style: none; display: grid; gap: 3px; font-size: 12px; }
+.iv-legend li { display: flex; align-items: center; gap: 7px; }
+.iv-legend i { width: 11px; height: 11px; border-radius: 3px; }
+.iv-legend .iv-unchecked { background: #C9D0D4; }
+.iv-readout { left: 50%; top: 10px; transform: translateX(-50%); padding: 5px 11px; font-size: 13px; font-weight: 600; margin: 0; }
+.iv-caption { font-size: 12px; padding: 5px 14px; color: var(--muted); border-bottom: 1px solid var(--line); margin: 0; }

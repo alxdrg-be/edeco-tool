@@ -147,3 +147,20 @@
   .bc-file-menu { margin-right: auto; position: static; }
   .bc-table-wrap :is(th,td) { padding: 7px; }
 }
+
+.bc-guide { border: 1px solid var(--line); background: var(--panel); border-radius: 10px; margin-bottom: 14px; }
+.bc-guide-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 12px; flex-wrap: wrap; }
+.bc-guide-steps { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 0; padding: 0; list-style: none; font-size: 13px; }
+.bc-guide-steps li { display: inline-flex; align-items: center; gap: 7px; color: var(--muted); }
+.bc-guide-steps li[data-state="active"] { color: var(--fg); font-weight: 650; }
+.bc-guide-steps li[data-state="done"] { color: var(--fg); }
+.bc-guide-dot {
+  width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 700;
+  border: 1.5px solid var(--line-strong); background: var(--panel);
+}
+.bc-guide-steps li[data-state="active"] .bc-guide-dot { background: var(--accent); border-color: var(--accent); color: #fff; }
+.bc-guide-steps li[data-state="done"] .bc-guide-dot { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.bc-guide-toggle { display: inline-flex; align-items: center; gap: 4px; border: 0; background: none; color: var(--muted); font-size: 12px; cursor: pointer; }
+.bc-guide-body { border-top: 1px solid var(--line); padding: 9px 12px 11px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; }
+.bc-guide-body p { margin: 0; font-size: 13.5px; max-width: 95ch; }
+.bc-guide-actions { display: flex; gap: 7px; flex-wrap: wrap; }

@@ -14,6 +14,7 @@ from typing import Literal
 from uuid import uuid4
 
 from fastapi import APIRouter, FastAPI, HTTPException, Request, Response, UploadFile
+from fastapi.responses import FileResponse
 from starlette.concurrency import run_in_threadpool
 
 from .storage import element_detail
@@ -158,6 +159,14 @@ def register(app: FastAPI) -> None:
                         _run_worker("scene", work, job, model_id, "")
                         (job / "scene.json").replace(cache)
         return Response(cache.read_bytes(), media_type="application/json", headers={"Cache-Control": "no-store"})
+
+    @router.get("/models/{model_id}/model.ifc")
+    def model_file(model_id: str):
+        # Read-only copy for the in-browser IFC viewer. The original upload stays untouched.
+        source = Path(sessions.get(model_id).name) / "model.ifc"
+        if not source.is_file():
+            raise HTTPException(422, "Für die 3D-Ansicht wird ein IFC-Modell benötigt.")
+        return FileResponse(source, media_type="application/octet-stream", headers={"Cache-Control": "no-store"})
 
     @router.get("/models/{model_id}/elements/{element_id:path}")
     def inspect(model_id: str, element_id: str):

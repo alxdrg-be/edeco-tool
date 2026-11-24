@@ -35,6 +35,7 @@ a = Analysis(
            (str(root / "backend" / "nova_legend" / "legend" / "resources"), "nova_legend/legend/resources"),
            *bim_datas,
            (str(root / "packaging" / "licenses" / "ifcopenshell"), "licenses/ifcopenshell"),
+           (str(root / "packaging" / "licenses" / "ifc-viewer"), "licenses/ifc-viewer"),
            (str(root / "backend" / "bim2steiger" / "version.json"), "bim2steiger"),
            (str(root / "backend" / "edeco_toolbox" / "pdf_workshop" / "assets"), "edeco_toolbox/pdf_workshop/assets"),
            (str(root / "packaging" / "toolbox.ico"), "packaging")]

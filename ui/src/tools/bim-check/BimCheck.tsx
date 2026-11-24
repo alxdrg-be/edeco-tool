@@ -4,6 +4,7 @@ import ToolHeader from "../../toolbox/ToolHeader";
 import type { ToolProps } from "../../toolbox/modules";
 import { readJson, responseError } from "../../shared/http";
 import { downloadBlob } from "../../shared/download";
+import CheckGuide from "./CheckGuide";
 import Findings from "./Findings";
 import Inspector from "./Inspector";
 import ModelBrowser, { type RoomView } from "./ModelBrowser";
@@ -32,6 +33,9 @@ export default function BimCheck({ onHome, onOpenTool }: ToolProps) {
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
   const [dragOver, setDragOver] = useState(false);
+  const [colorMode, setColorMode] = useState<"ifc" | "status">("ifc");
+  const [explored, setExplored] = useState(false);
+  const [reportSaved, setReportSaved] = useState(false);
   const modelInput = useRef<HTMLInputElement>(null);
   const guideInput = useRef<HTMLInputElement>(null);
   const request = useRef<AbortController | null>(null);
@@ -94,14 +98,14 @@ export default function BimCheck({ onHome, onOpenTool }: ToolProps) {
         const response = await fetch(`${modelPath(model.id)}/guide`, { method: "POST", body, signal: controller.signal });
         const data = await readJson<Report>(response, "Die Excel-Regeldatei konnte nicht geprüft werden.");
         if (controller.signal.aborted) return;
-        setReport(data); setGuideVersion(previous => previous + 1); setGuideName(file.name); setTab("Prüfergebnisse"); setFloor(null); setSelected(null);
+        setReport(data); setReportSaved(false); setGuideVersion(previous => previous + 1); setGuideName(file.name); setTab("Prüfergebnisse"); setFloor(null); setSelected(null);
       } else {
         const response = await fetch(`${ROOT}/models`, { method: "POST", body, signal: controller.signal });
         const data = await readJson<BuildingModel>(response, "Das Modell konnte nicht eingelesen werden.");
         if (!mounted.current || controller.signal.aborted) { void removeModel(data.id); return; }
         const previous = liveId.current;
         liveId.current = data.id;
-        setModel(data); setReport(null); setGuideName(""); setSelected(null); setObjectQuery("");
+        setModel(data); setReport(null); setGuideName(""); setSelected(null); setObjectQuery(""); setExplored(false); setReportSaved(false); setColorMode("ifc");
         setTab(data.summary.rooms > 0 ? "Räume" : "Elemente");
         const floorWithPlan = data.elements.find(item => isRoom(item) && item.polygons.length > 0);
         automaticFloor.current = Boolean(floorWithPlan);
@@ -125,7 +129,10 @@ export default function BimCheck({ onHome, onOpenTool }: ToolProps) {
       const response = await fetch(path, { signal: controller.signal });
       if (!response.ok) throw new Error(await responseError(response, "Download nicht möglich."));
       const blob = await response.blob();
-      if (!controller.signal.aborted) downloadBlob(blob, kind === "template" ? "BIM-Guide-Vorlage.xlsx" : `${model!.filename.replace(/\.[^.]+$/, "")}-BIM-Pruefbericht.xlsx`);
+      if (!controller.signal.aborted) {
+        downloadBlob(blob, kind === "template" ? "BIM-Guide-Vorlage.xlsx" : `${model!.filename.replace(/\.[^.]+$/, "")}-BIM-Pruefbericht.xlsx`);
+        if (kind === "report") setReportSaved(true);
+      }
     } catch (e) {
       if (!controller.signal.aborted) setError(e instanceof Error ? e.message : "Download nicht möglich.");
     } finally {
@@ -141,7 +148,7 @@ export default function BimCheck({ onHome, onOpenTool }: ToolProps) {
   function pick(id: string) {
     const opener = document.activeElement;
     if (!inspectorHost.current?.contains(opener) && (opener instanceof HTMLElement || opener instanceof SVGElement)) lastOpener.current = opener;
-    setSelected(id);
+    setSelected(id); setExplored(true);
     if (window.matchMedia("(max-width: 760px)").matches) requestAnimationFrame(() => inspectorHost.current?.focus());
   }
   function closeInspector() {
@@ -155,7 +162,7 @@ export default function BimCheck({ onHome, onOpenTool }: ToolProps) {
     setTab(isRoom(item) ? "Räume" : "Elemente"); setFloor(item.storey); setObjectQuery(""); pick(id);
   }
   function chooseRoomView(view: RoomView) {
-    if (view === "scene") {
+    if (view === "scene" || view === "viewer") {
       // A floor chosen only for the initial plan should not hide the rest of the building.
       if (automaticFloor.current && selected === null) setFloor(null);
       automaticFloor.current = false;
@@ -186,6 +193,28 @@ export default function BimCheck({ onHome, onOpenTool }: ToolProps) {
   const roomName = model?.source === "NOVA" ? "Raumbezug" : "Raum";
   const roomNames = model?.source === "NOVA" ? "Raumbezüge" : "Räume";
   const warnings = [...new Set([...(model?.warnings ?? []), ...(report?.warnings ?? [])])];
+  const isIfc = model?.source === "IFC";
+  function openViewer(colors: "ifc" | "status") {
+    setTab("Räume"); setFloor(null); automaticFloor.current = false;
+    setRoomView(isIfc ? "viewer" : "list"); setColorMode(colors); setExplored(true);
+  }
+  const guide = <CheckGuide steps={[
+    { title: "Modell öffnen", done: Boolean(model),
+      text: "Öffne das IFC aus Nova oder von der Architektur. Für die 3D-Ansicht braucht der Export Räume (IfcSpace), Wände, Decken, Türen und Fenster.",
+      actions: [{ label: "Datei auswählen", primary: true, run: () => modelInput.current?.click() }] },
+    { title: "Modell ansehen", done: Boolean(model) && (explored || Boolean(report)),
+      text: isIfc ? "Klicke im IFC-Viewer einen Raum oder ein Bauteil an. Rechts stehen alle Angaben. Fehlen Räume oder Geschosse, lass zuerst den Export korrigieren."
+        : "Wähle in der Liste einen Raumbezug oder ein Bauteil. Rechts stehen alle Angaben aus der Nova-Liste.",
+      actions: [{ label: isIfc ? "IFC-Viewer öffnen" : "Liste öffnen", primary: true, run: () => openViewer("ifc") }, { label: "Weiter", run: () => setExplored(true) }] },
+    { title: "Regeln laden", done: Boolean(report),
+      text: "Lade die Excel-Vorlage. Trag pro Zeile ein, welche Angabe Pflicht ist und welche Werte erlaubt sind. Importiere danach die Datei.",
+      actions: [{ label: "Regelwerk importieren", primary: true, run: () => guideInput.current?.click() }, { label: "Excel-Vorlage", run: () => void download("template") }] },
+    { title: "Befunde klären", done: reportSaved,
+      text: isIfc ? "Schalte im Viewer auf «Prüfstatus»: Rot fehlt, Orange ist leer oder abweichend, Grün ist in Ordnung. Lade den Bericht herunter und gib ihn der Architektur."
+        : "Prüfe die Befunde unter «Prüfergebnisse». Lade den Bericht herunter und gib ihn der Architektur.",
+      actions: [{ label: "Bericht herunterladen", primary: true, run: () => void download("report") },
+        isIfc ? { label: "Prüfstatus im Viewer", run: () => openViewer("status") } : { label: "Prüfergebnisse", run: () => setTab("Prüfergebnisse") }] },
+  ]} />;
   return <div className="bim-check">
     <ToolHeader title="BIM-Check & Raum-Viewer" currentToolId="bim-check" onHome={onHome} onOpenTool={onOpenTool} />
     <main className="bc-main">
@@ -195,6 +224,7 @@ export default function BimCheck({ onHome, onOpenTool }: ToolProps) {
         onChange={e => { const file = e.currentTarget.files?.[0]; e.currentTarget.value = ""; void upload(file, "guide"); }} />
       {busy && <div className="bc-notice" role="status"><LoaderCircle size={17} className="bc-spin" aria-hidden="true" />{busy}</div>}
       {error && <div className="bc-notice bc-error" role="alert"><AlertCircle size={17} aria-hidden="true" /><span>{error}</span><button type="button" className="bc-icon" aria-label="Fehlermeldung schliessen" onClick={() => setError("")}><X size={16} /></button></div>}
+      {guide}
       {!model ? <section className="bc-intro">
         <div className="bc-intro-title"><h1>BIM-Check &amp; Raum-Viewer</h1>
           <p>IFC-Räume im Grundriss und in 3D ansehen. Modellattribute mit einem Excel-Regelwerk prüfen.</p></div>
@@ -235,7 +265,7 @@ export default function BimCheck({ onHome, onOpenTool }: ToolProps) {
             : <section className="bc-panel bc-empty-check"><CheckCheck size={24} /><h2>Modell prüfen</h2><p>Wähle eine Excel-Datei mit Prüfregeln für dieses Modell.</p>
               <button type="button" className="btn" disabled={Boolean(busy)} onClick={() => guideInput.current?.click()}><FileSpreadsheet size={16} />Excel-Regelwerk auswählen</button></section>
             : <ModelBrowser key={model.id + tab} model={model} modelUrl={modelPath(model.id)} floor={floor} roomsOnly={tab === "Räume"}
-              view={roomView} onView={chooseRoomView} query={objectQuery} onQuery={setObjectQuery} selected={selected} onSelect={pick} />}
+              view={roomView} onView={chooseRoomView} query={objectQuery} onQuery={setObjectQuery} selected={selected} onSelect={pick} report={report} colorMode={colorMode} onColorMode={setColorMode} />}
           {active && <div ref={inspectorHost} className="bc-inspector-host" tabIndex={-1}><Inspector key={JSON.stringify([model.id, active.id])} modelUrl={modelPath(model.id)} element={active}
             onShowIn3D={model.source === "IFC" && isRoom(active) && (tab !== "Räume" || roomView !== "scene") ? showSelectedRoomIn3D : undefined}
             related={linked} findings={findingsByElement.get(active.id) ?? []} hasReport={Boolean(report)} onSelect={selectRelated} onClose={closeInspector} /></div>}

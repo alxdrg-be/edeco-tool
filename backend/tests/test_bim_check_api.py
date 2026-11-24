@@ -54,6 +54,9 @@ def test_import_inspect_check_export_and_close(client, tmp_path):
         assert mesh["kind"] == "room" and mesh["storey"] == room["storey"]
         assert len(set(mesh["positions"][2::3])) > 1 and len(mesh["indices"]) >= 12
         assert scene.content == client.get(PREFIX + route + "/scene").content
+        # The in-browser IFC viewer reads the unchanged working copy.
+        ifc = client.get(PREFIX + route + "/model.ifc")
+        assert ifc.status_code == 200 and ifc.content == path.read_bytes()
         detail_path = PREFIX + route + "/elements/" + quote(room["id"], safe="")
         detail = client.get(detail_path).json()
         assert detail["psets"]["Firma_Raum"]["Nutzung"] == "Technik"
@@ -81,6 +84,7 @@ def test_import_inspect_check_export_and_close(client, tmp_path):
         assert client.delete(PREFIX + route).status_code == 204
     assert client.get(detail_path).status_code == 404
     assert client.get(PREFIX + route + "/scene").status_code == 404
+    assert client.get(PREFIX + route + "/model.ifc").status_code == 404
 
 
 @pytest.mark.parametrize(("filename", "content", "code"), [
