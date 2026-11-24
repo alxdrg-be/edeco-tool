@@ -1,6 +1,6 @@
 # Toolhub – gemeinsame Oberfläche V10
 
-Stand: 18. November 2026. Grundlage ist die vom Nutzer bereitgestellte
+Stand 24. November 2026. Grundlage ist die vom Nutzer bereitgestellte
 Präsentation «edeco Toolhub Redesign» und die anschliessende Korrektur:
 Das vorhandene edeco-e bleibt das Logo; die Startseite verwendet dessen
 Petrol `#017c92`.
@@ -32,10 +32,12 @@ Entwicklungsfreigabe allgemeiner Einstellungen gilt nicht für diesen Endpunkt.
 
 ## Werkzeuge in der persönlichen Beta
 
-Die Startseite ordnet die Werkzeuge in **Modelle**, **Pläne** und **Abgabe**.
-Unter **Weitere Werkzeuge** stehen unter anderem NOVA, die Dispositionen und die
-Berechnungen. Dieselben Berechtigungen gelten für Suche, zuletzt verwendete
-Werkzeuge und direkte Aufrufe. Die Demo-Auswahl bleibt separat.
+Auf der Startseite stehen alle für die aktuelle Anmeldung freigegebenen
+Werkzeuge in einer gemeinsamen Kachelliste. Wer als Admin «Neues Design testen
+(Beta)» einschaltet, findet dort zusätzlich **IFC-Viewer**, **DWG-Werkstatt**,
+**Planvergleich** und **Planabgabe**. Die persönliche Freigabe gilt auch für die
+Suche, zuletzt verwendete Werkzeuge und direkte Aufrufe. Im Demo-Modus gilt
+zusätzlich die für die Präsentation gewählte Werkzeugauswahl.
 
 - Im **IFC-Viewer** eine IFC oder das mitgelieferte Beispiel öffnen. Geschosse,
   Räume, Eigenschaften und der BIM-Check beziehen sich auf dasselbe importierte

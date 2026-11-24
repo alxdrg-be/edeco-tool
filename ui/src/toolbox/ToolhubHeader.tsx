@@ -49,7 +49,6 @@ function BetaToolhubHeader({ title, onHome, onOpenTool, currentToolId, disabled,
   const allowed = (tool: string) => Boolean(policy && allowedToolId(tool, TOOLS, policy));
   const calculator = TOOLS.some(tool => tool.id === id && tool.category === 'Berechnungen');
   const hasToolActions = Boolean(onOpenTool && calculator) || Children.toArray(children).length > 0;
-  const memoryId = allowed('elektro-memory') ? 'elektro-memory' : 'wissens-hub';
   const openSettings = () => { if (onOpenTool) onOpenTool('toolhub-options'); else onHome(); };
   useLayoutEffect(() => {
     if (!header.current || !topRow.current) return;
@@ -107,7 +106,6 @@ function BetaToolhubHeader({ title, onHome, onOpenTool, currentToolId, disabled,
     </header>
     {createPortal(<><div className="hub-chrome-corner"><button className="hub-corner-home" disabled={disabled} onClick={onHome} aria-label="edeco Toolhub – Startseite"><ToolhubBrand compact /></button></div><nav className="hub-rail" aria-label="Toolhub-Navigation">
       <button type="button" disabled={disabled} aria-current={id && !['projektzentrale', 'elektro-memory', 'wissens-hub'].includes(id) ? 'page' : undefined} onClick={() => setSearchOpen(true)}><Shapes size={20} /><span>Werkzeuge</span></button>
-      {allowed(memoryId) && <button type="button" disabled={disabled || !onOpenTool} aria-current={id === 'elektro-memory' || id === 'wissens-hub' ? 'page' : undefined} onClick={() => onOpenTool?.(memoryId)}><BookOpen size={20} /><span>Wissen</span></button>}
       <button type="button" disabled={disabled} onClick={openSettings}><Settings size={20} /><span>Optionen</span></button>
       <button type="button" className="hub-rail-beta" disabled={disabled} onClick={openSettings} aria-label="Design-Beta: Einstellungen öffnen" title="Neues Design · nur für deine Admin-Anmeldung. In den Einstellungen zur bisherigen Oberfläche zurückwechseln."><span>Beta</span></button>
       <button type="button" className="hub-rail-theme" aria-label={dark ? 'Heller Modus' : 'Dunkler Modus'} onClick={toggle}>{dark ? <Sun size={20} /> : <Moon size={20} />}<span>{dark ? 'Hell' : 'Dunkel'}</span></button>

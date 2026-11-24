@@ -3,7 +3,7 @@ import { Moon, Sun } from "lucide-react";
 import { filterTools, presentationCatalog, TOOLS } from "./catalog";
 import { MODULES } from "./modules";
 import ToolIcon from "./ToolIcon";
-import BetaToolGroups from "./BetaToolGroups";
+import BetaToolList from "./BetaToolList";
 import ToolboxUpdates from "./ToolboxUpdates";
 import ProjectPicker from "../tools/projektzentrale/ProjectPicker";
 import { openKnowledge } from "../tools/berechnungen/KnowledgeLink";
@@ -186,7 +186,7 @@ function ToolboxContents() {
         </div>
       </div>
       <p className="toolbox-count" role="status">{tools.length} {tools.length === 1 ? "Werkzeug" : "Werkzeuge"} · {tools.filter(t => t.status === "available").length} verfügbar</p>
-      {beta && !policy.demo_enabled ? <BetaToolGroups tools={tools} openTool={openTool} /> : <div className="toolbox-grid">
+      {beta && !policy.demo_enabled ? <BetaToolList tools={tools} openTool={openTool} /> : <div className="toolbox-grid">
         {tools.map(tool => {
           const available = tool.status === "available" && Boolean(MODULES[tool.id]);
           const inProgress = tool.developmentStatus === "in-progress";

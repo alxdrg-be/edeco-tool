@@ -1,6 +1,6 @@
 ## Neue Werkzeuge in der persönlichen Admin-Beta · 24. November 2026
 
-Unter **Einstellungen → Neues Design testen (Beta)** erscheinen die Gruppen **Modelle**, **Pläne** und **Abgabe**.
+Auf der Startseite stehen alle freigegebenen Werkzeuge in einer gemeinsamen Kachelliste. Admins können unter **Einstellungen → Neues Design testen (Beta)** für ihre eigene Anmeldung vier zusätzliche Kacheln einblenden. Den Wissens-Hub öffnest du über das Buchsymbol oben rechts.
 
 - Der **IFC-Viewer** öffnet ein lokales Modell bis 256 MiB. Modellstruktur, Objektauswahl und BIM-Check verwenden denselben Import.
 - Die **DWG-Werkstatt** verarbeitet eine in Nova exportierte DXF bis 16 MiB. Büroprofile, Vorher/Nachher-Vorschau und Prüfprotokoll helfen beim Aufbereiten einer Kopie.

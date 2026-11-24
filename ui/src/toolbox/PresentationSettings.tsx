@@ -96,7 +96,7 @@ export function ToolhubSettingsDialog({ onClose, onSaved }: { onClose: () => voi
       <div className="toolhub-settings-heading"><h2 id="toolhub-settings-title">Toolhub-Einstellungen</h2><button className="btn icon" aria-label="Einstellungen schliessen" disabled={busy} onClick={onClose}><X size={18} /></button></div>
       {policy.is_admin && <section className="toolhub-design-beta" aria-label="Design-Beta für Administratoren">
         <label className="toolhub-demo-switch"><input type="checkbox" checked={designBetaEnabled(policy)} disabled={busy} onChange={event => void changeDesign(event.target.checked)} />
-          <span><strong>Neues Design testen (Beta)</strong><small>Persönlich für deine Admin-Anmeldung. Probiere die Werkzeuggruppen, den IFC-Viewer, die DWG-Werkstatt, den Planvergleich und die Planabgabe aus.</small></span>
+          <span><strong>Neues Design testen (Beta)</strong><small>Persönlich für deine Admin-Anmeldung. Probiere den IFC-Viewer, die DWG-Werkstatt, den Planvergleich und die Planabgabe aus.</small></span>
         </label>
         <p className="toolhub-settings-note">Wirkt sofort und lässt sich hier wieder ausschalten. Berechnungen, Projekte und Dateien bleiben dieselben.</p>
         {policy.design_beta_error && <p role="alert" className="error">{policy.design_beta_error}</p>}

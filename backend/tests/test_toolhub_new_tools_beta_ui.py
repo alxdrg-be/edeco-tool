@@ -17,16 +17,40 @@ BETA_TILES = {
 }
 
 
-def test_grouped_home_opens_new_workspaces_and_exposes_them_in_search(editor):
+def test_one_list_contains_all_tools_and_opens_beta_workspaces(editor):
     page, *_ = editor
+    page.set_viewport_size({"width": 1366, "height": 768})
     home(page)
-    for section in ("Modelle", "Pläne", "Abgabe"):
-        playwright.expect(page.get_by_role("heading", name=section, exact=True)).to_be_visible()
+    tools = page.get_by_role("list", name="Werkzeuge", exact=True)
+    playwright.expect(tools).to_have_count(1)
+    expected = {
+        *BETA_TILES,
+        "NOVA-Legenden", "Rack-Dispo", "Verteiler-Dispo", "BIM2STEIGER",
+        "BIM-Check & Raum-Viewer", "Dokumenten-Assistent", "Dateien umbenennen",
+        "PDF-Werkstatt", "Projektzentrale", "Berechnungen", "Elektro-Memory",
+    }
+    entries = tools.get_by_role("listitem")
+    playwright.expect(entries).to_have_count(len(expected))
+    assert set(entries.get_by_role("button").evaluate_all("els => els.map(el => el.getAttribute('aria-label'))")) == {
+        f"{name} öffnen" for name in expected
+    }
+    assert tools.evaluate("el => el.scrollWidth <= el.clientWidth")
+    for entry in entries.all():
+        playwright.expect(entry).to_be_in_viewport(ratio=1)
+
+    rail = page.get_by_role("navigation", name="Toolhub-Navigation", exact=True)
+    playwright.expect(rail.get_by_role("button", name="Wissen", exact=True)).to_have_count(0)
+    knowledge = page.get_by_role("banner").get_by_role("button", name="Wissens-Hub", exact=True)
+    knowledge.click()
+    playwright.expect(page.locator(".hub-header-title")).to_have_text("Wissens-Hub")
+    home(page)
 
     for name, workspace_heading in BETA_TILES.items():
-        page.get_by_role("button", name=f"{name} öffnen", exact=True).click()
+        tools.get_by_role("button", name=f"{name} öffnen", exact=True).click()
         playwright.expect(page.locator(".hub-header-title")).to_have_text(name)
         playwright.expect(page.locator("main").get_by_role("heading", name=workspace_heading, exact=True)).to_be_visible()
+        playwright.expect(knowledge).to_be_visible()
+        playwright.expect(rail.get_by_role("button", name="Wissen", exact=True)).to_have_count(0)
         home(page)
 
     page.keyboard.press("Control+k")

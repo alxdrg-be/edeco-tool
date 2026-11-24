@@ -15,7 +15,7 @@ def test_memory_tile_formula_shortcut_and_browser_back_share_the_real_module(edi
     page.set_viewport_size({"width": 1600, "height": 1000})
     page.get_by_role("button", name="Zum Toolhub", exact=True).click()
     wait_for_toolhub(page)
-    memory = page.get_by_role("region", name="Weitere Werkzeuge").get_by_role("button", name="Elektro-Memory öffnen", exact=True)
+    memory = page.get_by_role("list", name="Werkzeuge", exact=True).get_by_role("button", name="Elektro-Memory öffnen", exact=True)
     playwright.expect(memory).to_be_enabled()
     memory.click()
     playwright.expect(page).to_have_url(re.compile(r"#memory$"))
