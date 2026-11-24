@@ -7,6 +7,10 @@ Auf der Startseite stehen alle freigegebenen Werkzeuge in einer gemeinsamen Kach
 - Der **Planvergleich** richtet zwei PDF-Stände an Passpunkten aus. Änderungen lassen sich sichten und als Vergleichs-PDF oder Liste ausgeben.
 - Die **Planabgabe** führt vom PDF-Import über die Indexprüfung zum ZIP mit Planliste. Der Versand wird separat beim Projekt bestätigt.
 
+## Rack-Dispo · Korrektur der Platzierung
+
+Beim Ziehen eines Geräts gilt die sichtbare HE-Reihe auch unmittelbar nach dem Ein- oder Ausblenden einer Meldung.
+
 ## BIM-Check & Raum-Viewer · 24. November 2026
 
 - IFC-Datei lokal öffnen, Geschoss wählen und zwischen Grundriss, 3D und Raumliste wechseln. In 3D lassen sich Raumkörper anklicken und mit einer transparenten Gebäudestruktur ansehen.

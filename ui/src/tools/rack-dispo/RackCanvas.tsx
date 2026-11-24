@@ -87,6 +87,7 @@ export function RackDeviceGlyph({ profile, width, height, screenScale }: { profi
 
 export default function RackCanvas({ document, rackId, view, selectedIds, dragProfileId = null, issues = [], onSelect, onPlace, onMove, onError, onDelete, onCopy, onPaste, focusPlacementId }: RackCanvasProps) {
   const holder = useRef<HTMLDivElement>(null), gesture = useRef<Gesture | null>(null), unique = useId().replaceAll(":", "");
+  const drawing = useRef<SVGSVGElement>(null);
   const dropCache = useRef<{ document: RackDocument; key: string; preview: Preview } | null>(null);
   const [size, setSize] = useState({ width: 720, height: 720 });
   const [viewport, setViewport] = useState<Viewport>({ x: -120, y: -100, scale: .3 });
@@ -156,13 +157,18 @@ export default function RackCanvas({ document, rackId, view, selectedIds, dragPr
   }, [focusPlacementId, place]);
 
   function world(clientX: number, clientY: number) {
-    const rect = holder.current!.getBoundingClientRect(), current = context.current.viewport;
-    return { x: current.x + (clientX - rect.left) / current.scale, y: current.y + (clientY - rect.top) / current.scale };
+    // A banner can resize the SVG before the next viewBox fit. Use the transform on screen.
+    const matrix = drawing.current?.getScreenCTM();
+    if (!matrix) return null;
+    const point = new DOMPoint(clientX, clientY).matrixTransform(matrix.inverse());
+    return Number.isFinite(point.x) && Number.isFinite(point.y) ? point : null;
   }
   function dropPreview(profileId: string, clientX: number, clientY: number): Preview | null {
     const current = context.current, profile = current.document.profiles.find(item => item.id === profileId);
     if (!current.rack || !profile) return null;
-    const point = world(clientX, clientY), physicalLeft = current.view === "rear" ? point.x >= current.rack.widthMm / 2 : point.x < current.rack.widthMm / 2;
+    const point = world(clientX, clientY);
+    if (!point) return null;
+    const physicalLeft = current.view === "rear" ? point.x >= current.rack.widthMm / 2 : point.x < current.rack.widthMm / 2;
     const side: MountSide = profile.units === 0 ? physicalLeft ? "zero-left" : "zero-right" : current.view;
     // 0-HE accessories store a valid inert HE index; their position uses zeroStartMm.
     const startUnit = profile.units === 0 ? 1 : rawStartUnitFromY(current.rack, point.y, profile.units);
@@ -300,7 +306,7 @@ export default function RackCanvas({ document, rackId, view, selectedIds, dragPr
   return <section className="rd-canvas-panel" aria-label="Rack-Zeichnung">
     <div className="rd-canvas-caption"><span><ScanLine size={15} />{rack.label} · {view === "front" ? "Vorderansicht" : "Rückansicht"}</span><span>{rack.units} HE · {number(rack.widthMm)} × {number(rack.heightMm)} × {number(rack.depthMm)} mm</span></div>
     <div className={`rd-canvas-viewport${hand || space ? " is-hand" : ""}${panning ? " is-panning" : ""}`} ref={holder} tabIndex={0} data-document-zoom="true" data-rack-dropzone="true" data-rack-zoom={fitPercentage} onKeyDown={keyDown} onDragOver={dragOver} onDrop={drop} onDragLeave={event => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setPreview(null); }} aria-label="Rack bearbeiten. Pfeiltasten verschieben Geräte um eine HE, Strg und Mausrad zoomen die Zeichnung.">
-      <svg className="rd-rack-svg" viewBox={`${viewport.x} ${viewport.y} ${size.width / viewport.scale} ${size.height / viewport.scale}`} onPointerDown={startPan} onPointerMove={move} onPointerUp={end} onPointerCancel={() => { gesture.current = null; setPreview(null); setPanning(false); }}>
+      <svg ref={drawing} className="rd-rack-svg" viewBox={`${viewport.x} ${viewport.y} ${size.width / viewport.scale} ${size.height / viewport.scale}`} onPointerDown={startPan} onPointerMove={move} onPointerUp={end} onPointerCancel={() => { gesture.current = null; setPreview(null); setPanning(false); }}>
         <defs><pattern id={`${unique}-grid`} width="40" height="40" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r={.75 / viewport.scale} fill="currentColor" opacity=".1" /></pattern><pattern id={`${unique}-rail`} width="12" height="14.8167" patternUnits="userSpaceOnUse"><rect x="4" y="4" width="4" height="6" rx="1" fill={rackDrawingInk(cabinetFill)} opacity=".5" /></pattern></defs>
         <rect x={viewport.x} y={viewport.y} width={size.width / viewport.scale} height={size.height / viewport.scale} fill={`url(#${unique}-grid)`} />
         <g className="rd-cabinet" style={cabinetStyle}><rect className="rd-cabinet-shell" width={rack.widthMm} height={rack.heightMm} rx="15" /><rect className="rd-cabinet-interior" x="22" y="22" width={rack.widthMm - 44} height={rack.heightMm - 44} rx="8" />

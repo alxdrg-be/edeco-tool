@@ -282,24 +282,34 @@ def test_drag_preview_blocks_a_collision_then_snaps_to_the_requested_free_he(rac
     source = page.locator('[data-rack-profile="patch24"] .rd-library-device')
     zone = page.locator('[data-rack-dropzone="true"]')
     transfer = page.evaluate_handle("() => new DataTransfer()")
+
+    def drag_at_row(event, he, *, dismiss_collision=False):
+        # Read the displayed row centre and dispatch in the same browser task.
+        zone.evaluate("""async (zone, {event, he, transfer, dismissCollision}) => {
+          const init = {bubbles: true, cancelable: true, dataTransfer: transfer};
+          if (dismissCollision) {
+            document.querySelector('[aria-label="Meldung schliessen"]').click();
+            // React removes the banner in a microtask, before ResizeObserver refits the SVG.
+            await Promise.resolve();
+            const source = document.querySelector('[data-rack-profile="patch24"] .rd-library-device');
+            source.dispatchEvent(new DragEvent('dragstart', init));
+          }
+          const row = zone.querySelector(`[data-he="${he}"] > rect`).getBoundingClientRect();
+          zone.dispatchEvent(new DragEvent(event, {
+            ...init, clientX: row.x + row.width / 2, clientY: row.y + row.height / 2,
+          }));
+        }""", {"event": event, "he": he, "transfer": transfer, "dismissCollision": dismiss_collision})
+
     source.dispatch_event("dragstart", {"dataTransfer": transfer})
-    occupied = page.locator('.rd-he-row[data-he="39"] > rect').bounding_box()
-    pointer = {"dataTransfer": transfer, "clientX": occupied["x"] + occupied["width"] / 2,
-               "clientY": occupied["y"] + occupied["height"] / 2}
-    zone.dispatch_event("dragover", pointer)
+    drag_at_row("dragover", 39)
     playwright.expect(page.locator(".rd-drop-feedback.is-error")).to_contain_text("Prüf-Rangierpanel")
-    zone.dispatch_event("drop", pointer)
+    drag_at_row("drop", 39)
     source.dispatch_event("dragend", {"dataTransfer": transfer})
     playwright.expect(page.get_by_role("alert")).to_contain_text("Prüf-Rangierpanel")
     assert len(saved_document(page, tmp_path)["placements"]) == 3
-    page.get_by_role("button", name="Meldung schliessen", exact=True).click()
-    source.dispatch_event("dragstart", {"dataTransfer": transfer})
-    free = page.locator('.rd-he-row[data-he="37"] > rect').bounding_box()
-    pointer = {"dataTransfer": transfer, "clientX": free["x"] + free["width"] / 2,
-               "clientY": free["y"] + free["height"] / 2}
-    zone.dispatch_event("dragover", pointer)
+    drag_at_row("dragover", 37, dismiss_collision=True)
     playwright.expect(page.locator(".rd-drop-feedback")).to_contain_text("HE 37")
-    zone.dispatch_event("drop", pointer)
+    drag_at_row("drop", 37)
     source.dispatch_event("dragend", {"dataTransfer": transfer})
     document = saved_document(page, tmp_path)
     assert len(document["placements"]) == 4
