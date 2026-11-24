@@ -1,11 +1,11 @@
 import { createContext, useContext, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Calculator, Check, ChevronDown, Search, Shapes, X } from "lucide-react";
-import { TOOLS, type ToolInfo } from "./catalog";
+import type { ToolInfo } from "./catalog";
 import ToolIcon from "./ToolIcon";
 import { useDialogFocus } from "../shared/useDialogFocus";
 import { usePresentation } from "./PresentationSettings";
-import { toolAllowed, type PresentationPolicy } from "./presentationPolicy";
+import { toolsForPresentation, type PresentationPolicy } from "./presentationPolicy";
 import "./toolhub-navigation.css";
 
 /** Current location comes from the host; navigation callbacks still belong to each editor. */
@@ -15,7 +15,7 @@ export function useToolhubLocation() { return useContext(ToolhubLocation); }
 type Kind = "tools" | "calculators";
 
 function entries(kind: Kind, policy: PresentationPolicy | null): readonly ToolInfo[] {
-  const tools = TOOLS.filter(tool => policy ? toolAllowed(tool, policy) : !tool.hiddenFromHub);
+  const tools = toolsForPresentation(policy);
   if (kind === "tools") return tools.filter(tool => !tool.parentId);
   const overview = tools.find(tool => tool.id === "berechnungen");
   return [

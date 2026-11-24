@@ -5,6 +5,8 @@ import type { ToolProps } from "../../toolbox/modules";
 import { buildName, DEFAULTS, nameIssue, PARTS, restoreSettings, type NamingSettings, type Part } from "./naming";
 import "./file-rename.css";
 import { notifyProjectsChanged, useProjectHub, type Project } from "../projektzentrale/projectHubState";
+import DeliveryFlow from "../planlieferung/DeliveryFlow";
+import { filenameIndex } from "../planlieferung/deliveryIndex";
 import DeliveryHistory from "../planlieferung/DeliveryHistory";
 import ToolHeader from "../../toolbox/ToolHeader";
 import { IncomingToolFiles } from "../../toolbox/ToolHandoffPanel";
@@ -14,7 +16,7 @@ import { responseError } from "../../shared/http";
 const API = "/api/tools/dateien-umbenennen";
 const STORAGE = "edeco.rename.template.v1";
 interface Detection { floor: string; candidates: string[]; source: string; note: string }
-interface Row extends Detection { id: number; file: File; customName: string | null; index: string | null; scale: string | null; plan: string | null }
+export interface RenameRow extends Detection { id: number; file: File; customName: string | null; index: string | null; scale: string | null; plan: string | null }
 function load(): NamingSettings {
   try { return restoreSettings(localStorage.getItem(STORAGE)); } catch { return structuredClone(DEFAULTS); }
 }
@@ -22,9 +24,9 @@ async function failure(response: Response): Promise<never> {
   throw new Error(await responseError(response, "Die Aktion konnte nicht abgeschlossen werden."));
 }
 
-export default function FileRename({ onHome, onOpenTool, deliveryMode = false }: ToolProps & { deliveryMode?: boolean }) {
+export default function FileRename({ onHome, onOpenTool, deliveryMode = false, betaDelivery = false }: ToolProps & { deliveryMode?: boolean; betaDelivery?: boolean }) {
   const [settings, setSettings] = useState(load);
-  const [rows, setRows] = useState<Row[]>([]);
+  const [rows, setRows] = useState<RenameRow[]>([]);
   const [session, setSession] = useState("");
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
@@ -72,7 +74,7 @@ export default function FileRename({ onHome, onOpenTool, deliveryMode = false }:
   function changeSettings(change: (old: NamingSettings) => NamingSettings) {
     setSettings(change); setExported(false); setNotice(""); requestId.current = crypto.randomUUID();
   }
-  function changeRow(id: number, patch: Partial<Row>) {
+  function changeRow(id: number, patch: Partial<RenameRow>) {
     setRows(old => old.map(row => row.id === id ? { ...row, ...patch } : row)); setExported(false); setNotice(""); requestId.current = crypto.randomUUID();
   }
   function move(key: Part, offset: number) {
@@ -93,21 +95,21 @@ export default function FileRename({ onHome, onOpenTool, deliveryMode = false }:
     }
     setBusy("Geschosse werden geprüft …"); setExported(false); requestId.current = crypto.randomUUID();
     try {
-      const additions: Row[] = [];
+      const additions: RenameRow[] = [];
       for (const file of files) {
         const form = new FormData(); form.append("file", file);
         const response = await fetch(API + "/inspect", { method: "POST", headers: { "X-Edeco-Rename": session }, body: form });
         if (!response.ok) await failure(response);
         const detected = await response.json() as Detection;
         const id = nextId.current++;
-        additions.push({ ...detected, id, file, customName: null, index: null, scale: null, plan: null });
+        additions.push({ ...detected, id, file, customName: null, index: betaDelivery ? filenameIndex(file.name) : null, scale: null, plan: null });
       }
       setRows(old => [...old, ...additions]);
       return true;
     } catch (e) { setError((e as Error).message); return false; }
     finally { setBusy(""); }
   }
-  function rowSettings(row: Row): NamingSettings {
+  function rowSettings(row: RenameRow): NamingSettings {
     const values = { ...settings.values, index: row.index ?? settings.values.index, scale: row.scale ?? settings.values.scale, plan: row.plan ?? settings.values.plan };
     return { ...settings, values, enabled: { ...settings.enabled, index: settings.enabled.index && (!deliveryMode || Boolean(values.index.trim())) } };
   }
@@ -146,18 +148,7 @@ export default function FileRename({ onHome, onOpenTool, deliveryMode = false }:
     if (!rows.length || exported || window.confirm("Die Dateiliste und einzelne Korrekturen werden beim Verlassen verworfen. Die Namensvorlage bleibt gespeichert. Werkzeug wechseln?")) action();
   }
   const example = buildName({ ...settings, values: { ...settings.values, project: settings.values.project || "1498", date: settings.values.date || "2026-11-01" } }, "OG02");
-  return <div className="rename-tool">
-    <ToolHeader title={deliveryMode ? "Planlieferungs-Assistent" : "Dateien umbenennen"} onHome={() => leave()} onOpenTool={onOpenTool ? id => leave(() => onOpenTool(id)) : undefined} disabled={Boolean(busy)} />
-    {!deliveryMode && <IncomingToolFiles target="dateien-umbenennen" currentProjectId={activeProject?.id} disabled={!session || Boolean(busy)} onReceive={addFiles} />}
-    <main className="rename-main">
-      <div className="rename-workspace-heading"><div><h1>{deliveryMode ? "Planlieferung vorbereiten" : "Dateien umbenennen"}</h1>
-        <p>{deliveryMode ? "Projekt wählen, PDFs prüfen und ein Lieferpaket mit Planliste erstellen." : "Dateinamen prüfen und benannte Kopien herunterladen."}</p></div>
-        <div className="rename-workspace-actions"><span role="status">{busy || (rows.length ? exported ? "ZIP-Download gestartet" : `${rows.length} ${rows.length === 1 ? "Datei" : "Dateien"} · noch nicht exportiert` : "Keine Dateien geöffnet")}</span>
-          {!deliveryMode && <button className="btn primary" disabled={!session || !rows.length || Boolean(busy) || issues.some(Boolean)} onClick={() => void download()}>Kopien als ZIP</button>}
-        </div>
-      </div>
-      {deliveryMode && <ol className="tool-workflow" aria-label="Ablauf"><li>Lieferangaben</li><li>PDFs & Dateinamen</li><li>Lieferpaket erstellen</li></ol>}
-      {deliveryMode && <section className="rename-template" aria-label="Lieferangaben"><h2>Lieferangaben</h2><div className="delivery-fields">
+  const deliveryFields = deliveryMode && <section className="rename-template" aria-label="Lieferangaben"><h2>Lieferangaben</h2><div className="delivery-fields">
         <label>Projekt<select aria-label="Lieferprojekt" disabled={Boolean(busy) || !projects} value={deliveryProject?.id ?? ""} onChange={event => {
           const project = projects?.projects.find(item => item.id === event.target.value) ?? null;
           setDeliveryProject(project); projectTouched.current = true; changeSettings(old => ({ ...old, values: { ...old.values, project: project?.number ?? "" } }));
@@ -169,13 +160,8 @@ export default function FileRename({ onHome, onOpenTool, deliveryMode = false }:
         <label>Bemerkung<input aria-label="Lieferbemerkung" maxLength={2000} value={deliveryNotes} disabled={Boolean(busy)} onChange={event => { setDeliveryNotes(event.target.value); requestId.current = crypto.randomUUID(); setExported(false); setNotice(""); }} /></label>
       </div><p>Vorbereitung erzeugt eine ZIP und einen Eintrag beim Projekt. Dateien werden dabei nicht versendet. Index darf leer bleiben.</p>
         {deliveryProject && projects?.projects.find(project => project.id === deliveryProject.id)?.version !== deliveryProject.version && <p role="alert" className="rename-error">Projektdaten haben sich geändert. Bitte Projekt oben erneut auswählen und die Angaben prüfen.</p>}
-      </section>}
-      {!deliveryMode && activeProject && <div className="rename-project"><span>Aktives Projekt: <strong>{activeProject.number} · {activeProject.name}</strong></span>
-        {settings.values.project === activeProject.number ? <small>Projektnummer übernommen.</small> : <button className="btn" disabled={Boolean(busy)} onClick={() => { projectTouched.current = true; changeSettings(old => ({ ...old, values: { ...old.values, project: activeProject.number } })); }}>Projektnummer übernehmen</button>}
-      </div>}
-      {!deliveryMode && projects && !activeProject && <div className="rename-project">Kein aktives Projekt. Die Projektnummer kannst du unten manuell eingeben.</div>}
-      {projectError && <p role="alert" className="rename-error">Projektzentrale nicht erreichbar: {projectError} Die Projektnummer kann manuell eingegeben werden.</p>}
-      <details className="rename-template rename-naming" aria-label="Namensvorlage" open={templateOpen} onToggle={event => setTemplateOpen(event.currentTarget.open)}>
+      </section>;
+  const templateFields = <details className="rename-template rename-naming" aria-label="Namensvorlage" open={templateOpen} onToggle={event => setTemplateOpen(event.currentTarget.open)}>
         <summary><span><strong>Namensvorlage</strong><small>{example}</small></span><ChevronDown size={18} aria-hidden="true" /></summary>
         <div className="rename-naming-fields"><details className="rename-help"><summary>Hinweise zu Namensbausteinen</summary><p>Bausteine auswählen und ihre Reihenfolge festlegen. Die Auswahllisten folgen der Dokumentenbezeichnung edeco AG: Fachbereich A, E, KO, L, H, S, K; Planart G oder P; Gewerk zum Beispiel SUS, UKV oder RTV; Geschoss UG, EG, OG, DG; Massstab 1, 5, 50, 100, 1000; Index a–c und Planungsphase 31, 32, 41, 51, 53. APP bleibt für den bisherigen Apparatenplan wählbar. Eigene Kürzel sind möglich.</p></details>
         <fieldset disabled={Boolean(busy)} className="rename-parts"><legend>Namensbausteine und Reihenfolge</legend>
@@ -195,7 +181,35 @@ export default function FileRename({ onHome, onOpenTool, deliveryMode = false }:
         </fieldset>
         <p className="rename-example">Beispiel mit 2. Obergeschoss: <strong>{example}</strong></p>
         <small>Vorlage wird auf diesem PC gespeichert. Nach der Projektnummer folgt „_“, zwischen den übrigen Bausteinen „-“.</small></div>
-      </details>
+      </details>;
+  const toolHeader = <ToolHeader title={betaDelivery ? "Planabgabe" : deliveryMode ? "Planlieferungs-Assistent" : "Dateien umbenennen"} onHome={() => leave()} onOpenTool={onOpenTool ? id => leave(() => onOpenTool(id)) : undefined} disabled={Boolean(busy)} />;
+  if (betaDelivery) return <div className="rename-tool">
+    {toolHeader}
+    <DeliveryFlow rows={rows} names={names} issues={issues} canImport={Boolean(session)}
+      projectId={deliveryProject?.id ?? ""} recipient={recipient} date={deliveryDate}
+      busy={busy} error={error || projectError} notice={notice} deliveryReady={deliveryReady}
+      settings={settings} deliveryFields={deliveryFields} templateFields={templateFields}
+      onAdd={addFiles} onChange={changeRow} onDownload={download}
+      onRemove={id => { setRows(old => old.filter(row => row.id !== id)); setExported(false); setNotice(""); requestId.current = crypto.randomUUID(); }} />
+  </div>;
+  return <div className="rename-tool">
+    {toolHeader}
+    {!deliveryMode && <IncomingToolFiles target="dateien-umbenennen" currentProjectId={activeProject?.id} disabled={!session || Boolean(busy)} onReceive={addFiles} />}
+    <main className="rename-main">
+      <div className="rename-workspace-heading"><div><h1>{deliveryMode ? "Planlieferung vorbereiten" : "Dateien umbenennen"}</h1>
+        <p>{deliveryMode ? "Projekt wählen, PDFs prüfen und ein Lieferpaket mit Planliste erstellen." : "Dateinamen prüfen und benannte Kopien herunterladen."}</p></div>
+        <div className="rename-workspace-actions"><span role="status">{busy || (rows.length ? exported ? "ZIP-Download gestartet" : `${rows.length} ${rows.length === 1 ? "Datei" : "Dateien"} · noch nicht exportiert` : "Keine Dateien geöffnet")}</span>
+          {!deliveryMode && <button className="btn primary" disabled={!session || !rows.length || Boolean(busy) || issues.some(Boolean)} onClick={() => void download()}>Kopien als ZIP</button>}
+        </div>
+      </div>
+      {deliveryMode && <ol className="tool-workflow" aria-label="Ablauf"><li>Lieferangaben</li><li>PDFs & Dateinamen</li><li>Lieferpaket erstellen</li></ol>}
+      {deliveryFields}
+      {!deliveryMode && activeProject && <div className="rename-project"><span>Aktives Projekt: <strong>{activeProject.number} · {activeProject.name}</strong></span>
+        {settings.values.project === activeProject.number ? <small>Projektnummer übernommen.</small> : <button className="btn" disabled={Boolean(busy)} onClick={() => { projectTouched.current = true; changeSettings(old => ({ ...old, values: { ...old.values, project: activeProject.number } })); }}>Projektnummer übernehmen</button>}
+      </div>}
+      {!deliveryMode && projects && !activeProject && <div className="rename-project">Kein aktives Projekt. Die Projektnummer kannst du unten manuell eingeben.</div>}
+      {projectError && <p role="alert" className="rename-error">Projektzentrale nicht erreichbar: {projectError} Die Projektnummer kann manuell eingegeben werden.</p>}
+      {templateFields}
       <section aria-label="Dateivorschau" className="rename-preview">
         <div className="rename-actions"><h2>Dateien & Vorschau</h2><button className="btn" disabled={!session || Boolean(busy)} onClick={() => input.current?.click()}>PDFs hinzufügen</button>
           <input ref={input} className="rename-file" aria-label="PDFs hinzufügen" type="file" accept=".pdf" multiple disabled={!session || Boolean(busy)} onChange={event => { void addFiles(Array.from(event.target.files || [])); event.target.value = ""; }} />

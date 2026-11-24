@@ -26,7 +26,7 @@ export default function DeliveryHistory({ projectId }: { projectId: string }) {
     {(error || loadError) && <p role="alert" className="rename-error">{error || loadError}</p>}
     {!records.length && <p>Noch keine Lieferung für dieses Projekt vorbereitet.</p>}
     {records.map(record => <article key={record.id} className="delivery-record"><div className="rename-actions"><strong>{record.title}</strong><span className={record.sent_at ? "delivery-sent" : ""}>{record.sent_at ? "Versand bestätigt" : "Vorbereitet · noch kein Versand bestätigt"}</span></div>
-      <p>{record.delivery_date} · {record.recipient} · {record.plans.length} Pläne · Projekt {record.project_number}</p>
+      <p>{record.delivery_date} · {record.recipient} · {record.plans.length} {record.plans.length === 1 ? "Plan" : "Pläne"} · Projekt {record.project_number}</p>
       {record.sent_at && <small>Versandbestätigung erfasst: {new Date(record.sent_at).toLocaleString("de-CH")}</small>}
       <details><summary>Pläne anzeigen</summary><ul>{record.plans.map(plan => <li key={plan.filename}>{plan.filename} · {plan.floor} · {plan.plan_type} · Index {plan.index || "ohne"} · 1:{plan.scale}</li>)}</ul></details>
       <div className="rename-actions"><button type="button" className="btn" onClick={() => exportList(record)}>Planliste CSV</button><button type="button" className="btn" onClick={() => downloadBlob(new Blob([JSON.stringify(record, null, 2)], { type: "application/json" }), `Planliste-${record.id}.json`)}>Nachweis JSON</button>

@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { allowedToolId, DEFAULT_DEMO_TOOLS, designBetaEnabled, toolAllowed, type PresentationPolicy } from "./presentationPolicy.ts";
+import { TOOLS } from "./catalog.ts";
+import { allowedToolId, DEFAULT_DEMO_TOOLS, designBetaEnabled, toolAllowed, toolsForPresentation, type PresentationPolicy } from "./presentationPolicy.ts";
 
 const normal: PresentationPolicy = { revision: "0", demo_enabled: false, demo_tools: [...DEFAULT_DEMO_TOOLS], admins: ["aduerger", "nstrauss"], identity: "someone", is_admin: false, can_manage: false, windows_roles: true, design_beta_enabled: false, design_beta_error: "" };
 
@@ -41,4 +42,26 @@ test("memory is part of the five-tool demo and an explicit reduced selection is 
   assert.equal(allowedToolId("elektro-memory", tools, { ...demo, demo_tools: ["nova-legenden"] }), false);
   assert.equal(allowedToolId("formelrechner", tools, demo), true);
   assert.equal(allowedToolId("formelrechner", tools, { ...demo, demo_tools: ["nova-legenden"] }), false);
+});
+
+test("the four workshop entries share one opt-in across discovery and direct navigation", () => {
+  const beta = { ...normal, is_admin: true, design_beta_enabled: true };
+  const workshopIds = ["dwg-werkstatt", "ifc-viewer", "planvergleich"];
+  for (const policy of [normal, { ...beta, is_admin: false }, { ...beta, design_beta_enabled: false }, { ...beta, demo_enabled: true }]) {
+    const visible = toolsForPresentation(policy);
+    for (const id of workshopIds) {
+      assert.equal(visible.some(tool => tool.id === id), false);
+      assert.equal(allowedToolId(id, TOOLS, policy), false);
+    }
+    assert.equal(visible.some(tool => tool.title === "Planabgabe"), false);
+  }
+  assert.deepEqual(toolsForPresentation(null), []);
+  const visible = toolsForPresentation(beta);
+  for (const id of workshopIds) {
+    assert.equal(visible.filter(tool => tool.id === id).length, 1);
+    assert.equal(allowedToolId(id, TOOLS, beta), true);
+  }
+  const delivery = visible.find(tool => tool.id === "planlieferung");
+  assert.equal(delivery?.title, "Planabgabe");
+  assert.equal(delivery?.hiddenFromHub, false);
 });

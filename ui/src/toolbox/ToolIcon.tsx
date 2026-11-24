@@ -1,6 +1,11 @@
 import CalculatorIcon, { CALCULATOR_ICONS } from "../tools/berechnungen/CalculatorIcon";
-import { BookOpen, Sigma } from "lucide-react";
+import { BookOpen, Box, DraftingCompass, Layers2, Sigma } from "lucide-react";
 export default function ToolIcon({ id }: { id: string }) {
+  const betaIcon = { "ifc-viewer": Box, "dwg-werkstatt": DraftingCompass, planvergleich: Layers2 }[id];
+  if (betaIcon) {
+    const Icon = betaIcon;
+    return <Icon size={48} strokeWidth={1.6} aria-hidden="true" />;
+  }
   if (id === "elektro-memory") return <BookOpen size={48} strokeWidth={1.6} aria-hidden="true" />;
   if (id === "formelrechner") return <Sigma size={48} strokeWidth={1.6} aria-hidden="true" />;
   if (CALCULATOR_ICONS[id]) return <CalculatorIcon id={id} size={48} />;

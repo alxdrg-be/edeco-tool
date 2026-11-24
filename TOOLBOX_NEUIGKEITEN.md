@@ -1,3 +1,12 @@
+## Neue Werkzeuge in der persönlichen Admin-Beta · 24. November 2026
+
+Unter **Einstellungen → Neues Design testen (Beta)** erscheinen die Gruppen **Modelle**, **Pläne** und **Abgabe**.
+
+- Der **IFC-Viewer** öffnet ein lokales Modell bis 256 MiB. Modellstruktur, Objektauswahl und BIM-Check verwenden denselben Import.
+- Die **DWG-Werkstatt** verarbeitet eine in Nova exportierte DXF bis 16 MiB. Büroprofile, Vorher/Nachher-Vorschau und Prüfprotokoll helfen beim Aufbereiten einer Kopie.
+- Der **Planvergleich** richtet zwei PDF-Stände an Passpunkten aus. Änderungen lassen sich sichten und als Vergleichs-PDF oder Liste ausgeben.
+- Die **Planabgabe** führt vom PDF-Import über die Indexprüfung zum ZIP mit Planliste. Der Versand wird separat beim Projekt bestätigt.
+
 ## BIM-Check & Raum-Viewer · 24. November 2026
 
 - IFC-Datei lokal öffnen, Geschoss wählen und zwischen Grundriss, 3D und Raumliste wechseln. In 3D lassen sich Raumkörper anklicken und mit einer transparenten Gebäudestruktur ansehen.

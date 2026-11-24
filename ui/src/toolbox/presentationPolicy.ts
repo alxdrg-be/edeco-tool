@@ -1,4 +1,4 @@
-import type { ToolInfo } from "./catalog";
+import { presentationCatalog, type ToolInfo } from "./catalog.ts";
 import { DEMO_DEFAULT_IDS } from './toolContract.ts';
 
 export interface PresentationPolicy {
@@ -22,9 +22,15 @@ export function designBetaEnabled(policy: PresentationPolicy | null): boolean {
 export const DEFAULT_DEMO_TOOLS = DEMO_DEFAULT_IDS;
 
 export function toolAllowed(tool: ToolInfo, policy: PresentationPolicy): boolean {
+  if (tool.designBetaOnly && (!designBetaEnabled(policy) || policy.demo_enabled)) return false;
   if (tool.hiddenFromHub && !policy.is_admin) return false;
   if (!policy.demo_enabled) return true;
   return tool.status === "available" && policy.demo_tools.includes(tool.parentId ?? tool.id);
+}
+
+export function toolsForPresentation(policy: PresentationPolicy | null): readonly ToolInfo[] {
+  if (!policy) return [];
+  return presentationCatalog(designBetaEnabled(policy) && !policy.demo_enabled).filter(tool => toolAllowed(tool, policy));
 }
 
 export function allowedToolId(id: string, tools: readonly ToolInfo[], policy: PresentationPolicy): boolean {

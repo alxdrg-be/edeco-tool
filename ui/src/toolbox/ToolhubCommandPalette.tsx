@@ -5,7 +5,7 @@ import { useDialogFocus } from '../shared/useDialogFocus';
 import { useProjectHub } from '../tools/projektzentrale/projectHubState';
 import { MEMORY_CHAPTERS } from '../tools/elektro-memory/chapters';
 import { TOOLS } from './catalog';
-import { allowedToolId, toolAllowed } from './presentationPolicy';
+import { allowedToolId, toolsForPresentation } from './presentationPolicy';
 import { usePresentation } from './PresentationSettings';
 import { useToolhubTheme } from './useToolhubTheme';
 import ToolIcon from './ToolIcon';
@@ -22,7 +22,7 @@ export default function ToolhubCommandPalette({ close, onHome, onOpenTool, curre
   const words = query.toLocaleLowerCase('de-CH').trim().split(/\s+/).filter(Boolean);
   const matches = (value: string) => words.every(word => value.toLocaleLowerCase('de-CH').includes(word));
   const allowed = (id: string) => Boolean(policy && allowedToolId(id, TOOLS, policy));
-  const tools = TOOLS.filter(tool => policy && toolAllowed(tool, policy) && tool.status === 'available' && matches(`${tool.title} ${tool.description} ${tool.category}`));
+  const tools = toolsForPresentation(policy).filter(tool => tool.status === 'available' && matches(`${tool.title} ${tool.description} ${tool.category}`));
   const projects = allowed('projektzentrale') ? (hub?.projects ?? []).filter(project => !project.archived && matches(`${project.number} ${project.name} ${project.address}`)) : [];
   const chapters = allowed('elektro-memory') ? MEMORY_CHAPTERS.filter(chapter => matches(`${chapter.title} ${chapter.short}`)) : [];
   function navigate(id: string) { close(); onOpenTool?.(id); }

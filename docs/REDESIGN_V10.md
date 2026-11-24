@@ -20,8 +20,7 @@ der allgemeine Demo-Modus aktiviert die Design-Beta nicht. Ein fehlender oder
 nicht lesbarer Beta-Status aktiviert sie ebenfalls nicht. Der Demo-Modus bleibt
 die davon unabhängige Werkzeugauswahl für Präsentationen.
 
-Beide Oberflächen verwenden dieselben Werkzeuge, Berechnungen, Daten und
-Speicherprüfungen. Fachliche Korrekturen, Quellenabbildungen und ergänzte
+Die bestehenden Werkzeuge teilen Berechnungen, Daten und Speicherprüfungen. Fachliche Korrekturen, Quellenabbildungen und ergänzte
 Werkzeugfunktionen bleiben gemeinsam; die bisherige Ansicht ist kein zweiter
 älterer Programmstand. Es gibt keine getrennten Beta-Projektkopien.
 
@@ -30,6 +29,29 @@ Technisch: `presentation.json` bleibt unverändert im bisherigen Schema.
 für tatsächliche Admins einen aktiven `design_beta_enabled`-Status;
 `PUT /api/toolbox/presentation/design-beta` prüft die Rolle erneut. Die
 Entwicklungsfreigabe allgemeiner Einstellungen gilt nicht für diesen Endpunkt.
+
+## Werkzeuge in der persönlichen Beta
+
+Die Startseite ordnet die Werkzeuge in **Modelle**, **Pläne** und **Abgabe**.
+Unter **Weitere Werkzeuge** stehen unter anderem NOVA, die Dispositionen und die
+Berechnungen. Dieselben Berechtigungen gelten für Suche, zuletzt verwendete
+Werkzeuge und direkte Aufrufe. Die Demo-Auswahl bleibt separat.
+
+- Im **IFC-Viewer** eine IFC oder das mitgelieferte Beispiel öffnen. Geschosse,
+  Räume, Eigenschaften und der BIM-Check beziehen sich auf dasselbe importierte
+  Modell. H blendet die Fenster aus, F öffnet das Vollbild. Pro Import gilt
+  die bestehende Grenze von 256 MiB. Der Nova-Listenvergleich liegt im BIM-Check.
+- In der **DWG-Werkstatt** eine aus Nova exportierte DXF öffnen. Ein Büroprofil
+  steuert die Layer und Maskierungen. Die Vorschau stellt Original und Ergebnis
+  gegenüber. Der Export erzeugt eine DXF-Kopie. Fehlende externe Referenzen
+  stehen im Protokoll.
+- Im **Planvergleich** je eine Seite aus zwei PDF-Ständen wählen. An zwei
+  gemeinsamen Punkten ausrichten und die Lage mit einem dritten Punkt
+  kontrollieren. Rot zeigt entfernte, Blau hinzugekommene und Grau
+  übereinstimmende Linien. Die ermittelten Bereiche lassen sich sichten.
+- Die **Planabgabe** nutzt den vorhandenen Lieferungsablauf. PDF-Pläne auswählen,
+  Datei- und Soll-Index prüfen, benennen und als ZIP mit Planliste herunterladen.
+  Die Versandbestätigung im Projektprotokoll erfolgt separat.
 
 ## Gemeinsame Bedienung
 

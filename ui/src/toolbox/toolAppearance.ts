@@ -14,12 +14,17 @@ const palette: Record<string, ToolAppearance> = {
   indigo: { header: '#4c4fb5', accent: '#4c4fb5', lightAccent: '#bcbdf7', tint: '#ededfb' },
   blue: { header: '#3446a8', accent: '#3446a8', lightAccent: '#abb9ff', tint: '#edf0fc' },
   violet: { header: '#6b3fa8', accent: '#6b3fa8', lightAccent: '#d2b2fa', tint: '#f2ebfb' },
+  ocean: { header: '#1a6380', accent: '#1a6380', lightAccent: '#86cee8', tint: '#e6f3f8' },
+  umber: { header: '#855234', accent: '#855234', lightAccent: '#e2b092', tint: '#f8ede5' },
+  plum: { header: '#824677', accent: '#824677', lightAccent: '#e6b5dc', tint: '#f8edf5' },
+  pine: { header: '#316e60', accent: '#316e60', lightAccent: '#93ceba', tint: '#e7f3ec' },
   coral: { header: '#a83d29', accent: '#a83d29', lightAccent: '#f2af9f', tint: '#fceeea' },
 };
 
 /** UI chrome only. CAD layers, device colours and check statuses keep their own colours. */
 export function toolAppearance(id: string | null): ToolAppearance {
   if (!id) return palette.home;
+  if (id === 'planlieferung') return palette.pine;
   if (id === 'verteiler-dispo') return palette.olive;
   if (id === 'netzplaner') return palette.network;
   if (id === 'formelrechner' || id === 'elektro-memory') return palette.indigo;

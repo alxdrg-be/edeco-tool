@@ -12,7 +12,7 @@ import threading
 import uuid
 from pathlib import Path
 
-from fastapi import HTTPException
+from fastapi import HTTPException, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -164,6 +164,12 @@ class PresentationStore:
             finally:
                 temporary.unlink(missing_ok=True)
             return self.snapshot()
+
+
+def require_design_beta(request: Request) -> None:
+    policy = request.app.state.presentation.snapshot()
+    if not policy["is_admin"] or not policy["design_beta_enabled"] or policy["demo_enabled"]:
+        raise HTTPException(403, "Dieses Werkzeug erfordert die aktive persönliche Admin-Design-Beta ausserhalb des Demo-Modus.")
 
 
 def register(app):

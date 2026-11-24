@@ -1,5 +1,5 @@
 import { WORKBENCH_TOOLS } from "../tools/berechnungen/workbench/catalog.ts";
-import { hiddenTool } from './toolContract.ts';
+import { betaOnlyTool, hiddenTool } from './toolContract.ts';
 export interface ToolInfo {
   id: string;
   title: string;
@@ -11,6 +11,7 @@ export interface ToolInfo {
   developmentStatus?: "in-progress";
   parentId?: string;
   hiddenFromHub?: boolean;
+  designBetaOnly?: boolean;
 }
 
 /** Planned tools need metadata only; register a loader when their implementation is ready. */
@@ -29,6 +30,12 @@ const TOOL_CATALOG: readonly ToolInfo[] = [
     description: "UV und HV in Millimetern bestücken, Front und Einbau prüfen und mit dokumentierten Hersteller- und VNB-Quellen exportieren.", status: "available", developmentStatus: "in-progress" },
   { id: "bim2steiger", title: "BIM2STEIGER", category: "BIM", symbol: "B2S", color: "blue",
     description: "Steiger-Katalog durchsuchen, BIM-Objekte zuordnen und Ausschreibungen erstellen.", status: "available", developmentStatus: "in-progress" },
+  { id: "ifc-viewer", title: "IFC-Viewer", category: "BIM", symbol: "3D", color: "ocean",
+    description: "IFC-Fachmodell in 3D ansehen, Bauteile auswählen und Eigenschaften nachschlagen.", status: "available" },
+  { id: "dwg-werkstatt", title: "DWG-Werkstatt", category: "Pläne", symbol: "DXF", color: "umber",
+    description: "DXF aus Nova öffnen, Architektur-Layer nach Büroprofil aufbereiten und eine Kopie exportieren.", status: "available" },
+  { id: "planvergleich", title: "Planvergleich", category: "Pläne", symbol: "Δ", color: "plum",
+    description: "Zwei PDF-Planstände an Passpunkten ausrichten und geänderte Linien vergleichen.", status: "available" },
   { id: "bim-check", title: "BIM-Check & Raum-Viewer", category: "BIM", symbol: "IFC", color: "coral",
     description: "IFC-Räume im Grundriss und in 3D ansehen, Nova-Raumlisten auswerten und Attribute und Property-Sets (PSets) mit Excel prüfen.", status: "available", developmentStatus: "in-progress" },
   { id: "dokumenten-assistent", title: "Dokumenten-Assistent", category: "Dokumente", symbol: "KI", color: "violet",
@@ -56,10 +63,20 @@ const TOOL_CATALOG: readonly ToolInfo[] = [
     description: "Schweizer Spannungsfall-Vorprüfung mit Leiterwiderständen bei 55 °C, Live-Leitungsmodell und Querschnittsvergleich.", status: "available", developmentStatus: "in-progress" },
 ];
 
-export const TOOLS: readonly ToolInfo[] = TOOL_CATALOG.map(tool => tool.parentId ? tool : { ...tool, hiddenFromHub: hiddenTool(tool.id) });
+export const TOOLS: readonly ToolInfo[] = TOOL_CATALOG.map(tool => tool.parentId ? tool : { ...tool, hiddenFromHub: hiddenTool(tool.id), designBetaOnly: betaOnlyTool(tool.id) });
 
-export function filterTools(query: string, category: string, parentId?: string, includeHidden = false): readonly ToolInfo[] {
+const CLASSIC_CATALOG = TOOLS.filter(tool => !tool.designBetaOnly);
+const BETA_CATALOG = TOOLS.map(tool => tool.id === "planlieferung"
+  ? { ...tool, title: "Planabgabe", color: "pine", hiddenFromHub: false,
+      description: "PDF-Pläne prüfen, benennen und als ZIP mit Planliste für die Abgabe packen." }
+  : tool);
+
+export function presentationCatalog(workshopBeta: boolean): readonly ToolInfo[] {
+  return workshopBeta ? BETA_CATALOG : CLASSIC_CATALOG;
+}
+
+export function filterTools(query: string, category: string, parentId?: string, catalog: readonly ToolInfo[] = CLASSIC_CATALOG): readonly ToolInfo[] {
   const words = query.toLocaleLowerCase("de-CH").trim().split(/\s+/).filter(Boolean);
-  return TOOLS.filter(tool => tool.parentId === parentId && (includeHidden || !tool.hiddenFromHub) && (category === "Alle" || tool.category === category) &&
+  return catalog.filter(tool => tool.parentId === parentId && !tool.hiddenFromHub && (category === "Alle" || tool.category === category) &&
     words.every(word => `${tool.title} ${tool.description} ${tool.category}`.toLocaleLowerCase("de-CH").includes(word)));
 }

@@ -72,6 +72,27 @@
       "demo_eligible": false,
       "demo_default": false,
       "hidden_from_hub": true
+    },
+    {
+      "id": "ifc-viewer",
+      "demo_eligible": false,
+      "demo_default": false,
+      "hidden_from_hub": false,
+      "design_beta_only": true
+    },
+    {
+      "id": "dwg-werkstatt",
+      "demo_eligible": false,
+      "demo_default": false,
+      "hidden_from_hub": false,
+      "design_beta_only": true
+    },
+    {
+      "id": "planvergleich",
+      "demo_eligible": false,
+      "demo_default": false,
+      "hidden_from_hub": false,
+      "design_beta_only": true
     }
   ]
 }

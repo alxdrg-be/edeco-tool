@@ -210,3 +210,56 @@
 :where(:root[data-design-beta="true"]) .hub-header-tools > * { align-self:center; }
 @media(max-width:760px){ :where(:root[data-design-beta="true"]) .hub-header-tools > details { display:inline-flex; align-items:center; height:32px; } }
 :where(:root[data-design-beta="true"]) .hub-header-tools :is(button, a, summary):not(.hub-project-context) { height:32px!important; min-height:32px!important; }
+
+.toolhub-frame .tool-color-ocean { --tool:#1a6380; --tool-deep:#134d69; }
+.toolhub-frame .tool-color-umber { --tool:#855234; --tool-deep:#6b4127; }
+.toolhub-frame .tool-color-plum { --tool:#824677; --tool-deep:#68375f; }
+.toolhub-frame .tool-color-pine { --tool:#316e60; --tool-deep:#24574a; }
+.beta-tool-groups {
+  display:grid;
+  grid-template-columns:repeat(3, minmax(0, 1fr));
+  gap:16px;
+}
+.beta-tool-section { min-width:0; }
+.beta-tool-section > h2 {
+  color:var(--fg);
+  font-size:16px;
+  margin:0 0 9px;
+}
+.beta-tool-list h3 { height:100%; margin:0; font:inherit; }
+.beta-tool-list { display:grid; gap:7px; }
+.toolhub-frame .beta-tool-groups .toolbox-tile {
+  display:flex;
+  flex-direction:row;
+  align-items:center;
+  gap:12px;
+  text-align:left;
+  min-height:64px;
+  height:100%;
+  padding:9px 12px;
+  border-radius:8px;
+}
+.toolhub-frame .beta-tool-groups .toolbox-tile:hover { transform:none; }
+.toolhub-frame .beta-tool-groups .toolbox-symbol { flex-shrink:0; }
+.beta-tool-label { display:grid; gap:3px; min-width:0; }
+.beta-tool-name { display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 6px; }
+.beta-tool-status { padding:1px 4px; border:1px solid var(--line); border-radius:4px; font-size:10px; color:var(--muted); }
+.beta-tool-label strong { font-size:14px; line-height:1.3; }
+.beta-tool-label small { font-size:12px; line-height:1.4; color:var(--muted); }
+.beta-tool-link { flex:none; margin-left:auto; color:var(--muted); }
+.beta-tools-other { grid-column:1/-1; }
+.beta-tools-other .beta-tool-list { grid-template-columns:repeat(auto-fit, minmax(min(174px, 100%), 1fr)); }
+
+/* In the IFC workspace only the header reserves space for the edeco mark. */
+:root[data-design-beta="true"]:has(.bc-viewer-main) .hub-rail { display:none; }
+:root[data-design-beta="true"]:has(.bc-viewer-main) .toolhub-frame { padding-left:0; }
+@media (min-width:601px) {
+  :root[data-design-beta="true"]:has(.bc-viewer-main) .toolhub-header { margin-left:var(--hub-rail-width); width:calc(100% - var(--hub-rail-width)); }
+}
+
+@media (max-width:1040px) {
+  .beta-tool-groups { grid-template-columns:repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width:740px) {
+  .beta-tool-groups { grid-template-columns:1fr; }
+}

@@ -1,0 +1,66 @@
+.dwg-workspace {display:flex;flex-direction:column;min-width:0;height:100%;color:var(--fg);background:var(--bg);font-family:var(--font-ui)}
+.dwg-workspace>header {flex:none}
+.dwg-main {flex:1;min-height:0;overflow:auto;padding:18px clamp(14px,2vw,32px) 24px}
+.dwg-main h1,.dwg-main h2,.dwg-main p,.dwg-dialog h2,.dwg-dialog p {margin:0}
+.dwg-title,.dwg-tools,.dwg-dialog header,.dwg-dialog footer {display:flex;align-items:center;justify-content:space-between;gap:12px}
+.dwg-title {flex-wrap:wrap;margin-bottom:16px}
+.dwg-title h1 {font-size:clamp(22px,2vw,31px);line-height:1.22;letter-spacing:-.03em;overflow-wrap:anywhere}
+.dwg-title p {color:var(--muted);font-size:13px;margin-bottom:3px}
+.dwg-main h2,.dwg-dialog h2 {font-size:16px;font-weight:650}
+.dwg-actions,.dwg-tools [role=group],.dwg-profile {display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.dwg-workspace .dwg-primary {color:var(--toolhub-accent);background:var(--toolhub-accent-soft);border-color:var(--toolhub-accent)}
+.dwg-grid {display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,280px);gap:14px;align-items:start}
+.dwg-comparison,.dwg-side>section,.dwg-side>details {min-width:0;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+.dwg-tools {padding:12px 14px;flex-wrap:wrap;border-bottom:1px solid var(--line)}
+.dwg-tools .btn {padding:5px 10px;min-height:32px}
+.dwg-tools [aria-pressed=true] {color:var(--toolhub-accent);border-color:var(--toolhub-accent);background:var(--toolhub-accent-soft)}
+.dwg-sheets {display:grid;grid-template-columns:minmax(0,1fr);gap:1px;background:var(--line);border-radius:0 0 10px 10px;overflow:hidden}
+.dwg-sheets[data-view=vergleich] {grid-template-columns:repeat(2,minmax(0,1fr))}
+.dwg-paper {display:flex;flex-direction:column;min-width:0;margin:0;background:var(--panel)}
+.dwg-paper figcaption {font-size:13px;font-weight:600;padding:12px 14px}
+.dwg-drawing {display:grid;place-items:center;background:#fff;overflow:hidden;padding:8px;min-height:240px}
+.dwg-drawing img {display:block;width:100%;height:clamp(290px,51vh,650px);object-fit:contain}
+.dwg-warn,.dwg-error,.dwg-issues li,.dwg-empty {display:flex;align-items:center;gap:7px}
+.dwg-warn {padding:9px 13px;color:var(--fg);border-top:1px solid var(--line);background:color-mix(in srgb,#c68b03 13%,var(--panel));font-size:13px}
+.dwg-warn svg,.dwg-error svg,.dwg-issues svg {flex:none}
+.dwg-error {border:1px solid color-mix(in srgb,var(--danger) 42%,var(--line));padding:9px 12px;border-radius:8px;margin-bottom:12px}
+.dwg-error span {flex:1}
+.dwg-side {display:grid;gap:12px;align-content:start}
+.dwg-side>section,.dwg-side>details {padding:14px}
+.dwg-side h2 {margin-bottom:12px}
+.dwg-profile {flex-wrap:nowrap}
+.dwg-profile select {flex:1;min-width:0}
+.dwg-side dl {margin:0 0 10px}
+.dwg-side dl>div {display:flex;justify-content:space-between;gap:8px;padding:5px 0;font-size:13px}
+.dwg-side dt,.dwg-side p,.dwg-dialog p {color:var(--muted)}
+.dwg-side dd {font-weight:650;margin:0;text-align:right}
+.dwg-side p,.dwg-dialog p {font-size:13px;line-height:1.5}
+.dwg-side summary {cursor:pointer;font-weight:600;font-size:13px}
+.dwg-side details[open] summary {margin-bottom:7px}
+.dwg-side .btn:has(svg) {min-height:33px}
+.dwg-side dl~.btn {margin-top:10px}
+.dwg-issues {list-style:none;margin:10px 0 0;padding:0}
+.dwg-issues li {font-size:13px;line-height:1.45;align-items:flex-start;border-top:1px solid var(--line);padding:6px 0}
+.dwg-issues svg {color:var(--toolhub-accent);margin-top:2px}
+.dwg-empty {min-height:320px;justify-content:center;flex-wrap:wrap;color:var(--muted)}
+.dwg-spin {animation:dwg-spin 1s linear infinite}
+@keyframes dwg-spin {to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce) {.dwg-spin {animation:none}}
+.dwg-overlay {position:fixed;z-index:15000;inset:0;background:#08141d70;display:grid;place-items:center;padding:16px}
+.dwg-dialog {box-sizing:border-box;display:grid;gap:13px;background:var(--panel);color:var(--fg);border:1px solid var(--line);box-shadow:0 12px 48px #0003;border-radius:12px;padding:18px;width:min(620px,100%);max-height:90vh;overflow:auto}
+.dwg-dialog header {margin-bottom:3px}
+.dwg-dialog footer {justify-content:flex-end;border-top:1px solid var(--line);padding-top:12px}
+.dwg-field {display:grid;gap:5px;font-size:13px;font-weight:600}
+.dwg-workspace :is(input:not([type=checkbox]),select) {padding:7px 9px;min-height:34px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--fg);font:inherit;font-size:13px}
+.dwg-dialog table {border-collapse:collapse;width:100%;text-align:left}
+.dwg-dialog th {font-size:12px;color:var(--muted);font-weight:600}
+.dwg-dialog :is(th,td) {padding:3px}
+.dwg-dialog td :is(select,input) {width:100%;min-width:72px}
+.dwg-rules {max-height:34vh;overflow:auto}
+.dwg-check {display:flex;align-items:center;gap:8px;font-size:13px}
+.dwg-check input {accent-color:var(--toolhub-accent)}
+.dwg-add-rule {justify-self:start}
+.dwg-dialog [role=alert] {color:var(--danger)}
+@media(max-width:1000px) {.dwg-grid {grid-template-columns:minmax(0,1fr) minmax(195px,230px)}}
+@media(max-width:790px) {.dwg-grid {grid-template-columns:minmax(0,1fr)}.dwg-side {grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}.dwg-drawing img {height:33vh}}
+@media(max-width:570px) {.dwg-sheets[data-view=vergleich] {grid-template-columns:minmax(0,1fr)}.dwg-main {padding:12px}.dwg-drawing {min-height:170px}.dwg-drawing img {height:25vh}.dwg-rules {max-height:31vh}}

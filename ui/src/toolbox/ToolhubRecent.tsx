@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ArrowUpRight, Clock } from 'lucide-react';
-import { TOOLS } from './catalog';
-import { toolAllowed, type PresentationPolicy } from './presentationPolicy';
+import { toolsForPresentation, type PresentationPolicy } from './presentationPolicy';
 import ToolIcon from './ToolIcon';
 import { readRecentTools, RECENT_EVENT } from './recentTools';
 
@@ -12,8 +11,9 @@ export default function ToolhubRecent({ policy, onOpenTool }: { policy: Presenta
     window.addEventListener(RECENT_EVENT, update); window.addEventListener('storage', update);
     return () => { window.removeEventListener(RECENT_EVENT, update); window.removeEventListener('storage', update); };
   }, []);
+  const tools = toolsForPresentation(policy);
   const visible = recent.flatMap(item => {
-    const tool = TOOLS.find(tool => tool.id === item.id && !tool.hiddenFromHub && toolAllowed(tool, policy));
+    const tool = tools.find(tool => tool.id === item.id && !tool.hiddenFromHub);
     return tool ? [{ ...item, tool }] : [];
   }).slice(0, 5);
   return <section className="hub-home-recent" aria-labelledby="hub-recent-title">

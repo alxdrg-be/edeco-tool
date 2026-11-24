@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Focus, LoaderCircle, Maximize2, Minus, Plus, Ruler, Scissors, ScanSearch } from "lucide-react";
+import { createPortal } from "react-dom";
 import type { Vector3 } from "three";
 import { responseError } from "../../shared/http";
 import { IfcViewerEngine } from "./ifcViewerEngine";
@@ -10,6 +11,7 @@ import "./ifc-viewer.css";
 interface Props {
   ifcUrl: string;
   filename: string;
+  groupsHost?: HTMLDivElement | null;
   elements: ModelElement[];
   floor: string | null;
   selected: string | null;
@@ -22,7 +24,7 @@ interface Props {
 type Load = { state: "loading" } | { state: "error"; message: string } | { state: "ready" };
 const defaultGroups: GroupId[] = ["rooms", "walls", "slabs", "openings", "structure", "stairs", "installation"];
 
-export default function IfcViewer({ ifcUrl, filename, elements, floor, selected, onSelect, report, colorMode: requestedMode, onColorMode: setColorMode }: Props) {
+export default function IfcViewer({ ifcUrl, filename, elements, floor, selected, onSelect, report, groupsHost, colorMode: requestedMode, onColorMode: setColorMode }: Props) {
   const host = useRef<HTMLDivElement>(null);
   const engine = useRef<IfcViewerEngine | null>(null);
   const [load, setLoad] = useState<Load>({ state: "loading" });
@@ -162,13 +164,15 @@ export default function IfcViewer({ ifcUrl, filename, elements, floor, selected,
     if (viewer && selected) await viewer.fit(await viewer.localIds([selected]));
   };
 
-  return <div className="iv">
-    <div className="iv-bar" aria-label="Sichtbare Bauteilgruppen">
+  const groupControls = <div className="iv-bar" aria-label="Sichtbare Bauteilgruppen">
       {viewerGroups.map(group => <label key={group.id} className="iv-chip" data-empty={ready && !counts.get(group.id)}>
         <input type="checkbox" checked={groups.has(group.id)} disabled={!ready || !counts.get(group.id)} onChange={() => toggleGroup(group.id)} />
         {group.label}{ready && <span>{count(counts.get(group.id) ?? 0)}</span>}
       </label>)}
-    </div>
+    </div>;
+
+  return <div className="iv">
+    {groupsHost ? createPortal(groupControls, groupsHost) : groupsHost === undefined && groupControls}
     <div className="iv-bar">
       <div className="iv-seg" role="group" aria-label="Farben">
         <button type="button" aria-pressed={colorMode === "ifc"} onClick={() => setColorMode("ifc")}>IFC-Farben</button>

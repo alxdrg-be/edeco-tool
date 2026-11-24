@@ -1,0 +1,38 @@
+.delivery-flow { max-width: 1480px; margin-inline: auto; padding: 20px clamp(14px, 2vw, 32px) 40px; }
+.delivery-flow-heading, .delivery-flow-steps, .delivery-flow-footer, .delivery-flow-files li, .delivery-flow-summary div { display: flex; align-items: center; gap: 10px; }
+.delivery-flow-heading { justify-content: space-between; margin-bottom: 16px; }
+.delivery-flow h1 { margin: 0; font-size: 26px; letter-spacing: -.035em; }
+.delivery-flow h2 { margin: 0 0 12px; font-size: 18px; }
+.delivery-flow p, .delivery-flow-heading>span, .delivery-flow small { color: var(--muted); font-size: 13px; line-height: 1.55; }
+.delivery-flow-steps { border-bottom: 1px solid var(--line); margin-bottom: 18px; flex-wrap: wrap; gap: 4px; }
+.delivery-flow-steps button { border: 0; border-bottom: 2px solid transparent; background: transparent; color: var(--muted); padding: 8px 12px; font: inherit; font-weight: 600; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; }
+.delivery-flow-steps button span { display: grid; place-items: center; width: 21px; height: 21px; border: 1px solid var(--line-strong); border-radius: 50%; font-variant-numeric: tabular-nums; }
+.delivery-flow-steps button[aria-current] { border-color: var(--accent); color: var(--accent); }
+.delivery-flow-steps button[aria-current] span { border-color: currentColor; }
+.delivery-flow-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(270px, 1fr); gap: 16px; align-items: start; }
+.delivery-flow-panel, .delivery-flow-grid>.rename-template, .delivery-flow-grid>.delivery-history { margin: 0; min-width: 0; border: 1px solid var(--line); border-radius: 12px; padding: 20px; background: var(--panel); }
+.delivery-flow .delivery-fields { grid-template-columns: repeat(2, minmax(0,1fr)); }
+.delivery-flow .delivery-fields label:first-child { grid-column: 1/-1; }
+.delivery-flow-drop, .delivery-flow-empty { margin-block: 12px; min-height: 130px; width: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 8px; padding: 16px; }
+.delivery-flow-drop { cursor: pointer; font: inherit; color: var(--accent); background: var(--bg); border: 1px dashed var(--line-strong); border-radius: 9px; }
+.delivery-flow-drop:hover, .delivery-flow-drop:focus-visible { border-color: var(--accent); background: var(--accent-soft); }
+.delivery-flow-files { display: grid; gap: 6px; list-style: none; margin: 0; padding: 0; }
+.delivery-flow-files li, .delivery-flow-summary div { justify-content: space-between; border-bottom: 1px solid var(--line); padding: 8px 0; }
+.delivery-flow-files strong, .delivery-flow-files small, .delivery-flow-table small { display: block; overflow-wrap: anywhere; }
+.delivery-flow-files li strong { font-size: 14px; }
+.delivery-flow-files button { flex-shrink: 0; }
+.delivery-flow-table { overflow-x: auto; margin-top: 14px; }
+.delivery-flow-table table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.delivery-flow-table th, .delivery-flow-table td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+.delivery-flow-table th { color: var(--muted); }
+.delivery-flow-table td { min-width: 86px; }
+.delivery-flow-table td:first-child { min-width: 140px; overflow-wrap: anywhere; }
+.delivery-flow-table td[data-index-state="Stimmt überein"] { color: var(--success, var(--fg)); }
+.delivery-flow-table td[data-index-state="Index weicht ab"], .delivery-flow-table td[data-index-state="Datei-Index fehlt"] { color: var(--danger); }
+.delivery-flow-summary dd { margin: 0; font-weight: 600; }
+.delivery-flow-download { margin-top: 20px; }
+.delivery-flow-footer { justify-content: flex-end; padding-top: 15px; }
+.delivery-flow-footer button:first-child:not(.primary) { margin-right: auto; }
+.delivery-flow .delivery-flow-notice { color: var(--fg); padding: 10px 12px; border-left: 3px solid var(--accent); }
+@media(max-width: 800px) { .delivery-flow-grid { grid-template-columns: minmax(0,1fr); } .delivery-flow-steps button { padding: 7px; } }
+@media(max-width: 520px) { .delivery-flow .delivery-fields { grid-template-columns: minmax(0,1fr); } .delivery-flow-panel { padding: 12px; } }

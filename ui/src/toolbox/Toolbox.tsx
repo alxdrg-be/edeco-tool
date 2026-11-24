@@ -1,8 +1,9 @@
 import { Component, Suspense, useEffect, useRef, useState, type ReactNode } from "react";
 import { Moon, Sun } from "lucide-react";
-import { filterTools, TOOLS } from "./catalog";
+import { filterTools, presentationCatalog, TOOLS } from "./catalog";
 import { MODULES } from "./modules";
 import ToolIcon from "./ToolIcon";
+import BetaToolGroups from "./BetaToolGroups";
 import ToolboxUpdates from "./ToolboxUpdates";
 import ProjectPicker from "../tools/projektzentrale/ProjectPicker";
 import { openKnowledge } from "../tools/berechnungen/KnowledgeLink";
@@ -10,7 +11,7 @@ import ToolhubHeader from "./ToolhubHeader";
 import { ToolhubLocation } from "./ToolhubNavigation";
 import { useToolhubTheme } from "./useToolhubTheme";
 import PresentationSettings, { PresentationProvider, ToolhubSettingsDialog, usePresentation } from "./PresentationSettings";
-import { allowedToolId, designBetaEnabled, toolAllowed } from "./presentationPolicy";
+import { allowedToolId, designBetaEnabled, toolsForPresentation } from "./presentationPolicy";
 import "./toolbox.css";
 import "./toolhub-redesign.css";
 import { toolAppearance } from "./toolAppearance";
@@ -61,11 +62,11 @@ function ToolboxContents() {
   const policyRef = useRef(policy);
   policyRef.current = policy;
   const ActiveTool = effectiveActive ? MODULES[effectiveActive] : undefined;
-  const visible = policy ? TOOLS.filter(tool => toolAllowed(tool, policy)) : [];
+  const visible = toolsForPresentation(policy);
   const visibleRoot = visible.filter(tool => !tool.parentId && !tool.hiddenFromHub);
   const categories = ["Alle", ...new Set(visibleRoot.map(tool => tool.category))];
   const filterCategory = categories.includes(category) ? category : "Alle";
-  const tools = filterTools(query, filterCategory).filter(tool => policy && toolAllowed(tool, policy));
+  const tools = filterTools(query, filterCategory, undefined, visible);
 
   useEffect(() => {
     const navigate = () => {
@@ -116,7 +117,7 @@ function ToolboxContents() {
       if (effectiveActive) sessionStorage.setItem("edeco-toolbox-active", effectiveActive);
       else sessionStorage.removeItem("edeco-toolbox-active");
     } catch { /* The toolbox also works when browser storage is disabled. */ }
-    const tool = TOOLS.find(item => item.id === effectiveActive);
+    const tool = presentationCatalog(beta && !policy.demo_enabled).find(item => item.id === effectiveActive);
     const style = document.documentElement.style;
     if (beta) {
       const appearance = toolAppearance(effectiveActive);
@@ -130,7 +131,12 @@ function ToolboxContents() {
     if (tool) document.documentElement.dataset.toolColor = tool.color;
     else delete document.documentElement.dataset.toolColor;
     document.title = tool ? `${tool.title} · edeco Toolhub` : "edeco Toolhub";
-    if (!effectiveActive && active && /^#(?:wissen|memory|rechner)(?:\/|$)/.test(window.location.hash)) history.replaceState(null, "", `${window.location.pathname}${window.location.search}#toolhub`);
+    if (active && !effectiveActive) {
+      setActive(null);
+      if (/^#(?:wissen|memory|rechner)(?:\/|$)/.test(window.location.hash)) {
+        history.replaceState(null, "", `${window.location.pathname}${window.location.search}#toolhub`);
+      }
+    }
     if (!effectiveActive && returning.current) heading.current?.focus();
   }, [active, effectiveActive, policy, beta]);
 
@@ -145,7 +151,7 @@ function ToolboxContents() {
 
   if (ActiveTool) return <ToolBoundary key={effectiveActive} onHome={goHome}>
     <Suspense fallback={<div className="toolhub-loading">
-      <ToolhubHeader title={TOOLS.find(tool => tool.id === effectiveActive)?.title ?? "Werkzeug"} currentToolId={effectiveActive} onHome={goHome}>
+      <ToolhubHeader title={visible.find(tool => tool.id === effectiveActive)?.title ?? "Werkzeug"} currentToolId={effectiveActive} onHome={goHome}>
         <button className="btn toolhub-theme" aria-label={dark ? "Heller Modus" : "Dunkler Modus"} onClick={toggle}>{dark ? "☀ Hell" : "☾ Dunkel"}</button>
       </ToolhubHeader>
       <main className="toolhub-loading-main"><p role="status">Werkzeug wird geladen …</p><div aria-hidden="true" className="toolhub-loading-placeholder" /></main>
@@ -164,9 +170,9 @@ function ToolboxContents() {
     </ToolhubHeader>
     <main className="toolbox-main">
       <section className="toolbox-intro" aria-labelledby="toolbox-title">
-        <div><p className="toolbox-eyebrow">{policy.demo_enabled ? "PRÄSENTATION" : beta ? "DEIN ARBEITSPLATZ" : "PLANEN. VEREINFACHEN. WEITERDENKEN."}</p>
+        <div>{(!beta || policy.demo_enabled) && <p className="toolbox-eyebrow">{policy.demo_enabled ? "PRÄSENTATION" : "PLANEN. VEREINFACHEN. WEITERDENKEN."}</p>}
         <h1 id="toolbox-title" ref={heading} tabIndex={-1}>Ein Ort. Deine Werkzeuge.</h1>
-        <p>{policy.demo_enabled ? "Die ausgewählten Werkzeuge für deine Präsentation." : beta ? "Pläne bearbeiten, berechnen und Wissen nachschlagen." : "Alles für deine Elektroplanung – übersichtlich an einem Ort."}</p></div>
+        {(!beta || policy.demo_enabled) && <p>{policy.demo_enabled ? "Die ausgewählten Werkzeuge für deine Präsentation." : "Alles für deine Elektroplanung – übersichtlich an einem Ort."}</p>}</div>
         {beta && !policy.demo_enabled && <div className="hub-home-project"><span>Aktives Projekt für neue Arbeiten</span><ProjectPicker /></div>}
       </section>
       {beta && <ToolhubRecent policy={policy} onOpenTool={openTool} />}
@@ -180,7 +186,7 @@ function ToolboxContents() {
         </div>
       </div>
       <p className="toolbox-count" role="status">{tools.length} {tools.length === 1 ? "Werkzeug" : "Werkzeuge"} · {tools.filter(t => t.status === "available").length} verfügbar</p>
-      <div className="toolbox-grid">
+      {beta && !policy.demo_enabled ? <BetaToolGroups tools={tools} openTool={openTool} /> : <div className="toolbox-grid">
         {tools.map(tool => {
           const available = tool.status === "available" && Boolean(MODULES[tool.id]);
           const inProgress = tool.developmentStatus === "in-progress";
@@ -199,7 +205,7 @@ function ToolboxContents() {
             </button>
           </article>;
         })}
-      </div>
+      </div>}
       {tools.length === 0 && <div className="toolbox-empty"><h2>Kein passendes Werkzeug</h2>
         <p>Versuche einen anderen Suchbegriff oder wähle eine andere Kategorie.</p>
         <button className="btn" onClick={() => { setQuery(""); setCategory("Alle"); }}>Filter zurücksetzen</button>

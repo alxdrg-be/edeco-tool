@@ -5,6 +5,7 @@ import type { ToolProps } from "../../toolbox/modules";
 import { readJson, responseError } from "../../shared/http";
 import { downloadBlob } from "../../shared/download";
 import CheckGuide from "./CheckGuide";
+import ViewerWorkspace from "./ViewerWorkspace";
 import Findings from "./Findings";
 import ListCompare, { type Comparison } from "./ListCompare";
 import Inspector from "./Inspector";
@@ -21,7 +22,9 @@ function removeModel(id: string) {
   return fetch(modelPath(id), { method: "DELETE", keepalive: true }).catch(() => undefined);
 }
 
-export default function BimCheck({ onHome, onOpenTool }: ToolProps) {
+export default function BimCheck({ onHome, onOpenTool, viewerWorkspace = false }: ToolProps & { viewerWorkspace?: boolean }) {
+  const [checking, setChecking] = useState(false);
+  const standalone = viewerWorkspace && !checking;
   const [model, setModel] = useState<BuildingModel | null>(null);
   const [report, setReport] = useState<Report | null>(null);
   const [guideName, setGuideName] = useState("");
@@ -87,8 +90,8 @@ export default function BimCheck({ onHome, onOpenTool }: ToolProps) {
   async function upload(file: File | undefined, kind: "model" | "guide") {
     if (!file || request.current || (kind === "guide" && !model)) return;
     const isGuide = kind === "guide";
-    if (!(isGuide ? /\.xlsx$/i : /\.(ifc|xlsx)$/i).test(file.name)) {
-      setError(isGuide ? "Wähle eine Excel-Regeldatei (.xlsx)." : "Wähle ein IFC-Modell (.ifc) oder eine Nova-Objektliste (.xlsx).");
+    if (!(isGuide ? /\.xlsx$/i : viewerWorkspace ? /\.ifc$/i : /\.(ifc|xlsx)$/i).test(file.name)) {
+      setError(isGuide ? "Wähle eine Excel-Regeldatei (.xlsx)." : viewerWorkspace ? "Wähle ein IFC-Modell (.ifc)." : "Wähle ein IFC-Modell (.ifc) oder eine Nova-Objektliste (.xlsx).");
       return;
     }
     setBusy(isGuide ? "Regeln werden eingelesen und geprüft …" : "Modell wird eingelesen …"); setError("");
@@ -111,7 +114,8 @@ export default function BimCheck({ onHome, onOpenTool }: ToolProps) {
         setTab(data.summary.rooms > 0 ? "Räume" : "Elemente");
         const floorWithPlan = data.elements.find(item => isRoom(item) && item.polygons.length > 0);
         automaticFloor.current = Boolean(floorWithPlan);
-        setFloor(floorWithPlan?.storey ?? null);
+        setFloor(viewerWorkspace ? null : floorWithPlan?.storey ?? null);
+        setChecking(false);
         setRoomView(floorWithPlan ? "plan" : "list");
         if (previous && previous !== data.id) void removeModel(previous);
       }
@@ -145,7 +149,7 @@ export default function BimCheck({ onHome, onOpenTool }: ToolProps) {
   function closeModel() {
     if (request.current || !model) return;
     void removeModel(model.id); liveId.current = null;
-    setModel(null); setReport(null); setSelected(null); setError(""); setGuideName(""); setDragOver(false); setComparison(null);
+    setChecking(false); setModel(null); setReport(null); setSelected(null); setError(""); setGuideName(""); setDragOver(false); setComparison(null);
   }
   function pick(id: string) {
     const opener = document.activeElement;
@@ -218,15 +222,24 @@ export default function BimCheck({ onHome, onOpenTool }: ToolProps) {
       actions: [{ label: "Bericht herunterladen", primary: true, run: () => void download("report") },
         isIfc ? { label: "Prüfstatus im Viewer", run: () => openViewer("status") } : { label: "Prüfergebnisse", run: () => setTab("Prüfergebnisse") }] },
   ]} />;
+  const inspector = model && active && <div ref={inspectorHost} className="bc-inspector-host" tabIndex={-1}><Inspector key={JSON.stringify([model.id, active.id])} modelUrl={modelPath(model.id)} element={active}
+            onShowIn3D={!standalone && model.source === "IFC" && isRoom(active) && (tab !== "Räume" || roomView !== "scene") ? showSelectedRoomIn3D : undefined}
+            related={linked} findings={findingsByElement.get(active.id) ?? []} hasReport={Boolean(report)} onSelect={selectRelated} onClose={closeInspector} /></div>;
   return <div className="bim-check">
-    <ToolHeader title="BIM-Check & Raum-Viewer" currentToolId="bim-check" onHome={onHome} onOpenTool={onOpenTool} />
-    <main className="bc-main">
-      <input type="file" hidden accept=".ifc,.xlsx" ref={modelInput} aria-label="Modell oder Raumliste importieren"
+    <ToolHeader title={viewerWorkspace ? "IFC-Viewer" : "BIM-Check & Raum-Viewer"} currentToolId={viewerWorkspace ? "ifc-viewer" : "bim-check"} onHome={onHome} onOpenTool={onOpenTool} />
+    <main className={standalone ? "bc-main bc-viewer-main" : "bc-main"}>
+      <input type="file" hidden accept={viewerWorkspace ? ".ifc" : ".ifc,.xlsx"} ref={modelInput} aria-label={viewerWorkspace ? "IFC-Modell importieren" : "Modell oder Raumliste importieren"}
         onChange={e => { const file = e.currentTarget.files?.[0]; e.currentTarget.value = ""; void upload(file, "model"); }} />
       <input type="file" hidden accept=".xlsx" ref={guideInput} aria-label="Excel-Regelwerk importieren"
         onChange={e => { const file = e.currentTarget.files?.[0]; e.currentTarget.value = ""; void upload(file, "guide"); }} />
       {busy && <div className="bc-notice" role="status"><LoaderCircle size={17} className="bc-spin" aria-hidden="true" />{busy}</div>}
       {error && <div className="bc-notice bc-error" role="alert"><AlertCircle size={17} aria-hidden="true" /><span>{error}</span><button type="button" className="bc-icon" aria-label="Fehlermeldung schliessen" onClick={() => setError("")}><X size={16} /></button></div>}
+      {standalone ? <ViewerWorkspace key={model?.id ?? "empty"} model={model} modelUrl={model ? modelPath(model.id) : ""}
+        floor={floor} selected={selected} inspector={inspector} report={report} colorMode={colorMode} onColorMode={setColorMode}
+        busy={Boolean(busy)} onOpen={() => modelInput.current?.click()} onFile={file => upload(file, "model")} onError={setError}
+        onSelect={pick} onFloor={value => { automaticFloor.current = false; setFloor(value); setSelected(null); }}
+        onCheck={() => { setChecking(true); setTab("Prüfergebnisse"); }} onClose={closeModel} /> : <>
+      {viewerWorkspace && <button type="button" className="btn" onClick={() => setChecking(false)}>← Zurück zum IFC-Viewer</button>}
       {tab !== "Listen vergleichen" && guide}
       {!model ? <section className="bc-intro">
         <div className="bc-intro-title"><h1>BIM-Check &amp; Raum-Viewer</h1>
@@ -271,11 +284,9 @@ export default function BimCheck({ onHome, onOpenTool }: ToolProps) {
               <button type="button" className="btn" disabled={Boolean(busy)} onClick={() => guideInput.current?.click()}><FileSpreadsheet size={16} />Excel-Regelwerk auswählen</button></section>
             : <ModelBrowser key={model.id + tab} model={model} modelUrl={modelPath(model.id)} floor={floor} roomsOnly={tab === "Räume"}
               view={roomView} onView={chooseRoomView} query={objectQuery} onQuery={setObjectQuery} selected={selected} onSelect={pick} report={report} colorMode={colorMode} onColorMode={setColorMode} />}
-          {active && <div ref={inspectorHost} className="bc-inspector-host" tabIndex={-1}><Inspector key={JSON.stringify([model.id, active.id])} modelUrl={modelPath(model.id)} element={active}
-            onShowIn3D={model.source === "IFC" && isRoom(active) && (tab !== "Räume" || roomView !== "scene") ? showSelectedRoomIn3D : undefined}
-            related={linked} findings={findingsByElement.get(active.id) ?? []} hasReport={Boolean(report)} onSelect={selectRelated} onClose={closeInspector} /></div>}
+          {inspector}
         </div>
-      </>}
+      </>}</>}
     </main>
   </div>;
 }
