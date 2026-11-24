@@ -1,0 +1,33 @@
+.bc-scene { min-width: 0; }
+.bc-scene-tools, .bc-scene-message {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 9px 20px;
+  padding: 10px 15px; color: var(--muted); font-size: 13px;
+}
+.bc-scene-tools { border-bottom: 1px solid var(--line); }
+.bc-scene-key, .bc-scene-structure, .bc-scene-opacity, .bc-scene-selection {
+  display: inline-flex; align-items: center; gap: 7px;
+}
+.bc-scene-key i, .bc-scene-selection i { width: 10px; height: 10px; border-radius: 3px; background: #88abb2; }
+.bc-scene-structure input { margin: 0; width: 16px; height: 16px; }
+.bc-scene-opacity input { width: 78px; height: 17px; padding: 0; }
+.bc-scene-opacity output { width: 35px; font-variant-numeric: tabular-nums; }
+.bc-scene-stage { position: relative; isolation: isolate; background: var(--panel-sunken); }
+.bc-scene-stage canvas {
+  display: block; width: 100%; height: clamp(295px, 48vh, 620px); touch-action: none; cursor: grab;
+}
+.bc-scene-stage canvas:active { cursor: grabbing; }
+.bc-scene-stage canvas:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.bc-scene-camera, .bc-scene-selection {
+  position: absolute; bottom: 10px; border: 1px solid var(--line-strong); background: var(--panel); color: var(--fg);
+  box-shadow: var(--shadow); border-radius: 7px;
+}
+.bc-scene-camera { right: 10px; padding: 3px; display: flex; gap: 2px; }
+.bc-scene-camera button { padding: 0; width: 32px; height: 32px; display: grid; place-items: center; border: 0; background: none; color: inherit; border-radius: 4px; cursor: pointer; }
+.bc-scene-camera button:hover { background: var(--accent-soft); }
+.bc-scene-selection { left: 10px; max-width: calc(100% - 166px); padding: 5px 9px; font-size: 13px; font-weight: 550; overflow-wrap: anywhere; pointer-events: none; }
+.bc-scene-selection i { flex: none; background: #df8147; }
+.bc-scene-empty { position: absolute; left: 5%; right: 5%; top: 45%; text-align: center; color: var(--muted); font-size: 14px; pointer-events: none; }
+.bc-scene-caption { font-size: 12px; padding: 5px 14px; color: var(--muted); border-bottom: 1px solid var(--line); }
+.bc-scene-warnings { color: var(--muted); padding: 8px 15px; font-size: 13px; }
+.bc-scene-warnings summary { cursor: pointer; }
+.bc-scene-warnings ul { margin-bottom: 4px; }

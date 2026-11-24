@@ -12,6 +12,7 @@ export default function ToolIcon({ id }: { id: string }) {
     planlieferung: <><path d="M8 7h22v27H8ZM15 15h9M15 22h9M17 41h23V16M28 34h17m-6-6 6 6-6 6"/></>,
     "nova-legenden": <><rect x="10" y="7" width="28" height="34" rx="3" /><path d="M17 17h14M23 25h8M23 33h8" /><circle cx="17" cy="25" r="1" /><circle cx="17" cy="33" r="1" /></>,
     bim2steiger: <><path d="m24 5 17 10v18L24 43 7 33V15Z M7 15l17 10 17-10M24 25v18M16 10l17 10v9" /></>,
+    "bim-check": <><path d="M21 40H6V7h35v15M6 22h9m6 0h8M25 7v15M17 22v18" /><circle cx="34" cy="33" r="10" /><path d="m29 33 3.5 3.5 6.5-7" /></>,
     "dokumenten-assistent": <><path d="M27 6H12a3 3 0 0 0-3 3v30a3 3 0 0 0 3 3h13M27 6v12h12M27 6l12 12M16 25h10M16 32h6" /><circle cx="33" cy="32" r="8" /><path d="m39 38 6 6M30 32h6M33 29v6" /></>,
     "dateien-umbenennen": <><path d="M29 6H12a3 3 0 0 0-3 3v30a3 3 0 0 0 3 3h24a3 3 0 0 0 3-3V16ZM29 6v10h10M16 25h10M16 32h7" /><path d="m29 28 7 7m0-7-7 7" /></>,
     "pdf-werkzeuge": <><path d="M29 5H14a3 3 0 0 0-3 3v29a3 3 0 0 0 3 3h23a3 3 0 0 0 3-3V16ZM29 5v11h11M18 24h15M18 31h10M6 13v28a3 3 0 0 0 3 3h22" /></>,

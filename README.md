@@ -10,6 +10,7 @@ direkt über die Kopfzeile wechseln; „Zum Toolhub“ führt zur Übersicht zur
 | --- | --- | --- |
 | NOVA-Legenden | Nutzbar, Work in progress | Petrol |
 | BIM2STEIGER | Nutzbar, Work in progress; lokaler Katalog integriert | Blau |
+| [BIM-Check & Raum-Viewer](docs/BIM_CHECK.md) | IFC-Räume im Grundriss und in 3D mit Gebäudestruktur ansehen, Nova-Raumlisten auswerten und Attribute nach Excel-Regelwerk prüfen | Koralle |
 | Dokumenten-Assistent | Lokale Suche; KI mit Ollama auf dem PC oder über einen Firmenserver; optionale Dokumentordner | Violett |
 | Dateien umbenennen | Nutzbar, Work in progress | Grün |
 | PDF-Werkstatt | Stirling Core mit vollständig mitgelieferter Windows-Offline-Laufzeit | Rosé |
@@ -26,8 +27,7 @@ Originalbildern, Favoriten, Modellimport und Ausschreibungen. Es läuft unter
 `/tools/bim2steiger/` im selben lokalen Server und Desktopfenster wie Nova.
 Änderungsbericht und Anlagentool erscheinen nicht mehr in der Oberfläche.
 Die geplante Leistungsbilanz liegt weiterhin im Bereich Berechnungen.
-Die acht Hauptkacheln sind im normalen Desktopfenster (1400 × 900)
-ohne Scrollen sichtbar; kleinere Fenster können scrollen. Umfang und Reihenfolge
+Die Hauptkacheln passen sich der Fensterbreite an. Umfang und Reihenfolge
 der Erweiterungen stehen im [Ausbauplan](docs/TOOLBOX_AUSBAUPLAN.md).
 
 Der neue Produktname ändert keine bestehenden Datenpfade, AppId oder

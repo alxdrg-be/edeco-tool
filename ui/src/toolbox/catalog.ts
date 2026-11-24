@@ -26,6 +26,8 @@ export const TOOLS: readonly ToolInfo[] = [
     description: "19-Zoll-Racks mit HE-Raster planen, Geräte einrasten, Tiefen prüfen und Portlisten sowie Ansichten exportieren.", status: "available", developmentStatus: "in-progress" },
   { id: "bim2steiger", title: "BIM2STEIGER", category: "BIM", symbol: "B2S", color: "blue",
     description: "Steiger-Katalog durchsuchen, BIM-Objekte zuordnen und Ausschreibungen erstellen.", status: "available", developmentStatus: "in-progress" },
+  { id: "bim-check", title: "BIM-Check & Raum-Viewer", category: "BIM", symbol: "IFC", color: "coral",
+    description: "IFC-Räume im Grundriss und in 3D ansehen, Nova-Raumlisten auswerten und Attribute und Property-Sets (PSets) mit Excel prüfen.", status: "available", developmentStatus: "in-progress" },
   { id: "dokumenten-assistent", title: "Dokumenten-Assistent", category: "Dokumente", symbol: "KI", color: "violet",
     description: "Dokumente durchsuchen, Fragen über eine KI-API beantworten und Quellen im Original markieren.", status: "available", developmentStatus: "in-progress" },
   { id: "dateien-umbenennen", title: "Dateien umbenennen", category: "Dateien", symbol: "Aa", color: "green",

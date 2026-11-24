@@ -1,3 +1,9 @@
+## BIM-Check & Raum-Viewer · 24. November 2026
+
+- IFC-Datei lokal öffnen, Geschoss wählen und zwischen Grundriss, 3D und Raumliste wechseln. In 3D lassen sich Raumkörper anklicken und mit einer transparenten Gebäudestruktur ansehen.
+- Raumnummern, Flächen, Volumen und IFC-Eigenschaften einsehen. Eigene Excel-Prüfregeln importieren und die Ergebnisse als Excel-Datei ausgeben.
+- Raumlisten aus Trimble Nova lassen sich auch ohne IFC tabellarisch auswerten.
+
 ## Rack-Dispo mit Portlisten und Vektorexport · 4. November 2026
 
 - Neues eigenständiges Werkzeug für 19-Zoll-Racks. Geräte rasten im von unten nummerierten HE-Raster ein; Vorderseite, Rückseite und 0-HE-Zubehör sind getrennt. Neutrale 24-/48-Port-Panels, Switches, LWL, Rangierpanels und Zubehör lassen sich ergänzen und bearbeiten.

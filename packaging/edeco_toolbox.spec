@@ -29,19 +29,23 @@ if missing:
 a = Analysis(
     [str(root / "packaging" / "toolbox_launcher.py")],
     pathex=[str(root / "backend")],
-    binaries=collect_dynamic_libs("pypdfium2_raw"),
+    binaries=collect_dynamic_libs("pypdfium2_raw") + collect_dynamic_libs("ifcopenshell"),
     datas=[(str(root / "ui" / "dist"), "ui/dist"),
            (str(root / "backend" / "nova_legend" / "legend" / "template_texts.json"), "nova_legend/legend"),
            (str(root / "backend" / "nova_legend" / "legend" / "resources"), "nova_legend/legend/resources"),
            *bim_datas,
+           (str(root / "packaging" / "licenses" / "ifcopenshell"), "licenses/ifcopenshell"),
            (str(root / "backend" / "bim2steiger" / "version.json"), "bim2steiger"),
            (str(root / "backend" / "edeco_toolbox" / "pdf_workshop" / "assets"), "edeco_toolbox/pdf_workshop/assets"),
            (str(root / "packaging" / "toolbox.ico"), "packaging")]
           + collect_data_files("ezdxf") + collect_data_files("pypdfium2")
+          + collect_data_files("ifcopenshell", includes=["util/*.json", "util/schema/*.json"]) + copy_metadata("ifcopenshell")
           + collect_data_files("pypdfium2_raw") + copy_metadata("pypdfium2") + copy_metadata("pypdf"),
     hiddenimports=(collect_submodules("edeco_toolbox") + collect_submodules("nova_legend") + collect_submodules("uvicorn")
                    + collect_submodules("ezdxf.addons.drawing") + ["ezdxf.addons.importer"]
-                   + collect_submodules("python_multipart") + ["multipart", "webview"]),
+                   # IfcOpenShell loads derived attributes (e.g. Body subcontext dimension) by schema name.
+                   + collect_submodules("ifcopenshell.express.rules")
+                   + collect_submodules("python_multipart") + ["multipart", "webview", "ifcopenshell._ifcopenshell_wrapper"]),
     excludes=["tkinter", "matplotlib", "pytest"],
     noarchive=False,
 )

@@ -10,6 +10,7 @@ from nova_legend.api.app import AppState, register as register_nova
 
 from . import APP_NAME, APP_VERSION, BUILD, COMMIT
 from .bim import create_app as create_bim_app
+from .bim_check.api import register as register_bim_check
 from .update_api import register as register_updates
 from .documents.api import register as register_documents
 from .pdf_workshop.api import register as register_pdf_workshop
@@ -31,6 +32,7 @@ def create_app(state: AppState | None = None, ui_dir: Path | None = None):
     register_presentation(app)
     register_updates(app)
     register_documents(app)
+    register_bim_check(app)
     register_pdf_workshop(app)
     register_file_rename(app)
     register_projects(app)

@@ -15,6 +15,8 @@ Mit der Nutzung werden die beiliegenden Microsoft-Lizenzbedingungen akzeptiert.
 Microsoft kann gemaess seiner Datenschutzerklaerung Nutzungsdaten verarbeiten.
 Dies ist keine Voraussetzung fuer die lokale PDF-Verarbeitung.
 
+IfcOpenShell im BIM-Check: Lizenztexte und Projektangaben unter _internal/licenses/ifcopenshell.
+
 Aktuelle Paketversionen und Updates: https://github.com/alxdrg-be/edeco-tool/releases
 Bei Vorversionen mit der alten 512-MiB-Updategrenze das neue Setup einmal manuell
 starten. Mindestens 6 GB freien Speicher fuer Installation und Updates vorsehen.

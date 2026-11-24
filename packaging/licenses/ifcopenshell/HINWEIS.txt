@@ -1,0 +1,8 @@
+Der BIM-Check verwendet die Python-Bibliothek IfcOpenShell und ihr natives
+Erweiterungsmodul. IfcOpenShell wird unter der GNU Lesser General Public
+License, Version 3 oder spaeter, bereitgestellt. LGPL-3.txt und GPL-3.txt
+enthalten die Lizenztexte. Die installierte Paketversion und Projektangaben
+stehen unter _internal/ifcopenshell-*.dist-info/METADATA.
+
+Projekt und Quellcode: https://github.com/IfcOpenShell/IfcOpenShell
+Python-Pakete: https://pypi.org/project/ifcopenshell/
