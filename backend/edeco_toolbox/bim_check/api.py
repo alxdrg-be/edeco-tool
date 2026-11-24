@@ -194,6 +194,32 @@ def register(app: FastAPI) -> None:
                 (job / "report.xlsx").replace(work / "report.xlsx")
         return Response(results, media_type="application/json", headers={"Cache-Control": "no-store"})
 
+    @router.post("/models/{model_id}/compare")
+    def compare_lists(model_id: str, file: UploadFile):
+        filename = (file.filename or "").replace("\\", "/").rsplit("/", 1)[-1]
+        if Path(filename).suffix.lower() != ".xlsx":
+            raise HTTPException(415, "Bitte eine Nova-Objektliste im Format .xlsx wählen.")
+        directory = sessions.get(model_id)
+        work = Path(directory.name)
+        with processing(), TemporaryDirectory(prefix="vergleich-", dir=work) as temp:
+            job = Path(temp)
+            _save_upload(file, job / "input.xlsx", 64)
+            _run_worker("compare", work, job, model_id, filename)
+            results = (job / "compare.json").read_bytes()
+            with report_io:
+                (job / "compare.xlsx").replace(work / "compare.xlsx")
+        return Response(results, media_type="application/json", headers={"Cache-Control": "no-store"})
+
+    @router.get("/models/{model_id}/compare.xlsx")
+    def compare_export(model_id: str):
+        directory = sessions.get(model_id)
+        try:
+            with report_io:
+                data = (Path(directory.name) / "compare.xlsx").read_bytes()
+        except FileNotFoundError:
+            raise HTTPException(409, "Zuerst einen älteren Stand zum Vergleich öffnen.") from None
+        return _download(data, "Nova-Listenvergleich.xlsx")
+
     @router.get("/template.xlsx")
     def template(source: Literal["IFC", "NOVA"] = "IFC"):
         from .workbook import template_xlsx

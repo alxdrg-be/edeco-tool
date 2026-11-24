@@ -6,6 +6,7 @@ import { readJson, responseError } from "../../shared/http";
 import { downloadBlob } from "../../shared/download";
 import CheckGuide from "./CheckGuide";
 import Findings from "./Findings";
+import ListCompare, { type Comparison } from "./ListCompare";
 import Inspector from "./Inspector";
 import ModelBrowser, { type RoomView } from "./ModelBrowser";
 import { floorLabel, groupBy, isRoom, quantity, type BuildingModel, type ModelElement, type Report } from "./model";
@@ -13,8 +14,8 @@ import "./bim-check.css";
 
 const ROOT = "/api/bim-check";
 const modelPath = (id: string) => `${ROOT}/models/${encodeURIComponent(id)}`;
-type Tab = "Räume" | "Elemente" | "Prüfergebnisse";
-const tabs: Tab[] = ["Räume", "Elemente", "Prüfergebnisse"];
+type Tab = "Räume" | "Elemente" | "Prüfergebnisse" | "Listen vergleichen";
+const baseTabs: Tab[] = ["Räume", "Elemente", "Prüfergebnisse"];
 
 function removeModel(id: string) {
   return fetch(modelPath(id), { method: "DELETE", keepalive: true }).catch(() => undefined);
@@ -36,6 +37,7 @@ export default function BimCheck({ onHome, onOpenTool }: ToolProps) {
   const [colorMode, setColorMode] = useState<"ifc" | "status">("ifc");
   const [explored, setExplored] = useState(false);
   const [reportSaved, setReportSaved] = useState(false);
+  const [comparison, setComparison] = useState<Comparison | null>(null);
   const modelInput = useRef<HTMLInputElement>(null);
   const guideInput = useRef<HTMLInputElement>(null);
   const request = useRef<AbortController | null>(null);
@@ -105,7 +107,7 @@ export default function BimCheck({ onHome, onOpenTool }: ToolProps) {
         if (!mounted.current || controller.signal.aborted) { void removeModel(data.id); return; }
         const previous = liveId.current;
         liveId.current = data.id;
-        setModel(data); setReport(null); setGuideName(""); setSelected(null); setObjectQuery(""); setExplored(false); setReportSaved(false); setColorMode("ifc");
+        setModel(data); setReport(null); setGuideName(""); setSelected(null); setObjectQuery(""); setExplored(false); setReportSaved(false); setColorMode("ifc"); setComparison(null);
         setTab(data.summary.rooms > 0 ? "Räume" : "Elemente");
         const floorWithPlan = data.elements.find(item => isRoom(item) && item.polygons.length > 0);
         automaticFloor.current = Boolean(floorWithPlan);
@@ -143,7 +145,7 @@ export default function BimCheck({ onHome, onOpenTool }: ToolProps) {
   function closeModel() {
     if (request.current || !model) return;
     void removeModel(model.id); liveId.current = null;
-    setModel(null); setReport(null); setSelected(null); setError(""); setGuideName(""); setDragOver(false);
+    setModel(null); setReport(null); setSelected(null); setError(""); setGuideName(""); setDragOver(false); setComparison(null);
   }
   function pick(id: string) {
     const opener = document.activeElement;
@@ -194,6 +196,7 @@ export default function BimCheck({ onHome, onOpenTool }: ToolProps) {
   const roomNames = model?.source === "NOVA" ? "Raumbezüge" : "Räume";
   const warnings = [...new Set([...(model?.warnings ?? []), ...(report?.warnings ?? [])])];
   const isIfc = model?.source === "IFC";
+  const tabs: Tab[] = model?.source === "NOVA" ? [...baseTabs, "Listen vergleichen"] : baseTabs;
   function openViewer(colors: "ifc" | "status") {
     setTab("Räume"); setFloor(null); automaticFloor.current = false;
     setRoomView(isIfc ? "viewer" : "list"); setColorMode(colors); setExplored(true);
@@ -224,7 +227,7 @@ export default function BimCheck({ onHome, onOpenTool }: ToolProps) {
         onChange={e => { const file = e.currentTarget.files?.[0]; e.currentTarget.value = ""; void upload(file, "guide"); }} />
       {busy && <div className="bc-notice" role="status"><LoaderCircle size={17} className="bc-spin" aria-hidden="true" />{busy}</div>}
       {error && <div className="bc-notice bc-error" role="alert"><AlertCircle size={17} aria-hidden="true" /><span>{error}</span><button type="button" className="bc-icon" aria-label="Fehlermeldung schliessen" onClick={() => setError("")}><X size={16} /></button></div>}
-      {guide}
+      {tab !== "Listen vergleichen" && guide}
       {!model ? <section className="bc-intro">
         <div className="bc-intro-title"><h1>BIM-Check &amp; Raum-Viewer</h1>
           <p>IFC-Räume im Grundriss und in 3D ansehen. Modellattribute mit einem Excel-Regelwerk prüfen.</p></div>
@@ -260,7 +263,9 @@ export default function BimCheck({ onHome, onOpenTool }: ToolProps) {
             <option value="">Alle Geschosse</option>{model.summary.storeys.map(s => <option key={s.name} value={"floor:" + s.name}>{floorLabel(s.name)} · {quantity(s.rooms, roomName, roomNames)}</option>)}
           </select></label></div>
         <div className="bc-grid" ref={viewerHost} data-inspector={Boolean(active)}>
-          {tab === "Prüfergebnisse" ? report ? <div className="bc-result-area"><p className="bc-guide-name"><FileSpreadsheet size={15} />{guideName}</p>
+          {tab === "Listen vergleichen" ? <ListCompare modelUrl={modelPath(model.id)} currentName={model.filename} floor={floor}
+            comparison={comparison} onComparison={setComparison} onSelect={pick} />
+            : tab === "Prüfergebnisse" ? report ? <div className="bc-result-area"><p className="bc-guide-name"><FileSpreadsheet size={15} />{guideName}</p>
             <Findings key={guideVersion} report={report} floor={floor} onSelect={pick} /></div>
             : <section className="bc-panel bc-empty-check"><CheckCheck size={24} /><h2>Modell prüfen</h2><p>Wähle eine Excel-Datei mit Prüfregeln für dieses Modell.</p>
               <button type="button" className="btn" disabled={Boolean(busy)} onClick={() => guideInput.current?.click()}><FileSpreadsheet size={16} />Excel-Regelwerk auswählen</button></section>

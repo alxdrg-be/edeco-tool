@@ -16,6 +16,18 @@ def main(args: list[str]) -> int:
         if operation == "scene":
             from .scene import write_scene
             write_scene(model_path / "model.ifc", job / "scene.json")
+        elif operation == "compare":
+            from .compare import compare, compare_xlsx
+            from .nova import parse_nova
+            current = read_model(model_path)
+            if not any("NovaBauteil" in item.classes for item in current.elements):
+                raise ValueError("Der Listenvergleich braucht eine geöffnete Nova-Objektliste.")
+            older = parse_nova(job / "input.xlsx")
+            result = compare(older, current)
+            with json_output(job / "compare.json") as write:
+                write(encode(result))
+            # The worker stores the import file name as the model source.
+            (job / "compare.xlsx").write_bytes(compare_xlsx(result, filename, current.source))
         elif operation == "check":
             from .guide import read_guide
             from .checks import evaluate

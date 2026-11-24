@@ -14,6 +14,19 @@ Das Werkzeug öffnest du im **Toolhub → BIM → BIM-Check & Raum-Viewer**. Es 
 
 Oben im Werkzeug führt eine Leiste in vier Schritten durch die Prüfung: **Modell öffnen**, **Modell ansehen**, **Regeln laden**, **Befunde klären**. Der aktuelle Schritt zeigt einen kurzen Hinweis und die passenden Knöpfe. Erledigte Schritte erhalten einen Haken. Mit **Ausblenden** bleibt nur die Schrittleiste sichtbar. Diese Wahl merkt sich der Browser.
 
+## Nova-Listen vergleichen
+
+Ist eine Nova-Objektliste geöffnet, erscheint das Register **Listen vergleichen**. Es führt in vier Schritten durch den Vergleich: aktuellen Stand öffnen, älteren Stand wählen, Unterschiede ansehen, Bericht speichern.
+
+- **Schlüssel:** Objekte werden über die Spalte «Index» verbunden. Sie ist in Nova-Listen für jedes Objekt gefüllt und eindeutig, anders als die GlobalID.
+- **Arten:** «neu» steht nur im aktuellen Stand, «entfernt» nur im älteren, «geändert» hat mindestens eine andere Angabe.
+- **Zuordnung prüfen:** Fehlt ein Index auf einer Seite, aber genau ein Objekt mit gleicher Klasse, gleichem Geschoss, Raum und gleicher Bezeichnung steht auf der anderen, schlägt das Werkzeug diese Zuordnung vor. Sie gilt nie automatisch, denn zwei gleiche Steckdosen im selben Raum sind schnell verwechselt.
+- **Baustatus:** Änderungen nur am Baustatus sind standardmässig ausgeblendet. Ein Häkchen blendet sie ein.
+- **Datenqualität:** Raumnummern mit mehreren Namen im aktuellen Stand erscheinen separat. Sie sind kein Unterschied zwischen den Ständen.
+- **Bericht:** Die Excel-Datei enthält alle Unterschiede unabhängig von den Filtern, je Feld eine Zeile mit altem und neuem Wert.
+
+Mit zwei Listen von je 28'207 Objekten dauert der Vergleich etwa 25 Sekunden, fast nur für das Einlesen der älteren Liste.
+
 ## IFC-Viewer (Probe)
 
 Der **IFC-Viewer · Probe** zeigt das ganze IFC mit allen Bauteilen. Er läuft vollständig lokal mit [That Open Engine](https://github.com/ThatOpen/engine_components) (MIT) und web-ifc (MPL-2.0). Worker und WASM liegen in der Oberfläche, es wird nichts aus dem Internet geladen. Die Lizenztexte liegen unter `packaging/licenses/ifc-viewer`.
