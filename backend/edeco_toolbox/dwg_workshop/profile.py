@@ -26,3 +26,4 @@ class Profile(BaseModel):
     rules: list[LayerRule] = Field(default_factory=list, max_length=128)
     remove_wipeouts: bool = False
     remove_text_backgrounds: bool = False
+    audit_dxf: bool = False

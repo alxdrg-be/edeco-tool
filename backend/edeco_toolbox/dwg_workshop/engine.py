@@ -64,8 +64,22 @@ def _units(doc):
     return labels.get(code, units.unit_name(code))
 
 
-def _apply(doc, profile):
+def _apply(doc, profile, issues):
     stats = {"grey_layers": 0, "hidden_layers": 0, "wipeouts_removed": 0, "text_backgrounds_removed": 0}
+    if profile.audit_dxf:
+        auditor = doc.audit()
+        stats["audit_fixes"] = len(auditor.fixes)
+        stats["audit_errors"] = len(auditor.errors)
+        for label, entries in (("DXF-Reparatur", auditor.fixes), ("DXF-Fehler offen", auditor.errors)):
+            for item in entries[:5]:
+                message = " ".join(item.message.split())
+                if len(message) > 240:
+                    message = message[:239] + "…"
+                issues.append(f"{label} ({int(item.code)}): {message}")
+            if len(entries) > 5:
+                issues.append(f"{label}: {len(entries) - 5} weitere Meldungen.")
+        if auditor.errors:
+            issues.append("Offene DXF-Fehler vor der Übernahme in Nova prüfen.")
     matches = {}
     for layer in doc.layers:
         name = layer.dxf.name.casefold()
@@ -127,22 +141,30 @@ def run_job(operation: str, source: Path | None, profile: Profile, destination: 
     layers = sorted((l.dxf.name for l in doc.layers), key=str.casefold)
     if len(layers) > 2048:
         raise ValueError("Mehr als 2’048 Layer. Bitte einen kleineren Teilplan öffnen.")
-    if operation == "export":
-        _apply(doc, profile)
-        doc.saveas(destination)
-        return None
-
     issues = []
     unresolved = sorted(block.name for block in doc.blocks if block.block.is_xref or block.block.is_xref_overlay)
     if unresolved:
         names = ", ".join(unresolved[:8]) + (" …" if len(unresolved) > 8 else "")
         references = "externe Referenz" if len(unresolved) == 1 else "externe Referenzen"
-        issues.append(f"Vorschau unvollständig · {len(unresolved)} {references} nicht mitgeladen: {names}.")
+        if operation == "export":
+            issues.append(f"{len(unresolved)} {references}: {names}. Referenzdateien am Zielpfad prüfen.")
+        else:
+            issues.append(f"Vorschau unvollständig · {len(unresolved)} {references} nicht mitgeladen: {names}.")
     unit = _units(doc)
+    # Modelspace insertion base, expressed in the source drawing's units.
+    insertion_base = list(doc.header.get("$INSBASE", (0.0, 0.0, 0.0)))
     if unit == "unbestimmt":
         issues.append("Die Zeichnung weist keine Längeneinheit aus. Einheit in Nova prüfen.")
     if doc.dxfversion < "AC1015" and any(rule.lineweight_mm is not None for rule in profile.rules):
         issues.append("Dieses DXF-Format unterstützt keine Layer-Linienstärken.")
+    if operation == "export":
+        external_types = sorted({entity.dxftype() for entity in doc.entitydb.values() if entity.dxftype() in EXTERNAL})
+        if external_types:
+            issues.append(f"Externe Bilder oder Unterlagen ({', '.join(external_types)}) "
+                          "benötigen ihre Quelldateien am Zielpfad.")
+        stats = _apply(doc, profile, issues)
+        doc.saveas(destination)
+        return {"unit": unit, "insertion_base": insertion_base, "stats": stats, "issues": issues}
     before, skipped_before = _record(doc)
     bounds = before.player().bbox()
     extent = {"width": bounds.size.x, "height": bounds.size.y} if bounds.has_data else None
@@ -153,10 +175,10 @@ def run_job(operation: str, source: Path | None, profile: Profile, destination: 
         box = BoundingBox2d(((0, 0), (1, 1)))
         issues.append("Im Modellbereich wurde keine sichtbare Plangeometrie gefunden.")
     before_svg = _svg(before, box)
-    stats = _apply(doc, profile)
+    stats = _apply(doc, profile, issues)
     after, skipped_after = _record(doc)
     skipped = sorted(skipped_before | skipped_after)
     if skipped:
         issues.append(f"Vorschau unvollständig · nicht dargestellte Elementtypen: {', '.join(skipped)}.")
     return {"before_svg": before_svg, "after_svg": _svg(after, box), "layers": layers,
-            "unit": unit, "extent": extent, "stats": stats, "issues": issues}
+            "unit": unit, "insertion_base": insertion_base, "extent": extent, "stats": stats, "issues": issues}

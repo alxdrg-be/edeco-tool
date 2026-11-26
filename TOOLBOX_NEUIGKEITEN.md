@@ -1,3 +1,7 @@
+## DWG-Werkstatt · Stapelbereinigung in der Admin-Beta
+
+Architektur-DWGs lassen sich mit lokal installiertem ODA File Converter direkt hineinziehen. Ein Büroprofil bereitet den ganzen Plansatz auf. Die optionale DXF-Strukturprüfung meldet Reparaturen und offene Fehler pro Plan. Das ZIP enthält die bereinigten DXF-Kopien für den Import in Nova und ein Stapelprotokoll. Native N4D-Zeichnungen werden in Nova gespeichert.
+
 ## Neue Werkzeuge in der persönlichen Admin-Beta · 24. November 2026
 
 Auf der Startseite stehen alle freigegebenen Werkzeuge in einer gemeinsamen Kachelliste. Admins können unter **Einstellungen → Neues Design testen (Beta)** für ihre eigene Anmeldung vier zusätzliche Kacheln einblenden. Den Wissens-Hub öffnest du über das Buchsymbol oben rechts.

@@ -64,3 +64,12 @@
 @media(max-width:1000px) {.dwg-grid {grid-template-columns:minmax(0,1fr) minmax(195px,230px)}}
 @media(max-width:790px) {.dwg-grid {grid-template-columns:minmax(0,1fr)}.dwg-side {grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}.dwg-drawing img {height:33vh}}
 @media(max-width:570px) {.dwg-sheets[data-view=vergleich] {grid-template-columns:minmax(0,1fr)}.dwg-main {padding:12px}.dwg-drawing {min-height:170px}.dwg-drawing img {height:25vh}.dwg-rules {max-height:31vh}}
+.dwg-title h1+p,.dwg-tools h2+p {margin-top:4px}
+.dwg-tools h2+p {font-size:13px;color:var(--muted);overflow-wrap:anywhere}
+.dwg-planset,.dwg-notice {display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.dwg-planset {margin:0 0 12px}
+.dwg-planset label {display:flex;gap:8px;align-items:center;max-width:100%;font-weight:600;font-size:13px}
+.dwg-planset select {min-width:0;max-width:min(58vw,440px);text-overflow:ellipsis}
+.dwg-planset>span {color:var(--muted);font-size:13px}
+.dwg-main .dwg-notice {margin:0 0 12px;padding:9px 12px;background:var(--panel);border-left:3px solid var(--toolhub-accent);font-size:13px}
+.dwg-side details p+p {margin-top:.5em}

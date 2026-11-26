@@ -43,10 +43,24 @@ zusätzlich die für die Präsentation gewählte Werkzeugauswahl.
   Räume, Eigenschaften und der BIM-Check beziehen sich auf dasselbe importierte
   Modell. H blendet die Fenster aus, F öffnet das Vollbild. Pro Import gilt
   die bestehende Grenze von 256 MiB. Der Nova-Listenvergleich liegt im BIM-Check.
-- In der **DWG-Werkstatt** eine aus Nova exportierte DXF öffnen. Ein Büroprofil
-  steuert die Layer und Maskierungen. Die Vorschau stellt Original und Ergebnis
-  gegenüber. Der Export erzeugt eine DXF-Kopie. Fehlende externe Referenzen
-  stehen im Protokoll.
+- In der **DWG-Werkstatt** die DWG- oder DXF-Originale gemeinsam hineinziehen,
+  ein Büroprofil wählen und einen Plan in der Vorher/Nachher-Vorschau kontrollieren.
+  Für DWG verwendet die Windows-App den lokal installierten ODA File Converter.
+  Sie erkennt ihn im Standardordner unter «Programme/ODA». DXF lässt sich direkt
+  verarbeiten. Ein Stapel umfasst bis zu 24 Pläne mit je 16 MiB und insgesamt
+  128 MiB Eingabe. [ODA File Converter](https://www.opendesign.com/guestfiles/oda_file_converter)
+- Das Profil **Nur CAD-Struktur prüfen** führt die technische Prüfung ohne
+  zusätzliche Darstellungsregeln aus. Im Büroprofil lassen sich beispielsweise Möbellayer ausblenden, Wände grau setzen,
+  Linienstärken vereinheitlichen und Verdeckungsflächen entfernen. Die Option
+  «DXF-Struktur prüfen und reparierbare Fehler beheben» protokolliert Reparaturen
+  und offene Befunde je Arbeitskopie. Dazu gehören etwa ungültige Linientypverweise.
+  Eine allgemeine Suche nach deckungsgleichen Linien ist kein Bestandteil dieser Prüfung.
+- **Stapel als DXF-ZIP speichern** liefert die bereinigten Zeichnungen und
+  das Stapelprotokoll. Auch bei einem fehlerhaften Plan werden die übrigen
+  verarbeitet. Für N4D die DXF-Kopien im gewünschten Nova-Projekt übernehmen
+  und dort speichern. Das Protokoll nennt die Einheit und den Zeichnungsbasispunkt
+  ($INSBASE) in X, Y und Z. Die Lage an bekannten Punkten kontrollieren.
+  Externe Referenzen brauchen ihre Quelldateien und gültige Pfade im Zielprojekt.
 - Im **Planvergleich** je eine Seite aus zwei PDF-Ständen wählen. An zwei
   gemeinsamen Punkten ausrichten und die Lage mit einem dritten Punkt
   kontrollieren. Rot zeigt entfernte, Blau hinzugekommene und Grau

@@ -26,7 +26,8 @@ def main(argv):
         (directory / "error.txt").write_text(error, encoding="utf-8")
         return 2
     except Exception:  # DXF parsers and native geometry may raise several format-specific exceptions
-        (directory / "error.txt").write_text("DXF-Verarbeitung fehlgeschlagen. Die Datei in Nova prüfen und als DXF speichern.", encoding="utf-8")
+        (directory / "error.txt").write_text("Die Arbeitskopie konnte nicht verarbeitet werden. "
+                                             "Bitte die Quelldatei auf Lesbarkeit prüfen.", encoding="utf-8")
         return 2
     return 0
 

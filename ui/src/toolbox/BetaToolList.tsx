@@ -6,7 +6,7 @@ const tasks: Record<string, string> = {
   "ifc-viewer": "IFC-Modell in 3D erkunden",
   "bim-check": "Attribute prüfen und Nova-Listen vergleichen",
   bim2steiger: "IFC-Elemente Katalogartikeln zuordnen",
-  "dwg-werkstatt": "Architekturpläne aus DXF aufbereiten",
+  "dwg-werkstatt": "DWG- und DXF-Pläne im Stapel bereinigen",
   planvergleich: "Zwei PDF-Stände überlagern",
   "pdf-werkzeuge": "PDFs zuschneiden und bearbeiten",
   planlieferung: "Planliste und ZIP-Paket erstellen",

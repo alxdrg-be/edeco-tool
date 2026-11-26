@@ -3,6 +3,8 @@
 Command line of the converter:
     ODAFileConverter <input folder> <output folder> <version> <type> <recurse> <audit> [filter]
 e.g. "ACAD2013" "DXF" "0" "1" "plan.dwg"
+The audit flag is always enabled when reading DWG. The workshop's optional
+DXF audit runs separately on the converted working copy.
 """
 
 from __future__ import annotations
@@ -26,7 +28,12 @@ class ConverterMissing(RuntimeError):
     pass
 
 
-def convert_dwg_to_dxf(dwg: Path, oda_exe: str, out_dir: Path, version: str = "ACAD2013") -> Path:
+class ConversionFailed(RuntimeError):
+    pass
+
+
+def convert_dwg_to_dxf(dwg: Path, oda_exe: str, out_dir: Path, version: str = "ACAD2013", *,
+                       timeout: float = 300) -> Path:
     if not oda_exe:
         raise ConverterMissing(MISSING_MESSAGE)
     try:
@@ -40,11 +47,14 @@ def convert_dwg_to_dxf(dwg: Path, oda_exe: str, out_dir: Path, version: str = "A
         flags = 0x08000000 if sys.platform == "win32" else 0  # CREATE_NO_WINDOW
         proc = subprocess.run(
             [oda_exe, str(in_dir), str(out_dir), version, "DXF", "0", "1", dwg.name],
-            capture_output=True, timeout=300, creationflags=flags)  # noqa: S603 - fixed program
+            stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            timeout=timeout, creationflags=flags)  # noqa: S603 - fixed program
         target = out_dir / (dwg.stem + ".dxf")
-        if not target.exists():
-            raise RuntimeError(f"ODA File Converter hat keine DXF-Datei erzeugt "
-                               f"(Rückgabewert {proc.returncode}).")
+        if proc.returncode != 0:
+            raise ConversionFailed(f"Der ODA File Converter meldet einen Fehler (Code {proc.returncode}). "
+                                   "Eine mögliche Teilausgabe wurde verworfen.")
+        if not target.is_file() or not target.stat().st_size:
+            raise ConversionFailed("Der ODA File Converter hat keine lesbare DXF-Datei erzeugt.")
         return target
     finally:
         shutil.rmtree(in_dir, ignore_errors=True)
